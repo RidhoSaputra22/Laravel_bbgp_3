@@ -1,0 +1,2570 @@
+@php
+    $builderSeed = old('forms', $formBuilderData ?? []);
+    $competencyLevels = \App\Enum\LevelKompetensi::options();
+    $instrumentTypes = \App\Enum\AssessmentInstrumentType::options();
+    $teacherCompetencies = \App\Enum\KompetensiGuru::options();
+    $fieldTypeBadges = $fieldTypes ?? [];
+    $validationErrors = $errors->getMessages();
+    $scoringGuidancePreset = \App\Support\Assessment\ScoringGuidanceAssistant::clientPreset();
+    $formScoringProfiles = [
+        'generic' => 'Umum',
+        'portofolio' => 'Portofolio',
+        'study_case_default' => 'Studi Kasus',
+        'pilihan_ganda_kompleks' => 'Pilihan Ganda Kompleks',
+    ];
+    $fieldScoringMethods = [
+        'presence' => 'Nilai saat ada jawaban',
+        'choice_option_score' => 'Ambil dari skor opsi',
+        'choice_option_average' => 'Rata-rata opsi terpilih',
+        'choice_option_sum' => 'Jumlahkan skor opsi',
+        'choice_option_max' => 'Ambil skor opsi tertinggi',
+        'numeric_threshold' => 'Nilai berdasarkan target angka',
+        'numeric_range' => 'Nilai berdasarkan rentang ideal',
+        'semantic_similarity' => 'Analisis isi jawaban',
+        'keyword_coverage' => 'Cek kata kunci penting',
+        'repeater_completeness' => 'Cek kelengkapan tabel',
+    ];
+@endphp
+
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <div class="font-weight-bold mb-2">Periksa kembali input assessment berikut:</div>
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+@push('styles')
+    <style>
+        .assessment-required {
+            color: #fc544b;
+            font-weight: 700;
+        }
+
+        .assessment-invalid-wrapper {
+            border: 1px solid #fc544b;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .assessment-invalid-list {
+            border: 1px dashed #fc544b;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .invalid-feedback {
+            display: block;
+            font-size: 0.8rem;
+        }
+
+        .multiple-choice-option-row {
+            border: 1px solid #e4e6fc;
+            border-radius: .1rem;
+            padding: 0.75rem;
+            background: #fff;
+        }
+
+        .assessment-builder-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .assessment-builder-actions .custom-switch {
+            padding-left: 2.25rem;
+            margin-bottom: 0;
+        }
+
+        .assessment-builder-actions .custom-control-label {
+            white-space: nowrap;
+        }
+
+        .auto-field-name-hint code {
+            background: #f4f7fb;
+            border-radius: 0.25rem;
+            color: #0c63e7;
+            padding: 0.15rem 0.35rem;
+        }
+
+        .assessment-meta-textarea.form-control {
+            height: 180px !important;
+        }
+
+        .assessment-form-card textarea.form-control,
+        .assessment-field-card textarea.form-control {
+            height: 140px !important;
+            min-height: 140px !important;
+        }
+
+        .scoring-main-note {
+            background: #f8fbff;
+            border: 1px solid #dbe8fb;
+            border-radius: 0.5rem;
+            color: #2d4369;
+            font-size: 0.92rem;
+            padding: 0.85rem 1rem;
+        }
+
+        .scoring-default-summary {
+            background: #fcfcfd;
+            border: 1px dashed #d7dce5;
+            border-radius: 0.5rem;
+            padding: 0.85rem 1rem;
+        }
+
+        .scoring-summary-pill {
+            background: #eef3ff;
+            border-radius: 999px;
+            color: #34539d;
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin: 0 0.4rem 0.4rem 0;
+            padding: 0.28rem 0.7rem;
+        }
+
+        .scoring-advanced-panel {
+            background: #fbfcfe;
+            border: 1px dashed #d7dce5;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+
+        .scoring-helper-status {
+            color: #5f6b7a;
+            display: block;
+            min-height: 1.15rem;
+        }
+
+        .scoring-assist-actions {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: space-between;
+        }
+    </style>
+@endpush
+
+<form action="{{ $formAction }}" method="POST" id="assessment-builder-form">
+    @csrf
+    <input type="hidden" name="forms_payload" id="forms-payload">
+    @if ($httpMethod !== 'POST')
+        @method($httpMethod)
+    @endif
+
+    <div class="card">
+        <div class="card-header">
+            <h4>{{ $pageTitle }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Kode Assessment <span class="assessment-required">*</span></label>
+                        <input type="text" name="kode_assessment"
+                            class="form-control @error('kode_assessment') is-invalid @enderror"
+                            value="{{ old('kode_assessment', $assessment->kode_assessment) }}"
+                            placeholder="Contoh: ASM-001" required>
+                        @error('kode_assessment')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label>Judul Assessment <span class="assessment-required">*</span></label>
+                        <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror"
+                            value="{{ old('judul', $assessment->judul) }}"
+                            placeholder="Masukkan judul assessment" required>
+                        @error('judul')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label>Status <span class="assessment-required">*</span></label>
+                        <select name="status" class="form-control @error('status') is-invalid @enderror" required>
+                            <option value="draft"
+                                @selected(old('status', $assessment->status ?: 'draft') == 'draft')>Draft</option>
+                            <option value="publish"
+                                @selected(old('status', $assessment->status) == 'publish')>Publish</option>
+                            <option value="nonaktif"
+                                @selected(old('status', $assessment->status) == 'nonaktif')>Nonaktif</option>
+                        </select>
+                        @error('status')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Jenis Instrumen Penilaian</label>
+                        <select name="instrument_type"
+                            class="form-control @error('instrument_type') is-invalid @enderror">
+                            <option value="">Pilih jenis instrumen</option>
+                            @foreach ($instrumentTypes as $value => $label)
+                                <option value="{{ $value }}"
+                                    @selected(old('instrument_type', $assessment->instrument_type) === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('instrument_type')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Deskripsi</label>
+                        <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror" rows="6"
+                            placeholder="Deskripsi singkat assessment">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
+                        @error('deskripsi')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Petunjuk Pengisian</label>
+                        <textarea name="petunjuk" class="form-control assessment-meta-textarea @error('petunjuk') is-invalid @enderror" rows="6"
+                            placeholder="Petunjuk untuk pengguna form">{{ old('petunjuk', $assessment->petunjuk) }}</textarea>
+                        @error('petunjuk')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="custom-control custom-switch mt-2">
+                <input type="checkbox" class="custom-control-input" id="assessment-active" name="is_active"
+                    value="1" @checked(old('is_active', $assessment->is_active))>
+                <label class="custom-control-label" for="assessment-active">Aktifkan assessment</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>Form Builder</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-light border">
+                <div class="font-weight-bold mb-2">Petunjuk Penggunaan</div>
+                <ul class="mb-0 pl-3">
+                    <li>Isi informasi assessment di bagian atas terlebih dahulu.</li>
+                    <li>Klik <strong>Tambah Form</strong> di bagian bawah untuk membuat bagian form, lalu tambahkan field di bawah form terkait.</li>
+                    <li>Pilih <strong>jenis instrumen</strong> di level assessment, lalu atur <strong>kompetensi</strong>, <strong>indikator</strong>, dan status <strong>masuk penilaian</strong> di setiap form.</li>
+                    <li>Untuk field <strong>Daftar Pilihan</strong> dan <strong>Kotak Centang</strong>, pisahkan opsi dengan koma atau baris baru.</li>
+                    <li>Untuk field <strong>Pilihan Ganda</strong>, isi <strong>kode jawaban</strong>, <strong>isi jawaban</strong>, dan <strong>level kompetensi</strong> pada setiap opsi.</li>
+                    <li>Pada panel <strong>Pengaturan Skor Otomatis</strong>, isi dulu bagian utama seperti <strong>pedoman penilaian</strong> atau <strong>target angka</strong>. Pengaturan lanjutan bisa dibiarkan otomatis jika tidak diperlukan.</li>
+                    <li>Untuk pertanyaan teks atau tabel, Anda bisa memakai tombol bantuan otomatis agar sistem menyiapkan <strong>kata kunci</strong>, <strong>padanan kata</strong>, dan <strong>saran panjang jawaban</strong> dari deskripsi yang sudah Anda tulis.</li>
+                    <li>Untuk field <strong>Tabel Berulang</strong>, isi konfigurasi JSON kolom tabel sesuai contoh yang tersedia.</li>
+                    <li>Nama field akan dibuat otomatis dari label yang Anda isi.</li>
+                    <li>Aktifkan hanya form dan field yang ingin ditampilkan ke pengguna.</li>
+                </ul>
+            </div>
+
+            <div id="form-builder-empty" class="empty-state d-none" data-height="220">
+                <div class="empty-state-icon bg-primary">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <h2>Belum ada form</h2>
+                <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur assessment dinamis.</p>
+            </div>
+
+            <div id="form-builder-list"></div>
+            @error('forms')
+                <div class="invalid-feedback mt-2">{{ $message }}</div>
+            @enderror
+
+            <div class="text-right mt-3">
+                <button type="button" class="btn btn-primary btn-sm" id="btn-add-form">
+                    <i class="fas fa-plus"></i> Tambah Form
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-right">
+        <a href="{{ route('assessment.index') }}" class="btn btn-light mr-2">Kembali</a>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> {{ $submitLabel }}
+        </button>
+    </div>
+</form>
+
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            const assessmentFieldTypes = @json($fieldTypes);
+            const competencyLevels = @json($competencyLevels);
+            const teacherCompetencies = @json($teacherCompetencies);
+            const formScoringProfiles = @json($formScoringProfiles);
+            const fieldScoringMethods = @json($fieldScoringMethods);
+            const scoringGuidancePreset = @json($scoringGuidancePreset);
+            const initialForms = @json($builderSeed);
+            const validationErrors = @json($validationErrors);
+            const textOptionFieldTypes = ['select', 'checkbox'];
+            const multipleChoiceFieldType = 'radio';
+            const repeaterFieldType = 'repeater';
+            const columnOptions = ['col-md-12', 'col-md-8', 'col-md-6', 'col-md-4'];
+            const $previewPanel = $('#assessment-preview-panel');
+            const $previewContent = $('#assessment-preview-content');
+            const $previewToggleButton = $('.btn-toggle-preview-panel');
+            const requiredMarker = '<span class="assessment-required">*</span>';
+            const errorKeys = Object.keys(validationErrors || {});
+            let formIndexCounter = 0;
+            let previewRenderTimer = null;
+
+            const escapeHtml = (value) => $('<div>').text(value ?? '').html();
+            const joinClasses = (...classes) => classes.filter(Boolean).join(' ');
+
+            const nameToErrorKey = (name) => String(name || '')
+                .replace(/\[(.*?)\]/g, '.$1')
+                .replace(/^\./, '');
+
+            const getFieldError = (name) => {
+                const messages = validationErrors[nameToErrorKey(name)] || [];
+                return Array.isArray(messages) && messages.length ? messages[0] : '';
+            };
+
+            const hasError = (name) => Boolean(getFieldError(name));
+
+            const hasNestedErrors = (prefix) => {
+                const normalizedPrefix = nameToErrorKey(prefix);
+                return errorKeys.some((key) => key === normalizedPrefix || key.startsWith(`${normalizedPrefix}.`));
+            };
+
+            const getInputClass = (name, baseClass = 'form-control') => {
+                return joinClasses(baseClass, hasError(name) ? 'is-invalid' : '');
+            };
+
+            const buildInvalidFeedback = (name, extraClass = '') => {
+                const message = getFieldError(name);
+
+                if (!message) {
+                    return '';
+                }
+
+                return `<div class="${joinClasses('invalid-feedback', 'd-block', extraClass)}">${escapeHtml(message)}</div>`;
+            };
+
+            const buildRequiredLabel = (label) => `${label} ${requiredMarker}`;
+
+            const slugifyFieldName = (value) => String(value || '')
+                .toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '')
+                .replace(/_+/g, '_');
+            const buildAutoFieldNameHint = (labelValue) => {
+                const generatedName = slugifyFieldName(labelValue);
+
+                if (!generatedName) {
+                    return 'Nama field otomatis akan muncul setelah label diisi.';
+                }
+
+                return `Nama field otomatis: <code>${escapeHtml(generatedName)}</code>`;
+            };
+
+            const normalizeChecked = (value) => {
+                return value === true || value === 1 || value === '1' || value === 'on';
+            };
+
+            const buildFieldTypeOptions = (selectedValue) => {
+                return Object.entries(assessmentFieldTypes).map(([value, label]) => {
+                    const selected = value === selectedValue ? 'selected' : '';
+                    return `<option value="${value}" ${selected}>${label}</option>`;
+                }).join('');
+            };
+
+            const buildColumnOptions = (selectedValue) => {
+                return columnOptions.map((value) => {
+                    const selected = value === selectedValue ? 'selected' : '';
+                    return `<option value="${value}" ${selected}>${value}</option>`;
+                }).join('');
+            };
+
+            const buildTeacherCompetencyOptions = (selectedValue) => {
+                let optionsHtml = '<option value="">Pilih kompetensi</option>';
+
+                Object.entries(teacherCompetencies).forEach(([value, label]) => {
+                    const selected = value === selectedValue ? 'selected' : '';
+                    optionsHtml += `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
+                });
+
+                return optionsHtml;
+            };
+
+            const buildFormScoringProfileOptions = (selectedValue) => {
+                let optionsHtml = '<option value="">Ikuti instrumen assessment</option>';
+
+                Object.entries(formScoringProfiles).forEach(([value, label]) => {
+                    const selected = value === selectedValue ? 'selected' : '';
+                    optionsHtml += `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
+                });
+
+                return optionsHtml;
+            };
+
+            const resolveDefaultScoringMethod = (fieldType) => {
+                if (fieldType === multipleChoiceFieldType || fieldType === 'select') {
+                    return 'choice_option_score';
+                }
+
+                if (fieldType === 'checkbox') {
+                    return 'choice_option_average';
+                }
+
+                if (fieldType === 'number') {
+                    return 'numeric_threshold';
+                }
+
+                if (fieldType === repeaterFieldType) {
+                    return 'repeater_completeness';
+                }
+
+                if (['text', 'textarea'].includes(fieldType)) {
+                    return 'semantic_similarity';
+                }
+
+                return 'presence';
+            };
+
+            const resolveAllowedScoringMethods = (fieldType) => {
+                switch (fieldType) {
+                    case multipleChoiceFieldType:
+                    case 'select':
+                        return ['choice_option_score', 'presence'];
+                    case 'checkbox':
+                        return ['choice_option_average', 'choice_option_sum', 'choice_option_max', 'presence'];
+                    case 'number':
+                        return ['numeric_threshold', 'numeric_range', 'presence'];
+                    case 'textarea':
+                    case 'text':
+                        return ['semantic_similarity', 'keyword_coverage', 'presence'];
+                    case repeaterFieldType:
+                        return ['repeater_completeness', 'presence'];
+                    default:
+                        return ['presence'];
+                }
+            };
+
+            const buildFieldScoringMethodOptions = (fieldType, selectedValue) => {
+                const allowedMethods = resolveAllowedScoringMethods(fieldType);
+                const normalizedSelectedValue = allowedMethods.includes(selectedValue)
+                    ? selectedValue
+                    : resolveDefaultScoringMethod(fieldType);
+
+                return allowedMethods.map((value) => {
+                    const selected = value === normalizedSelectedValue ? 'selected' : '';
+                    return `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(fieldScoringMethods[value] || value)}</option>`;
+                }).join('');
+            };
+
+            const normalizeFormScoringConfig = (config = {}) => {
+                return {
+                    profile: String(config?.profile || '').trim(),
+                    weight: config?.weight ?? '',
+                    exclude_from_competency: normalizeChecked(config?.exclude_from_competency),
+                    advanced_rules_text: String(config?.advanced_rules_text || '').trim(),
+                };
+            };
+
+            const normalizeFieldScoringConfig = (config = {}, fieldType = 'text') => {
+                return {
+                    enabled: normalizeChecked(config?.enabled),
+                    profile: String(config?.profile || '').trim(),
+                    method: String(config?.method || resolveDefaultScoringMethod(fieldType)).trim(),
+                    rubric_code: String(config?.rubric_code || '').trim(),
+                    weight: config?.weight ?? '',
+                    score_if_answered: config?.score_if_answered ?? '',
+                    scale_min: config?.scale_min ?? '',
+                    scale_max: config?.scale_max ?? '',
+                    reference_answer: String(config?.reference_answer || '').trim(),
+                    keyword_groups_text: String(config?.keyword_groups_text || '').trim(),
+                    synonym_map_text: String(config?.synonym_map_text || '').trim(),
+                    min_words: config?.min_words ?? '',
+                    confidence_threshold: config?.confidence_threshold ?? '',
+                    manual_review_below_confidence: normalizeChecked(config?.manual_review_below_confidence),
+                    numeric_direction: String(config?.numeric_direction || 'greater_is_better').trim(),
+                    min_threshold: config?.min_threshold ?? '',
+                    target_threshold: config?.target_threshold ?? '',
+                    max_threshold: config?.max_threshold ?? '',
+                    min_score: config?.min_score ?? '',
+                    target_score: config?.target_score ?? '',
+                    max_score: config?.max_score ?? '',
+                    advanced_rules_text: String(config?.advanced_rules_text || '').trim(),
+                };
+            };
+
+            const scoringStopWords = new Set(scoringGuidancePreset?.stop_words || []);
+            const scoringSynonymLibrary = scoringGuidancePreset?.synonym_library || {};
+            const scoringPhraseLibrary = scoringGuidancePreset?.phrase_library || {};
+            const scoringSynonymReverseMap = Object.entries(scoringSynonymLibrary).reduce((carry, [baseWord, variants]) => {
+                const normalizedBaseWord = String(baseWord || '').trim().toLowerCase();
+
+                if (normalizedBaseWord) {
+                    carry[normalizedBaseWord] = normalizedBaseWord;
+                }
+
+                (variants || []).forEach((variant) => {
+                    const normalizedVariant = String(variant || '').trim().toLowerCase();
+
+                    if (normalizedVariant) {
+                        carry[normalizedVariant] = normalizedBaseWord;
+                    }
+                });
+
+                return carry;
+            }, {});
+
+            const normalizeScoringText = (value) => {
+                const rawValue = String(value || '').toLowerCase();
+
+                try {
+                    return rawValue
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '');
+                } catch (error) {
+                    return rawValue;
+                }
+            };
+
+            const sanitizeScoringWords = (value) => normalizeScoringText(value)
+                .replace(/[^a-z0-9\s]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const isMeaningfulScoringWord = (word) => {
+                return Boolean(word) && word.length >= 4 && !scoringStopWords.has(word);
+            };
+
+            const resolveDefaultMinWords = (fieldType) => {
+                if (fieldType === 'textarea') {
+                    return 40;
+                }
+
+                if (fieldType === 'text') {
+                    return 8;
+                }
+
+                return 0;
+            };
+
+            const formatScoringNumber = (value, fallback = '') => {
+                if (value === null || value === undefined || value === '') {
+                    return fallback;
+                }
+
+                return String(value);
+            };
+
+            const extractCuratedScoringTerms = (text) => {
+                const normalizedText = sanitizeScoringWords(text);
+
+                return Object.keys(scoringPhraseLibrary).filter((phrase) => normalizedText.includes(phrase));
+            };
+
+            const extractAdjacentScoringTerms = (text) => {
+                const tokens = sanitizeScoringWords(text).split(/\s+/).filter(Boolean);
+                const phrases = [];
+
+                for (let index = 0; index < tokens.length - 1; index += 1) {
+                    const first = tokens[index];
+                    const second = tokens[index + 1];
+
+                    if (!isMeaningfulScoringWord(first) || !isMeaningfulScoringWord(second)) {
+                        continue;
+                    }
+
+                    const phrase = `${first} ${second}`;
+
+                    if (!phrases.includes(phrase)) {
+                        phrases.push(phrase);
+                    }
+                }
+
+                return phrases.slice(0, 4);
+            };
+
+            const extractImportantScoringWords = (text) => {
+                const words = sanitizeScoringWords(text).split(/\s+/).filter(Boolean);
+                const uniqueWords = [];
+
+                words.forEach((word) => {
+                    if (!isMeaningfulScoringWord(word) || uniqueWords.includes(word)) {
+                        return;
+                    }
+
+                    uniqueWords.push(word);
+                });
+
+                return uniqueWords.slice(0, 8);
+            };
+
+            const buildKeywordGroupFromTerm = (term) => {
+                const normalizedTerm = sanitizeScoringWords(term);
+
+                if (!normalizedTerm) {
+                    return [];
+                }
+
+                if (Object.prototype.hasOwnProperty.call(scoringPhraseLibrary, normalizedTerm)) {
+                    return [normalizedTerm, ...(scoringPhraseLibrary[normalizedTerm] || [])]
+                        .map((item) => String(item || '').trim())
+                        .filter(Boolean);
+                }
+
+                const baseWord = scoringSynonymReverseMap[normalizedTerm] || normalizedTerm;
+                const variants = scoringSynonymLibrary[baseWord] || [];
+
+                return [baseWord, ...variants]
+                    .map((item) => String(item || '').trim())
+                    .filter(Boolean)
+                    .filter((item, index, allItems) => allItems.indexOf(item) === index);
+            };
+
+            const estimateScoringMinWords = (text, fieldType) => {
+                const wordCount = Math.max(sanitizeScoringWords(text).split(/\s+/).filter(Boolean).length, 1);
+                const baseline = fieldType === 'textarea' ? 18 : (fieldType === repeaterFieldType ? 12 : (fieldType === 'text' ? 8 : 5));
+                const ratio = fieldType === 'textarea' ? 0.45 : (fieldType === repeaterFieldType ? 0.30 : (fieldType === 'text' ? 0.35 : 0.25));
+
+                return Math.max(baseline, Math.min(Math.round(wordCount * ratio), 60));
+            };
+
+            const buildScoringGuidanceSuggestion = (sourceText, fieldType = 'text', context = {}) => {
+                const mergedTerms = [
+                    ...extractCuratedScoringTerms(sourceText),
+                    ...extractAdjacentScoringTerms(sourceText),
+                    ...extractImportantScoringWords(sourceText),
+                ].filter(Boolean).filter((term, index, allTerms) => allTerms.indexOf(term) === index).slice(0, 6);
+                const keywordGroups = mergedTerms
+                    .map((term) => buildKeywordGroupFromTerm(term))
+                    .filter((group) => group.length);
+                const synonymLines = keywordGroups
+                    .filter((group) => group.length > 1)
+                    .slice(0, 4)
+                    .map((group) => `${group[0]}: ${group.slice(1).join(', ')}`);
+                const signalKeywords = keywordGroups
+                    .map((group) => group[0])
+                    .filter(Boolean)
+                    .slice(0, 5);
+                const advancedRules = {};
+
+                if (signalKeywords.length) {
+                    advancedRules.signal_keywords = signalKeywords;
+                }
+
+                if (fieldType === repeaterFieldType) {
+                    advancedRules.target_rows = Math.max(Number(context?.target_rows || 1), 1);
+                }
+
+                return {
+                    keyword_groups_text: keywordGroups.length ? keywordGroups.map((group) => group.join(' | ')).join('\n') : '',
+                    synonym_map_text: synonymLines.join('\n'),
+                    min_words: estimateScoringMinWords(sourceText, fieldType),
+                    advanced_rules_text: Object.keys(advancedRules).length ? JSON.stringify(advancedRules, null, 2) : '',
+                };
+            };
+
+            const resolveScoringGuidanceSource = ($fieldCard) => {
+                return [
+                    $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val()?.trim() || '',
+                    $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '',
+                    $fieldCard.find('textarea[name$="[bantuan]"]').val()?.trim() || '',
+                ].filter(Boolean).join('\n');
+            };
+
+            const updateScoringAssistantStatus = ($fieldCard, message = '') => {
+                $fieldCard.find('.scoring-helper-status').text(message);
+            };
+
+            const supportsScoringAssistant = (fieldType, method) => {
+                return (
+                    ['text', 'textarea'].includes(fieldType)
+                    && ['semantic_similarity', 'keyword_coverage'].includes(method)
+                ) || (fieldType === repeaterFieldType && method === 'repeater_completeness');
+            };
+
+            const applyScoringGuidanceSuggestion = ($fieldCard, options = {}) => {
+                const fieldType = $fieldCard.find('.field-type-select').val() || 'text';
+                const method = $fieldCard.find('.field-scoring-method').val() || resolveDefaultScoringMethod(fieldType);
+
+                if (!supportsScoringAssistant(fieldType, method)) {
+                    return false;
+                }
+
+                if (options.copyDescriptionToReference) {
+                    const currentReference = $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val()?.trim() || '';
+                    const descriptionText = $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '';
+
+                    if (!currentReference && descriptionText) {
+                        $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val(descriptionText);
+                    }
+                }
+
+                const sourceText = resolveScoringGuidanceSource($fieldCard);
+
+                if (!sourceText) {
+                    updateScoringAssistantStatus($fieldCard, 'Belum ada deskripsi atau pedoman yang bisa diolah.');
+                    return false;
+                }
+
+                const repeaterConfig = fieldType === repeaterFieldType
+                    ? parseRepeaterConfig($fieldCard.find('textarea[name$="[repeater_config_text]"]').val()?.trim() || '')
+                    : null;
+                const suggestion = buildScoringGuidanceSuggestion(sourceText, fieldType, {
+                    target_rows: repeaterConfig?.min_rows || 1,
+                });
+                const shouldForce = Boolean(options.force);
+                const fillIfNeeded = (selector, value) => {
+                    const $input = $fieldCard.find(selector);
+
+                    if (!value || !$input.length) {
+                        return;
+                    }
+
+                    if (shouldForce || !String($input.val() || '').trim()) {
+                        $input.val(value);
+                    }
+                };
+
+                fillIfNeeded('textarea[name$="[scoring][keyword_groups_text]"]', suggestion.keyword_groups_text);
+                fillIfNeeded('textarea[name$="[scoring][synonym_map_text]"]', suggestion.synonym_map_text);
+                fillIfNeeded('input[name$="[scoring][min_words]"]', suggestion.min_words);
+                fillIfNeeded('textarea[name$="[scoring][advanced_rules_text]"]', suggestion.advanced_rules_text);
+
+                updateScoringAssistantStatus(
+                    $fieldCard,
+                    shouldForce
+                    ? 'Bantuan otomatis diperbarui. Hasilnya masih bisa disesuaikan.'
+                    : 'Saran default disiapkan dari deskripsi dan pedoman yang ada.'
+                );
+
+                return true;
+            };
+
+            const resolveScoringSummaryMessage = (fieldType, method) => {
+                if (method === 'presence') {
+                    return 'Cocok untuk field yang cukup dicek keberadaan jawabannya, seperti unggah file, tanggal, atau isian singkat.';
+                }
+
+                if (fieldType === 'number') {
+                    return 'Isi batas angka minimum, target, dan maksimum. Sistem akan mengubahnya menjadi nilai secara otomatis.';
+                }
+
+                if (fieldType === repeaterFieldType) {
+                    return 'Tuliskan gambaran isi tabel yang baik. Sistem akan menilai kelengkapan baris, kolom wajib, dan mutu isi tabel.';
+                }
+
+                if (['text', 'textarea'].includes(fieldType) && method === 'keyword_coverage') {
+                    return 'Fokuskan pada kata kunci utama yang wajib muncul dalam jawaban peserta.';
+                }
+
+                if (['text', 'textarea'].includes(fieldType)) {
+                    return 'Tuliskan pedoman jawaban dengan bahasa sehari-hari. Sistem akan membaca makna jawaban dan mencocokkannya.';
+                }
+
+                if (['radio', 'select', 'checkbox'].includes(fieldType)) {
+                    return 'Nilai utama diambil dari skor pada setiap opsi jawaban yang Anda isi di bagian atas.';
+                }
+
+                return 'Sistem akan memakai aturan nilai yang paling sesuai dengan tipe pertanyaan ini.';
+            };
+
+            const buildScoringSummaryHtml = ($fieldCard, fieldType, method) => {
+                const scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]').val()?.trim() || '1';
+                const scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '5';
+                const minWords = $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() || resolveDefaultMinWords(fieldType);
+                const confidence = $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()?.trim() || '0.55';
+                const manualReview = $fieldCard.find('input[name$="[scoring][manual_review_below_confidence]"]').is(':checked')
+                    ? 'review manual aktif'
+                    : 'review manual mati';
+                const summaryPills = [
+                    `Cara nilai: ${fieldScoringMethods[method] || method}`,
+                    `Skala: ${formatScoringNumber(scaleMin)}-${formatScoringNumber(scaleMax)}`,
+                ];
+
+                if (supportsScoringAssistant(fieldType, method)) {
+                    summaryPills.push(`Saran minimal kata: ${minWords}`);
+                    summaryPills.push(`Ambang keyakinan: ${confidence}`);
+                }
+
+                if (['radio', 'select', 'checkbox'].includes(fieldType) && method !== 'presence') {
+                    summaryPills.push('Skor mengikuti opsi jawaban');
+                }
+
+                if (fieldType === 'number' && method !== 'presence') {
+                    summaryPills.push('Nilai mengikuti target angka');
+                }
+
+                summaryPills.push(manualReview);
+
+                return summaryPills.map((pill) => `<span class="scoring-summary-pill">${escapeHtml(pill)}</span>`).join('');
+            };
+
+            const generateChoiceLabel = (index) => {
+                let label = '';
+                let number = index + 1;
+
+                while (number > 0) {
+                    number -= 1;
+                    label = String.fromCharCode(65 + (number % 26)) + label;
+                    number = Math.floor(number / 26);
+                }
+
+                return label;
+            };
+
+            const getDefaultCompetencyLevel = (index) => {
+                const optionNumber = Number(index) + 1;
+                return competencyLevels[String(optionNumber)] ? String(optionNumber) : '';
+            };
+
+            const normalizeCompetencyLevelValue = (value, fallbackIndex = null) => {
+                const normalizedValue = String(value ?? '').trim();
+
+                if (normalizedValue && competencyLevels[normalizedValue]) {
+                    return normalizedValue;
+                }
+
+                if (fallbackIndex === null || fallbackIndex === undefined) {
+                    return '';
+                }
+
+                return getDefaultCompetencyLevel(fallbackIndex);
+            };
+
+            const resolveCompetencyLevelLabel = (value) => {
+                const normalizedValue = normalizeCompetencyLevelValue(value);
+                return normalizedValue ? competencyLevels[normalizedValue] || '' : '';
+            };
+
+            const buildCompetencyLevelOptions = (selectedValue, optionIndex = null) => {
+                const normalizedValue = normalizeCompetencyLevelValue(selectedValue, optionIndex);
+                let optionsHtml = '<option value="">Pilih level</option>';
+
+                Object.entries(competencyLevels).forEach(([value, label]) => {
+                    const selected = value === normalizedValue ? 'selected' : '';
+                    optionsHtml += `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
+                });
+
+                return optionsHtml;
+            };
+
+            const looksLikeChoiceCode = (value) => {
+                const normalizedValue = String(value || '').trim();
+
+                if (!normalizedValue || /\s/.test(normalizedValue) || normalizedValue.length > 6) {
+                    return false;
+                }
+
+                return /^[A-Za-z0-9._-]+$/.test(normalizedValue);
+            };
+
+            const looksLikeChoiceAnswerText = (value) => {
+                const normalizedValue = String(value || '').trim();
+
+                if (!normalizedValue) {
+                    return false;
+                }
+
+                return /\s/.test(normalizedValue) || normalizedValue.length >= 6;
+            };
+
+            const normalizeRadioOptionShape = (option = {}) => {
+                if (typeof option === 'string') {
+                    const normalizedValue = option.trim();
+
+                    return {
+                        label: normalizedValue,
+                        value: normalizedValue,
+                        level_kompetensi: '',
+                    };
+                }
+
+                let optionLabel = String(option?.label || '').trim();
+                let optionValue = String(option?.value || '').trim();
+
+                if (looksLikeChoiceCode(optionLabel) && looksLikeChoiceAnswerText(optionValue)) {
+                    [optionLabel, optionValue] = [optionValue, optionLabel];
+                }
+
+                if (!optionLabel && optionValue) {
+                    optionLabel = optionValue;
+                }
+
+                if (!optionValue && optionLabel) {
+                    optionValue = optionLabel;
+                }
+
+                return {
+                    label: optionLabel,
+                    value: optionValue,
+                    level_kompetensi: normalizeCompetencyLevelValue(option?.level_kompetensi),
+                };
+            };
+
+            const normalizeRadioOptions = (options = []) => {
+                if (!Array.isArray(options) || !options.length) {
+                    return [{
+                        label: '',
+                        value: '',
+                        level_kompetensi: getDefaultCompetencyLevel(0),
+                    }, {
+                        label: '',
+                        value: '',
+                        level_kompetensi: getDefaultCompetencyLevel(1),
+                    }];
+                }
+
+                const normalizedOptions = options.map((option, index) => ({
+                    ...normalizeRadioOptionShape(option),
+                    score: option?.score ?? '',
+                    level_kompetensi: normalizeCompetencyLevelValue(option?.level_kompetensi, index),
+                }));
+
+                while (normalizedOptions.length < 2) {
+                    normalizedOptions.push({
+                        label: '',
+                        value: '',
+                        score: '',
+                        level_kompetensi: getDefaultCompetencyLevel(normalizedOptions.length),
+                    });
+                }
+
+                return normalizedOptions;
+            };
+
+            const buildDefaultRepeaterConfigText = () => JSON.stringify({
+                min_rows: 1,
+                max_rows: 10,
+                columns: [{
+                        label: 'Kolom 1',
+                        nama_field: 'kolom_1',
+                        tipe_field: 'text',
+                        placeholder: 'Isi kolom 1',
+                        is_required: true
+                    },
+                    {
+                        label: 'Kolom 2',
+                        nama_field: 'kolom_2',
+                        tipe_field: 'text',
+                        placeholder: 'Isi kolom 2',
+                        is_required: false
+                    },
+                ],
+            }, null, 2);
+
+            const normalizeRepeaterConfigText = (value) => {
+                const rawValue = String(value || '').trim();
+                return rawValue || buildDefaultRepeaterConfigText();
+            };
+
+            const buildRadioOptionRow = (formIndex, fieldIndex, optionIndex, optionData = {}) => {
+                const normalizedOption = normalizeRadioOptionShape(optionData);
+                const optionText = normalizedOption.label || '';
+                const optionCode = normalizedOption.value || '';
+                const optionCompetencyLevel = normalizeCompetencyLevelValue(
+                    normalizedOption.level_kompetensi,
+                    optionIndex
+                );
+                const optionScore = optionData?.score ?? optionCompetencyLevel ?? '';
+                const optionTextName = `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][label]`;
+                const optionCodeName = `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][value]`;
+                const optionScoreName = `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][score]`;
+                const optionCompetencyLevelName =
+                    `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][level_kompetensi]`;
+                const generatedCode = generateChoiceLabel(optionIndex);
+
+                return `
+                    <div class="multiple-choice-option-row mb-2" data-option-index="${optionIndex}">
+                        <div class="row align-items-end">
+                            <div class="col-md-2">
+                                <div class="form-group mb-md-0">
+                                    <label>${buildRequiredLabel('Kode')}</label>
+                                    <input type="text" class="${getInputClass(optionCodeName, 'form-control radio-option-code')}"
+                                        name="${optionCodeName}"
+                                        value="${escapeHtml(optionCode)}"
+                                        placeholder="${escapeHtml(generatedCode)}">
+                                    ${buildInvalidFeedback(optionCodeName)}
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-group mb-md-0">
+                                    <label>${buildRequiredLabel('Isi Jawaban')}</label>
+                                    <input type="text" class="${getInputClass(optionTextName, 'form-control radio-option-text')}"
+                                        name="${optionTextName}"
+                                        value="${escapeHtml(optionText)}"
+                                        placeholder="Contoh: Mengenali faktor yang memengaruhi perilaku peserta didik">
+                                    ${buildInvalidFeedback(optionTextName)}
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-md-0">
+                                    <label>Skor</label>
+                                    <input type="number" min="0" max="5" step="0.01"
+                                        class="${getInputClass(optionScoreName, 'form-control radio-option-score')}"
+                                        name="${optionScoreName}"
+                                        value="${escapeHtml(optionScore)}"
+                                        placeholder="${escapeHtml(optionCompetencyLevel || '')}">
+                                    ${buildInvalidFeedback(optionScoreName)}
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group mb-md-0">
+                                    <label>${buildRequiredLabel('Level Kompetensi')}</label>
+                                    <select class="${getInputClass(optionCompetencyLevelName, 'form-control radio-option-level')}"
+                                        name="${optionCompetencyLevelName}">
+                                        ${buildCompetencyLevelOptions(optionCompetencyLevel, optionIndex)}
+                                    </select>
+                                    ${buildInvalidFeedback(optionCompetencyLevelName)}
+                                </div>
+                            </div>
+                            <div class="col-md-1 text-md-right">
+                                <button type="button" class="btn btn-outline-danger btn-sm btn-remove-radio-option">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const buildFieldCard = (formIndex, fieldIndex, fieldData = {}) => {
+                const fieldType = fieldData.tipe_field || 'text';
+                const showTextOptions = textOptionFieldTypes.includes(fieldType);
+                const showMultipleChoiceOptions = fieldType === multipleChoiceFieldType;
+                const radioOptions = normalizeRadioOptions(fieldData.radio_options);
+                const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
+                const fieldPrefix = `forms[${formIndex}][fields][${fieldIndex}]`;
+                const labelName = `${fieldPrefix}[label]`;
+                const deskripsiName = `${fieldPrefix}[deskripsi]`;
+                const tipeFieldName = `${fieldPrefix}[tipe_field]`;
+                const placeholderName = `${fieldPrefix}[placeholder]`;
+                const urutanName = `${fieldPrefix}[urutan]`;
+                const opsiFieldTextName = `${fieldPrefix}[opsi_field_text]`;
+                const opsiScoreTextName = `${fieldPrefix}[opsi_score_text]`;
+                const repeaterConfigName = `${fieldPrefix}[repeater_config_text]`;
+                const radioOptionsName = `${fieldPrefix}[radio_options]`;
+                const bantuanName = `${fieldPrefix}[bantuan]`;
+                const lebarKolomName = `${fieldPrefix}[lebar_kolom]`;
+                const scoringPrefix = `${fieldPrefix}[scoring]`;
+                const scoringEnabledName = `${scoringPrefix}[enabled]`;
+                const scoringProfileName = `${scoringPrefix}[profile]`;
+                const scoringMethodName = `${scoringPrefix}[method]`;
+                const scoringRubricCodeName = `${scoringPrefix}[rubric_code]`;
+                const scoringWeightName = `${scoringPrefix}[weight]`;
+                const scoringPresenceName = `${scoringPrefix}[score_if_answered]`;
+                const scoringScaleMinName = `${scoringPrefix}[scale_min]`;
+                const scoringScaleMaxName = `${scoringPrefix}[scale_max]`;
+                const scoringReferenceAnswerName = `${scoringPrefix}[reference_answer]`;
+                const scoringKeywordGroupsName = `${scoringPrefix}[keyword_groups_text]`;
+                const scoringSynonymMapName = `${scoringPrefix}[synonym_map_text]`;
+                const scoringMinWordsName = `${scoringPrefix}[min_words]`;
+                const scoringConfidenceThresholdName = `${scoringPrefix}[confidence_threshold]`;
+                const scoringManualReviewName = `${scoringPrefix}[manual_review_below_confidence]`;
+                const scoringNumericDirectionName = `${scoringPrefix}[numeric_direction]`;
+                const scoringMinThresholdName = `${scoringPrefix}[min_threshold]`;
+                const scoringTargetThresholdName = `${scoringPrefix}[target_threshold]`;
+                const scoringMaxThresholdName = `${scoringPrefix}[max_threshold]`;
+                const scoringMinScoreName = `${scoringPrefix}[min_score]`;
+                const scoringTargetScoreName = `${scoringPrefix}[target_score]`;
+                const scoringMaxScoreName = `${scoringPrefix}[max_score]`;
+                const scoringAdvancedRulesName = `${scoringPrefix}[advanced_rules_text]`;
+                const fieldCardClass = joinClasses(
+                    '',
+                    'border',
+                    'assessment-field-card',
+                    'mb-3',
+                    hasNestedErrors(fieldPrefix) ? 'border-danger' : ''
+                );
+                const standardOptionWrapperClass = joinClasses(
+                    'form-group',
+                    'standard-option-wrapper',
+                    showTextOptions ? '' : 'd-none',
+                );
+                const multipleChoiceWrapperClass = joinClasses(
+                    'multiple-choice-wrapper',
+                    showMultipleChoiceOptions ? '' : 'd-none',
+                );
+                const repeaterWrapperClass = joinClasses(
+                    'form-group',
+                    'repeater-option-wrapper',
+                    fieldType === repeaterFieldType ? '' : 'd-none',
+                );
+
+                return `
+                    <div class="${fieldCardClass}" data-field-index="${fieldIndex}" data-radio-option-counter="${radioOptions.length}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Pertanyaan ${fieldIndex + 1}</h6>
+                                <div class="assessment-builder-actions">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input"
+                                            id="field-required-${formIndex}-${fieldIndex}"
+                                            name="forms[${formIndex}][fields][${fieldIndex}][is_required]"
+                                            value="1" ${normalizeChecked(fieldData.is_required) ? 'checked' : ''}>
+                                        <label class="custom-control-label"
+                                            for="field-required-${formIndex}-${fieldIndex}">Field wajib diisi</label>
+                                    </div>
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input"
+                                            id="field-active-${formIndex}-${fieldIndex}"
+                                            name="forms[${formIndex}][fields][${fieldIndex}][is_active]"
+                                            value="1" ${fieldData.is_active === undefined || normalizeChecked(fieldData.is_active) ? 'checked' : ''}>
+                                        <label class="custom-control-label"
+                                            for="field-active-${formIndex}-${fieldIndex}">Field aktif</label>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-remove-field">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label>${buildRequiredLabel('Label Field')}</label>
+                                        <input type="text" class="${getInputClass(labelName, 'form-control field-label-input')}"
+                                            name="${labelName}"
+                                            value="${escapeHtml(fieldData.label)}"
+                                            placeholder="Contoh: Nama Lengkap"
+                                            required>
+                                        ${buildInvalidFeedback(labelName)}
+                                        <small class="form-text text-muted auto-field-name-hint">
+                                            ${buildAutoFieldNameHint(fieldData.label)}
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>${buildRequiredLabel('Tipe Pertanyaan')}</label>
+                                        <select class="${getInputClass(tipeFieldName, 'form-control field-type-select')}"
+                                            name="${tipeFieldName}"
+                                            required>
+                                            ${buildFieldTypeOptions(fieldType)}
+                                        </select>
+                                        ${buildInvalidFeedback(tipeFieldName)}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Urutan</label>
+                                        <input type="number" min="1" class="${getInputClass(urutanName)}"
+                                            name="${urutanName}"
+                                            value="${escapeHtml(fieldData.urutan || fieldIndex + 1)}">
+                                        ${buildInvalidFeedback(urutanName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Deskripsi Pertanyaan</label>
+                                        <textarea class="${getInputClass(deskripsiName)} field-description-input"
+                                            name="${deskripsiName}"
+                                            rows="3"
+                                            placeholder="Tambahkan deskripsi pertanyaan bila diperlukan">${escapeHtml(fieldData.deskripsi)}</textarea>
+                                        ${buildInvalidFeedback(deskripsiName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>Placeholder</label>
+                                        <input type="text" class="${getInputClass(placeholderName)}"
+                                            name="${placeholderName}"
+                                            value="${escapeHtml(fieldData.placeholder)}"
+                                            placeholder="Placeholder field">
+                                        ${buildInvalidFeedback(placeholderName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="${standardOptionWrapperClass}">
+                                <label>${buildRequiredLabel('Opsi Field (Daftar Pilihan / Kotak Centang)')}</label>
+                                <textarea class="${getInputClass(opsiFieldTextName)}"
+                                    name="${opsiFieldTextName}"
+                                    rows="2"
+                                    placeholder="Contoh: Ya, Tidak, Mungkin">${escapeHtml(fieldData.opsi_field_text)}</textarea>
+                                ${buildInvalidFeedback(opsiFieldTextName)}
+                                <small class="text-muted d-block mt-2">
+                                    Isi skor opsi per baris dengan format <code>Label = Skor</code>, misalnya
+                                    <code>Ya = 5</code>.
+                                </small>
+                                <label class="mt-3">Skor Opsi (Opsional)</label>
+                                <textarea class="${getInputClass(opsiScoreTextName)}"
+                                    name="${opsiScoreTextName}"
+                                    rows="3"
+                                    placeholder="Ya = 5&#10;Tidak = 1">${escapeHtml(fieldData.opsi_score_text)}</textarea>
+                                ${buildInvalidFeedback(opsiScoreTextName)}
+                            </div>
+
+                            <div class="${multipleChoiceWrapperClass}">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="mb-0">${buildRequiredLabel('Opsi Pilihan Ganda')}</label>
+                                    <button type="button" class="btn btn-light btn-sm btn-add-radio-option">
+                                        <i class="fas fa-plus"></i> Tambah Opsi
+                                    </button>
+                                </div>
+                                <div class="radio-option-list">
+                                    ${radioOptions.map((option, optionIndex) => buildRadioOptionRow(formIndex, fieldIndex, optionIndex, option)).join('')}
+                                </div>
+                                ${buildInvalidFeedback(radioOptionsName, 'mt-2')}
+                                <small class="text-muted d-block mt-2">
+                                    Kode jawaban akan menjadi nilai yang disimpan saat peserta memilih opsi ini, isi jawaban akan ditampilkan ke peserta, dan level kompetensi ikut tersimpan untuk kebutuhan pemetaan. Jika kolom skor dikosongkan, sistem akan memakai level kompetensi sebagai skor default.
+                                </small>
+
+                            </div>
+
+                            <div class="${repeaterWrapperClass}">
+                                <label>${buildRequiredLabel('Konfigurasi Tabel Berulang (JSON)')}</label>
+                                <textarea class="${getInputClass(repeaterConfigName)} repeater-config-input"
+                                    name="${repeaterConfigName}"
+                                    rows="10"
+                                    placeholder='{"min_rows":1,"max_rows":10,"columns":[{"label":"Kolom 1","nama_field":"kolom_1","tipe_field":"text","is_required":true}]}'">${escapeHtml(normalizeRepeaterConfigText(fieldData.repeater_config_text))}</textarea>
+                                ${buildInvalidFeedback(repeaterConfigName)}
+                                <small class="text-muted d-block mt-2">
+                                    Gunakan JSON untuk mendefinisikan <code>min_rows</code>, <code>max_rows</code>,
+                                    dan daftar <code>columns</code>. Setiap kolom minimal memiliki
+                                    <code>label</code>, <code>nama_field</code>, dan <code>tipe_field</code>.
+                                </small>
+                            </div>
+
+                            <div class="card border mt-4 scoring-config-card">
+                                <div class="card-header bg-light py-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Pengaturan Skor Otomatis</h6>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input field-scoring-enabled"
+                                                id="field-scoring-enabled-${formIndex}-${fieldIndex}"
+                                                name="${scoringEnabledName}"
+                                                value="1" ${scoringData.enabled ? 'checked' : ''}>
+                                            <label class="custom-control-label"
+                                                for="field-scoring-enabled-${formIndex}-${fieldIndex}">Aktif</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body scoring-config-body">
+                                    <div class="scoring-main-note mb-3 scoring-main-guidance">
+                                        Isi bagian utama terlebih dahulu. Jika belum ada kebutuhan khusus, sistem akan memakai aturan default yang aman.
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <div class="form-group">
+                                                <label>Cara Sistem Menilai</label>
+                                                <select class="${getInputClass(scoringMethodName)} form-control field-scoring-method"
+                                                    name="${scoringMethodName}">
+                                                    ${buildFieldScoringMethodOptions(fieldType, scoringData.method)}
+                                                </select>
+                                                ${buildInvalidFeedback(scoringMethodName)}
+                                                <small class="text-muted d-block mt-2">
+                                                    Biasanya sudah sesuai otomatis dengan tipe pertanyaan. Ubah hanya jika diperlukan.
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label>Bobot Nilai Pertanyaan <span class="text-muted">(opsional)</span></label>
+                                                <input type="number" min="0" step="0.01" class="${getInputClass(scoringWeightName)}"
+                                                    name="${scoringWeightName}"
+                                                    value="${escapeHtml(scoringData.weight)}"
+                                                    placeholder="Kosongkan jika bobot sama dengan pertanyaan lain">
+                                                ${buildInvalidFeedback(scoringWeightName)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="scoring-default-summary mb-3">
+                                        <div class="font-weight-bold mb-2">Yang bisa dibiarkan otomatis</div>
+                                        <div class="scoring-default-summary-content">
+                                            <span class="scoring-summary-pill">Skala: 1-5</span>
+                                            <span class="scoring-summary-pill">Ambang keyakinan: 0.55</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="scoring-choice-wrapper d-none mb-3">
+                                        <div class="alert alert-light border mb-0">
+                                            Nilai utama untuk pertanyaan pilihan diambil dari skor pada masing-masing opsi jawaban di atas.
+                                        </div>
+                                    </div>
+
+                                    <div class="scoring-presence-wrapper d-none">
+                                        <div class="form-group">
+                                            <label>Nilai Saat Jawaban Ada</label>
+                                            <input type="number" min="0" max="5" step="0.01"
+                                                class="${getInputClass(scoringPresenceName)}"
+                                                name="${scoringPresenceName}"
+                                                value="${escapeHtml(scoringData.score_if_answered)}"
+                                                placeholder="Contoh: 3">
+                                            ${buildInvalidFeedback(scoringPresenceName)}
+                                            <small class="text-muted d-block mt-2">
+                                                Gunakan untuk field yang cukup dicek keberadaan jawabannya, misalnya unggah file atau tanggal.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row scoring-numeric-wrapper d-none">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Arah Penilaian</label>
+                                                <select class="${getInputClass(scoringNumericDirectionName)} form-control"
+                                                    name="${scoringNumericDirectionName}">
+                                                    <option value="greater_is_better" ${scoringData.numeric_direction === 'greater_is_better' ? 'selected' : ''}>Semakin besar semakin baik</option>
+                                                    <option value="lower_is_better" ${scoringData.numeric_direction === 'lower_is_better' ? 'selected' : ''}>Semakin kecil semakin baik</option>
+                                                    <option value="range" ${scoringData.numeric_direction === 'range' ? 'selected' : ''}>Ada rentang nilai ideal</option>
+                                                </select>
+                                                ${buildInvalidFeedback(scoringNumericDirectionName)}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Batas Minimum</label>
+                                                <input type="number" step="0.01" class="${getInputClass(scoringMinThresholdName)}"
+                                                    name="${scoringMinThresholdName}"
+                                                    value="${escapeHtml(scoringData.min_threshold)}"
+                                                    placeholder="Contoh: 1">
+                                                ${buildInvalidFeedback(scoringMinThresholdName)}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Target / Nilai Ideal</label>
+                                                <input type="number" step="0.01" class="${getInputClass(scoringTargetThresholdName)}"
+                                                    name="${scoringTargetThresholdName}"
+                                                    value="${escapeHtml(scoringData.target_threshold)}"
+                                                    placeholder="Contoh: 10">
+                                                ${buildInvalidFeedback(scoringTargetThresholdName)}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="form-group mb-0">
+                                                <label>Batas Maksimum</label>
+                                                <input type="number" step="0.01" class="${getInputClass(scoringMaxThresholdName)}"
+                                                    name="${scoringMaxThresholdName}"
+                                                    value="${escapeHtml(scoringData.max_threshold)}"
+                                                    placeholder="Contoh: 20">
+                                                ${buildInvalidFeedback(scoringMaxThresholdName)}
+                                                <small class="text-muted d-block mt-2">
+                                                    Jika kosong, sistem akan memakai nilai target sebagai batas atas.
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="scoring-text-wrapper d-none">
+                                        <div class="form-group">
+                                            <div class="scoring-assist-actions mb-2">
+                                                <label class="mb-0">Pedoman Penilaian / Ciri Jawaban yang Diharapkan</label>
+                                                <div class="d-flex flex-wrap" style="gap:0.5rem;">
+                                                    <button type="button" class="btn btn-light btn-sm btn-copy-description-to-scoring">
+                                                        Ambil dari deskripsi pertanyaan
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm btn-generate-scoring-helper">
+                                                        Isi bantuan otomatis
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <textarea class="${getInputClass(scoringReferenceAnswerName)}"
+                                                name="${scoringReferenceAnswerName}"
+                                                rows="4"
+                                                placeholder="Tuliskan dengan bahasa sederhana: jawaban seperti apa yang dianggap baik, bukti apa yang diharapkan, atau isi tabel apa yang perlu muncul">${escapeHtml(scoringData.reference_answer)}</textarea>
+                                            ${buildInvalidFeedback(scoringReferenceAnswerName)}
+                                            <small class="text-muted d-block mt-2">
+                                                Satu deskripsi ini bisa membantu sistem menyusun kata kunci, padanan kata, dan saran panjang jawaban.
+                                            </small>
+                                            <small class="scoring-helper-status mt-2"></small>
+                                        </div>
+                                        <div class="form-group mb-0">
+                                            <label>Kata Kunci Penting</label>
+                                            <textarea class="${getInputClass(scoringKeywordGroupsName)}"
+                                                name="${scoringKeywordGroupsName}"
+                                                rows="4"
+                                                placeholder="Satu fokus per baris, misalnya: sertifikat | piagam&#10;program studi | bidang studi">${escapeHtml(scoringData.keyword_groups_text)}</textarea>
+                                            ${buildInvalidFeedback(scoringKeywordGroupsName)}
+                                            <small class="text-muted d-block mt-2">
+                                                Boleh dikosongkan lalu gunakan bantuan otomatis. Anda tetap bisa mengubah hasilnya kapan saja.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="scoring-advanced-panel d-none">
+                                        <div class="font-weight-bold mb-3">Pengaturan Lanjutan</div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Konteks Penilaian</label>
+                                                    <select class="${getInputClass(scoringProfileName)} form-control field-scoring-profile"
+                                                        name="${scoringProfileName}">
+                                                        ${buildFormScoringProfileOptions(scoringData.profile)}
+                                                    </select>
+                                                    ${buildInvalidFeedback(scoringProfileName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Kode Rubrik / Indikator <span class="text-muted">(opsional)</span></label>
+                                                    <input type="text" class="${getInputClass(scoringRubricCodeName)}"
+                                                        name="${scoringRubricCodeName}"
+                                                        value="${escapeHtml(scoringData.rubric_code)}"
+                                                        placeholder="Contoh: P2 / K1">
+                                                    ${buildInvalidFeedback(scoringRubricCodeName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Skala Minimum</label>
+                                                    <input type="number" min="0" max="5" step="0.01"
+                                                        class="${getInputClass(scoringScaleMinName)}"
+                                                        name="${scoringScaleMinName}"
+                                                        value="${escapeHtml(scoringData.scale_min)}"
+                                                        placeholder="1">
+                                                    ${buildInvalidFeedback(scoringScaleMinName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <div class="form-group">
+                                                    <label>Skala Maksimum</label>
+                                                    <input type="number" min="0" max="5" step="0.01"
+                                                        class="${getInputClass(scoringScaleMaxName)}"
+                                                        name="${scoringScaleMaxName}"
+                                                        value="${escapeHtml(scoringData.scale_max)}"
+                                                        placeholder="5">
+                                                    ${buildInvalidFeedback(scoringScaleMaxName)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row scoring-synonym-wrapper d-none">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Padanan Kata <span class="text-muted">(opsional)</span></label>
+                                                    <textarea class="${getInputClass(scoringSynonymMapName)}"
+                                                        name="${scoringSynonymMapName}"
+                                                        rows="4"
+                                                        placeholder="asesmen: penilaian, evaluasi&#10;pelatihan: diklat, bimtek">${escapeHtml(scoringData.synonym_map_text)}</textarea>
+                                                    ${buildInvalidFeedback(scoringSynonymMapName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label>Pengaturan Teknis Tambahan (JSON)</label>
+                                                    <textarea class="${getInputClass(scoringAdvancedRulesName)}"
+                                                        name="${scoringAdvancedRulesName}"
+                                                        rows="4"
+                                                        placeholder='{"signal_keywords":["etika","kolaborasi"],"target_rows":3}'>${escapeHtml(scoringData.advanced_rules_text)}</textarea>
+                                                    ${buildInvalidFeedback(scoringAdvancedRulesName)}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row scoring-confidence-wrapper d-none">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Saran Panjang Jawaban Minimum</label>
+                                                    <input type="number" min="0" class="${getInputClass(scoringMinWordsName)}"
+                                                        name="${scoringMinWordsName}"
+                                                        value="${escapeHtml(scoringData.min_words)}"
+                                                        placeholder="Contoh: 40">
+                                                    ${buildInvalidFeedback(scoringMinWordsName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Ambang Keyakinan Sistem</label>
+                                                    <input type="number" min="0" max="1" step="0.01"
+                                                        class="${getInputClass(scoringConfidenceThresholdName)}"
+                                                        name="${scoringConfidenceThresholdName}"
+                                                        value="${escapeHtml(scoringData.confidence_threshold)}"
+                                                        placeholder="0.55">
+                                                    ${buildInvalidFeedback(scoringConfidenceThresholdName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 d-flex align-items-center">
+                                                <div class="custom-control custom-switch mt-3">
+                                                    <input type="checkbox" class="custom-control-input"
+                                                        id="field-manual-review-${formIndex}-${fieldIndex}"
+                                                        name="${scoringManualReviewName}"
+                                                        value="1" ${scoringData.manual_review_below_confidence ? 'checked' : ''}>
+                                                    <label class="custom-control-label"
+                                                        for="field-manual-review-${formIndex}-${fieldIndex}">Minta cek manual jika sistem ragu</label>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row scoring-numeric-score-wrapper d-none">
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Nilai Terendah</label>
+                                                    <input type="number" min="0" max="5" step="0.01" class="${getInputClass(scoringMinScoreName)}"
+                                                        name="${scoringMinScoreName}"
+                                                        value="${escapeHtml(scoringData.min_score)}"
+                                                        placeholder="1">
+                                                    ${buildInvalidFeedback(scoringMinScoreName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group">
+                                                    <label>Nilai Target</label>
+                                                    <input type="number" min="0" max="5" step="0.01" class="${getInputClass(scoringTargetScoreName)}"
+                                                        name="${scoringTargetScoreName}"
+                                                        value="${escapeHtml(scoringData.target_score)}"
+                                                        placeholder="3">
+                                                    ${buildInvalidFeedback(scoringTargetScoreName)}
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-group mb-0">
+                                                    <label>Nilai Tertinggi</label>
+                                                    <input type="number" min="0" max="5" step="0.01" class="${getInputClass(scoringMaxScoreName)}"
+                                                        name="${scoringMaxScoreName}"
+                                                        value="${escapeHtml(scoringData.max_score)}"
+                                                        placeholder="5">
+                                                    ${buildInvalidFeedback(scoringMaxScoreName)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-right mt-3">
+                                        <button type="button" class="btn btn-light btn-sm btn-toggle-scoring-advanced">
+                                            Tampilkan pengaturan lanjutan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label>Bantuan / Petunjuk Tambahan</label>
+                                        <textarea class="${getInputClass(bantuanName)}"
+                                            name="${bantuanName}"
+                                            rows="2"
+                                            placeholder="Tambahkan bantuan singkat untuk peserta">${escapeHtml(fieldData.bantuan)}</textarea>
+                                        ${buildInvalidFeedback(bantuanName)}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Lebar Kolom</label>
+                                        <select class="${getInputClass(lebarKolomName)}"
+                                            name="${lebarKolomName}">
+                                            ${buildColumnOptions(fieldData.lebar_kolom || 'col-md-12')}
+                                        </select>
+                                        ${buildInvalidFeedback(lebarKolomName)}
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                `;
+            };
+
+            const buildFormCard = (formIndex, formData = {}) => {
+                const formScoring = normalizeFormScoringConfig(formData.scoring || {});
+                const formPrefix = `forms[${formIndex}]`;
+                const judulFormName = `${formPrefix}[judul_form]`;
+                const kodeFormName = `${formPrefix}[kode_form]`;
+                const urutanName = `${formPrefix}[urutan]`;
+                const deskripsiName = `${formPrefix}[deskripsi]`;
+                const kompetensiName = `${formPrefix}[kompetensi]`;
+                const indikatorKodeName = `${formPrefix}[indikator_kode]`;
+                const indikatorLabelName = `${formPrefix}[indikator_label]`;
+                const formScoringPrefix = `${formPrefix}[scoring]`;
+                const formScoringProfileName = `${formScoringPrefix}[profile]`;
+                const formScoringWeightName = `${formScoringPrefix}[weight]`;
+                const formScoringAdvancedRulesName = `${formScoringPrefix}[advanced_rules_text]`;
+                const fieldsName = `${formPrefix}[fields]`;
+                const formCardClass = joinClasses(
+                    'card',
+                    'border',
+                    'assessment-form-card',
+                    'mb-4',
+                    hasNestedErrors(formPrefix) ? 'border-danger' : ''
+                );
+
+                return `
+                    <div class="${formCardClass}" data-form-index="${formIndex}" data-field-counter="0">
+                        <div class="card-header">
+                            <h4>Form ${formIndex + 1}</h4>
+                            <div class="assessment-builder-actions">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input"
+                                        id="form-active-${formIndex}"
+                                        name="forms[${formIndex}][is_active]"
+                                        value="1" ${formData.is_active === undefined || normalizeChecked(formData.is_active) ? 'checked' : ''}>
+                                    <label class="custom-control-label" for="form-active-${formIndex}">Aktif</label>
+                                </div>
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input"
+                                        id="form-scoreable-${formIndex}"
+                                        name="forms[${formIndex}][is_scoreable]"
+                                        value="1" ${formData.is_scoreable === undefined || normalizeChecked(formData.is_scoreable) ? 'checked' : ''}>
+                                    <label class="custom-control-label" for="form-scoreable-${formIndex}">Masuk penilaian</label>
+                                </div>
+                                <button type="button" class="btn btn-outline-danger btn-sm btn-remove-form">
+                                    <i class="fas fa-trash-alt"></i> Hapus Form
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>${buildRequiredLabel('Judul Form')}</label>
+                                        <input type="text" class="${getInputClass(judulFormName)}"
+                                            name="${judulFormName}"
+                                            value="${escapeHtml(formData.judul_form)}"
+                                            placeholder="Contoh: Profil Peserta"
+                                            required>
+                                        ${buildInvalidFeedback(judulFormName)}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Kode Form</label>
+                                        <input type="text" class="${getInputClass(kodeFormName)}"
+                                            name="${kodeFormName}"
+                                            value="${escapeHtml(formData.kode_form)}"
+                                            placeholder="Contoh: FORM-PROFIL">
+                                        ${buildInvalidFeedback(kodeFormName)}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Urutan</label>
+                                        <input type="number" min="1" class="${getInputClass(urutanName)}"
+                                            name="${urutanName}"
+                                            value="${escapeHtml(formData.urutan || formIndex + 1)}">
+                                        ${buildInvalidFeedback(urutanName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Kompetensi</label>
+                                        <select class="${getInputClass(kompetensiName)}"
+                                            name="${kompetensiName}">
+                                            ${buildTeacherCompetencyOptions(formData.kompetensi || '')}
+                                        </select>
+                                        ${buildInvalidFeedback(kompetensiName)}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Kode Indikator</label>
+                                        <input type="text" class="${getInputClass(indikatorKodeName)}"
+                                            name="${indikatorKodeName}"
+                                            value="${escapeHtml(formData.indikator_kode)}"
+                                            placeholder="Contoh: 1.1">
+                                        ${buildInvalidFeedback(indikatorKodeName)}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Label Indikator</label>
+                                        <input type="text" class="${getInputClass(indikatorLabelName)}"
+                                            name="${indikatorLabelName}"
+                                            value="${escapeHtml(formData.indikator_label)}"
+                                            placeholder="Contoh: Lingkungan belajar aman dan nyaman">
+                                        ${buildInvalidFeedback(indikatorLabelName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Deskripsi Form</label>
+                                <textarea class="${getInputClass(deskripsiName)} form-description-input"
+                                    name="${deskripsiName}"
+                                    rows="2"
+                                    placeholder="Deskripsi singkat form">${escapeHtml(formData.deskripsi)}</textarea>
+                                ${buildInvalidFeedback(deskripsiName)}
+                            </div>
+
+                            <div class="card border mb-4">
+                                <div class="card-header bg-light py-3">
+                                    <h6 class="mb-0">Pengaturan Skor Form</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Profil Scoring</label>
+                                                <select class="${getInputClass(formScoringProfileName)} form-control"
+                                                    name="${formScoringProfileName}">
+                                                    ${buildFormScoringProfileOptions(formScoring.profile)}
+                                                </select>
+                                                ${buildInvalidFeedback(formScoringProfileName)}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Bobot Form</label>
+                                                <input type="number" min="0" step="0.01" class="${getInputClass(formScoringWeightName)}"
+                                                    name="${formScoringWeightName}"
+                                                    value="${escapeHtml(formScoring.weight)}"
+                                                    placeholder="Contoh: 20">
+                                                ${buildInvalidFeedback(formScoringWeightName)}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 d-flex align-items-center">
+                                            <div class="custom-control custom-switch mt-3">
+                                                <input type="checkbox" class="custom-control-input"
+                                                    id="form-exclude-${formIndex}"
+                                                    name="${formScoringPrefix}[exclude_from_competency]"
+                                                    value="1" ${formScoring.exclude_from_competency ? 'checked' : ''}>
+                                                <label class="custom-control-label"
+                                                    for="form-exclude-${formIndex}">Keluarkan dari rekap kompetensi</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group mb-0">
+                                        <label>Aturan Form Lanjutan (JSON)</label>
+                                        <textarea class="${getInputClass(formScoringAdvancedRulesName)}"
+                                            name="${formScoringAdvancedRulesName}"
+                                            rows="3"
+                                            placeholder='{"synthetic_k5":{"weight":10}}'>${escapeHtml(formScoring.advanced_rules_text)}</textarea>
+                                        ${buildInvalidFeedback(formScoringAdvancedRulesName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0">Daftar Pertanyaan</h6>
+                            </div>
+
+                            <div class="${joinClasses('assessment-field-list', hasError(fieldsName) ? 'assessment-invalid-list' : '')}"></div>
+                            ${buildInvalidFeedback(fieldsName, 'mt-2')}
+
+                            <div class="text-right mt-3">
+                                <button type="button" class="btn btn-primary btn-sm btn-add-field">
+                                    <i class="fas fa-plus"></i> Tambah Field
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const appendField = ($formCard, fieldData = {}) => {
+                const formIndex = Number($formCard.data('form-index'));
+                const fieldIndex = Number($formCard.attr('data-field-counter'));
+
+                $formCard.find('.assessment-field-list').append(buildFieldCard(formIndex, fieldIndex, fieldData));
+                $formCard.attr('data-field-counter', fieldIndex + 1);
+
+                const $fieldCard = $formCard.find('.assessment-field-card').last();
+                toggleOptionWrapper($fieldCard);
+                toggleScoringWrapper($fieldCard);
+                updateAutoFieldNameHint($fieldCard);
+            };
+
+            const appendForm = (formData = {}) => {
+                const formIndex = formIndexCounter++;
+
+                $('#form-builder-list').append(buildFormCard(formIndex, formData));
+                const $formCard = $('.assessment-form-card').last();
+                const fields = Array.isArray(formData.fields) && formData.fields.length ? formData.fields : [{}];
+
+                fields.forEach((field) => appendField($formCard, field));
+                toggleEmptyState();
+            };
+
+            const appendRadioOption = ($fieldCard, optionData = {}) => {
+                const formIndex = Number($fieldCard.closest('.assessment-form-card').data('form-index'));
+                const fieldIndex = Number($fieldCard.data('field-index'));
+                const optionIndex = Number($fieldCard.attr('data-radio-option-counter') || 0);
+                const normalizedOption = {
+                    ...normalizeRadioOptionShape(optionData),
+                    level_kompetensi: normalizeCompetencyLevelValue(optionData?.level_kompetensi, optionIndex),
+                };
+
+                $fieldCard.find('.radio-option-list').append(buildRadioOptionRow(formIndex, fieldIndex, optionIndex,
+                    normalizedOption));
+                $fieldCard.attr('data-radio-option-counter', optionIndex + 1);
+                reindexRadioOptions($fieldCard);
+            };
+
+            const updateRemoveRadioOptionState = ($fieldCard) => {
+                const shouldDisable = $fieldCard.find('.multiple-choice-option-row').length <= 2;
+
+                $fieldCard.find('.btn-remove-radio-option')
+                    .prop('disabled', shouldDisable)
+                    .toggleClass('disabled', shouldDisable);
+            };
+
+            const reindexRadioOptions = ($fieldCard) => {
+                const formIndex = Number($fieldCard.closest('.assessment-form-card').data('form-index'));
+                const fieldIndex = Number($fieldCard.data('field-index'));
+
+                $fieldCard.find('.multiple-choice-option-row').each(function(optionIndex) {
+                    const $optionRow = $(this);
+                    const generatedLabel = generateChoiceLabel(optionIndex);
+                    const $textInput = $optionRow.find('.radio-option-text');
+                    const $codeInput = $optionRow.find('.radio-option-code');
+                    const $scoreInput = $optionRow.find('.radio-option-score');
+                    const $levelSelect = $optionRow.find('.radio-option-level');
+
+                    $optionRow.attr('data-option-index', optionIndex);
+                    $textInput
+                        .attr('name', `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][label]`)
+                        .attr('placeholder', 'Contoh: Mengenali faktor yang memengaruhi perilaku peserta didik');
+
+                    $codeInput.attr(
+                        'name',
+                        `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][value]`
+                    ).attr('placeholder', generatedLabel);
+
+                    $scoreInput.attr(
+                        'name',
+                        `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][score]`
+                    ).attr('placeholder', $levelSelect.val() || '');
+
+                    $levelSelect
+                        .attr(
+                            'name',
+                            `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][level_kompetensi]`
+                        )
+                        .html(buildCompetencyLevelOptions($levelSelect.val(), optionIndex));
+                });
+
+                $fieldCard.attr('data-radio-option-counter', $fieldCard.find('.multiple-choice-option-row').length);
+                updateRemoveRadioOptionState($fieldCard);
+            };
+
+            const ensureMultipleChoiceOptions = ($fieldCard, minimum = 2) => {
+                const optionCount = $fieldCard.find('.multiple-choice-option-row').length;
+
+                if (optionCount >= minimum) {
+                    return;
+                }
+
+                for (let index = optionCount; index < minimum; index += 1) {
+                    appendRadioOption($fieldCard, {
+                        label: '',
+                        value: '',
+                        level_kompetensi: getDefaultCompetencyLevel(index),
+                    });
+                }
+
+                reindexRadioOptions($fieldCard);
+            };
+
+            const toggleOptionWrapper = ($fieldCard) => {
+                const selectedType = $fieldCard.find('.field-type-select').val();
+                const showTextOptions = textOptionFieldTypes.includes(selectedType);
+                const showMultipleChoiceOptions = selectedType === multipleChoiceFieldType;
+                const showRepeaterOptions = selectedType === repeaterFieldType;
+
+                $fieldCard.find('.standard-option-wrapper')
+                    .toggleClass('d-none', !showTextOptions)
+                    .find('textarea')
+                    .prop('disabled', !showTextOptions);
+
+                $fieldCard.find('.multiple-choice-wrapper')
+                    .toggleClass('d-none', !showMultipleChoiceOptions)
+                    .find('input, select')
+                    .prop('disabled', !showMultipleChoiceOptions);
+
+                $fieldCard.find('.repeater-option-wrapper')
+                    .toggleClass('d-none', !showRepeaterOptions)
+                    .find('textarea')
+                    .prop('disabled', !showRepeaterOptions);
+
+                if (showMultipleChoiceOptions) {
+                    ensureMultipleChoiceOptions($fieldCard);
+                } else {
+                    updateRemoveRadioOptionState($fieldCard);
+                }
+            };
+
+            const toggleScoringWrapper = ($fieldCard) => {
+                const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
+                const $methodSelect = $fieldCard.find('.field-scoring-method');
+                const currentMethod = $methodSelect.val();
+                const normalizedMethod = resolveAllowedScoringMethods(selectedType).includes(currentMethod)
+                    ? currentMethod
+                    : resolveDefaultScoringMethod(selectedType);
+                const scoringEnabled = $fieldCard.find('.field-scoring-enabled').is(':checked');
+                const showNumericConfig = selectedType === 'number' && ['numeric_threshold', 'numeric_range'].includes(normalizedMethod);
+                const showTextConfig = supportsScoringAssistant(selectedType, normalizedMethod);
+                const showConfidenceConfig = showTextConfig;
+                const showPresenceConfig = normalizedMethod === 'presence';
+                const showChoiceConfig = ['radio', 'select', 'checkbox'].includes(selectedType) && !showPresenceConfig;
+                const advancedPanelVisible = !$fieldCard.find('.scoring-advanced-panel').hasClass('d-none');
+
+                $methodSelect.html(buildFieldScoringMethodOptions(selectedType, normalizedMethod)).val(normalizedMethod);
+                $fieldCard.find('.scoring-config-body').toggleClass('d-none', !scoringEnabled);
+                $fieldCard.find('.scoring-main-guidance').text(resolveScoringSummaryMessage(selectedType, normalizedMethod));
+                $fieldCard.find('.scoring-default-summary-content').html(buildScoringSummaryHtml($fieldCard, selectedType, normalizedMethod));
+                $fieldCard.find('.scoring-numeric-wrapper').toggleClass('d-none', !showNumericConfig);
+                $fieldCard.find('.scoring-text-wrapper').toggleClass('d-none', !showTextConfig);
+                $fieldCard.find('.scoring-presence-wrapper').toggleClass('d-none', !showPresenceConfig);
+                $fieldCard.find('.scoring-choice-wrapper').toggleClass('d-none', !showChoiceConfig);
+                $fieldCard.find('.scoring-confidence-wrapper').toggleClass('d-none', !showConfidenceConfig);
+                $fieldCard.find('.scoring-synonym-wrapper').toggleClass('d-none', !showTextConfig);
+                $fieldCard.find('.scoring-numeric-score-wrapper').toggleClass('d-none', !showNumericConfig);
+                $fieldCard.find('.btn-toggle-scoring-advanced').text(
+                    advancedPanelVisible ? 'Sembunyikan pengaturan lanjutan' : 'Tampilkan pengaturan lanjutan'
+                );
+
+                if (showTextConfig) {
+                    applyScoringGuidanceSuggestion($fieldCard);
+                } else {
+                    updateScoringAssistantStatus($fieldCard, '');
+                }
+            };
+
+            const updateAutoFieldNameHint = ($fieldCard) => {
+                const labelValue = $fieldCard.find('.field-label-input').val()?.trim() || '';
+                $fieldCard.find('.auto-field-name-hint').html(buildAutoFieldNameHint(labelValue));
+            };
+
+            const toggleEmptyState = () => {
+                const hasForms = $('.assessment-form-card').length > 0;
+                $('#form-builder-empty').toggleClass('d-none', hasForms);
+            };
+
+            const parseOptionText = (value) => {
+                if (!value) {
+                    return [];
+                }
+
+                return value
+                    .split(/[\r\n,]+/)
+                    .map((item) => item.trim())
+                    .filter(Boolean);
+            };
+
+            const parseRepeaterConfig = (value) => {
+                if (!value) {
+                    return null;
+                }
+
+                try {
+                    const parsed = JSON.parse(value);
+
+                    return parsed && typeof parsed === 'object' ? parsed : null;
+                } catch (error) {
+                    return null;
+                }
+            };
+
+            const collectFieldPayload = ($fieldCard, fieldIndex) => {
+                const fieldType = $fieldCard.find('select[name$="[tipe_field]"]').val() || 'text';
+                const scoringMethod = $fieldCard.find('select[name$="[scoring][method]"]').val() || resolveDefaultScoringMethod(fieldType);
+
+                return {
+                    label: $fieldCard.find('input[name$="[label]"]').val()?.trim() || '',
+                    deskripsi: $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '',
+                    tipe_field: fieldType,
+                    placeholder: $fieldCard.find('input[name$="[placeholder]"]').val()?.trim() || '',
+                    bantuan: $fieldCard.find('textarea[name$="[bantuan]"]').val()?.trim() || '',
+                    opsi_field_text: textOptionFieldTypes.includes(fieldType) ?
+                        $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
+                    opsi_score_text: textOptionFieldTypes.includes(fieldType) ?
+                        $fieldCard.find('textarea[name$="[opsi_score_text]"]').val()?.trim() || '' : null,
+                    repeater_config_text: fieldType === repeaterFieldType ?
+                        $fieldCard.find('textarea[name$="[repeater_config_text]"]').val()?.trim() || '' : null,
+                    radio_options: fieldType === multipleChoiceFieldType ? getMultipleChoiceOptions($fieldCard) : [],
+                    scoring: {
+                        enabled: $fieldCard.find('input[name$="[scoring][enabled]"]').is(':checked'),
+                        profile: $fieldCard.find('select[name$="[scoring][profile]"]').val()?.trim() || '',
+                        method: scoringMethod,
+                        rubric_code: $fieldCard.find('input[name$="[scoring][rubric_code]"]').val()?.trim() || '',
+                        weight: $fieldCard.find('input[name$="[scoring][weight]"]').val()?.trim() || '',
+                        score_if_answered: $fieldCard.find('input[name$="[scoring][score_if_answered]"]').val()?.trim() || '',
+                        scale_min: $fieldCard.find('input[name$="[scoring][scale_min]"]').val()?.trim() || '',
+                        scale_max: $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '',
+                        reference_answer: $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val()?.trim() || '',
+                        keyword_groups_text: $fieldCard.find('textarea[name$="[scoring][keyword_groups_text]"]').val()?.trim() || '',
+                        synonym_map_text: $fieldCard.find('textarea[name$="[scoring][synonym_map_text]"]').val()?.trim() || '',
+                        min_words: $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() || '',
+                        confidence_threshold: $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()?.trim() || '',
+                        manual_review_below_confidence: $fieldCard.find('input[name$="[scoring][manual_review_below_confidence]"]').is(':checked'),
+                        numeric_direction: $fieldCard.find('select[name$="[scoring][numeric_direction]"]').val()?.trim() || '',
+                        min_threshold: $fieldCard.find('input[name$="[scoring][min_threshold]"]').val()?.trim() || '',
+                        target_threshold: $fieldCard.find('input[name$="[scoring][target_threshold]"]').val()?.trim() || '',
+                        max_threshold: $fieldCard.find('input[name$="[scoring][max_threshold]"]').val()?.trim() || '',
+                        min_score: $fieldCard.find('input[name$="[scoring][min_score]"]').val()?.trim() || '',
+                        target_score: $fieldCard.find('input[name$="[scoring][target_score]"]').val()?.trim() || '',
+                        max_score: $fieldCard.find('input[name$="[scoring][max_score]"]').val()?.trim() || '',
+                        advanced_rules_text: $fieldCard.find('textarea[name$="[scoring][advanced_rules_text]"]').val()?.trim() || '',
+                    },
+                    lebar_kolom: $fieldCard.find('select[name$="[lebar_kolom]"]').val() || 'col-md-12',
+                    urutan: Number($fieldCard.find('input[name$="[urutan]"]').val() || fieldIndex + 1),
+                    is_required: $fieldCard.find('input[name$="[is_required]"]').is(':checked'),
+                    is_active: $fieldCard.find('input[name$="[is_active]"]').is(':checked'),
+                };
+            };
+
+            const collectBuilderPayload = () => {
+                return $('.assessment-form-card').map(function(formIndex) {
+                    const $formCard = $(this);
+                    const fields = $formCard.find('.assessment-field-card').map(function(fieldIndex) {
+                        return collectFieldPayload($(this), fieldIndex);
+                    }).get();
+
+                    return {
+                        judul_form: $formCard.find('input[name$="[judul_form]"]').val()?.trim() || '',
+                        kode_form: $formCard.find('input[name$="[kode_form]"]').val()?.trim() || '',
+                        deskripsi: $formCard.find('.form-description-input').first().val()?.trim() || '',
+                        kompetensi: $formCard.find('select[name$="[kompetensi]"]').val()?.trim() || '',
+                        indikator_kode: $formCard.find('input[name$="[indikator_kode]"]').val()?.trim() || '',
+                        indikator_label: $formCard.find('input[name$="[indikator_label]"]').val()?.trim() || '',
+                        scoring: {
+                            profile: $formCard.find('select[name$="[scoring][profile]"]').val()?.trim() || '',
+                            weight: $formCard.find('input[name$="[scoring][weight]"]').val()?.trim() || '',
+                            exclude_from_competency: $formCard.find('input[name$="[scoring][exclude_from_competency]"]').is(':checked'),
+                            advanced_rules_text: $formCard.find('textarea[name$="[scoring][advanced_rules_text]"]').val()?.trim() || '',
+                        },
+                        is_scoreable: $formCard.find('input[name$="[is_scoreable]"]').first().is(':checked'),
+                        urutan: Number($formCard.find('input[name$="[urutan]"]').val() || formIndex + 1),
+                        is_active: $formCard.find('input[name$="[is_active]"]').first().is(':checked'),
+                        fields: fields,
+                    };
+                }).get();
+            };
+
+            const getMultipleChoiceOptions = ($fieldCard) => {
+                return $fieldCard.find('.multiple-choice-option-row').map(function() {
+                    const $optionRow = $(this);
+
+                    return {
+                        label: $optionRow.find('.radio-option-text').val()?.trim() || '',
+                        value: $optionRow.find('.radio-option-code').val()?.trim() || '',
+                        score: $optionRow.find('.radio-option-score').val()?.trim() || '',
+                        level_kompetensi: $optionRow.find('.radio-option-level').val()?.trim() || '',
+                    };
+                }).get().filter((option) => option.label || option.value || option.level_kompetensi);
+            };
+
+            const getBadgeClass = (status) => {
+                if (status === 'publish') {
+                    return 'success';
+                }
+
+                if (status === 'draft') {
+                    return 'warning';
+                }
+
+                return 'secondary';
+            };
+
+            const formatStatusLabel = (status) => {
+                if (!status) {
+                    return 'Draft';
+                }
+
+                return status.charAt(0).toUpperCase() + status.slice(1);
+            };
+
+            const sanitizePreviewKey = (value) => {
+                return String(value || 'field')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9_-]/g, '-');
+            };
+
+            const isPreviewPanelVisible = () => !$previewPanel.hasClass('d-none');
+
+            const updatePreviewToggleButton = () => {
+                const isVisible = isPreviewPanelVisible();
+
+                $previewToggleButton
+                    .toggleClass('btn-primary', !isVisible)
+                    .toggleClass('btn-secondary', isVisible);
+
+                $previewToggleButton.find('.preview-toggle-label').text(isVisible ? 'Tutup Preview' :
+                    'Preview Form');
+            };
+
+            const getPreviewState = () => {
+                const forms = collectBuilderPayload()
+                    .filter((form) => normalizeChecked(form.is_active))
+                    .map((form) => {
+                        const activeFields = (form.fields || [])
+                            .filter((field) => normalizeChecked(field.is_active))
+                            .map((field) => ({
+                                label: field.label || 'Field tanpa label',
+                                description: field.deskripsi || '',
+                                name: slugifyFieldName(field.label || ''),
+                                type: field.tipe_field || 'text',
+                                placeholder: field.placeholder || '',
+                                helpText: field.bantuan || '',
+                                options: field.tipe_field === multipleChoiceFieldType ?
+                                    (field.radio_options || []) :
+                                    (field.tipe_field === repeaterFieldType ?
+                                        parseRepeaterConfig(field.repeater_config_text) :
+                                        parseOptionText(field.opsi_field_text)),
+                                widthClass: field.lebar_kolom || 'col-md-12',
+                                required: normalizeChecked(field.is_required),
+                            }));
+
+                        return {
+                            title: form.judul_form || 'Child form tanpa judul',
+                            code: form.kode_form || '-',
+                            description: form.deskripsi || '',
+                            kompetensi: form.kompetensi || '',
+                            kompetensiLabel: teacherCompetencies[form.kompetensi || ''] || '',
+                            indikatorKode: form.indikator_kode || '',
+                            indikatorLabel: form.indikator_label || '',
+                            isScoreable: normalizeChecked(form.is_scoreable),
+                            fields: activeFields,
+                        };
+                    })
+                    .filter((form) => form.fields.length);
+
+                return {
+                    title: $('input[name="judul"]').val()?.trim() || 'Judul assessment belum diisi',
+                    code: $('input[name="kode_assessment"]').val()?.trim() || '-',
+                    description: $('textarea[name="deskripsi"]').val()?.trim() || '',
+                    instruction: $('textarea[name="petunjuk"]').val()?.trim() || '',
+                    status: $('select[name="status"]').val() || 'draft',
+                    isActive: $('#assessment-active').is(':checked'),
+                    forms: forms,
+                };
+            };
+
+            const renderPreviewFieldInput = (field, previewKey) => {
+                const fieldLabel = `${escapeHtml(field.label)}${field.required ? ' <span class="text-danger">*</span>' : ''}`;
+                const placeholder = escapeHtml(field.placeholder);
+                let inputHtml = '';
+
+                if (field.type === 'textarea') {
+                    inputHtml = `
+                        <textarea class="form-control" rows="3" placeholder="${placeholder}"></textarea>
+                    `;
+                } else if (field.type === 'select') {
+                    const options = field.options.length ? field.options : ['Belum ada opsi'];
+                    const optionsHtml = options.map((option) => {
+                        return `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`;
+                    }).join('');
+
+                    inputHtml = `
+                        <select class="form-control">
+                            <option value="" selected>${placeholder || '-- Pilih salah satu --'}</option>
+                            ${optionsHtml}
+                        </select>
+                    `;
+                } else if (field.type === 'radio') {
+                    const options = field.options.length ? field.options : [{
+                        label: '',
+                        value: ''
+                    }];
+
+                    inputHtml = options.map((option, index) => {
+                        const normalizedOption = normalizeRadioOptionShape(option);
+                        const optionCode = normalizedOption.value || generateChoiceLabel(index);
+                        const optionText = normalizedOption.label || 'Belum ada isi jawaban';
+                        const optionCompetencyLevelLabel = resolveCompetencyLevelLabel(
+                            normalizedOption.level_kompetensi || getDefaultCompetencyLevel(index)
+                        );
+                        const inputId = `${sanitizePreviewKey(previewKey)}-${index}`;
+
+                        return `
+                            <label for="${inputId}" class="d-block rounded border bg-white px-3 py-3 mb-2">
+                                <div class="d-flex align-items-start">
+                                    <input type="radio" class="mt-1 mr-3"
+                                        id="${inputId}"
+                                        name="${sanitizePreviewKey(previewKey)}">
+                                    <div class="flex-grow-1">
+                                        <div class="row">
+                                            <div class="col-md-2 mb-2 mb-md-0">
+
+                                                <div class="">${escapeHtml(optionCode)}</div>
+                                            </div>
+                                            <div class="col-md-10">
+
+                                                <div class="">${escapeHtml(optionText)}</div>
+                                                ${optionCompetencyLevelLabel ? `<span class="badge badge-light border mt-2">${escapeHtml(optionCompetencyLevelLabel)}</span>` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </label>
+                        `;
+                    }).join('');
+                } else if (field.type === repeaterFieldType) {
+                    const config = field.options && typeof field.options === 'object' ? field.options : null;
+                    const columns = Array.isArray(config?.columns) ? config.columns : [];
+
+                    if (!columns.length) {
+                        inputHtml = `
+                            <div class="alert alert-light border mb-0">
+                                Konfigurasi tabel belum tersedia.
+                            </div>
+                        `;
+                    } else {
+                        const headerHtml = columns.map((column) => {
+                            return `<th>${escapeHtml(column.label || column.nama_field || 'Kolom')}</th>`;
+                        }).join('');
+                        const cellHtml = columns.map((column) => {
+                            const type = column.tipe_field || 'text';
+
+                            if (type === 'select') {
+                                const options = Array.isArray(column.opsi_field) ? column.opsi_field : [];
+                                const optionsHtml = options.map((option) => {
+                                    return `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`;
+                                }).join('');
+
+                                return `
+                                    <td>
+                                        <select class="form-control" disabled>
+                                            <option value="">Pilih</option>
+                                            ${optionsHtml}
+                                        </select>
+                                    </td>
+                                `;
+                            }
+
+                            if (type === 'textarea') {
+                                return '<td><textarea class="form-control" rows="2" disabled></textarea></td>';
+                            }
+
+                            return `
+                                <td>
+                                    <input type="${['text', 'email', 'number', 'date'].includes(type) ? type : 'text'}"
+                                        class="form-control"
+                                        placeholder="${escapeHtml(column.placeholder || '')}"
+                                        readonly>
+                                </td>
+                            `;
+                        }).join('');
+
+                        inputHtml = `
+                            <div class="table-responsive">
+                                <table class="table table-bordered mb-0">
+                                    <thead>
+                                        <tr>${headerHtml}</tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>${cellHtml}</tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                } else if (field.type === 'checkbox') {
+                    const options = field.options.length ? field.options : ['Belum ada opsi'];
+
+                    inputHtml = options.map((option, index) => {
+                        const inputId = `${sanitizePreviewKey(previewKey)}-${index}`;
+
+                        return `
+                            <div class="custom-control custom-checkbox mb-2">
+                                <input type="checkbox" class="custom-control-input"
+                                    id="${inputId}"
+                                    name="${sanitizePreviewKey(previewKey)}[]">
+                                <label class="custom-control-label"
+                                    for="${inputId}">
+                                    ${escapeHtml(option)}
+                                </label>
+                            </div>
+                        `;
+                    }).join('');
+                } else if (field.type === 'file') {
+                    inputHtml = `
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input">
+                            <label class="custom-file-label">
+                                Pilih file
+                            </label>
+                        </div>
+                    `;
+                } else {
+                    const typeMap = {
+                        text: 'text',
+                        email: 'email',
+                        number: 'number',
+                        date: 'date',
+                    };
+
+                    inputHtml = `
+                        <input type="${typeMap[field.type] || 'text'}" class="form-control"
+                            value="" placeholder="${placeholder}">
+                    `;
+                }
+
+                return `
+                    <div class="form-group">
+                        <label>${fieldLabel}</label>
+                        ${field.description ? `<small class="form-text text-muted mb-2">${escapeHtml(field.description)}</small>` : ''}
+                        ${inputHtml}
+                        ${field.helpText ? `<small class="form-text text-muted">${escapeHtml(field.helpText)}</small>` : ''}
+                    </div>
+                `;
+            };
+
+            const renderPreview = () => {
+                const data = getPreviewState();
+                let contentHtml = `
+                    <div class="card  border-0 mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                <div class="mb-3">
+                                    <div class="text-muted small">Kode Assessment</div>
+                                    <div class="font-weight-bold">${escapeHtml(data.code)}</div>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="badge badge-${getBadgeClass(data.status)}">${escapeHtml(formatStatusLabel(data.status))}</span>
+                                    <span class="badge badge-${data.isActive ? 'primary' : 'light'}">
+                                        ${data.isActive ? 'Aktif' : 'Nonaktif'}
+                                    </span>
+                                </div>
+                            </div>
+                            <h3 class="mb-2">${escapeHtml(data.title)}</h3>
+                            ${data.description ? `<p class="text-muted mb-3">${escapeHtml(data.description)}</p>` : ''}
+                            ${data.instruction ? `
+                                <div class="alert alert-light border mb-0">
+                                    <div class="font-weight-bold mb-1">Petunjuk Pengisian</div>
+                                    <div>${escapeHtml(data.instruction)}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+
+                if (!data.forms.length) {
+                    contentHtml += `
+                        <div class="empty-state" data-height="260">
+                            <div class="empty-state-icon bg-secondary">
+                                <i class="fas fa-eye-slash"></i>
+                            </div>
+                            <h2>Belum ada form aktif untuk dipreview</h2>
+                            <p class="lead mb-0">
+                                Aktifkan form dan field yang ingin ditampilkan ke user.
+                            </p>
+                        </div>
+                    `;
+
+                    $previewContent.html(contentHtml);
+                    return;
+                }
+
+                data.forms.forEach((form, index) => {
+                    const fieldsHtml = form.fields.map((field, fieldIndex) => {
+                        return `
+                            <div class="${escapeHtml(field.widthClass || 'col-md-12')}">
+                                ${renderPreviewFieldInput(field, `${form.code || form.title}-${field.name || fieldIndex}`)}
+                            </div>
+                        `;
+                    }).join('');
+
+                    contentHtml += `
+                        <div class="card  border-0 mb-4">
+                            <div class="card-header bg-white">
+                                <div>
+                                    <h4 class="mb-1">${escapeHtml(form.title)}</h4>
+                                    <small class="text-muted">Bagian ${index + 1} • ${escapeHtml(form.code)}</small>
+                                    ${(form.kompetensiLabel || form.indikatorKode || form.isScoreable !== undefined) ? `
+                                        <div class="mt-2">
+                                            ${form.kompetensiLabel ? `<span class="badge badge-info mr-1">${escapeHtml(form.kompetensiLabel)}</span>` : ''}
+                                            ${form.indikatorKode ? `<span class="badge badge-light border mr-1">Indikator ${escapeHtml(form.indikatorKode)}</span>` : ''}
+                                            <span class="badge badge-${form.isScoreable ? 'success' : 'secondary'}">
+                                                ${form.isScoreable ? 'Masuk penilaian' : 'Hanya pengumpulan data'}
+                                            </span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                ${form.description ? `<p class="text-muted">${escapeHtml(form.description)}</p>` : ''}
+                                <div class="row">
+                                    ${fieldsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $previewContent.html(contentHtml);
+            };
+
+            const syncPreviewFileInput = () => {
+                $previewContent.off('change', '.custom-file-input').on('change', '.custom-file-input',
+                    function() {
+                        const fileName = this.files && this.files.length ? this.files[0].name :
+                            'Pilih file';
+                        $(this).next('.custom-file-label').text(fileName);
+                    });
+            };
+
+            const openPreviewPanel = () => {
+                renderPreview();
+                syncPreviewFileInput();
+                $previewPanel.removeClass('d-none');
+                updatePreviewToggleButton();
+
+                $('html, body').animate({
+                    scrollTop: $previewPanel.offset().top - 90
+                }, 250);
+            };
+
+            const closePreviewPanel = () => {
+                $previewPanel.addClass('d-none');
+                updatePreviewToggleButton();
+            };
+
+            const schedulePreviewRender = () => {
+                if (!isPreviewPanelVisible()) {
+                    return;
+                }
+
+                clearTimeout(previewRenderTimer);
+                previewRenderTimer = setTimeout(function() {
+                    renderPreview();
+                    syncPreviewFileInput();
+                }, 120);
+            };
+
+            $('#btn-add-form').on('click', function() {
+                appendForm();
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-add-field', function() {
+                appendField($(this).closest('.assessment-form-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-add-radio-option', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                appendRadioOption($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-remove-form', function() {
+                $(this).closest('.assessment-form-card').remove();
+                toggleEmptyState();
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-remove-field', function() {
+                $(this).closest('.assessment-field-card').remove();
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-remove-radio-option', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+
+                if ($fieldCard.find('.multiple-choice-option-row').length <= 2) {
+                    return;
+                }
+
+                $(this).closest('.multiple-choice-option-row').remove();
+                reindexRadioOptions($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('input', '.radio-option-text, .radio-option-code', function() {
+                schedulePreviewRender();
+            });
+
+            $(document).on('input', '.field-label-input', function() {
+                updateAutoFieldNameHint($(this).closest('.assessment-field-card'));
+            });
+
+            $(document).on('change', '.field-type-select', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                toggleOptionWrapper($fieldCard);
+                toggleScoringWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', '.field-scoring-enabled, .field-scoring-method', function() {
+                toggleScoringWrapper($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', '.scoring-config-card input, .scoring-config-card textarea, .scoring-config-card select', function() {
+                toggleScoringWrapper($(this).closest('.assessment-field-card'));
+            });
+
+            $(document).on('click', '.btn-toggle-scoring-advanced', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                $fieldCard.find('.scoring-advanced-panel').toggleClass('d-none');
+                toggleScoringWrapper($fieldCard);
+            });
+
+            $(document).on('click', '.btn-generate-scoring-helper', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                applyScoringGuidanceSuggestion($fieldCard, {
+                    force: true,
+                });
+                toggleScoringWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-copy-description-to-scoring', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                applyScoringGuidanceSuggestion($fieldCard, {
+                    copyDescriptionToReference: true,
+                    force: true,
+                });
+                toggleScoringWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $previewToggleButton.on('click', function() {
+                if (isPreviewPanelVisible()) {
+                    closePreviewPanel();
+                    return;
+                }
+
+                openPreviewPanel();
+            });
+
+            $('.btn-close-preview-panel').on('click', function() {
+                closePreviewPanel();
+            });
+
+            $('.btn-refresh-preview-panel').on('click', function() {
+                renderPreview();
+                syncPreviewFileInput();
+            });
+
+            $('#assessment-builder-form').on('input change', 'input, textarea, select', function() {
+                schedulePreviewRender();
+            });
+
+            $('#assessment-builder-form').on('submit', function() {
+                $('.assessment-field-card').each(function() {
+                    applyScoringGuidanceSuggestion($(this));
+                });
+                $('#forms-payload').val(JSON.stringify(collectBuilderPayload()));
+                $('#form-builder-list').find('input, textarea, select').prop('disabled', true);
+            });
+
+            if (Array.isArray(initialForms) && initialForms.length) {
+                initialForms.forEach((form) => appendForm(form));
+            } else {
+                appendForm();
+            }
+
+            updatePreviewToggleButton();
+        });
+    </script>
+@endpush
