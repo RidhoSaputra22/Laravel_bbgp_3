@@ -240,9 +240,79 @@ class AssessmentAssignmentController extends Controller
                 'email',
                 'satuan_pendidikan',
                 'kabupaten',
+                'eksternal_jabatan',
+                'jenis_jabatan',
                 'status_kepegawaian',
                 'is_verif',
             ]);
+    }
+
+    private function resolveGuruSelectionMode(Request $request): string
+    {
+        $selectionMode = trim((string) $request->input('guru_selection_mode', 'manual'));
+
+        return $selectionMode === 'select_all' ? 'select_all' : 'manual';
+    }
+
+    private function normalizeGuruIdList(array $guruIds): array
+    {
+        return collect($guruIds)
+            ->filter(fn ($guruId) => filled($guruId))
+            ->map(fn ($guruId) => (int) $guruId)
+            ->filter(fn (int $guruId) => $guruId > 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function normalizeGuruSelectionScope(array $scope): array
+    {
+        $nestedFilters = data_get($scope, 'filters', []);
+        $filters = array_filter([
+            'eksternal_jabatan' => trim((string) data_get($nestedFilters, 'eksternal_jabatan', data_get($scope, 'eksternal_jabatan', ''))),
+            'jenis_jabatan' => trim((string) data_get($nestedFilters, 'jenis_jabatan', data_get($scope, 'jenis_jabatan', ''))),
+        ], fn (string $value) => $value !== '');
+
+        return [
+            'q' => trim((string) data_get($scope, 'q', '')),
+            'filters' => $filters,
+        ];
+    }
+
+    private function applyGuruSelectionScope($query, array $scope): void
+    {
+        $normalizedScope = $this->normalizeGuruSelectionScope($scope);
+        $keyword = $normalizedScope['q'];
+
+        foreach ($normalizedScope['filters'] as $column => $value) {
+            $query->where($column, $value);
+        }
+
+        if ($keyword === '') {
+            return;
+        }
+
+        $query->where(function ($builder) use ($keyword) {
+            $builder->where('nama_lengkap', 'like', '%'.$keyword.'%')
+                ->orWhere('email', 'like', '%'.$keyword.'%')
+                ->orWhere('eksternal_jabatan', 'like', '%'.$keyword.'%')
+                ->orWhere('jenis_jabatan', 'like', '%'.$keyword.'%')
+                ->orWhere('satuan_pendidikan', 'like', '%'.$keyword.'%')
+                ->orWhere('kabupaten', 'like', '%'.$keyword.'%');
+        });
+    }
+
+    private function countGuruSelectionByScope(array $scope, array $excludedIds = []): int
+    {
+        $query = Guru::query();
+
+        $this->applyGuruSelectionScope($query, $scope);
+
+        if ($excludedIds !== []) {
+            $query->whereNotIn('id', $this->normalizeGuruIdList($excludedIds));
+        }
+
+        return (int) $query->count();
     }
 
     private function buildSelectedGuruItems(array $selectedGuruIds): array
