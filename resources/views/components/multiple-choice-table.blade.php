@@ -195,8 +195,7 @@
                 }
 
                 function normalizeItem(rawItem) {
-                    const payload = rawItem && typeof rawItem.payload === 'object' && rawItem.payload !== null ? rawItem
-                        .payload : {};
+                    const payload = rawItem && typeof rawItem.payload === 'object' && rawItem.payload !== null ? rawItem.payload : {};
                     const cells = Array.isArray(rawItem && rawItem.cells) ? rawItem.cells : [];
                     const id = String(rawItem && rawItem.id != null ? rawItem.id : '');
                     const label = String(rawItem && (rawItem.label ?? rawItem.text ?? id));
@@ -279,11 +278,9 @@
                     const selectAllButton = element.querySelector('[data-action="select-all"]');
                     const clearButton = element.querySelector('[data-action="clear-all"]');
                     const masterCheckbox = element.querySelector('[data-role="mct-master-checkbox"]');
-                    const emptySearchState = element.querySelector('[data-role="mct-empty-search"]');
                     const selectedSummaryNode = element.querySelector('[data-role="mct-selected-summary"]');
                     const hiddenInputsNode = element.querySelector('[data-role="mct-hidden-inputs"]');
                     const tbodyNode = element.querySelector('[data-role="mct-body"]');
-                    const tableNode = element.querySelector('table');
                     const paginationInfoNode = element.querySelector('[data-role="mct-pagination-info"]');
                     const paginationLabelNode = element.querySelector('[data-role="mct-pagination-label"]');
                     const previousPageButton = element.querySelector('[data-action="prev-page"]');
@@ -300,8 +297,8 @@
                     let rangeTo = 0;
                     let keyword = '';
                     let searchTimer = null;
-                    let dataTable = null;
-                    let localRows = [];
+                    let remoteItems = [];
+                    let localItems = [];
 
                     initialSelectedItems
                         .map(normalizeItem)
@@ -363,8 +360,6 @@
                             input.value = item.id;
                             hiddenInputsNode.appendChild(input);
                         });
-
-                        return filters;
                     }
 
                     function updateSelectedSummary() {
@@ -402,53 +397,28 @@
                         return Array.from(element.querySelectorAll('[data-role="mct-row"]'));
                     }
 
-                    function getVisibleRows() {
+                    function getVisibleItems() {
                         if (isRemote) {
-                            return getRenderedRows();
+                            return remoteItems;
                         }
 
-                        if (dataTable) {
-                            return dataTable.rows({
-                                search: 'applied',
-                                page: 'current',
-                            }).nodes().toArray();
-                        }
-
-                        return localRows.filter((row) => !row.classList.contains('d-none'));
+                        return localItems.filter((item) => {
+                            return keyword === '' || item.search.includes(keyword);
+                        });
                     }
 
-                    function isItemSelected(item) {
-                        if (remoteBulkSelectEnabled && bulkSelection.active && itemMatchesScope(item, bulkSelection.scope)) {
-                            return !bulkSelection.excludedIds.has(item.id);
-                        }
-
-                        return selectedMap.has(item.id);
-                    }
-
-                    function getExcludedCount() {
-                        return remoteBulkSelectEnabled && bulkSelection.active ? bulkSelection.excludedIds.size : 0;
-                    }
-
-                    function getSelectionCount() {
-                        if (remoteBulkSelectEnabled && bulkSelection.active) {
-                            return Math.max(bulkSelection.totalMatched - getExcludedCount(), 0);
-                        }
-
-                        return selectedMap.size;
-                    }
-
-                    function setScopeLockState(locked) {
-                        if (!remoteBulkSelectEnabled) {
+                    function updateMasterCheckbox() {
+                        if (!masterCheckbox) {
                             return;
                         }
 
-                        const visibleRows = getVisibleRows();
-                        const visibleSelectedCount = visibleRows.filter((row) => {
-                            return selectedMap.has(String(row.dataset.itemId || ''));
+                        const visibleItems = getVisibleItems().filter((item) => item.id !== '');
+                        const visibleSelectedCount = visibleItems.filter((item) => {
+                            return selectedMap.has(item.id);
                         }).length;
 
-                        masterCheckbox.checked = visibleRows.length > 0 && visibleSelectedCount === visibleRows.length;
-                        masterCheckbox.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleRows.length;
+                        masterCheckbox.checked = visibleItems.length > 0 && visibleSelectedCount === visibleItems.length;
+                        masterCheckbox.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleItems.length;
                     }
 
                     function syncRenderedRows() {
@@ -466,52 +436,40 @@
                         updateMasterCheckbox();
                     }
 
-                    function syncState() {
+                    function syncState(shouldEmitChange) {
                         updateHiddenInputs();
                         updateSelectedSummary();
                         syncRenderedRows();
-                        emitChange();
+
+                        if (shouldEmitChange !== false) {
+                            emitChange();
+                        }
+                    }
+
+                    function setItemSelected(item, checked) {
+                        if (!item || item.id === '') {
+                            return;
+                        }
+
+                        if (checked) {
+                            selectedMap.set(item.id, item);
+                        } else {
+                            selectedMap.delete(item.id);
+                        }
                     }
 
                     function setRowsSelection(rows, checked) {
                         rows.forEach((row) => {
-                            const item = hydrateItemFromRow(row);
-
-                            if (!item.id) {
-                                return;
-                            }
-
-                            if (checked) {
-                                selectedMap.set(item.id, item);
-                            } else {
-                                selectedMap.delete(item.id);
-                            }
+                            setItemSelected(hydrateItemFromRow(row), checked);
                         });
+
+                        syncState();
                     }
 
-                    function getSelectedItems() {
-                        if (remoteBulkSelectEnabled && bulkSelection.active) {
-                            return [];
-                        }
-
-                        return Array.from(selectedMap.values()).map((item) => ({
-                            id: item.id,
-                            label: item.label,
-                            description: item.description,
-                            payload: item.payload,
-                        }));
-                    }
-
-                    function appendHiddenInput(name, value) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = name;
-                        input.value = value;
-                        hiddenInputsNode.appendChild(input);
-                    }
-
-                    function emitChange() {
-                        const selectedItems = getSelectedItems();
+                    function setItemsSelection(items, checked) {
+                        items.forEach((item) => {
+                            setItemSelected(item, checked);
+                        });
 
                         syncState();
                     }
@@ -541,6 +499,32 @@
                         });
                     }
 
+                    function renderRows(items, message) {
+                        if (!tbodyNode) {
+                            return;
+                        }
+
+                        if (!Array.isArray(items) || items.length === 0) {
+                            tbodyNode.innerHTML = buildEmptyRowMarkup(columnCount, message || emptyMessage);
+                            updateMasterCheckbox();
+
+                            return;
+                        }
+
+                        tbodyNode.innerHTML = items.map((item, index) => {
+                            return buildRowMarkup(
+                                item,
+                                tableId,
+                                selectedMap.has(item.id),
+                                (isRemote ? ((currentPage - 1) * pageSize) : 0) + index + 1,
+                                inputName
+                            );
+                        }).join('');
+
+                        bindRowEvents(getRenderedRows());
+                        syncRenderedRows();
+                    }
+
                     function updatePaginationFooter() {
                         if (!isRemote || !footerNode) {
                             return;
@@ -565,32 +549,6 @@
                         }
                     }
 
-                    function renderRemoteRows(items, message) {
-                        if (!tbodyNode) {
-                            return;
-                        }
-
-                        if (!Array.isArray(items) || items.length === 0) {
-                            tbodyNode.innerHTML = buildEmptyRowMarkup(columnCount, message || 'Data tidak tersedia.');
-                            updateMasterCheckbox();
-
-                            return;
-                        }
-
-                        tbodyNode.innerHTML = items.map((item, index) => {
-                            return buildRowMarkup(
-                                item,
-                                tableId,
-                                selectedMap.has(item.id),
-                                ((currentPage - 1) * pageSize) + index + 1,
-                                inputName
-                            );
-                        }).join('');
-
-                        bindRowEvents(getRenderedRows());
-                        syncRenderedRows();
-                    }
-
                     function fetchRemoteRows() {
                         if (!isRemote) {
                             return;
@@ -608,8 +566,20 @@
                             params.set('q', keyword);
                         }
 
-                        $.getJSON(ajaxUrl + '?' + params.toString())
-                            .done(function(response) {
+                        window.fetch(ajaxUrl + '?' + params.toString(), {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                                credentials: 'same-origin',
+                            })
+                            .then(function(response) {
+                                if (!response.ok) {
+                                    throw new Error('HTTP ' + response.status);
+                                }
+
+                                return response.json();
+                            })
+                            .then(function(response) {
                                 const items = Array.isArray(response.items) ? response.items : [];
                                 const pagination = response.pagination || {};
 
@@ -618,68 +588,48 @@
                                 totalItems = Number(pagination.total || items.length || 0);
                                 rangeFrom = Number(pagination.from || 0);
                                 rangeTo = Number(pagination.to || 0);
+                                remoteItems = items.map(normalizeItem);
 
-                                renderRemoteRows(items.map(normalizeItem), items.length === 0 ? (keyword === '' ?
+                                renderRows(remoteItems, items.length === 0 ? (keyword === '' ?
                                     emptyMessage :
                                     'Tidak ada data yang cocok dengan pencarian.') : '');
                                 updatePaginationFooter();
-
-                                if (emptySearchState) {
-                                    emptySearchState.classList.add('d-none');
-                                }
                             })
-                            .fail(function() {
+                            .catch(function() {
                                 totalItems = 0;
                                 rangeFrom = 0;
                                 rangeTo = 0;
                                 lastPage = 1;
-                                renderRemoteRows([], 'Gagal memuat data guru. Coba lagi.');
+                                currentPage = 1;
+                                remoteItems = [];
+                                renderRows([], 'Gagal memuat data guru. Coba lagi.');
                                 updatePaginationFooter();
                             });
                     }
 
-                    function initLocalMode() {
-                        localRows = Array.from(element.querySelectorAll('[data-role="mct-row"]'));
+                    function renderLocalRows() {
+                        const visibleItems = getVisibleItems();
+                        const message = keyword === '' ? emptyMessage : 'Tidak ada data yang cocok dengan pencarian.';
 
-                        localRows.forEach((row) => {
+                        renderRows(visibleItems, message);
+                    }
+
+                    function initLocalMode() {
+                        const initialRows = getRenderedRows();
+
+                        localItems = initialRows
+                            .map((row) => hydrateItemFromRow(row))
+                            .filter((item) => item.id !== '');
+
+                        initialRows.forEach((row) => {
                             const checkbox = getCheckbox(row);
 
                             if (checkbox && checkbox.checked) {
-                                const item = hydrateItemFromRow(row);
-
-                                if (item.id) {
-                                    selectedMap.set(item.id, item);
-                                }
+                                setItemSelected(hydrateItemFromRow(row), true);
                             }
                         });
 
-                        bindRowEvents(localRows);
-
-                        if (tableNode && localRows.length > 0 && window.jQuery && typeof $.fn.DataTable === 'function') {
-                            dataTable = $(tableNode).DataTable({
-                                order: [],
-                                pageLength: 10,
-                                autoWidth: false,
-                                dom: 'lrtip',
-                                columnDefs: [{
-                                    targets: [0],
-                                    orderable: false,
-                                    searchable: false,
-                                }],
-                                language: {
-                                    url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
-                                },
-                            });
-
-                            if (emptySearchState) {
-                                emptySearchState.classList.add('d-none');
-                            }
-
-                            $(tableNode).on('draw.dt', function() {
-                                syncRenderedRows();
-                            });
-                        }
-
+                        renderLocalRows();
                         syncState();
                     }
 
@@ -701,97 +651,8 @@
                             return;
                         }
 
-                        if (dataTable) {
-                            dataTable.search(nextKeyword).draw();
-                            return;
-                        }
-
-                        const visibleRows = getVisibleRows();
-                        const visibleSelectedCount = visibleRows.filter((row) => {
-                            const item = hydrateItemFromRow(row);
-
-                            return item.id !== '' && isItemSelected(item);
-                        }).length;
-
-                        masterCheckbox.checked = visibleRows.length > 0 && visibleSelectedCount === visibleRows.length;
-                        masterCheckbox.indeterminate = visibleSelectedCount > 0 && visibleSelectedCount < visibleRows.length;
-                    }
-
-                        localRows.forEach((row) => {
-                            const haystack = (row.dataset.search || '').toLowerCase();
-                            const isVisible = nextKeyword === '' || haystack.includes(nextKeyword);
-
-                            if (!item.id) {
-                                return;
-                            }
-
-                            if (remoteBulkSelectEnabled && bulkSelection.active) {
-                                if (checked) {
-                                    bulkSelection.excludedIds.delete(item.id);
-                                } else {
-                                    bulkSelection.excludedIds.add(item.id);
-                                }
-
-                                return;
-                            }
-
-                            if (checked) {
-                                selectedMap.set(item.id, item);
-                            } else {
-                                selectedMap.delete(item.id);
-                            }
-                        });
-
-                        syncState();
-                    }
-
-                    function bindRowEvents(rows) {
-                        rows.forEach((row) => {
-                            const checkbox = getCheckbox(row);
-
-                            if (!checkbox || row.dataset.bound === 'true') {
-                                return;
-                            }
-
-                            row.dataset.bound = 'true';
-
-                            checkbox.addEventListener('change', function() {
-                                setRowsSelection([row], checkbox.checked);
-                            });
-
-                            row.addEventListener('click', function(event) {
-                                if (event.target.closest('input, label, button, a')) {
-                                    return;
-                                }
-
-                                checkbox.checked = !checkbox.checked;
-                                setRowsSelection([row], checkbox.checked);
-                            });
-                        });
-                    }
-
-                    function updatePaginationFooter() {
-                        if (!isRemote || !footerNode) {
-                            return;
-                        }
-
-                        if (paginationInfoNode) {
-                            paginationInfoNode.textContent = totalItems === 0 ?
-                                'Tidak ada data guru.' :
-                                'Menampilkan ' + rangeFrom + ' sampai ' + rangeTo + ' dari ' + totalItems + ' entri';
-                        }
-
-                        if (paginationLabelNode) {
-                            paginationLabelNode.textContent = 'Halaman ' + currentPage + ' / ' + lastPage;
-                        }
-
-                        if (previousPageButton) {
-                            previousPageButton.disabled = currentPage <= 1;
-                        }
-
-                        if (nextPageButton) {
-                            nextPageButton.disabled = currentPage >= lastPage;
-                        }
+                        keyword = nextKeyword;
+                        renderLocalRows();
                     }
 
                     if (searchInput) {
@@ -802,7 +663,7 @@
 
                     if (selectAllButton) {
                         selectAllButton.addEventListener('click', function() {
-                            setRowsSelection(getVisibleRows(), true);
+                            setItemsSelection(getVisibleItems(), true);
                         });
                     }
 
@@ -815,7 +676,7 @@
 
                     if (masterCheckbox) {
                         masterCheckbox.addEventListener('change', function() {
-                            setRowsSelection(getVisibleRows(), masterCheckbox.checked);
+                            setItemsSelection(getVisibleItems(), masterCheckbox.checked);
                         });
                     }
 
@@ -846,7 +707,6 @@
                         fetchRemoteRows();
                     } else {
                         initLocalMode();
-                        applySearch();
                     }
                 }
 
@@ -887,9 +747,9 @@
         </div>
     </div>
 
-    <div data-role="mct-hidden-inputs "></div>
+    <div data-role="mct-hidden-inputs"></div>
 
-    <div class="multiple-choice-table__table-wrapper table-responsive px-3">
+    <div class="multiple-choice-table__table-wrapper table-responsive ">
         <table class="table table-striped table-hover multiple-choice-table__table" id="{{ $id }}-table">
             <thead>
                 <tr>

@@ -408,7 +408,7 @@
             }
 
             function updateGuruSummary() {
-                const totalGuru = Number(selectedGurus.count || 0);
+                const totalGuru = selectedGurus.length;
                 const totalSessions = totalGuru > 0 ? Math.ceil(totalGuru / sessionCapacity) : 0;
                 const durationHours = getSelectedDurationHours();
                 const distributionMethod = totalGuru === 0 ? '-' : (totalGuru > batchThreshold ? 'Batch Job' : 'Langsung');
