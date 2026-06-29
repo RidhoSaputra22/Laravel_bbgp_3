@@ -67,7 +67,7 @@
                     atau buka kembali hasil yang sudah dikirim.
                 </p>
             </div>
-            <div class="text-right text-sm ">
+            <div class="text-right text-sm hidden sm:block">
                 <div class="font-bold">{{ $guru->nama_lengkap }}</div>
 
                 <div class="">

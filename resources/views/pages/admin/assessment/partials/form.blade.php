@@ -1,5 +1,7 @@
 @php
     $builderSeed = old('forms', $formBuilderData ?? []);
+    $assessmentCodeValue = old('kode_assessment', $assessment->kode_assessment);
+    $assessmentCodeDisplay = $assessmentCodeValue ?: 'Otomatis saat disimpan';
     $competencyLevels = \App\Enum\LevelKompetensi::options();
     $instrumentTypes = \App\Enum\AssessmentInstrumentType::options();
     $teacherCompetencies = \App\Enum\KompetensiGuru::options();
@@ -168,11 +170,13 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">
-                        <label>Kode Assessment <span class="assessment-required">*</span></label>
-                        <input type="text" name="kode_assessment"
-                            class="form-control @error('kode_assessment') is-invalid @enderror"
-                            value="{{ old('kode_assessment', $assessment->kode_assessment) }}"
-                            placeholder="Contoh: ASM-001" required>
+                        <label>Kode Assessment</label>
+                        <input type="hidden" name="kode_assessment" value="{{ $assessmentCodeValue }}">
+                        <input type="text" class="form-control @error('kode_assessment') is-invalid @enderror"
+                            value="{{ $assessmentCodeDisplay }}" data-assessment-code-display readonly>
+                        <small class="form-text text-muted">
+                            Kode assessment dibuat otomatis saat data disimpan.
+                        </small>
                         @error('kode_assessment')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -1114,22 +1118,12 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Pertanyaan ${fieldIndex + 1}</h6>
                                 <div class="assessment-builder-actions">
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input"
-                                            id="field-required-${formIndex}-${fieldIndex}"
-                                            name="forms[${formIndex}][fields][${fieldIndex}][is_required]"
-                                            value="1" ${normalizeChecked(fieldData.is_required) ? 'checked' : ''}>
-                                        <label class="custom-control-label"
-                                            for="field-required-${formIndex}-${fieldIndex}">Field wajib diisi</label>
-                                    </div>
-                                    <div class="custom-control custom-switch">
-                                        <input type="checkbox" class="custom-control-input"
-                                            id="field-active-${formIndex}-${fieldIndex}"
-                                            name="forms[${formIndex}][fields][${fieldIndex}][is_active]"
-                                            value="1" ${fieldData.is_active === undefined || normalizeChecked(fieldData.is_active) ? 'checked' : ''}>
-                                        <label class="custom-control-label"
-                                            for="field-active-${formIndex}-${fieldIndex}">Field aktif</label>
-                                    </div>
+                                    <input type="checkbox" class="d-none"
+                                        name="forms[${formIndex}][fields][${fieldIndex}][is_required]"
+                                        value="1" ${normalizeChecked(fieldData.is_required) ? 'checked' : ''}>
+                                    <input type="checkbox" class="d-none"
+                                        name="forms[${formIndex}][fields][${fieldIndex}][is_active]"
+                                        value="1" ${fieldData.is_active === undefined || normalizeChecked(fieldData.is_active) ? 'checked' : ''}>
                                     <button type="button" class="btn btn-outline-danger btn-sm btn-remove-field">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
@@ -1454,7 +1448,7 @@
                                         </div>
 
                                         <div class="row scoring-synonym-wrapper d-none">
-                                            <div class="col-md-6">
+                                            <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label>Padanan Kata <span class="text-muted">(opsional)</span></label>
                                                     <textarea class="${getInputClass(scoringSynonymMapName)}"
@@ -1464,20 +1458,10 @@
                                                     ${buildInvalidFeedback(scoringSynonymMapName)}
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Pengaturan Teknis Tambahan (JSON)</label>
-                                                    <textarea class="${getInputClass(scoringAdvancedRulesName)}"
-                                                        name="${scoringAdvancedRulesName}"
-                                                        rows="4"
-                                                        placeholder='{"signal_keywords":["etika","kolaborasi"],"target_rows":3}'>${escapeHtml(scoringData.advanced_rules_text)}</textarea>
-                                                    ${buildInvalidFeedback(scoringAdvancedRulesName)}
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <div class="row scoring-confidence-wrapper d-none">
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Saran Panjang Jawaban Minimum</label>
                                                     <input type="number" min="0" class="${getInputClass(scoringMinWordsName)}"
@@ -1487,7 +1471,7 @@
                                                     ${buildInvalidFeedback(scoringMinWordsName)}
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Ambang Keyakinan Sistem</label>
                                                     <input type="number" min="0" max="1" step="0.01"
@@ -1498,17 +1482,13 @@
                                                     ${buildInvalidFeedback(scoringConfidenceThresholdName)}
                                                 </div>
                                             </div>
-                                            <div class="col-md-4 d-flex align-items-center">
-                                                <div class="custom-control custom-switch mt-3">
-                                                    <input type="checkbox" class="custom-control-input"
-                                                        id="field-manual-review-${formIndex}-${fieldIndex}"
-                                                        name="${scoringManualReviewName}"
-                                                        value="1" ${scoringData.manual_review_below_confidence ? 'checked' : ''}>
-                                                    <label class="custom-control-label"
-                                                        for="field-manual-review-${formIndex}-${fieldIndex}">Minta cek manual jika sistem ragu</label>
-                                                </div>
-                                            </div>
                                         </div>
+                                        <textarea class="d-none"
+                                            name="${scoringAdvancedRulesName}"
+                                            rows="4">${escapeHtml(scoringData.advanced_rules_text)}</textarea>
+                                        <input type="checkbox" class="d-none"
+                                            name="${scoringManualReviewName}"
+                                            value="1" ${scoringData.manual_review_below_confidence ? 'checked' : ''}>
 
                                         <div class="row scoring-numeric-score-wrapper d-none">
                                             <div class="col-md-4">
@@ -1710,7 +1690,7 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Profil Scoring</label>
                                                 <select class="${getInputClass(formScoringProfileName)} form-control"
@@ -1720,7 +1700,7 @@
                                                 ${buildInvalidFeedback(formScoringProfileName)}
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Bobot Form</label>
                                                 <input type="number" min="0" step="0.01" class="${getInputClass(formScoringWeightName)}"
@@ -1730,25 +1710,13 @@
                                                 ${buildInvalidFeedback(formScoringWeightName)}
                                             </div>
                                         </div>
-                                        <div class="col-md-4 d-flex align-items-center">
-                                            <div class="custom-control custom-switch mt-3">
-                                                <input type="checkbox" class="custom-control-input"
-                                                    id="form-exclude-${formIndex}"
-                                                    name="${formScoringPrefix}[exclude_from_competency]"
-                                                    value="1" ${formScoring.exclude_from_competency ? 'checked' : ''}>
-                                                <label class="custom-control-label"
-                                                    for="form-exclude-${formIndex}">Keluarkan dari rekap kompetensi</label>
-                                            </div>
-                                        </div>
                                     </div>
-                                    <div class="form-group mb-0">
-                                        <label>Aturan Form Lanjutan (JSON)</label>
-                                        <textarea class="${getInputClass(formScoringAdvancedRulesName)}"
-                                            name="${formScoringAdvancedRulesName}"
-                                            rows="3"
-                                            placeholder='{"synthetic_k5":{"weight":10}}'>${escapeHtml(formScoring.advanced_rules_text)}</textarea>
-                                        ${buildInvalidFeedback(formScoringAdvancedRulesName)}
-                                    </div>
+                                    <input type="checkbox" class="d-none"
+                                        name="${formScoringPrefix}[exclude_from_competency]"
+                                        value="1" ${formScoring.exclude_from_competency ? 'checked' : ''}>
+                                    <textarea class="d-none"
+                                        name="${formScoringAdvancedRulesName}"
+                                        rows="3">${escapeHtml(formScoring.advanced_rules_text)}</textarea>
                                 </div>
                             </div>
 
@@ -2139,7 +2107,7 @@
 
                 return {
                     title: $('input[name="judul"]').val()?.trim() || 'Judul assessment belum diisi',
-                    code: $('input[name="kode_assessment"]').val()?.trim() || '-',
+                    code: $('[data-assessment-code-display]').val()?.trim() || 'Otomatis saat disimpan',
                     description: $('textarea[name="deskripsi"]').val()?.trim() || '',
                     instruction: $('textarea[name="petunjuk"]').val()?.trim() || '',
                     status: $('select[name="status"]').val() || 'draft',

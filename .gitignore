@@ -37,3 +37,5 @@ yarn-error.log
 /public/upload/pegawai/*.png
 /public/upload/pegawai/*.jpg
 /public/upload/pegawai/*.jpeg
+
+z_catatan.txt

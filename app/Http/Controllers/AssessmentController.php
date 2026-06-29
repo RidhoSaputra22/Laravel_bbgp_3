@@ -65,8 +65,14 @@ class AssessmentController extends Controller
         DB::beginTransaction();
 
         try {
+            $assessmentCode = $this->resolveAssessmentCode(
+                $validated['kode_assessment'] ?? null,
+                $validated['judul'],
+                $validated['instrument_type'] ?? null
+            );
+
             $assessment = Assessment::create([
-                'kode_assessment' => $validated['kode_assessment'],
+                'kode_assessment' => $assessmentCode,
                 'judul' => $validated['judul'],
                 'slug' => $this->generateUniqueSlug($validated['judul']),
                 'deskripsi' => $validated['deskripsi'] ?? null,
@@ -136,8 +142,16 @@ class AssessmentController extends Controller
         DB::beginTransaction();
 
         try {
+            $assessmentCode = $this->resolveAssessmentCode(
+                $validated['kode_assessment'] ?? null,
+                $validated['judul'],
+                $validated['instrument_type'] ?? null,
+                $assessment->id,
+                $assessment->kode_assessment
+            );
+
             $assessment->update([
-                'kode_assessment' => $validated['kode_assessment'],
+                'kode_assessment' => $assessmentCode,
                 'judul' => $validated['judul'],
                 'slug' => $this->generateUniqueSlug($validated['judul'], $assessment->id),
                 'deskripsi' => $validated['deskripsi'] ?? null,
@@ -211,7 +225,7 @@ class AssessmentController extends Controller
             [
                 'forms_payload' => 'nullable|string',
                 'kode_assessment' => [
-                    'required',
+                    'nullable',
                     'string',
                     'max:100',
                     Rule::unique('assessments', 'kode_assessment')->ignore($assessmentId),
@@ -315,7 +329,6 @@ class AssessmentController extends Controller
                 'forms.*.fields.*.is_active' => 'nullable|boolean',
             ],
             [
-                'kode_assessment.required' => 'Kode assessment wajib diisi.',
                 'kode_assessment.unique' => 'Kode assessment sudah digunakan.',
                 'judul.required' => 'Judul assessment wajib diisi.',
                 'forms.required' => 'Minimal harus ada satu form.',
@@ -824,6 +837,64 @@ class AssessmentController extends Controller
         }
 
         return $slug;
+    }
+
+    private function resolveAssessmentCode(
+        ?string $rawCode,
+        string $title,
+        ?string $instrumentType = null,
+        ?int $ignoreId = null,
+        ?string $existingCode = null
+    ): string {
+        $manualCode = Str::upper(trim((string) $rawCode));
+
+        if ($manualCode !== '') {
+            return $manualCode;
+        }
+
+        $existingCode = trim((string) $existingCode);
+
+        if ($existingCode !== '') {
+            return $existingCode;
+        }
+
+        $baseCode = $this->buildAssessmentCodePrefix($title, $instrumentType);
+        $counter = 1;
+
+        do {
+            $candidate = sprintf('%s-%03d', $baseCode, $counter);
+            $exists = Assessment::query()
+                ->where('kode_assessment', $candidate)
+                ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+                ->exists();
+            $counter++;
+        } while ($exists);
+
+        return $candidate;
+    }
+
+    private function buildAssessmentCodePrefix(string $title, ?string $instrumentType = null): string
+    {
+        $instrumentPrefix = match (AssessmentInstrumentType::tryFromMixed($instrumentType)) {
+            AssessmentInstrumentType::PORTOFOLIO => 'PORTOFOLIO',
+            AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS => 'PG',
+            AssessmentInstrumentType::STUDI_KASUS => 'STUDI-KASUS',
+            AssessmentInstrumentType::MONITORING_OBSERVASI_EVIDEN => 'MOE',
+            default => null,
+        };
+
+        if ($instrumentPrefix) {
+            return 'ASM-'.$instrumentPrefix;
+        }
+
+        $titleTokens = collect(explode('-', Str::slug($title)))
+            ->filter()
+            ->take(4)
+            ->map(fn ($token) => Str::upper($token))
+            ->values()
+            ->all();
+
+        return 'ASM-'.implode('-', $titleTokens ?: ['ASSESSMENT']);
     }
 
     private function buildFormBuilderData(Assessment $assessment): array
