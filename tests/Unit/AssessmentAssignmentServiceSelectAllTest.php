@@ -51,6 +51,8 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->string('kode_penugasan')->unique();
             $table->string('judul_penugasan');
             $table->string('target_ketenagaan')->nullable();
+            $table->text('target_jabatan')->nullable();
+            $table->text('target_kabupaten')->nullable();
             $table->text('deskripsi')->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->time('jam_mulai')->nullable();
@@ -253,6 +255,115 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
                 ->map(fn ($guruId) => (int) $guruId)
                 ->all()
         );
+    }
+
+    public function test_create_assignment_can_filter_target_users_by_selected_jabatan(): void
+    {
+        Assessment::query()->create([
+            'kode_assessment' => 'ASM-010',
+            'judul' => 'Assessment Jabatan Pendidik',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $guru = $this->createGuru([
+            'nama_lengkap' => 'Guru Mata Pelajaran',
+            'email' => 'guru.mapel@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+        ]);
+
+        $kepalaSekolah = $this->createGuru([
+            'nama_lengkap' => 'Kepala Sekolah BBGTK',
+            'email' => 'kepsek@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Kepala Sekolah',
+        ]);
+
+        $this->createGuru([
+            'nama_lengkap' => 'Pengawas Pendidikan',
+            'email' => 'pengawas@example.test',
+            'eksternal_jabatan' => 'Tenaga Kependidikan',
+            'jenis_jabatan' => 'Pengawas',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan Jabatan Kepala Sekolah',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Kepala Sekolah'],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $assignedGuruIds = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->orderBy('guru_id')
+            ->pluck('guru_id')
+            ->map(fn ($guruId) => (int) $guruId)
+            ->all();
+
+        $this->assertSame(['Kepala Sekolah'], $assignment->fresh()->target_jabatan);
+        $this->assertSame(1, $assignment->total_target);
+        $this->assertSame([$kepalaSekolah->id], $assignedGuruIds);
+        $this->assertNotContains($guru->id, $assignedGuruIds);
+    }
+
+    public function test_create_assignment_can_filter_target_users_by_selected_jabatan_and_kabupaten(): void
+    {
+        Assessment::query()->create([
+            'kode_assessment' => 'ASM-020',
+            'judul' => 'Assessment Kabupaten Pendidik',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $makassarGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Makassar',
+            'email' => 'guru.makassar@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+
+        $gowaGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Gowa',
+            'email' => 'guru.gowa@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+            'kabupaten' => 'Kabupaten Gowa',
+        ]);
+
+        $this->createGuru([
+            'nama_lengkap' => 'Kepala Sekolah Makassar',
+            'email' => 'kepsek.mks@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Kepala Sekolah',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan Guru Makassar',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $assignedGuruIds = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->orderBy('guru_id')
+            ->pluck('guru_id')
+            ->map(fn ($guruId) => (int) $guruId)
+            ->all();
+
+        $freshAssignment = $assignment->fresh();
+
+        $this->assertSame(['Guru'], $freshAssignment->target_jabatan);
+        $this->assertSame(['Kota Makassar'], $freshAssignment->target_kabupaten);
+        $this->assertSame(1, $assignment->total_target);
+        $this->assertSame([$makassarGuru->id], $assignedGuruIds);
+        $this->assertNotContains($gowaGuru->id, $assignedGuruIds);
     }
 
     private function createGuru(array $overrides = []): Guru

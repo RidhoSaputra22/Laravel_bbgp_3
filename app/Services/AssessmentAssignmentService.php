@@ -52,6 +52,8 @@ class AssessmentAssignmentService
                 'kode_penugasan' => $this->generateUniqueCode(),
                 'judul_penugasan' => $payload['judul_penugasan'],
                 'target_ketenagaan' => $targetKetenagaan?->value,
+                'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
+                'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
                 'tanggal_mulai' => $payload['tanggal_mulai'] ?? null,
                 'jam_mulai' => $startTime,
@@ -209,13 +211,47 @@ class AssessmentAssignmentService
         return array_values(array_unique(array_map('intval', $guruIds)));
     }
 
+    private function normalizeTargetJabatanSelections(mixed $targetJabatan): array
+    {
+        return collect(is_array($targetJabatan) ? $targetJabatan : [$targetJabatan])
+            ->filter(fn ($jabatan) => filled($jabatan))
+            ->map(fn ($jabatan) => trim((string) $jabatan))
+            ->filter(fn (string $jabatan) => $jabatan !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function normalizeTargetKabupatenSelections(mixed $targetKabupaten): array
+    {
+        return collect(is_array($targetKabupaten) ? $targetKabupaten : [$targetKabupaten])
+            ->filter(fn ($kabupaten) => filled($kabupaten))
+            ->map(fn ($kabupaten) => trim((string) $kabupaten))
+            ->filter(fn (string $kabupaten) => $kabupaten !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function resolveGuruIds(
         array $payload,
         ?AssessmentKetenagaanType $targetKetenagaan = null
     ): array {
         if ($targetKetenagaan) {
-            return Guru::query()
-                ->where('eksternal_jabatan', $targetKetenagaan->guruValue())
+            $selectedJabatan = $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []);
+            $selectedKabupaten = $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []);
+            $query = Guru::query()
+                ->where('eksternal_jabatan', $targetKetenagaan->guruValue());
+
+            if ($selectedJabatan !== []) {
+                $query->whereIn('jenis_jabatan', $selectedJabatan);
+            }
+
+            if ($selectedKabupaten !== []) {
+                $query->whereIn('kabupaten', $selectedKabupaten);
+            }
+
+            return $query
                 ->orderBy('nama_lengkap')
                 ->pluck('id')
                 ->map(fn ($guruId) => (int) $guruId)

@@ -271,8 +271,8 @@
                     const ajaxUrl = element.dataset.ajaxUrl || '';
                     const isRemote = ajaxUrl !== '';
                     const pageSize = Math.max(Number(element.dataset.pageSize || 10), 1);
-                    const selectedTitle = element.dataset.selectedTitle || 'Data Terpilih';
-                    const emptyMessage = element.dataset.emptyMessage || 'Data tidak tersedia.';
+                    let selectedTitle = element.dataset.selectedTitle || 'Data Terpilih';
+                    let emptyMessage = element.dataset.emptyMessage || 'Data tidak tersedia.';
 
                     const searchInput = element.querySelector('[data-role="mct-search"]');
                     const selectAllButton = element.querySelector('[data-action="select-all"]');
@@ -472,6 +472,58 @@
                         });
 
                         syncState();
+                    }
+
+                    function replaceLocalItems(items, options) {
+                        if (isRemote) {
+                            return;
+                        }
+
+                        const detail = options && typeof options === 'object' ? options : {};
+                        const normalizedItems = Array.isArray(items) ? items.map(normalizeItem).filter((item) => item.id !== '') : [];
+                        const itemMap = new Map(normalizedItems.map((item) => [item.id, item]));
+
+                        localItems = normalizedItems;
+
+                        if (typeof detail.emptyMessage === 'string' && detail.emptyMessage.trim() !== '') {
+                            emptyMessage = detail.emptyMessage;
+                        }
+
+                        if (typeof detail.selectedTitle === 'string' && detail.selectedTitle.trim() !== '') {
+                            selectedTitle = detail.selectedTitle;
+                        }
+
+                        if (searchInput) {
+                            searchInput.value = '';
+                        }
+
+                        keyword = '';
+
+                        if (Array.isArray(detail.selectedIds)) {
+                            selectedMap.clear();
+
+                            detail.selectedIds
+                                .map((id) => String(id))
+                                .forEach((id) => {
+                                    if (itemMap.has(id)) {
+                                        selectedMap.set(id, itemMap.get(id));
+                                    }
+                                });
+                        } else if (detail.preserveSelection === true) {
+                            const nextSelectedEntries = Array.from(selectedMap.keys())
+                                .filter((id) => itemMap.has(id))
+                                .map((id) => [id, itemMap.get(id)]);
+
+                            selectedMap.clear();
+                            nextSelectedEntries.forEach(([id, item]) => {
+                                selectedMap.set(id, item);
+                            });
+                        } else {
+                            selectedMap.clear();
+                        }
+
+                        renderLocalRows();
+                        syncState(detail.emitChange !== false);
                     }
 
                     function bindRowEvents(rows) {
@@ -701,6 +753,17 @@
                             fetchRemoteRows();
                         });
                     }
+
+                    element.addEventListener('multiple-choice-table:set-items', function(event) {
+                        const detail = event.detail || {};
+
+                        replaceLocalItems(detail.items || [], detail);
+                    });
+
+                    element.multipleChoiceTable = {
+                        getSelectedItems: getSelectedItems,
+                        setItems: replaceLocalItems,
+                    };
 
                     if (isRemote) {
                         syncState();

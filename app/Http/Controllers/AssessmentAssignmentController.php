@@ -51,6 +51,8 @@ class AssessmentAssignmentController extends Controller
             'menu' => $this->menu,
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
             'ketenagaanSummaries' => $ketenagaanSummaries,
+            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
+            'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
             'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
             'sessionCapacity' => AssessmentAssignmentService::TARGETS_PER_SESSION,
             'defaultSessionDurationHours' => AssessmentAssignmentService::DEFAULT_SESSION_DURATION_HOURS,
@@ -280,9 +282,196 @@ class AssessmentAssignmentController extends Controller
 
     private function countAvailableParticipantsForKetenagaan(AssessmentKetenagaanType $case): int
     {
-        return (int) Guru::query()
+        return $this->countAvailableParticipantsForFilters($case);
+    }
+
+    private function countAvailableParticipantsForFilters(
+        AssessmentKetenagaanType $case,
+        array $selectedJabatan = [],
+        array $selectedKabupaten = []
+    ): int {
+        return (int) $this->buildParticipantTargetQuery($case, $selectedJabatan, $selectedKabupaten)->count();
+    }
+
+    private function buildJabatanOptionsByKetenagaan(): array
+    {
+        $countsByKetenagaan = Guru::query()
+            ->selectRaw('eksternal_jabatan, jenis_jabatan, count(*) as aggregate')
+            ->whereIn(
+                'eksternal_jabatan',
+                collect(AssessmentKetenagaanType::cases())
+                    ->map(fn (AssessmentKetenagaanType $case) => $case->guruValue())
+                    ->all()
+            )
+            ->whereNotNull('jenis_jabatan')
+            ->where('jenis_jabatan', '!=', '')
+            ->groupBy('eksternal_jabatan', 'jenis_jabatan')
+            ->orderBy('jenis_jabatan')
+            ->get()
+            ->groupBy('eksternal_jabatan');
+
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) use ($countsByKetenagaan) {
+                $items = $countsByKetenagaan
+                    ->get($case->guruValue(), collect())
+                    ->values()
+                    ->map(function ($row) use ($case) {
+                        $jabatan = (string) $row->jenis_jabatan;
+                        $userCount = (int) $row->aggregate;
+
+                        return [
+                            'id' => $jabatan,
+                            'label' => $jabatan,
+                            'description' => $userCount.' user pada '.$case->label(),
+                            'cells' => [
+                                $jabatan,
+                                $userCount.' user',
+                            ],
+                            'payload' => [
+                                'jenis_jabatan' => $jabatan,
+                                'ketenagaan' => $case->value,
+                                'ketenagaan_label' => $case->label(),
+                                'user_count' => $userCount,
+                            ],
+                        ];
+                    })
+                    ->all();
+
+                return [
+                    $case->value => $items,
+                ];
+            })
+            ->all();
+    }
+
+    private function buildKabupatenOptionsByKetenagaan(): array
+    {
+        $countsByKetenagaan = Guru::query()
+            ->selectRaw('eksternal_jabatan, kabupaten, jenis_jabatan, count(*) as aggregate')
+            ->whereIn(
+                'eksternal_jabatan',
+                collect(AssessmentKetenagaanType::cases())
+                    ->map(fn (AssessmentKetenagaanType $case) => $case->guruValue())
+                    ->all()
+            )
+            ->whereNotNull('jenis_jabatan')
+            ->where('jenis_jabatan', '!=', '')
+            ->whereNotNull('kabupaten')
+            ->where('kabupaten', '!=', '')
+            ->groupBy('eksternal_jabatan', 'kabupaten', 'jenis_jabatan')
+            ->orderBy('kabupaten')
+            ->orderBy('jenis_jabatan')
+            ->get()
+            ->groupBy('eksternal_jabatan');
+
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) use ($countsByKetenagaan) {
+                $items = $countsByKetenagaan
+                    ->get($case->guruValue(), collect())
+                    ->groupBy('kabupaten')
+                    ->map(function ($rows, $kabupaten) use ($case) {
+                        $countsByJabatan = $rows
+                            ->mapWithKeys(fn ($row) => [
+                                (string) $row->jenis_jabatan => (int) $row->aggregate,
+                            ])
+                            ->all();
+                        $userCount = array_sum($countsByJabatan);
+
+                        return [
+                            'id' => (string) $kabupaten,
+                            'label' => (string) $kabupaten,
+                            'description' => $userCount.' user lintas jabatan pada '.$case->label(),
+                            'cells' => [
+                                (string) $kabupaten,
+                                $userCount.' user',
+                            ],
+                            'payload' => [
+                                'kabupaten' => (string) $kabupaten,
+                                'ketenagaan' => $case->value,
+                                'ketenagaan_label' => $case->label(),
+                                'user_count' => $userCount,
+                                'counts_by_jabatan' => $countsByJabatan,
+                            ],
+                        ];
+                    })
+                    ->values()
+                    ->all();
+
+                return [
+                    $case->value => $items,
+                ];
+            })
+            ->all();
+    }
+
+    private function availableJabatanValuesForKetenagaan(AssessmentKetenagaanType $case): array
+    {
+        return Guru::query()
             ->where('eksternal_jabatan', $case->guruValue())
-            ->count();
+            ->whereNotNull('jenis_jabatan')
+            ->where('jenis_jabatan', '!=', '')
+            ->orderBy('jenis_jabatan')
+            ->distinct()
+            ->pluck('jenis_jabatan')
+            ->map(fn ($jabatan) => (string) $jabatan)
+            ->values()
+            ->all();
+    }
+
+    private function availableKabupatenValuesForFilters(
+        AssessmentKetenagaanType $case,
+        array $selectedJabatan = []
+    ): array {
+        return $this->buildParticipantTargetQuery($case, $selectedJabatan)
+            ->whereNotNull('kabupaten')
+            ->where('kabupaten', '!=', '')
+            ->orderBy('kabupaten')
+            ->distinct()
+            ->pluck('kabupaten')
+            ->map(fn ($kabupaten) => (string) $kabupaten)
+            ->values()
+            ->all();
+    }
+
+    private function normalizeTargetJabatanList(mixed $targetJabatan): array
+    {
+        return collect(is_array($targetJabatan) ? $targetJabatan : [$targetJabatan])
+            ->filter(fn ($jabatan) => filled($jabatan))
+            ->map(fn ($jabatan) => trim((string) $jabatan))
+            ->filter(fn (string $jabatan) => $jabatan !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function normalizeTargetKabupatenList(mixed $targetKabupaten): array
+    {
+        return collect(is_array($targetKabupaten) ? $targetKabupaten : [$targetKabupaten])
+            ->filter(fn ($kabupaten) => filled($kabupaten))
+            ->map(fn ($kabupaten) => trim((string) $kabupaten))
+            ->filter(fn (string $kabupaten) => $kabupaten !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function buildParticipantTargetQuery(
+        AssessmentKetenagaanType $case,
+        array $selectedJabatan = [],
+        array $selectedKabupaten = []
+    ) {
+        $query = Guru::query()
+            ->where('eksternal_jabatan', $case->guruValue());
+
+        if ($selectedJabatan !== []) {
+            $query->whereIn('jenis_jabatan', $selectedJabatan);
+        }
+
+        if ($selectedKabupaten !== []) {
+            $query->whereIn('kabupaten', $selectedKabupaten);
+        }
+
+        return $query;
     }
 
     private function guruSelectionQuery()
@@ -432,6 +621,10 @@ class AssessmentAssignmentController extends Controller
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
+                'target_jabatan' => 'required|array|min:1',
+                'target_jabatan.*' => 'required|string|max:255',
+                'target_kabupaten' => 'required|array|min:1',
+                'target_kabupaten.*' => 'required|string|max:255',
                 'deskripsi' => 'nullable|string',
                 'tanggal_mulai' => 'nullable|date|required_with:jam_mulai',
                 'jam_mulai' => 'nullable|date_format:H:i|required_with:tanggal_mulai',
@@ -446,6 +639,14 @@ class AssessmentAssignmentController extends Controller
                 'judul_penugasan.required' => 'Judul penugasan wajib diisi.',
                 'target_ketenagaan.required' => 'Ketenagaan target wajib dipilih.',
                 'target_ketenagaan.in' => 'Ketenagaan target harus sesuai pilihan yang tersedia.',
+                'target_jabatan.required' => 'Pilih minimal satu jabatan target.',
+                'target_jabatan.array' => 'Format jabatan target tidak valid.',
+                'target_jabatan.min' => 'Pilih minimal satu jabatan target.',
+                'target_jabatan.*.required' => 'Jabatan target tidak boleh kosong.',
+                'target_kabupaten.required' => 'Pilih minimal satu kabupaten target.',
+                'target_kabupaten.array' => 'Format kabupaten target tidak valid.',
+                'target_kabupaten.min' => 'Pilih minimal satu kabupaten target.',
+                'target_kabupaten.*.required' => 'Kabupaten target tidak boleh kosong.',
                 'tanggal_mulai.required_with' => 'Tanggal mulai wajib diisi jika jam mulai dipakai.',
                 'jam_mulai.required_with' => 'Jam mulai wajib diisi jika tanggal mulai dipakai.',
                 'jam_mulai.date_format' => 'Format jam mulai harus berupa HH:MM.',
@@ -475,6 +676,87 @@ class AssessmentAssignmentController extends Controller
                 $validator->errors()->add(
                     'target_ketenagaan',
                     'Belum ada user/peserta pada ketenagaan yang dipilih.'
+                );
+            }
+
+            $selectedTargetJabatan = $this->normalizeTargetJabatanList(
+                (array) $request->input('target_jabatan', [])
+            );
+            $availableJabatan = $this->availableJabatanValuesForKetenagaan($targetKetenagaan);
+
+            if ($availableJabatan === []) {
+                $validator->errors()->add(
+                    'target_jabatan',
+                    'Belum ada data jabatan untuk ketenagaan yang dipilih.'
+                );
+
+                return;
+            }
+
+            if ($selectedTargetJabatan === []) {
+                return;
+            }
+
+            $invalidTargetJabatan = array_values(array_diff($selectedTargetJabatan, $availableJabatan));
+
+            if ($invalidTargetJabatan !== []) {
+                $validator->errors()->add(
+                    'target_jabatan',
+                    'Jabatan target harus sesuai dengan ketenagaan yang dipilih.'
+                );
+
+                return;
+            }
+
+            if ($this->countAvailableParticipantsForFilters($targetKetenagaan, $selectedTargetJabatan) < 1) {
+                $validator->errors()->add(
+                    'target_jabatan',
+                    'Belum ada user/peserta pada jabatan yang dipilih.'
+                );
+
+                return;
+            }
+
+            $selectedTargetKabupaten = $this->normalizeTargetKabupatenList(
+                (array) $request->input('target_kabupaten', [])
+            );
+            $availableKabupaten = $this->availableKabupatenValuesForFilters(
+                $targetKetenagaan,
+                $selectedTargetJabatan
+            );
+
+            if ($availableKabupaten === []) {
+                $validator->errors()->add(
+                    'target_kabupaten',
+                    'Belum ada data kabupaten untuk kombinasi ketenagaan dan jabatan yang dipilih.'
+                );
+
+                return;
+            }
+
+            if ($selectedTargetKabupaten === []) {
+                return;
+            }
+
+            $invalidTargetKabupaten = array_values(array_diff($selectedTargetKabupaten, $availableKabupaten));
+
+            if ($invalidTargetKabupaten !== []) {
+                $validator->errors()->add(
+                    'target_kabupaten',
+                    'Kabupaten target harus sesuai dengan ketenagaan dan jabatan yang dipilih.'
+                );
+
+                return;
+            }
+
+            if ($this->countAvailableParticipantsForFilters(
+                $targetKetenagaan,
+                $selectedTargetJabatan,
+                $selectedTargetKabupaten
+            ) < 1) {
+                $validator->errors()->add(
+                    'target_kabupaten',
+                    'Belum ada user/peserta pada kabupaten yang dipilih.'
                 );
             }
         });

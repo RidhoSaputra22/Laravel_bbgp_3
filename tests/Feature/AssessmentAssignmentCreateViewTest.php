@@ -14,7 +14,8 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                 'user_id' => 1,
                 'name' => 'Admin Test',
                 '_old_input' => [
-                    'target_ketenagaan' => 'tenaga_pendidik',
+                    'target_jabatan' => ['Guru', 'Kepala Sekolah'],
+                    'target_kabupaten' => ['Kota Makassar'],
                     'durasi_sesi_jam' => '3',
                     'jam_mulai' => '08:00',
                 ],
@@ -71,6 +72,103 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                         'assessment_items' => [],
                     ],
                 ],
+                'jabatanOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => 'Guru',
+                            'label' => 'Guru',
+                            'description' => '30 user pada Tenaga Pendidik',
+                            'cells' => ['Guru', '30 user'],
+                            'payload' => [
+                                'jenis_jabatan' => 'Guru',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 30,
+                            ],
+                        ],
+                        [
+                            'id' => 'Kepala Sekolah',
+                            'label' => 'Kepala Sekolah',
+                            'description' => '12 user pada Tenaga Pendidik',
+                            'cells' => ['Kepala Sekolah', '12 user'],
+                            'payload' => [
+                                'jenis_jabatan' => 'Kepala Sekolah',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 12,
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [
+                        [
+                            'id' => 'Kepala Dinas',
+                            'label' => 'Kepala Dinas',
+                            'description' => '12 user pada Stakeholder',
+                            'cells' => ['Kepala Dinas', '12 user'],
+                            'payload' => [
+                                'jenis_jabatan' => 'Kepala Dinas',
+                                'ketenagaan' => 'stakeholder',
+                                'ketenagaan_label' => 'Stakeholder',
+                                'user_count' => 12,
+                            ],
+                        ],
+                    ],
+                ],
+                'kabupatenOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => 'Kota Makassar',
+                            'label' => 'Kota Makassar',
+                            'description' => '22 user lintas jabatan pada Tenaga Pendidik',
+                            'cells' => ['Kota Makassar', '22 user'],
+                            'payload' => [
+                                'kabupaten' => 'Kota Makassar',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 22,
+                                'counts_by_jabatan' => [
+                                    'Guru' => 18,
+                                    'Kepala Sekolah' => 4,
+                                ],
+                            ],
+                        ],
+                        [
+                            'id' => 'Kabupaten Gowa',
+                            'label' => 'Kabupaten Gowa',
+                            'description' => '20 user lintas jabatan pada Tenaga Pendidik',
+                            'cells' => ['Kabupaten Gowa', '20 user'],
+                            'payload' => [
+                                'kabupaten' => 'Kabupaten Gowa',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 20,
+                                'counts_by_jabatan' => [
+                                    'Guru' => 12,
+                                    'Kepala Sekolah' => 8,
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [
+                        [
+                            'id' => 'Kota Parepare',
+                            'label' => 'Kota Parepare',
+                            'description' => '12 user lintas jabatan pada Stakeholder',
+                            'cells' => ['Kota Parepare', '12 user'],
+                            'payload' => [
+                                'kabupaten' => 'Kota Parepare',
+                                'ketenagaan' => 'stakeholder',
+                                'ketenagaan_label' => 'Stakeholder',
+                                'user_count' => 12,
+                                'counts_by_jabatan' => [
+                                    'Kepala Dinas' => 12,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
                 'batchThreshold' => 25,
                 'sessionCapacity' => 41,
                 'defaultSessionDurationHours' => 3,
@@ -79,8 +177,16 @@ class AssessmentAssignmentCreateViewTest extends TestCase
 
         $response->assertSee('name="target_ketenagaan"', false);
         $response->assertSee('id="auto-summary-assessment-list"', false);
-        $response->assertSee('Pilih ketenagaan terlebih dahulu');
+        $response->assertSee('Jabatan Target');
+        $response->assertSee('Kabupaten Target');
         $response->assertSee('const ketenagaanSummaries =', false);
+        $response->assertSee('const jabatanOptionsByKetenagaan =', false);
+        $response->assertSee('const kabupatenOptionsByKetenagaan =', false);
+        $response->assertSee('id="assignment-ketenagaan-tenaga_pendidik"', false);
+        $response->assertSee('data-table-id="assignment-jabatan-selector"', false);
+        $response->assertSee('data-table-id="assignment-kabupaten-selector"', false);
+        $response->assertSee('Kepala Sekolah');
+        $response->assertSee('Kota Makassar');
         $response->assertDontSee('data-table-id="guru-selector"', false);
         $response->assertDontSee('data-table-id="assessment-selector"', false);
     }

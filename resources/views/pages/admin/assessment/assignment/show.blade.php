@@ -135,6 +135,26 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <div class="text-muted small">Jabatan Target</div>
+                            <div>
+                                @forelse ($assignment->target_jabatan_labels as $jabatanLabel)
+                                    <span class="badge badge-light border mr-1 mb-1">{{ $jabatanLabel }}</span>
+                                @empty
+                                    <span class="text-muted">Semua jabatan pada ketenagaan target</span>
+                                @endforelse
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Kabupaten Target</div>
+                            <div>
+                                @forelse ($assignment->target_kabupaten_labels as $kabupatenLabel)
+                                    <span class="badge badge-light border mr-1 mb-1">{{ $kabupatenLabel }}</span>
+                                @empty
+                                    <span class="text-muted">Semua kabupaten pada jabatan target</span>
+                                @endforelse
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <div class="text-muted small">Periode</div>
                             <div>
                                 {{ $assignment->tanggal_mulai ? \App\Helpers\Helper::dateIndo($assignment->tanggal_mulai) : '-' }}

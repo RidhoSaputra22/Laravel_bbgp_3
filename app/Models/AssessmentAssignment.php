@@ -14,6 +14,8 @@ class AssessmentAssignment extends Model
         'kode_penugasan',
         'judul_penugasan',
         'target_ketenagaan',
+        'target_jabatan',
+        'target_kabupaten',
         'deskripsi',
         'tanggal_mulai',
         'jam_mulai',
@@ -30,6 +32,8 @@ class AssessmentAssignment extends Model
     ];
 
     protected $casts = [
+        'target_jabatan' => 'array',
+        'target_kabupaten' => 'array',
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
         'processed_at' => 'datetime',
@@ -83,5 +87,23 @@ class AssessmentAssignment extends Model
     public function getTargetKetenagaanBadgeClassAttribute(): string
     {
         return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->badgeClass() ?? 'secondary';
+    }
+
+    public function getTargetJabatanLabelsAttribute(): array
+    {
+        return collect($this->target_jabatan ?? [])
+            ->filter(fn ($jabatan) => filled($jabatan))
+            ->map(fn ($jabatan) => (string) $jabatan)
+            ->values()
+            ->all();
+    }
+
+    public function getTargetKabupatenLabelsAttribute(): array
+    {
+        return collect($this->target_kabupaten ?? [])
+            ->filter(fn ($kabupaten) => filled($kabupaten))
+            ->map(fn ($kabupaten) => (string) $kabupaten)
+            ->values()
+            ->all();
     }
 }

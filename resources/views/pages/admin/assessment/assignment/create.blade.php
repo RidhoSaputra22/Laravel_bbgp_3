@@ -3,7 +3,67 @@
 @php
     $selectedDurationHours = (int) old('durasi_sesi_jam', $defaultSessionDurationHours);
     $selectedStartTime = old('jam_mulai');
-    $selectedTargetKetenagaan = old('target_ketenagaan', '');
+    $selectedTargetKetenagaan = old(
+        'target_ketenagaan',
+        \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+    );
+    $selectedTargetJabatan = collect((array) old('target_jabatan', []))
+        ->filter(fn ($jabatan) => filled($jabatan))
+        ->map(fn ($jabatan) => trim((string) $jabatan))
+        ->filter(fn ($jabatan) => $jabatan !== '')
+        ->values()
+        ->all();
+    $selectedTargetKabupaten = collect((array) old('target_kabupaten', []))
+        ->filter(fn ($kabupaten) => filled($kabupaten))
+        ->map(fn ($kabupaten) => trim((string) $kabupaten))
+        ->filter(fn ($kabupaten) => $kabupaten !== '')
+        ->values()
+        ->all();
+    $currentJabatanItems = collect($jabatanOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])->values()->all();
+    $currentSelectedJabatanItems = collect($currentJabatanItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetJabatan, true))
+        ->values()
+        ->all();
+    $resolveKabupatenItems = function (array $items, array $selectedJabatan) {
+        if ($selectedJabatan === []) {
+            return [];
+        }
+
+        return collect($items)
+            ->map(function ($item) use ($selectedJabatan) {
+                $itemPayload = (array) data_get($item, 'payload', []);
+                $countsByJabatan = collect((array) data_get($itemPayload, 'counts_by_jabatan', []));
+                $selectedUserCount = $countsByJabatan
+                    ->only($selectedJabatan)
+                    ->sum(fn ($count) => (int) $count);
+
+                if ($selectedUserCount < 1) {
+                    return null;
+                }
+
+                return array_merge($item, [
+                    'description' => $selectedUserCount.' user pada jabatan terpilih',
+                    'cells' => [
+                        (string) data_get($item, 'label', data_get($item, 'id', '-')),
+                        $selectedUserCount.' user',
+                    ],
+                    'payload' => array_merge($itemPayload, [
+                        'user_count' => $selectedUserCount,
+                    ]),
+                ]);
+            })
+            ->filter()
+            ->values()
+            ->all();
+    };
+    $currentKabupatenItems = $resolveKabupatenItems(
+        collect($kabupatenOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])->values()->all(),
+        $selectedTargetJabatan,
+    );
+    $currentSelectedKabupatenItems = collect($currentKabupatenItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetKabupaten, true))
+        ->values()
+        ->all();
     $ketenagaanCards = collect(\App\Enum\AssessmentKetenagaanType::cases())
         ->mapWithKeys(function ($case) {
             return [
@@ -29,6 +89,11 @@
             font-weight: 700;
         }
 
+        .summary-value--compact {
+            font-size: 1rem;
+            line-height: 1.45;
+        }
+
         .assignment-ketenagaan-grid {
             display: grid;
             gap: 0.75rem;
@@ -49,7 +114,7 @@
             align-items: center;
             background: #fff;
             border: 1px solid #dfe7f7;
-            border-radius: 0.9rem;
+            border-radius: 0.2rem;
             cursor: pointer;
             display: flex;
             gap: 0.85rem;
@@ -67,7 +132,7 @@
 
         .assignment-ketenagaan-card__icon {
             align-items: center;
-            border-radius: 0.9rem;
+            border-radius: 0.2rem;
             color: #fff;
             display: inline-flex;
             flex: 0 0 46px;
@@ -113,7 +178,7 @@
         .auto-summary-panel {
             background: #f8fbff;
             border: 1px solid #d7e3f8;
-            border-radius: 0.9rem;
+            border-radius: 0.2rem;
             padding: 1rem 1rem 0.75rem;
         }
 
@@ -126,6 +191,13 @@
             font-weight: 600;
             margin: 0 0.45rem 0.45rem 0;
             padding: 0.28rem 0.7rem;
+        }
+
+        .auto-summary-selected-jabatan {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-bottom: 1rem;
         }
 
         .auto-summary-table td,
@@ -179,8 +251,9 @@
                                 <div class="card-body">
                                     <div class="alert alert-light border mb-4">
                                         Kode penugasan dibuat otomatis. Admin cukup menentukan judul, ketenagaan target,
-                                        dan jadwal. Sistem akan mengambil semua form assessment aktif/publish beserta
-                                        seluruh user pada ketenagaan yang sama.
+                                        jabatan target, kabupaten target, dan jadwal. Sistem akan mengambil semua form
+                                        assessment aktif/publish beserta seluruh user yang sesuai dengan ketenagaan,
+                                        jabatan, dan kabupaten yang dipilih.
                                     </div>
 
                                     <div class="form-group">
@@ -211,8 +284,8 @@
                                                         <span>
                                                             <span class="assignment-ketenagaan-card__title">{{ $card['label'] }}</span>
                                                             <span class="assignment-ketenagaan-card__hint">
-                                                                Semua form + semua user pada ketenagaan ini akan
-                                                                otomatis ditugaskan.
+                                                                Semua form + user pada jabatan dan kabupaten yang
+                                                                dipilih di ketenagaan ini akan otomatis ditugaskan.
                                                             </span>
                                                         </span>
                                                     </label>
@@ -227,6 +300,46 @@
                                         @enderror
                                     </div>
 
+                                    <div class="form-group">
+                                        <label>Jabatan Target <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="assignment-jabatan-selector" name="target_jabatan"
+                                            :headers="['Jabatan', 'Target User']" :items="$currentJabatanItems"
+                                            :selected="$selectedTargetJabatan"
+                                            :initialSelectedItems="$currentSelectedJabatanItems"
+                                            searchPlaceholder="Cari jabatan target..."
+                                            emptyMessage="{{ $selectedTargetKetenagaan ? 'Belum ada jabatan yang tersedia untuk ketenagaan ini.' : 'Pilih ketenagaan terlebih dahulu.' }}"
+                                            selectedTitle="Jabatan Target" />
+                                        <small class="form-text text-muted">
+                                            Pilih satu atau beberapa jabatan sesuai ketenagaan target. Hanya user pada
+                                            jabatan ini yang akan otomatis ditugaskan.
+                                        </small>
+                                        @if ($errors->has('target_jabatan') || $errors->has('target_jabatan.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_jabatan') ?: $errors->first('target_jabatan.*') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Kabupaten Target <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="assignment-kabupaten-selector" name="target_kabupaten"
+                                            :headers="['Kabupaten', 'Target User']" :items="$currentKabupatenItems"
+                                            :selected="$selectedTargetKabupaten"
+                                            :initialSelectedItems="$currentSelectedKabupatenItems"
+                                            searchPlaceholder="Cari kabupaten target..."
+                                            emptyMessage="{{ $selectedTargetJabatan !== [] ? 'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.' : 'Pilih minimal satu jabatan target terlebih dahulu.' }}"
+                                            selectedTitle="Kabupaten Target" />
+                                        <small class="form-text text-muted">
+                                            Pilih satu atau beberapa kabupaten sesuai ketenagaan dan jabatan target.
+                                            Hanya user pada kabupaten ini yang akan otomatis ditugaskan.
+                                        </small>
+                                        @if ($errors->has('target_kabupaten') || $errors->has('target_kabupaten.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_kabupaten') ?: $errors->first('target_kabupaten.*') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     <div class="auto-summary-panel mb-4">
                                         <div class="d-flex flex-wrap justify-content-between align-items-start">
                                             <div class="mb-3">
@@ -237,8 +350,21 @@
                                             </div>
                                             <div class="mb-3 text-right">
                                                 <span class="auto-summary-pill" id="auto-summary-assessment-count">0 assessment</span>
+                                                <span class="auto-summary-pill" id="auto-summary-jabatan-count">0 jabatan</span>
+                                                <span class="auto-summary-pill" id="auto-summary-kabupaten-count">0 kabupaten</span>
                                                 <span class="auto-summary-pill" id="auto-summary-user-count">0 user</span>
                                             </div>
+                                        </div>
+
+                                        <div class="auto-summary-selected-jabatan" id="auto-summary-selected-jabatan">
+                                            <span class="text-muted small">
+                                                Pilih minimal satu jabatan target untuk menentukan peserta penugasan.
+                                            </span>
+                                        </div>
+                                        <div class="auto-summary-selected-jabatan" id="auto-summary-selected-kabupaten">
+                                            <span class="text-muted small">
+                                                Pilih minimal satu kabupaten target setelah memilih jabatan.
+                                            </span>
                                         </div>
 
                                         <div class="row">
@@ -375,6 +501,14 @@
                                         <div class="summary-value" id="summary-ketenagaan">-</div>
                                     </div>
                                     <div class="mb-3">
+                                        <div class="text-muted small">Jabatan Dipilih</div>
+                                        <div class="summary-value summary-value--compact" id="summary-jabatan">Belum dipilih</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-muted small">Kabupaten Dipilih</div>
+                                        <div class="summary-value summary-value--compact" id="summary-kabupaten">Belum dipilih</div>
+                                    </div>
+                                    <div class="mb-3">
                                         <div class="text-muted small">Total Assessment</div>
                                         <div class="summary-value" id="summary-assessment-count">0</div>
                                     </div>
@@ -454,14 +588,278 @@
     <script>
         (() => {
             const ketenagaanSummaries = @json($ketenagaanSummaries);
+            const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
+            const kabupatenOptionsByKetenagaan = @json($kabupatenOptionsByKetenagaan);
             const sessionCapacity = {{ $sessionCapacity }};
             const defaultDurationHours = {{ $defaultSessionDurationHours }};
             const batchThreshold = {{ $batchThreshold }};
+            const initialKabupatenState = @json([
+                'target' => $selectedTargetKetenagaan,
+                'jabatan' => collect($selectedTargetJabatan)
+                    ->map(fn ($jabatan) => (string) $jabatan)
+                    ->sort()
+                    ->values()
+                    ->all(),
+            ]);
+            let activeJabatanTarget = @json($selectedTargetKetenagaan);
+            let activeKabupatenStateKey = JSON.stringify(initialKabupatenState);
+
+            function escapeHtml(value) {
+                const node = document.createElement('div');
+                node.textContent = value == null ? '' : String(value);
+
+                return node.innerHTML;
+            }
 
             function getSelectedTargetKetenagaan() {
                 const selected = document.querySelector('input[name="target_ketenagaan"]:checked');
 
                 return selected ? selected.value : '';
+            }
+
+            function getJabatanSelector() {
+                return document.querySelector('[data-table-id="assignment-jabatan-selector"]');
+            }
+
+            function getKabupatenSelector() {
+                return document.querySelector('[data-table-id="assignment-kabupaten-selector"]');
+            }
+
+            function getAvailableJabatanItems(target = getSelectedTargetKetenagaan()) {
+                return target && Array.isArray(jabatanOptionsByKetenagaan[target]) ? jabatanOptionsByKetenagaan[target] : [];
+            }
+
+            function getAvailableKabupatenBaseItems(target = getSelectedTargetKetenagaan()) {
+                return target && Array.isArray(kabupatenOptionsByKetenagaan[target]) ? kabupatenOptionsByKetenagaan[target] : [];
+            }
+
+            function getSelectedJabatanIds() {
+                const selector = getJabatanSelector();
+
+                if (!selector) {
+                    return [];
+                }
+
+                return Array.from(selector.querySelectorAll('input[name="target_jabatan[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
+            }
+
+            function getSelectedJabatanItems() {
+                const selectedIds = getSelectedJabatanIds();
+                const itemMap = new Map(getAvailableJabatanItems().map((item) => [String(item.id), item]));
+
+                return selectedIds
+                    .map((id) => itemMap.get(String(id)))
+                    .filter((item) => item);
+            }
+
+            function buildKabupatenItemsForSelection(
+                target = getSelectedTargetKetenagaan(),
+                selectedJabatanItems = getSelectedJabatanItems()
+            ) {
+                if (!target || selectedJabatanItems.length === 0) {
+                    return [];
+                }
+
+                const selectedJabatanIds = selectedJabatanItems
+                    .map((item) => String(item.id || '').trim())
+                    .filter((value) => value !== '');
+
+                return getAvailableKabupatenBaseItems(target)
+                    .map((item) => {
+                        const payload = item && item.payload && typeof item.payload === 'object' ? item.payload : {};
+                        const countsByJabatan = payload && payload.counts_by_jabatan && typeof payload.counts_by_jabatan === 'object' ?
+                            payload.counts_by_jabatan :
+                            {};
+                        const userCount = selectedJabatanIds.reduce((total, jabatanId) => {
+                            return total + Number(countsByJabatan[jabatanId] || 0);
+                        }, 0);
+
+                        if (userCount < 1) {
+                            return null;
+                        }
+
+                        return {
+                            id: String(item.id || ''),
+                            label: String(item.label || item.id || ''),
+                            description: userCount + ' user pada jabatan terpilih',
+                            cells: [
+                                String(item.label || item.id || '-'),
+                                userCount + ' user',
+                            ],
+                            payload: Object.assign({}, payload, {
+                                user_count: userCount,
+                            }),
+                        };
+                    })
+                    .filter((item) => item && item.id !== '');
+            }
+
+            function buildKabupatenStateKey(
+                target = getSelectedTargetKetenagaan(),
+                selectedJabatanItems = getSelectedJabatanItems()
+            ) {
+                return JSON.stringify({
+                    target: target || '',
+                    jabatan: selectedJabatanItems
+                        .map((item) => String(item.id || '').trim())
+                        .filter((value) => value !== '')
+                        .sort(),
+                });
+            }
+
+            function getSelectedKabupatenIds() {
+                const selector = getKabupatenSelector();
+
+                if (!selector) {
+                    return [];
+                }
+
+                return Array.from(selector.querySelectorAll('input[name="target_kabupaten[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
+            }
+
+            function getSelectedKabupatenItems() {
+                const selectedIds = getSelectedKabupatenIds();
+                const itemMap = new Map(buildKabupatenItemsForSelection().map((item) => [String(item.id), item]));
+
+                return selectedIds
+                    .map((id) => itemMap.get(String(id)))
+                    .filter((item) => item);
+            }
+
+            function syncJabatanSelector(force = false) {
+                const selector = getJabatanSelector();
+                const target = getSelectedTargetKetenagaan();
+
+                if (!selector || (!force && activeJabatanTarget === target)) {
+                    return;
+                }
+
+                activeJabatanTarget = target;
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: getAvailableJabatanItems(target),
+                        selectedIds: [],
+                        emptyMessage: target ?
+                            'Belum ada jabatan yang tersedia untuk ketenagaan ini.' :
+                            'Pilih ketenagaan terlebih dahulu.',
+                        emitChange: false,
+                    },
+                }));
+            }
+
+            function syncKabupatenSelector(force = false) {
+                const selector = getKabupatenSelector();
+                const target = getSelectedTargetKetenagaan();
+                const selectedJabatanItems = getSelectedJabatanItems();
+                const stateKey = buildKabupatenStateKey(target, selectedJabatanItems);
+
+                if (!selector || (!force && activeKabupatenStateKey === stateKey)) {
+                    return;
+                }
+
+                activeKabupatenStateKey = stateKey;
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: buildKabupatenItemsForSelection(target, selectedJabatanItems),
+                        selectedIds: [],
+                        emptyMessage: selectedJabatanItems.length === 0 ?
+                            'Pilih minimal satu jabatan target terlebih dahulu.' :
+                            'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.',
+                        emitChange: false,
+                    },
+                }));
+            }
+
+            function renderSelectedJabatanBadges(selectedJabatanItems) {
+                const selectedJabatanNode = document.getElementById('auto-summary-selected-jabatan');
+
+                if (!selectedJabatanNode) {
+                    return;
+                }
+
+                if (selectedJabatanItems.length === 0) {
+                    selectedJabatanNode.innerHTML = `
+                        <span class="text-muted small">
+                            Pilih minimal satu jabatan target untuk menentukan peserta penugasan.
+                        </span>
+                    `;
+
+                    return;
+                }
+
+                selectedJabatanNode.innerHTML = selectedJabatanItems.map((item) => {
+                    return `
+                        <span class="auto-summary-pill">
+                            ${escapeHtml(item.label || item.id || '-')}
+                        </span>
+                    `;
+                }).join('');
+            }
+
+            function renderSelectedKabupatenBadges(selectedKabupatenItems, selectedJabatanItems) {
+                const selectedKabupatenNode = document.getElementById('auto-summary-selected-kabupaten');
+
+                if (!selectedKabupatenNode) {
+                    return;
+                }
+
+                if (selectedJabatanItems.length === 0) {
+                    selectedKabupatenNode.innerHTML = `
+                        <span class="text-muted small">
+                            Pilih minimal satu jabatan target terlebih dahulu sebelum menentukan kabupaten.
+                        </span>
+                    `;
+
+                    return;
+                }
+
+                if (selectedKabupatenItems.length === 0) {
+                    selectedKabupatenNode.innerHTML = `
+                        <span class="text-muted small">
+                            Pilih minimal satu kabupaten target setelah memilih jabatan.
+                        </span>
+                    `;
+
+                    return;
+                }
+
+
+            }
+
+            function formatSelectedJabatanSummary(selectedJabatanItems) {
+                if (selectedJabatanItems.length === 0) {
+                    return 'Belum dipilih';
+                }
+
+                const preview = selectedJabatanItems
+                    .slice(0, 2)
+                    .map((item) => item.label || item.id || '-');
+
+                if (selectedJabatanItems.length <= 2) {
+                    return preview.join(', ');
+                }
+
+                return preview.join(', ') + ' +' + (selectedJabatanItems.length - 2) + ' lainnya';
+            }
+
+            function formatSelectedKabupatenSummary(selectedKabupatenItems) {
+                if (selectedKabupatenItems.length === 0) {
+                    return 'Belum dipilih';
+                }
+
+                const preview = selectedKabupatenItems
+                    .slice(0, 2)
+                    .map((item) => item.label || item.id || '-');
+
+                if (selectedKabupatenItems.length <= 2) {
+                    return preview.join(', ');
+                }
+
+                return preview.join(', ') + ' +' + (selectedKabupatenItems.length - 2) + ' lainnya';
             }
 
             function getSelectedSummary() {
@@ -519,8 +917,14 @@
 
             function updateAutoSummaryPanel() {
                 const summary = getSelectedSummary();
+                const availableJabatanItems = getAvailableJabatanItems();
+                const selectedJabatanItems = getSelectedJabatanItems();
+                const availableKabupatenItems = buildKabupatenItemsForSelection();
+                const selectedKabupatenItems = getSelectedKabupatenItems();
                 const labelNode = document.getElementById('auto-summary-ketenagaan-label');
                 const assessmentCountNode = document.getElementById('auto-summary-assessment-count');
+                const jabatanCountNode = document.getElementById('auto-summary-jabatan-count');
+                const kabupatenCountNode = document.getElementById('auto-summary-kabupaten-count');
                 const userCountNode = document.getElementById('auto-summary-user-count');
                 const formCountNode = document.getElementById('auto-summary-form-count');
                 const fieldCountNode = document.getElementById('auto-summary-field-count');
@@ -529,7 +933,9 @@
                 const submitButton = document.getElementById('assignment-submit-button');
 
                 const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
-                const userCount = summary ? Number(summary.user_count || 0) : 0;
+                const userCount = selectedKabupatenItems.reduce((total, item) => {
+                    return total + Number((item.payload && item.payload.user_count) || 0);
+                }, 0);
                 const distributionMethod = userCount === 0 ? '-' : (userCount > batchThreshold ? 'Batch Job' : 'Langsung');
 
                 if (labelNode) {
@@ -538,6 +944,14 @@
 
                 if (assessmentCountNode) {
                     assessmentCountNode.textContent = assessmentCount + ' assessment';
+                }
+
+                if (jabatanCountNode) {
+                    jabatanCountNode.textContent = selectedJabatanItems.length + ' jabatan';
+                }
+
+                if (kabupatenCountNode) {
+                    kabupatenCountNode.textContent = selectedKabupatenItems.length + ' kabupaten';
                 }
 
                 if (userCountNode) {
@@ -556,6 +970,9 @@
                     distributionNode.textContent = distributionMethod;
                 }
 
+                renderSelectedJabatanBadges(selectedJabatanItems);
+                renderSelectedKabupatenBadges(selectedKabupatenItems, selectedJabatanItems);
+
                 if (warningNode) {
                     const warningMessages = [];
 
@@ -563,8 +980,16 @@
                         warningMessages.push('Belum ada assessment aktif/publish untuk ketenagaan ini.');
                     }
 
-                    if (summary && userCount === 0) {
-                        warningMessages.push('Belum ada user/peserta pada ketenagaan ini.');
+                    if (summary && availableJabatanItems.length === 0) {
+                        warningMessages.push('Belum ada data jabatan untuk ketenagaan ini.');
+                    } else if (summary && selectedJabatanItems.length === 0) {
+                        warningMessages.push('Pilih minimal satu jabatan target.');
+                    } else if (summary && availableKabupatenItems.length === 0) {
+                        warningMessages.push('Belum ada data kabupaten untuk kombinasi ketenagaan dan jabatan ini.');
+                    } else if (summary && selectedKabupatenItems.length === 0) {
+                        warningMessages.push('Pilih minimal satu kabupaten target.');
+                    } else if (summary && userCount === 0) {
+                        warningMessages.push('Belum ada user/peserta pada kombinasi jabatan dan kabupaten yang dipilih.');
                     }
 
                     warningNode.classList.toggle('d-none', warningMessages.length === 0);
@@ -572,7 +997,9 @@
                 }
 
                 if (submitButton) {
-                    submitButton.disabled = !summary || assessmentCount === 0 || userCount === 0;
+                    submitButton.disabled = !summary || assessmentCount === 0 || selectedJabatanItems.length === 0 ||
+                        selectedKabupatenItems.length === 0 ||
+                        userCount === 0;
                 }
 
                 renderAssessmentList(summary);
@@ -580,15 +1007,21 @@
 
             function updateSidebarSummary() {
                 const summary = getSelectedSummary();
+                const selectedJabatanItems = getSelectedJabatanItems();
+                const selectedKabupatenItems = getSelectedKabupatenItems();
                 const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
                 const formCount = summary ? Number(summary.form_count || 0) : 0;
                 const fieldCount = summary ? Number(summary.field_count || 0) : 0;
-                const userCount = summary ? Number(summary.user_count || 0) : 0;
+                const userCount = selectedKabupatenItems.reduce((total, item) => {
+                    return total + Number((item.payload && item.payload.user_count) || 0);
+                }, 0);
                 const totalSessions = userCount > 0 ? Math.ceil(userCount / sessionCapacity) : 0;
                 const durationHours = getSelectedDurationHours();
                 const distributionMethod = userCount === 0 ? '-' : (userCount > batchThreshold ? 'Batch Job' : 'Langsung');
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
+                const summaryJabatan = document.getElementById('summary-jabatan');
+                const summaryKabupaten = document.getElementById('summary-kabupaten');
                 const summaryAssessmentCount = document.getElementById('summary-assessment-count');
                 const summaryForms = document.getElementById('summary-forms');
                 const summaryFields = document.getElementById('summary-fields');
@@ -601,6 +1034,14 @@
 
                 if (summaryKetenagaan) {
                     summaryKetenagaan.textContent = summary ? summary.label : '-';
+                }
+
+                if (summaryJabatan) {
+                    summaryJabatan.textContent = formatSelectedJabatanSummary(selectedJabatanItems);
+                }
+
+                if (summaryKabupaten) {
+                    summaryKabupaten.textContent = formatSelectedKabupatenSummary(selectedKabupatenItems);
                 }
 
                 if (summaryAssessmentCount) {
@@ -646,8 +1087,26 @@
             }
 
             document.addEventListener('DOMContentLoaded', function() {
+                const jabatanSelector = getJabatanSelector();
+                const kabupatenSelector = getKabupatenSelector();
+
+                if (jabatanSelector) {
+                    jabatanSelector.addEventListener('multiple-choice-table:change', function() {
+                        syncKabupatenSelector();
+                        refreshSummaries();
+                    });
+                }
+
+                if (kabupatenSelector) {
+                    kabupatenSelector.addEventListener('multiple-choice-table:change', refreshSummaries);
+                }
+
                 document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
-                    input.addEventListener('change', refreshSummaries);
+                    input.addEventListener('change', function() {
+                        syncJabatanSelector();
+                        syncKabupatenSelector();
+                        refreshSummaries();
+                    });
                 });
 
                 const durationSelect = document.getElementById('durasi_sesi_jam');
