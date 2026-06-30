@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\AssessmentKetenagaanType;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Models\Guru;
-use App\Models\JabatanKependidikan;
-use App\Models\JabatanPendidik;
-use App\Models\JabatanStakeHolder;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AssessmentAssignmentController extends Controller
@@ -48,48 +45,12 @@ class AssessmentAssignmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $assessmentList = Assessment::query()
-            ->select([
-                'id',
-                'kode_assessment',
-                'judul',
-                'status',
-            ])
-            ->selectSub(
-                AssessmentForm::query()
-                    ->selectRaw('count(*)')
-                    ->whereColumn('assessment_id', 'assessments.id')
-                    ->where('is_active', true),
-                'forms_count'
-            )
-            ->selectSub(
-                AssessmentFormField::query()
-                    ->selectRaw('count(*)')
-                    ->join('assessment_forms', 'assessment_forms.id', '=', 'assessment_form_fields.assessment_form_id')
-                    ->whereColumn('assessment_forms.assessment_id', 'assessments.id')
-                    ->where('assessment_forms.is_active', true)
-                    ->where('assessment_form_fields.is_active', true),
-                'fields_count'
-            )
-            ->where('assessments.is_active', true)
-            ->whereIn('status', ['draft', 'publish'])
-            ->orderBy('judul')
-            ->get();
-
-        $selectedGuruIds = collect(old('guru_ids', []))
-            ->filter(fn ($id) => filled($id))
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
-
-        $selectedGuruItems = $this->buildSelectedGuruItems($selectedGuruIds);
+        $ketenagaanSummaries = $this->buildKetenagaanSummaries();
 
         return view('pages.admin.assessment.assignment.create', [
             'menu' => $this->menu,
-            'assessmentList' => $assessmentList,
-            'selectedGuruIds' => $selectedGuruIds,
-            'selectedGuruItems' => $selectedGuruItems,
+            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
+            'ketenagaanSummaries' => $ketenagaanSummaries,
             'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
             'sessionCapacity' => AssessmentAssignmentService::TARGETS_PER_SESSION,
             'defaultSessionDurationHours' => AssessmentAssignmentService::DEFAULT_SESSION_DURATION_HOURS,
@@ -133,16 +94,15 @@ class AssessmentAssignmentController extends Controller
             ]);
         }
 
-        $keyword = trim((string) $request->input('q', ''));
+        $scope = $this->normalizeGuruSelectionScope([
+            'q' => $request->input('q'),
+            'filters' => [
+                'eksternal_jabatan' => $request->input('eksternal_jabatan'),
+                'jenis_jabatan' => $request->input('jenis_jabatan'),
+            ],
+        ]);
 
-        if ($keyword !== '') {
-            $query->where(function ($builder) use ($keyword) {
-                $builder->where('nama_lengkap', 'like', '%'.$keyword.'%')
-                    ->orWhere('email', 'like', '%'.$keyword.'%')
-                    ->orWhere('satuan_pendidikan', 'like', '%'.$keyword.'%')
-                    ->orWhere('kabupaten', 'like', '%'.$keyword.'%');
-            });
-        }
+        $this->applyGuruSelectionScope($query, $scope);
 
         $perPage = max(5, min((int) $request->input('per_page', self::GURU_PAGE_SIZE), 50));
         $page = max((int) $request->input('page', 1), 1);
@@ -229,6 +189,100 @@ class AssessmentAssignmentController extends Controller
             in_array(session('role'), ['admin', 'superadmin', 'kepala', 'database'], true),
             403
         );
+    }
+
+    private function buildKetenagaanSummaries(): array
+    {
+        $assessmentsByKetenagaan = $this->availableAssessmentsQuery()
+            ->orderBy('judul')
+            ->get()
+            ->groupBy('target_ketenagaan');
+
+        $participantCounts = Guru::query()
+            ->selectRaw('eksternal_jabatan, count(*) as aggregate')
+            ->whereIn(
+                'eksternal_jabatan',
+                collect(AssessmentKetenagaanType::cases())->map(fn (AssessmentKetenagaanType $case) => $case->guruValue())->all()
+            )
+            ->groupBy('eksternal_jabatan')
+            ->pluck('aggregate', 'eksternal_jabatan');
+
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) use ($assessmentsByKetenagaan, $participantCounts) {
+                $items = $assessmentsByKetenagaan->get($case->value, collect())->values();
+
+                return [
+                    $case->value => [
+                        'value' => $case->value,
+                        'label' => $case->label(),
+                        'badge_class' => $case->badgeClass(),
+                        'icon_class' => $case->iconClass(),
+                        'assessment_count' => $items->count(),
+                        'form_count' => $items->sum(fn ($assessment) => (int) ($assessment->forms_count ?? 0)),
+                        'field_count' => $items->sum(fn ($assessment) => (int) ($assessment->fields_count ?? 0)),
+                        'user_count' => (int) ($participantCounts[$case->guruValue()] ?? 0),
+                        'assessment_items' => $items
+                            ->map(function ($assessment) {
+                                return [
+                                    'id' => (int) $assessment->id,
+                                    'kode' => $assessment->kode_assessment,
+                                    'judul' => $assessment->judul,
+                                    'status' => ucfirst($assessment->status),
+                                    'forms' => (int) ($assessment->forms_count ?? 0),
+                                    'fields' => (int) ($assessment->fields_count ?? 0),
+                                ];
+                            })
+                            ->all(),
+                    ],
+                ];
+            })
+            ->all();
+    }
+
+    private function availableAssessmentsQuery()
+    {
+        return Assessment::query()
+            ->select([
+                'assessments.id',
+                'assessments.kode_assessment',
+                'assessments.judul',
+                'assessments.status',
+                'assessments.target_ketenagaan',
+            ])
+            ->selectSub(
+                AssessmentForm::query()
+                    ->selectRaw('count(*)')
+                    ->whereColumn('assessment_id', 'assessments.id')
+                    ->where('is_active', true),
+                'forms_count'
+            )
+            ->selectSub(
+                AssessmentFormField::query()
+                    ->selectRaw('count(*)')
+                    ->join('assessment_forms', 'assessment_forms.id', '=', 'assessment_form_fields.assessment_form_id')
+                    ->whereColumn('assessment_forms.assessment_id', 'assessments.id')
+                    ->where('assessment_forms.is_active', true)
+                    ->where('assessment_form_fields.is_active', true),
+                'fields_count'
+            )
+            ->where('assessments.is_active', true)
+            ->whereIn('assessments.status', ['draft', 'publish']);
+    }
+
+    private function countAvailableAssessmentsForKetenagaan(AssessmentKetenagaanType $case): int
+    {
+        return (int) Assessment::query()
+            ->where('is_active', true)
+            ->whereIn('status', ['draft', 'publish'])
+            ->where('target_ketenagaan', $case->value)
+            ->count();
+    }
+
+    private function countAvailableParticipantsForKetenagaan(AssessmentKetenagaanType $case): int
+    {
+        return (int) Guru::query()
+            ->where('eksternal_jabatan', $case->guruValue())
+            ->count();
     }
 
     private function guruSelectionQuery()
@@ -359,6 +413,8 @@ class AssessmentAssignmentController extends Controller
                 'email' => $guru->email,
                 'satuan_pendidikan' => $guru->satuan_pendidikan,
                 'kabupaten' => $guru->kabupaten,
+                'eksternal_jabatan' => $guru->eksternal_jabatan,
+                'jenis_jabatan' => $guru->jenis_jabatan,
                 'status_verifikasi' => $guru->is_verif === 'sudah' ? 'Terverifikasi' : 'Belum verifikasi',
                 'status_kepegawaian' => $guru->status_kepegawaian,
             ],
@@ -371,15 +427,10 @@ class AssessmentAssignmentController extends Controller
             $request->all(),
             [
                 'judul_penugasan' => 'required|string|max:255',
-                'assessment_ids' => 'required|array|min:1',
-                'assessment_ids.*' => [
+                'target_ketenagaan' => [
                     'required',
-                    'integer',
-                    'distinct',
-                    Rule::exists('assessments', 'id')->where(function ($query) {
-                        $query->where('is_active', true)
-                            ->whereIn('status', ['draft', 'publish']);
-                    }),
+                    'string',
+                    Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
                 'deskripsi' => 'nullable|string',
                 'tanggal_mulai' => 'nullable|date|required_with:jam_mulai',
@@ -390,57 +441,44 @@ class AssessmentAssignmentController extends Controller
                     'integer',
                     Rule::in(AssessmentAssignmentService::SESSION_DURATION_OPTIONS),
                 ],
-                'guru_selection_mode' => 'nullable|string|in:manual,select_all',
-                'guru_ids' => 'nullable|array',
-                'guru_ids.*' => 'required|integer|distinct|exists:gurus,id',
-                'guru_selection_scope' => 'nullable|array',
-                'guru_selection_scope.*' => 'nullable|string',
-                'guru_excluded_ids' => 'nullable|array',
-                'guru_excluded_ids.*' => 'required|integer|distinct|exists:gurus,id',
             ],
             [
                 'judul_penugasan.required' => 'Judul penugasan wajib diisi.',
-                'assessment_ids.required' => 'Minimal pilih satu form assessment.',
-                'assessment_ids.min' => 'Minimal pilih satu form assessment.',
-                'assessment_ids.*.exists' => 'Ada form assessment yang dipilih tetapi datanya tidak valid atau sudah nonaktif.',
+                'target_ketenagaan.required' => 'Ketenagaan target wajib dipilih.',
+                'target_ketenagaan.in' => 'Ketenagaan target harus sesuai pilihan yang tersedia.',
                 'tanggal_mulai.required_with' => 'Tanggal mulai wajib diisi jika jam mulai dipakai.',
                 'jam_mulai.required_with' => 'Jam mulai wajib diisi jika tanggal mulai dipakai.',
                 'jam_mulai.date_format' => 'Format jam mulai harus berupa HH:MM.',
                 'durasi_sesi_jam.required' => 'Durasi sesi assessment wajib dipilih.',
                 'durasi_sesi_jam.in' => 'Durasi sesi assessment harus sesuai pilihan yang tersedia.',
-                'guru_ids.*.exists' => 'Ada guru yang dipilih tetapi datanya tidak ditemukan.',
-                'guru_excluded_ids.*.exists' => 'Ada guru yang dikecualikan tetapi datanya tidak ditemukan.',
                 'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
             ]
         );
 
         $validator->after(function ($validator) use ($request) {
-            $selectionMode = $this->resolveGuruSelectionMode($request);
+            $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed(
+                $request->input('target_ketenagaan')
+            );
 
-            if ($selectionMode === 'select_all') {
-                $scope = $this->normalizeGuruSelectionScope($request->input('guru_selection_scope', []));
-                $excludedIds = $this->normalizeGuruIdList($request->input('guru_excluded_ids', []));
-
-                if ($this->countGuruSelectionByScope($scope, $excludedIds) < 1) {
-                    $validator->errors()->add('guru_ids', 'Minimal pilih satu guru untuk ditugasi.');
-                }
-
+            if (! $targetKetenagaan) {
                 return;
             }
 
-            if ($this->normalizeGuruIdList($request->input('guru_ids', [])) === []) {
-                $validator->errors()->add('guru_ids', 'Minimal pilih satu guru untuk ditugasi.');
+            if ($this->countAvailableAssessmentsForKetenagaan($targetKetenagaan) < 1) {
+                $validator->errors()->add(
+                    'target_ketenagaan',
+                    'Belum ada assessment aktif/publish untuk ketenagaan yang dipilih.'
+                );
+            }
+
+            if ($this->countAvailableParticipantsForKetenagaan($targetKetenagaan) < 1) {
+                $validator->errors()->add(
+                    'target_ketenagaan',
+                    'Belum ada user/peserta pada ketenagaan yang dipilih.'
+                );
             }
         });
 
-        $validated = $validator->validate();
-        $selectionMode = $this->resolveGuruSelectionMode($request);
-
-        $validated['guru_selection_mode'] = $selectionMode;
-        $validated['guru_ids'] = $this->normalizeGuruIdList($validated['guru_ids'] ?? []);
-        $validated['guru_selection_scope'] = $this->normalizeGuruSelectionScope($validated['guru_selection_scope'] ?? []);
-        $validated['guru_excluded_ids'] = $this->normalizeGuruIdList($validated['guru_excluded_ids'] ?? []);
-
-        return $validated;
+        return $validator->validate();
     }
 }

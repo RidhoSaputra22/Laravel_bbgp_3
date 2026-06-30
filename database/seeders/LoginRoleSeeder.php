@@ -102,7 +102,7 @@ class LoginRoleSeeder extends Seeder
                 continue;
             }
 
-            Guru::updateOrCreate(
+            Guru::firstOrCreate(
                 ['no_ktp' => $v['no_ktp']],
                 [
                     'nama_lengkap' => $v['name'],

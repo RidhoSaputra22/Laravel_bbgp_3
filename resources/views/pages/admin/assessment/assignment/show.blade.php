@@ -46,7 +46,7 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Total Target</h4>
+                                    <h4>Total Target User</h4>
                                 </div>
                                 <div class="card-body">
                                     {{ $assignment->total_target }}
@@ -123,6 +123,18 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <div class="text-muted small">Ketenagaan Target</div>
+                            <div>
+                                @if ($assignment->target_ketenagaan_label)
+                                    <span class="badge badge-{{ $assignment->target_ketenagaan_badge_class }}">
+                                        {{ $assignment->target_ketenagaan_label }}
+                                    </span>
+                                @else
+                                    <span class="text-muted">Belum tersimpan</span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <div class="text-muted small">Periode</div>
                             <div>
                                 {{ $assignment->tanggal_mulai ? \App\Helpers\Helper::dateIndo($assignment->tanggal_mulai) : '-' }}
@@ -145,7 +157,7 @@
                             <div class="text-muted small">Pengaturan Sesi</div>
                             <div>{{ $assignment->total_sesi }} sesi</div>
                             <small class="text-muted">
-                                {{ $assignment->kapasitas_per_sesi }} guru per sesi / {{ $assignment->durasi_sesi_jam }}
+                                {{ $assignment->kapasitas_per_sesi }} peserta per sesi / {{ $assignment->durasi_sesi_jam }}
                                 jam per sesi
                             </small>
                             @if ($assignment->jam_mulai_label)
@@ -215,7 +227,13 @@
                                             <tr>
                                                 <td class="text-center">{{ $loop->iteration }}</td>
                                                 <td class="font-weight-bold">{{ $assessment->kode_assessment }}</td>
-                                                <td>{{ $assessment->judul }}</td>
+                                                <td>
+                                                    {{ $assessment->judul }}
+                                                    @if ($assessment->target_ketenagaan_label)
+                                                        <br>
+                                                        <small class="text-muted">{{ $assessment->target_ketenagaan_label }}</small>
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     <span class="badge badge-{{ $assessmentStatusBadge }}">
                                                         {{ ucfirst($assessment->status) }}
@@ -260,7 +278,7 @@
                                             <th>Label Sesi</th>
                                             <th>Jadwal</th>
                                             <th>Kapasitas</th>
-                                            <th>Alokasi Guru</th>
+                                            <th>Alokasi Peserta</th>
                                             <th>Durasi</th>
                                         </tr>
                                     </thead>
@@ -270,8 +288,8 @@
                                                 <td class="text-center">{{ $session->nomor_sesi }}</td>
                                                 <td class="font-weight-bold">{{ $session->label_sesi }}</td>
                                                 <td>{{ $session->jadwal_sesi_label ?: 'Jadwal belum diatur' }}</td>
-                                                <td>{{ $session->kapasitas_peserta }} guru</td>
-                                                <td>{{ $session->total_peserta }} guru</td>
+                                                <td>{{ $session->kapasitas_peserta }} peserta</td>
+                                                <td>{{ $session->total_peserta }} peserta</td>
                                                 <td>{{ $session->durasi_sesi_jam }} jam</td>
                                             </tr>
                                         @endforeach
@@ -284,12 +302,12 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4>Daftar Guru Yang Ditugasi</h4>
+                        <h4>Daftar Peserta Yang Ditugasi</h4>
                     </div>
                     <div class="card-body">
                         @if ($assignment->targets->isEmpty())
                             <div class="alert alert-warning mb-0">
-                                Penugasan ini masih diproses atau belum memiliki target guru tersimpan.
+                                Penugasan ini masih diproses atau belum memiliki target peserta tersimpan.
                             </div>
                         @else
                             <div class="table-responsive">
@@ -297,7 +315,7 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center">#</th>
-                                            <th>Nama Guru</th>
+                                            <th>Nama Peserta</th>
                                             <th>Instansi</th>
                                             <th>Kabupaten</th>
                                             <th>Sesi Assessment</th>
@@ -322,10 +340,14 @@
                                                 <td class="text-center">{{ $loop->iteration }}</td>
                                                 <td>
                                                     <div class="font-weight-bold">
-                                                        {{ optional($target->guru)->nama_lengkap ?: 'Guru tidak ditemukan' }}
+                                                        {{ optional($target->guru)->nama_lengkap ?: 'Peserta tidak ditemukan' }}
                                                     </div>
                                                     <small class="text-muted">
-                                                        {{ optional($target->guru)->email ?: '-' }}
+                                                        {{ collect([
+                                                            optional($target->guru)->email ?: null,
+                                                            optional($target->guru)->eksternal_jabatan ?: null,
+                                                            optional($target->guru)->jenis_jabatan ?: null,
+                                                        ])->filter()->implode(' | ') ?: '-' }}
                                                     </small>
                                                 </td>
                                                 <td>{{ optional($target->guru)->satuan_pendidikan ?: '-' }}</td>

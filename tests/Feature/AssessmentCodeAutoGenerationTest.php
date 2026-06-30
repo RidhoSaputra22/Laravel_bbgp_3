@@ -30,6 +30,7 @@ class AssessmentCodeAutoGenerationTest extends TestCase
             $table->text('deskripsi')->nullable();
             $table->text('petunjuk')->nullable();
             $table->string('instrument_type')->nullable();
+            $table->string('target_ketenagaan')->nullable();
             $table->json('scoring_config')->nullable();
             $table->string('status')->default('draft');
             $table->boolean('is_active')->default(true);
@@ -131,6 +132,7 @@ class AssessmentCodeAutoGenerationTest extends TestCase
             'judul' => 'Assessment Otomatis',
             'status' => 'draft',
             'instrument_type' => 'portofolio',
+            'target_ketenagaan' => 'tenaga_pendidik',
             'is_active' => '1',
             'forms' => [
                 [

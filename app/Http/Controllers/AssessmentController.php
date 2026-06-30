@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enum\AssessmentInstrumentType;
+use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Enum\LevelKompetensi;
 use App\Models\Assessment;
@@ -47,9 +48,11 @@ class AssessmentController extends Controller
             'assessment' => new Assessment([
                 'status' => 'draft',
                 'is_active' => true,
+                'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
             ]),
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => [],
+            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
         ]);
     }
 
@@ -78,6 +81,7 @@ class AssessmentController extends Controller
                 'deskripsi' => $validated['deskripsi'] ?? null,
                 'petunjuk' => $validated['petunjuk'] ?? null,
                 'instrument_type' => $validated['instrument_type'] ?? null,
+                'target_ketenagaan' => $validated['target_ketenagaan'],
                 'scoring_config' => $this->buildAssessmentScoringConfig($validated['instrument_type'] ?? null),
                 'status' => $validated['status'],
                 'is_active' => (bool) ($validated['is_active'] ?? false),
@@ -126,6 +130,7 @@ class AssessmentController extends Controller
             'assessment' => $assessment,
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => $this->buildFormBuilderData($assessment),
+            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
         ]);
     }
 
@@ -157,6 +162,7 @@ class AssessmentController extends Controller
                 'deskripsi' => $validated['deskripsi'] ?? null,
                 'petunjuk' => $validated['petunjuk'] ?? null,
                 'instrument_type' => $validated['instrument_type'] ?? null,
+                'target_ketenagaan' => $validated['target_ketenagaan'],
                 'scoring_config' => $this->buildAssessmentScoringConfig($validated['instrument_type'] ?? null),
                 'status' => $validated['status'],
                 'is_active' => (bool) ($validated['is_active'] ?? false),
@@ -233,6 +239,11 @@ class AssessmentController extends Controller
                 'judul' => 'required|string|max:255',
                 'deskripsi' => 'nullable|string',
                 'petunjuk' => 'nullable|string',
+                'target_ketenagaan' => [
+                    'required',
+                    'string',
+                    Rule::in(array_keys(AssessmentKetenagaanType::options())),
+                ],
                 'instrument_type' => [
                     'nullable',
                     'string',

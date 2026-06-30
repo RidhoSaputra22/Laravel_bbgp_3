@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enum\AssessmentInstrumentType;
+use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Models\Assessment;
 use Illuminate\Database\Seeder;
@@ -336,6 +337,7 @@ class AssessmentStudiKasusSeeder extends Seeder
                     'deskripsi' => $item['deskripsi'],
                     'petunjuk' => $item['petunjuk'],
                     'instrument_type' => $item['instrument_type'] ?? null,
+                    'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
                     'scoring_config' => $this->assessmentScoringConfig(),
                     'status' => $item['status'],
                     'is_active' => $item['is_active'],

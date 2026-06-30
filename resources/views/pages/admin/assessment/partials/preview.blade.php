@@ -2,6 +2,7 @@
     $instrumentLabel = $assessment->instrument_type
         ? \App\Enum\AssessmentInstrumentType::tryFrom($assessment->instrument_type)?->label()
         : null;
+    $ketenagaanLabel = $assessment->target_ketenagaan_label;
     $statusBadge =
         [
             'publish' => 'success',
@@ -76,6 +77,11 @@
                                 <span class="badge badge-{{ $assessment->is_active ? 'primary' : 'light' }}">
                                     {{ $assessment->is_active ? 'Aktif' : 'Nonaktif' }}
                                 </span>
+                                @if ($ketenagaanLabel)
+                                    <span class="badge badge-{{ $assessment->target_ketenagaan_badge_class }}">
+                                        {{ $ketenagaanLabel }}
+                                    </span>
+                                @endif
                                 @if ($instrumentLabel)
                                     <span class="badge badge-info">{{ $instrumentLabel }}</span>
                                 @endif
@@ -84,6 +90,14 @@
                     </div>
 
                     <h3 class="mb-2">{{ $assessment->judul }}</h3>
+
+                    @if ($ketenagaanLabel)
+                        <div class="mb-3">
+                            <span class="badge badge-{{ $assessment->target_ketenagaan_badge_class }}">
+                                Ditujukan untuk {{ $ketenagaanLabel }}
+                            </span>
+                        </div>
+                    @endif
 
                     @if ($assessment->deskripsi)
                         <p class="text-muted mb-3">{{ $assessment->deskripsi }}</p>

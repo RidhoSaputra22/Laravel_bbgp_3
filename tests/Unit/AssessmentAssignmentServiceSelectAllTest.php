@@ -28,6 +28,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->string('kode_assessment');
             $table->string('judul');
             $table->string('status');
+            $table->string('target_ketenagaan')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -49,6 +50,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->id();
             $table->string('kode_penugasan')->unique();
             $table->string('judul_penugasan');
+            $table->string('target_ketenagaan')->nullable();
             $table->text('deskripsi')->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->time('jam_mulai')->nullable();
@@ -119,6 +121,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             'kode_assessment' => 'ASM-001',
             'judul' => 'Assessment Monitoring',
             'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
             'is_active' => true,
         ]);
 
@@ -169,6 +172,80 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertSame(2, (int) $assignment->targets()->count());
         $this->assertSame(
             [$includedFirst->id, $includedSecond->id],
+            AssessmentAssignmentTarget::query()
+                ->where('assessment_assignment_id', $assignment->id)
+                ->orderBy('guru_id')
+                ->pluck('guru_id')
+                ->map(fn ($guruId) => (int) $guruId)
+                ->all()
+        );
+    }
+
+    public function test_create_assignment_resolves_assessments_and_users_from_target_ketenagaan(): void
+    {
+        $assessmentA = Assessment::query()->create([
+            'kode_assessment' => 'ASM-001',
+            'judul' => 'Assessment A',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $assessmentB = Assessment::query()->create([
+            'kode_assessment' => 'ASM-002',
+            'judul' => 'Assessment B',
+            'status' => 'draft',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        Assessment::query()->create([
+            'kode_assessment' => 'ASM-003',
+            'judul' => 'Assessment Stakeholder',
+            'status' => 'publish',
+            'target_ketenagaan' => 'stakeholder',
+            'is_active' => true,
+        ]);
+
+        $userA = $this->createGuru([
+            'nama_lengkap' => 'User Pendidik A',
+            'email' => 'pendidik.a@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+        ]);
+
+        $userB = $this->createGuru([
+            'nama_lengkap' => 'User Pendidik B',
+            'email' => 'pendidik.b@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+        ]);
+
+        $this->createGuru([
+            'nama_lengkap' => 'User Stakeholder',
+            'email' => 'stakeholder@example.test',
+            'eksternal_jabatan' => 'Stakeholder',
+            'jenis_jabatan' => 'Kepala Dinas',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan Tenaga Pendidik',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $this->assertSame('tenaga_pendidik', $assignment->target_ketenagaan);
+        $this->assertSame(2, $assignment->total_target);
+        $this->assertSame(
+            [$assessmentA->id, $assessmentB->id],
+            $assignment->assessments()
+                ->orderBy('assessment_assignment_assessments.urutan')
+                ->pluck('assessments.id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->all()
+        );
+        $this->assertSame(
+            [$userA->id, $userB->id],
             AssessmentAssignmentTarget::query()
                 ->where('assessment_assignment_id', $assignment->id)
                 ->orderBy('guru_id')

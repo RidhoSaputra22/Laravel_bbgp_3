@@ -7,6 +7,26 @@
     $teacherCompetencies = \App\Enum\KompetensiGuru::options();
     $fieldTypeBadges = $fieldTypes ?? [];
     $validationErrors = $errors->getMessages();
+    $ketenagaanOptions = $ketenagaanOptions ?? \App\Enum\AssessmentKetenagaanType::options();
+    $selectedTargetKetenagaan = old(
+        'target_ketenagaan',
+        $assessment->target_ketenagaan ?: \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+    );
+    $ketenagaanCards = collect(\App\Enum\AssessmentKetenagaanType::cases())
+        ->mapWithKeys(function ($case) {
+            return [
+                $case->value => [
+                    'label' => $case->label(),
+                    'icon' => $case->iconClass(),
+                    'theme' => match ($case) {
+                        \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK => 'pendidik',
+                        \App\Enum\AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN => 'kependidikan',
+                        \App\Enum\AssessmentKetenagaanType::STAKEHOLDER => 'stakeholder',
+                    },
+                ],
+            ];
+        })
+        ->all();
     $scoringGuidancePreset = \App\Support\Assessment\ScoringGuidanceAssistant::clientPreset();
     $formScoringProfiles = [
         'generic' => 'Umum',
@@ -85,6 +105,7 @@
 
         .assessment-builder-actions .custom-control-label {
             white-space: nowrap;
+
         }
 
         .auto-field-name-hint code {
@@ -102,6 +123,91 @@
         .assessment-field-card textarea.form-control {
             height: 140px !important;
             min-height: 140px !important;
+        }
+
+        .assessment-ketenagaan-grid {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .assessment-ketenagaan-option {
+            position: relative;
+        }
+
+        .assessment-ketenagaan-input {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .assessment-ketenagaan-card {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #dfe7f7;
+            border-radius: 0.2rem;
+            cursor: pointer;
+            display: flex;
+            gap: 0.85rem;
+            margin-bottom: 0;
+            min-height: 92px;
+            padding: 1rem 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .assessment-ketenagaan-card:hover {
+            border-color: #bccdf5;
+            box-shadow: 0 10px 24px rgba(52, 73, 94, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .assessment-ketenagaan-card__icon {
+            align-items: center;
+            border-radius: 0.2rem;
+            color: #fff;
+            display: inline-flex;
+            flex: 0 0 46px;
+            font-size: 1.1rem;
+            height: 46px;
+            justify-content: center;
+            width: 46px;
+        }
+
+        .assessment-ketenagaan-card__title {
+            color: #334155;
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .assessment-ketenagaan-card__hint {
+            color: #7b8898;
+            display: block;
+            font-size: 0.8rem;
+            margin-top: 0.15rem;
+        }
+
+        .assessment-ketenagaan-card--pendidik .assessment-ketenagaan-card__icon {
+            background: linear-gradient(135deg, #1174c7, #2f8fe1);
+        }
+
+        .assessment-ketenagaan-card--kependidikan .assessment-ketenagaan-card__icon {
+            background: linear-gradient(135deg, #0d8b8c, #1fa3a4);
+        }
+
+        .assessment-ketenagaan-card--stakeholder .assessment-ketenagaan-card__icon {
+            background: linear-gradient(135deg, #e5a100, #f5bc2b);
+        }
+
+        .assessment-ketenagaan-input:checked + .assessment-ketenagaan-card {
+            border-color: #6777ef;
+            box-shadow: 0 14px 28px rgba(103, 119, 239, 0.16);
+            transform: translateY(-1px);
+        }
+
+        .assessment-ketenagaan-input:checked + .assessment-ketenagaan-card .assessment-ketenagaan-card__title {
+            color: #23396b;
         }
 
         .scoring-main-note {
@@ -151,6 +257,12 @@
             flex-wrap: wrap;
             gap: 0.5rem;
             justify-content: space-between;
+        }
+
+        @media (max-width: 991.98px) {
+            .assessment-ketenagaan-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 @endpush
@@ -212,7 +324,43 @@
             </div>
 
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label>Ketenagaan Assessment <span class="assessment-required">*</span></label>
+                        <div class="assessment-ketenagaan-grid">
+                            @foreach ($ketenagaanCards as $value => $card)
+                                <div class="assessment-ketenagaan-option">
+                                    <input type="radio" class="assessment-ketenagaan-input"
+                                        id="assessment-ketenagaan-{{ $value }}" name="target_ketenagaan"
+                                        value="{{ $value }}" @checked($selectedTargetKetenagaan === $value) required>
+                                    <label for="assessment-ketenagaan-{{ $value }}"
+                                        class="assessment-ketenagaan-card assessment-ketenagaan-card--{{ $card['theme'] }}">
+                                        <span class="assessment-ketenagaan-card__icon">
+                                            <i class="{{ $card['icon'] }}"></i>
+                                        </span>
+                                        <span>
+                                            <span class="assessment-ketenagaan-card__title">{{ $card['label'] }}</span>
+                                            <span class="assessment-ketenagaan-card__hint">
+                                                Form ini akan masuk ke penugasan otomatis untuk {{ strtolower($card['label']) }}.
+                                            </span>
+                                        </span>
+                                    </label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <small class="form-text text-muted">
+                            Pilih ketenagaan tujuan assessment. Menu penugasan akan memakai pilihan ini untuk
+                            menentukan form dan seluruh user yang otomatis ditugaskan.
+                        </small>
+                        @error('target_ketenagaan')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-12">
                     <div class="form-group">
                         <label>Jenis Instrumen Penilaian</label>
                         <select name="instrument_type"
@@ -230,7 +378,7 @@
                         @enderror
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label>Deskripsi</label>
                         <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror" rows="6"
@@ -240,7 +388,7 @@
                         @enderror
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label>Petunjuk Pengisian</label>
                         <textarea name="petunjuk" class="form-control assessment-meta-textarea @error('petunjuk') is-invalid @enderror" rows="6"
@@ -1245,8 +1393,8 @@
                             <div class="card border mt-4 scoring-config-card">
                                 <div class="card-header bg-light py-3">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">Pengaturan Skor Otomatis</h6>
-                                        <div class="custom-control custom-switch">
+                                        <h6 class="mb-0 ">Pengaturan Skor Otomatis</h6>
+                                        <div class="custom-control custom-switch mx-3">
                                             <input type="checkbox" class="custom-control-input field-scoring-enabled"
                                                 id="field-scoring-enabled-${formIndex}-${fieldIndex}"
                                                 name="${scoringEnabledName}"

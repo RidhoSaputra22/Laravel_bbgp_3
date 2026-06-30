@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AssessmentKetenagaanType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,6 +13,7 @@ class AssessmentAssignment extends Model
     protected $fillable = [
         'kode_penugasan',
         'judul_penugasan',
+        'target_ketenagaan',
         'deskripsi',
         'tanggal_mulai',
         'jam_mulai',
@@ -71,5 +73,15 @@ class AssessmentAssignment extends Model
         }
 
         return substr((string) $this->jam_mulai, 0, 5);
+    }
+
+    public function getTargetKetenagaanLabelAttribute(): ?string
+    {
+        return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->label();
+    }
+
+    public function getTargetKetenagaanBadgeClassAttribute(): string
+    {
+        return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->badgeClass() ?? 'secondary';
     }
 }

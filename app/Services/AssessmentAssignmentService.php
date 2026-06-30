@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enum\AssessmentKetenagaanType;
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
@@ -27,14 +28,16 @@ class AssessmentAssignmentService
 
     public function createAssignment(array $payload, ?int $assignedBy = null): AssessmentAssignment
     {
-        $assessmentIds = $this->normalizeAssessmentIds($payload['assessment_ids'] ?? []);
-        $guruIds = $this->resolveGuruIds($payload);
+        $targetKetenagaan = $this->resolveTargetKetenagaan($payload);
+        $assessmentIds = $this->resolveAssessmentIds($payload, $targetKetenagaan);
+        $guruIds = $this->resolveGuruIds($payload, $targetKetenagaan);
         $sessionDurationHours = (int) ($payload['durasi_sesi_jam'] ?? self::DEFAULT_SESSION_DURATION_HOURS);
         $startTime = $this->normalizeStartTime($payload['jam_mulai'] ?? null);
         $shouldBatch = count($guruIds) > self::BATCH_THRESHOLD;
 
         $assignmentData = DB::transaction(function () use (
             $payload,
+            $targetKetenagaan,
             $assessmentIds,
             $guruIds,
             $assignedBy,
@@ -48,6 +51,7 @@ class AssessmentAssignmentService
             $assignment = AssessmentAssignment::create([
                 'kode_penugasan' => $this->generateUniqueCode(),
                 'judul_penugasan' => $payload['judul_penugasan'],
+                'target_ketenagaan' => $targetKetenagaan?->value,
                 'deskripsi' => $payload['deskripsi'] ?? null,
                 'tanggal_mulai' => $payload['tanggal_mulai'] ?? null,
                 'jam_mulai' => $startTime,
@@ -177,13 +181,47 @@ class AssessmentAssignmentService
         );
     }
 
+    private function resolveTargetKetenagaan(array $payload): ?AssessmentKetenagaanType
+    {
+        return AssessmentKetenagaanType::tryFromMixed($payload['target_ketenagaan'] ?? null);
+    }
+
+    private function resolveAssessmentIds(
+        array $payload,
+        ?AssessmentKetenagaanType $targetKetenagaan = null
+    ): array {
+        if ($targetKetenagaan) {
+            return Assessment::query()
+                ->where('is_active', true)
+                ->whereIn('status', ['draft', 'publish'])
+                ->where('target_ketenagaan', $targetKetenagaan->value)
+                ->orderBy('judul')
+                ->pluck('id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->all();
+        }
+
+        return $this->normalizeAssessmentIds($payload['assessment_ids'] ?? []);
+    }
+
     private function normalizeGuruIds(array $guruIds): array
     {
         return array_values(array_unique(array_map('intval', $guruIds)));
     }
 
-    private function resolveGuruIds(array $payload): array
-    {
+    private function resolveGuruIds(
+        array $payload,
+        ?AssessmentKetenagaanType $targetKetenagaan = null
+    ): array {
+        if ($targetKetenagaan) {
+            return Guru::query()
+                ->where('eksternal_jabatan', $targetKetenagaan->guruValue())
+                ->orderBy('nama_lengkap')
+                ->pluck('id')
+                ->map(fn ($guruId) => (int) $guruId)
+                ->all();
+        }
+
         if (($payload['guru_selection_mode'] ?? 'manual') !== 'select_all') {
             return $this->normalizeGuruIds($payload['guru_ids'] ?? []);
         }

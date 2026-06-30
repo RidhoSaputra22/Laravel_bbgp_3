@@ -62,7 +62,7 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Total Guru Ditugasi</h4>
+                                    <h4>Total User Ditugasi</h4>
                                 </div>
                                 <div class="card-body">
                                     {{ $totalTargets }}
@@ -100,7 +100,7 @@
                                 <h2>Belum ada penugasan assessment</h2>
                                 <p class="lead">
                                     Data pada halaman ini diambil dari tabel penugasan assessment yang sudah dibuat
-                                    admin untuk mendistribusikan form ke guru terpilih.
+                                    admin untuk mendistribusikan form ke seluruh user pada ketenagaan yang dipilih.
                                 </p>
                                 <a href="{{ route('assessment.assignment.create') }}" class="btn btn-primary mt-3">
                                     Buat Penugasan
@@ -143,19 +143,21 @@
                                                 </td>
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->judul_penugasan }}</div>
+                                                    @if ($data->target_ketenagaan_label)
+                                                        <small class="d-inline-block mb-1">
+                                                            <span class="badge badge-{{ $data->target_ketenagaan_badge_class }}">
+                                                                {{ $data->target_ketenagaan_label }}
+                                                            </span>
+                                                        </small>
+                                                        <br>
+                                                    @endif
                                                     <small class="text-muted">
                                                         {{ \Illuminate\Support\Str::limit($data->deskripsi, 80) ?: 'Tanpa deskripsi tambahan.' }}
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <div class="font-weight-bold">{{ $assessments->count() }} assessment</div>
-                                                    @forelse ($assessments as $assessment)
-                                                        <small class="d-block text-muted">
-                                                            {{ $assessment->kode_assessment }} - {{ $assessment->judul }}
-                                                        </small>
-                                                    @empty
-                                                        <small class="text-muted">Belum ada form assessment terhubung.</small>
-                                                    @endforelse
+                                                    <div class="font-weight-bold">{{ $assessments->count() }} Assessment ditugaskan</div>
+
                                                 </td>
                                                 <td>
                                                     <div>
@@ -178,9 +180,9 @@
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div class="font-weight-bold">{{ $data->total_target }} guru</div>
+                                                    <div class="font-weight-bold">{{ $data->total_target }} user</div>
                                                     <small class="text-muted">
-                                                        {{ $data->total_sesi }} sesi / {{ $data->kapasitas_per_sesi }} guru per sesi
+                                                        {{ $data->total_sesi }} sesi / {{ $data->kapasitas_per_sesi }} peserta per sesi
                                                     </small>
                                                     <br>
                                                     <small class="text-muted">

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enum\AssessmentKetenagaanType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,6 +17,7 @@ class Assessment extends Model
         'deskripsi',
         'petunjuk',
         'instrument_type',
+        'target_ketenagaan',
         'scoring_config',
         'status',
         'is_active',
@@ -37,5 +39,15 @@ class Assessment extends Model
             ->withPivot('urutan')
             ->withTimestamps()
             ->orderByDesc('assessment_assignments.id');
+    }
+
+    public function getTargetKetenagaanLabelAttribute(): ?string
+    {
+        return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->label();
+    }
+
+    public function getTargetKetenagaanBadgeClassAttribute(): string
+    {
+        return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->badgeClass() ?? 'secondary';
     }
 }

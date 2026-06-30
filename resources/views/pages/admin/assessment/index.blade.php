@@ -120,6 +120,15 @@
                                                 </td>
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->judul }}</div>
+                                                    @if ($data->target_ketenagaan_label)
+                                                        <small class="d-inline-block mb-1">
+                                                            <span
+                                                                class="badge badge-{{ $data->target_ketenagaan_badge_class }}">
+                                                                {{ $data->target_ketenagaan_label }}
+                                                            </span>
+                                                        </small>
+                                                        <br>
+                                                    @endif
                                                     <small
                                                         class="text-muted">{{ \Illuminate\Support\Str::limit($data->deskripsi, 80) }}</small>
                                                 </td>
