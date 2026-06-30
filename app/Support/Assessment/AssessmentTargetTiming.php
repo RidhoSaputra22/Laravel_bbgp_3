@@ -63,7 +63,7 @@ class AssessmentTargetTiming
             return $target->started_at->copy();
         }
 
-        return optional($target->attempt)->started_at?->copy();
+        return optional(self::resolveLoadedAttempt($target))->started_at?->copy();
     }
 
     public static function resolveRelativeDeadlineAt(
@@ -84,7 +84,8 @@ class AssessmentTargetTiming
         AssessmentAssignmentTarget $target,
         ?Carbon $startedAt = null
     ): ?Carbon {
-        $storedDeadlineAt = optional($target->attempt)->deadline_at?->copy() ?: $target->deadline_at?->copy();
+        $storedDeadlineAt = optional(self::resolveLoadedAttempt($target))->deadline_at?->copy()
+            ?: $target->deadline_at?->copy();
 
         if ($storedDeadlineAt) {
             return $storedDeadlineAt;
@@ -100,5 +101,14 @@ class AssessmentTargetTiming
         }
 
         return $relativeDeadlineAt ?: $scheduledDeadlineAt;
+    }
+
+    private static function resolveLoadedAttempt(AssessmentAssignmentTarget $target): mixed
+    {
+        if (! $target->relationLoaded('attempt')) {
+            return null;
+        }
+
+        return $target->getRelation('attempt');
     }
 }

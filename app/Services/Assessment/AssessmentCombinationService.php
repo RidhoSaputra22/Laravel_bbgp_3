@@ -3,6 +3,7 @@
 namespace App\Services\Assessment;
 
 use App\Enum\AssessmentKetenagaanType;
+use App\Enum\KompetensiGuru;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
@@ -19,17 +20,22 @@ class AssessmentCombinationService
         private readonly AssessmentStructureMetadataResolver $metadataResolver
     ) {}
 
-    public function buildFormCatalogByKetenagaan(): array
+    public function buildAssessmentCatalogByKetenagaan(): array
     {
         return collect(AssessmentKetenagaanType::cases())
             ->mapWithKeys(function (AssessmentKetenagaanType $ketenagaan) {
                 return [
-                    $ketenagaan->value => $this->mapFormCatalogItems(
+                    $ketenagaan->value => $this->mapAssessmentCatalogItems(
                         $this->getSourceAssessments($ketenagaan)
                     )->all(),
                 ];
             })
             ->all();
+    }
+
+    public function buildFormCatalogByKetenagaan(): array
+    {
+        return $this->buildAssessmentCatalogByKetenagaan();
     }
 
     public function createCombination(array $payload, ?int $generatedBy = null): AssessmentCombination
@@ -41,9 +47,12 @@ class AssessmentCombinationService
         }
 
         $sourceAssessments = $this->getSourceAssessments($targetKetenagaan);
-        $takeCounts = $this->normalizeFormTakeCounts($payload['form_take_counts'] ?? []);
+        $competencySelections = $this->normalizeCompetencySelections(
+            $payload['competency_selection_modes'] ?? [],
+            $payload['competency_take_counts'] ?? [],
+        );
         $selectedRows = [];
-        $selectionConfigForms = [];
+        $selectionConfigAssessments = [];
         $selectionAttempts = 0;
         $randomSeed = null;
         $signatureHash = null;
@@ -51,7 +60,11 @@ class AssessmentCombinationService
         do {
             $selectionAttempts++;
             $randomSeed = Str::upper(Str::random(16));
-            [$selectedRows, $selectionConfigForms] = $this->buildSelectionRows($sourceAssessments, $takeCounts, $randomSeed);
+            [$selectedRows, $selectionConfigAssessments] = $this->buildSelectionRows(
+                $sourceAssessments,
+                $competencySelections,
+                $randomSeed
+            );
             $signatureHash = $this->buildSignatureHash($selectedRows);
             $isDuplicate = $signatureHash !== ''
                 && AssessmentCombination::query()
@@ -68,7 +81,7 @@ class AssessmentCombinationService
         $kodeKombinasi = $this->generateUniqueCode();
         $selectionConfig = [
             'target_ketenagaan' => $targetKetenagaan->value,
-            'forms' => $selectionConfigForms,
+            'assessments' => $selectionConfigAssessments,
         ];
 
         return DB::transaction(function () use (
@@ -149,185 +162,429 @@ class AssessmentCombinationService
             ->values();
     }
 
-    private function mapFormCatalogItems(Collection $assessments): Collection
+    private function mapAssessmentCatalogItems(Collection $assessments): Collection
     {
         return $assessments
             ->values()
-            ->flatMap(function (Assessment $assessment, int $assessmentIndex) {
-                $assessmentMeta = $this->metadataResolver->decorateAssessment([
-                    'id' => $assessment->id,
-                    'kode_assessment' => $assessment->kode_assessment,
-                    'judul' => $assessment->judul,
-                    'deskripsi' => $assessment->deskripsi,
-                    'petunjuk' => $assessment->petunjuk,
-                    'instrument_type' => $assessment->instrument_type,
-                    'scoring_config' => $assessment->scoring_config,
-                ]);
-
-                return $assessment->forms
-                    ->filter(fn (AssessmentForm $form) => $form->fields->isNotEmpty())
-                    ->values()
-                    ->map(function (AssessmentForm $form, int $formIndex) use ($assessment, $assessmentMeta, $assessmentIndex) {
-                        $formMeta = $this->metadataResolver->decorateForm([
-                            'id' => $form->id,
-                            'judul_form' => $form->judul_form,
-                            'kode_form' => $form->kode_form,
-                            'deskripsi' => $form->deskripsi,
-                            'kompetensi' => $form->kompetensi,
-                            'indikator_kode' => $form->indikator_kode,
-                            'indikator_label' => $form->indikator_label,
-                            'is_scoreable' => $form->is_scoreable,
-                            'scoring_config' => $form->scoring_config,
-                            'fields' => $form->fields->map(fn (AssessmentFormField $field) => [
-                                'label' => $field->label,
-                                'deskripsi' => $field->deskripsi,
-                                'bantuan' => $field->bantuan,
-                            ])->all(),
-                        ], $assessmentMeta);
-
-                        return [
-                            'assessment_id' => (int) $assessment->id,
-                            'assessment_code' => $assessment->kode_assessment,
-                            'assessment_title' => $assessment->judul,
-                            'assessment_order' => $assessmentIndex + 1,
-                            'instrument_type' => $assessmentMeta['instrument_type'] ?? null,
-                            'instrument_label' => $assessmentMeta['instrument_label'] ?? null,
-                            'form_id' => (int) $form->id,
-                            'form_code' => $form->kode_form,
-                            'form_title' => $form->judul_form,
-                            'form_description' => $form->deskripsi,
-                            'form_order' => $formIndex + 1,
-                            'kompetensi' => $formMeta['kompetensi'] ?? null,
-                            'kompetensi_label' => $formMeta['kompetensi_label'] ?? null,
-                            'indikator_kode' => $formMeta['indikator_kode'] ?? null,
-                            'indikator_label' => $formMeta['indikator_label'] ?? null,
-                            'is_scoreable' => (bool) ($formMeta['is_scoreable'] ?? false),
-                            'available_question_count' => $form->fields->count(),
-                        ];
-                    });
+            ->map(function (Assessment $assessment, int $assessmentIndex) {
+                return $this->mapAssessmentCatalogItem(
+                    $this->analyzeAssessmentSource($assessment, $assessmentIndex)
+                );
             })
             ->values();
     }
 
-    private function normalizeFormTakeCounts(mixed $takeCounts): array
+    private function mapAssessmentCatalogItem(array $analysis): array
     {
-        $source = is_array($takeCounts) ? $takeCounts : [];
+        /** @var Assessment $assessment */
+        $assessment = $analysis['assessment'];
+        $assessmentMeta = $analysis['assessment_meta'];
 
-        return collect($source)
-            ->mapWithKeys(function ($count, $formId) {
-                $normalizedFormId = (int) $formId;
-                $normalizedCount = max((int) $count, 0);
-
-                if ($normalizedFormId <= 0) {
-                    return [];
-                }
+        $competencies = collect(KompetensiGuru::cases())
+            ->map(function (KompetensiGuru $kompetensi) use ($analysis) {
+                $group = $analysis['competency_pools'][$kompetensi->value] ?? [
+                    'forms' => [],
+                    'pool' => [],
+                ];
+                $forms = collect($group['forms'] ?? [])->values();
 
                 return [
-                    $normalizedFormId => $normalizedCount,
+                    'kompetensi' => $kompetensi->value,
+                    'kompetensi_label' => $kompetensi->label(),
+                    'available_form_count' => $forms->count(),
+                    'available_question_count' => count($group['pool'] ?? []),
+                    'form_titles' => $forms->pluck('form_title')->all(),
+                    'form_codes' => $forms->pluck('form_code')->all(),
+                    'indikator_codes' => $forms->pluck('indikator_kode')->filter()->values()->all(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        $autoIncludedForms = collect($analysis['auto_included_forms'])
+            ->map(function (array $formEntry) {
+                return [
+                    'form_id' => (int) $formEntry['form']->id,
+                    'form_code' => $formEntry['form']->kode_form,
+                    'form_title' => $formEntry['form']->judul_form,
+                    'form_description' => $formEntry['form']->deskripsi,
+                    'available_question_count' => (int) $formEntry['available_question_count'],
+                    'indikator_kode' => $formEntry['form_meta']['indikator_kode'] ?? null,
+                    'indikator_label' => $formEntry['form_meta']['indikator_label'] ?? null,
+                    'is_scoreable' => (bool) ($formEntry['form_meta']['is_scoreable'] ?? false),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return [
+            'assessment_id' => (int) $assessment->id,
+            'assessment_code' => $assessment->kode_assessment,
+            'assessment_title' => $assessment->judul,
+            'assessment_order' => (int) $analysis['assessment_order'],
+            'instrument_type' => $assessmentMeta['instrument_type'] ?? null,
+            'instrument_label' => $assessmentMeta['instrument_label'] ?? null,
+            'competencies' => $competencies,
+            'auto_included_forms' => $autoIncludedForms,
+            'auto_included_form_count' => count($autoIncludedForms),
+            'auto_included_question_count' => (int) collect($autoIncludedForms)
+                ->sum('available_question_count'),
+            'total_forms' => (int) $analysis['total_forms'],
+            'total_questions' => (int) $analysis['total_questions'],
+        ];
+    }
+
+    private function analyzeAssessmentSource(Assessment $assessment, int $assessmentIndex = 0): array
+    {
+        $assessmentMeta = $this->metadataResolver->decorateAssessment([
+            'id' => $assessment->id,
+            'kode_assessment' => $assessment->kode_assessment,
+            'judul' => $assessment->judul,
+            'deskripsi' => $assessment->deskripsi,
+            'petunjuk' => $assessment->petunjuk,
+            'instrument_type' => $assessment->instrument_type,
+            'scoring_config' => $assessment->scoring_config,
+        ]);
+        $assessmentOrder = $assessmentIndex + 1;
+        $competencyPools = collect(KompetensiGuru::cases())
+            ->mapWithKeys(function (KompetensiGuru $kompetensi) {
+                return [
+                    $kompetensi->value => [
+                        'kompetensi' => $kompetensi->value,
+                        'kompetensi_label' => $kompetensi->label(),
+                        'forms' => [],
+                        'pool' => [],
+                    ],
                 ];
             })
             ->all();
-    }
+        $autoIncludedForms = [];
+        $totalForms = 0;
+        $totalQuestions = 0;
 
-    private function buildSelectionRows(Collection $assessments, array $takeCounts, string $randomSeed): array
-    {
-        $rows = [];
-        $selectionConfigForms = [];
+        foreach ($assessment->forms->filter(fn (AssessmentForm $form) => $form->fields->isNotEmpty())->values() as $formIndex => $form) {
+            $availableFields = $form->fields->values();
+            $availableFieldCount = $availableFields->count();
 
-        foreach ($assessments->values() as $assessmentIndex => $assessment) {
-            $assessmentMeta = $this->metadataResolver->decorateAssessment([
-                'id' => $assessment->id,
-                'kode_assessment' => $assessment->kode_assessment,
-                'judul' => $assessment->judul,
-                'deskripsi' => $assessment->deskripsi,
-                'petunjuk' => $assessment->petunjuk,
-                'instrument_type' => $assessment->instrument_type,
-                'scoring_config' => $assessment->scoring_config,
-            ]);
+            if ($availableFieldCount < 1) {
+                continue;
+            }
 
-            foreach ($assessment->forms->values() as $formIndex => $form) {
-                $takeCount = (int) ($takeCounts[$form->id] ?? 0);
+            $totalForms++;
+            $totalQuestions += $availableFieldCount;
 
-                if ($takeCount < 1) {
-                    continue;
+            $formMeta = $this->buildFormMeta($assessmentMeta, $form, $availableFields);
+            $formEntry = [
+                'form' => $form,
+                'form_meta' => $formMeta,
+                'form_order' => $formIndex + 1,
+                'available_fields' => $availableFields,
+                'available_question_count' => $availableFieldCount,
+            ];
+
+            if (filled($formMeta['kompetensi'] ?? null)) {
+                $kompetensiKey = (string) $formMeta['kompetensi'];
+
+                if (! isset($competencyPools[$kompetensiKey])) {
+                    $competencyPools[$kompetensiKey] = [
+                        'kompetensi' => $kompetensiKey,
+                        'kompetensi_label' => $formMeta['kompetensi_label'] ?? ucfirst($kompetensiKey),
+                        'forms' => [],
+                        'pool' => [],
+                    ];
                 }
 
-                $availableFields = $form->fields->values();
-                $availableFieldCount = $availableFields->count();
-
-                if ($takeCount > $availableFieldCount) {
-                    throw new InvalidArgumentException('Jumlah soal melebihi soal aktif yang tersedia pada salah satu form.');
-                }
-
-                $formMeta = $this->metadataResolver->decorateForm([
-                    'id' => $form->id,
-                    'judul_form' => $form->judul_form,
-                    'kode_form' => $form->kode_form,
-                    'deskripsi' => $form->deskripsi,
-                    'kompetensi' => $form->kompetensi,
-                    'indikator_kode' => $form->indikator_kode,
-                    'indikator_label' => $form->indikator_label,
-                    'is_scoreable' => $form->is_scoreable,
-                    'scoring_config' => $form->scoring_config,
-                    'fields' => $availableFields->map(fn (AssessmentFormField $field) => [
-                        'label' => $field->label,
-                        'deskripsi' => $field->deskripsi,
-                        'bantuan' => $field->bantuan,
-                    ])->all(),
-                ], $assessmentMeta);
-
-                $selectedFields = $availableFields
-                    ->shuffle($this->resolveSelectionSeed($randomSeed, (int) $assessment->id, (int) $form->id))
-                    ->take($takeCount)
-                    ->values();
-
-                $selectionConfigForms[] = [
-                    'assessment_id' => (int) $assessment->id,
-                    'assessment_code' => $assessment->kode_assessment,
-                    'assessment_title' => $assessment->judul,
+                $competencyPools[$kompetensiKey]['forms'][] = [
                     'form_id' => (int) $form->id,
                     'form_code' => $form->kode_form,
                     'form_title' => $form->judul_form,
+                    'indikator_kode' => $formMeta['indikator_kode'] ?? null,
+                    'indikator_label' => $formMeta['indikator_label'] ?? null,
                     'available_question_count' => $availableFieldCount,
-                    'requested_question_count' => $takeCount,
                 ];
 
-                foreach ($selectedFields as $fieldOrder => $field) {
-                    $rows[] = [
-                        'assessment_id' => $assessment->id,
-                        'assessment_form_id' => $form->id,
-                        'assessment_form_field_id' => $field->id,
-                        'assessment_code' => $assessment->kode_assessment,
-                        'assessment_title' => $assessment->judul,
-                        'instrument_type' => $assessmentMeta['instrument_type'] ?? null,
-                        'form_code' => $form->kode_form,
-                        'form_title' => $form->judul_form,
-                        'form_description' => $form->deskripsi,
-                        'kompetensi' => $formMeta['kompetensi'] ?? null,
-                        'indikator_kode' => $formMeta['indikator_kode'] ?? null,
-                        'indikator_label' => $formMeta['indikator_label'] ?? null,
-                        'form_is_scoreable' => (bool) ($formMeta['is_scoreable'] ?? false),
-                        'form_scoring_config' => $form->scoring_config,
-                        'field_label' => $field->label,
-                        'field_description' => $field->deskripsi,
-                        'field_name' => $field->nama_field,
-                        'field_type' => $field->tipe_field,
-                        'field_placeholder' => $field->placeholder,
-                        'field_help' => $field->bantuan,
-                        'field_options' => $field->opsi_field,
-                        'field_validation' => $field->validasi,
-                        'field_scoring_config' => $field->scoring_config,
-                        'field_width' => $field->lebar_kolom ?: 'col-md-12',
-                        'field_is_required' => (bool) $field->is_required,
-                        'assessment_order' => $assessmentIndex + 1,
+                foreach ($availableFields as $fieldIndex => $field) {
+                    $competencyPools[$kompetensiKey]['pool'][] = [
+                        'assessment' => $assessment,
+                        'assessment_meta' => $assessmentMeta,
+                        'assessment_order' => $assessmentOrder,
+                        'form' => $form,
+                        'form_meta' => $formMeta,
                         'form_order' => $formIndex + 1,
-                        'field_order' => $fieldOrder + 1,
+                        'field' => $field,
+                        'field_source_order' => $fieldIndex + 1,
                     ];
                 }
+
+                continue;
+            }
+
+            $autoIncludedForms[] = $formEntry;
+        }
+
+        return [
+            'assessment' => $assessment,
+            'assessment_meta' => $assessmentMeta,
+            'assessment_order' => $assessmentOrder,
+            'competency_pools' => $competencyPools,
+            'auto_included_forms' => $autoIncludedForms,
+            'total_forms' => $totalForms,
+            'total_questions' => $totalQuestions,
+        ];
+    }
+
+    private function buildFormMeta(array $assessmentMeta, AssessmentForm $form, Collection $availableFields): array
+    {
+        return $this->metadataResolver->decorateForm([
+            'id' => $form->id,
+            'judul_form' => $form->judul_form,
+            'kode_form' => $form->kode_form,
+            'deskripsi' => $form->deskripsi,
+            'kompetensi' => $form->kompetensi,
+            'indikator_kode' => $form->indikator_kode,
+            'indikator_label' => $form->indikator_label,
+            'is_scoreable' => $form->is_scoreable,
+            'scoring_config' => $form->scoring_config,
+            'fields' => $availableFields->map(fn (AssessmentFormField $field) => [
+                'label' => $field->label,
+                'deskripsi' => $field->deskripsi,
+                'bantuan' => $field->bantuan,
+            ])->all(),
+        ], $assessmentMeta);
+    }
+
+    private function normalizeCompetencySelections(mixed $selectionModes, mixed $takeCounts): array
+    {
+        $modeSource = is_array($selectionModes) ? $selectionModes : [];
+        $countSource = is_array($takeCounts) ? $takeCounts : [];
+        $assessmentIds = collect(array_merge(array_keys($modeSource), array_keys($countSource)))
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->unique()
+            ->values();
+        $normalized = [];
+
+        foreach ($assessmentIds as $assessmentId) {
+            $assessmentModes = is_array($modeSource[$assessmentId] ?? null) ? $modeSource[$assessmentId] : [];
+            $assessmentCounts = is_array($countSource[$assessmentId] ?? null) ? $countSource[$assessmentId] : [];
+            $competencyKeys = collect(array_merge(array_keys($assessmentModes), array_keys($assessmentCounts)))
+                ->filter(fn ($value) => is_string($value) && trim($value) !== '')
+                ->unique()
+                ->values();
+
+            foreach ($competencyKeys as $competencyKey) {
+                $normalized[$assessmentId][$competencyKey] = [
+                    'mode' => ($assessmentModes[$competencyKey] ?? 'count') === 'all' ? 'all' : 'count',
+                    'count' => max((int) ($assessmentCounts[$competencyKey] ?? 0), 0),
+                ];
             }
         }
 
-        return [$rows, $selectionConfigForms];
+        return $normalized;
+    }
+
+    private function buildSelectionRows(Collection $assessments, array $competencySelections, string $randomSeed): array
+    {
+        $rows = [];
+        $selectionConfigAssessments = [];
+
+        foreach ($assessments->values() as $assessmentIndex => $assessment) {
+            $analysis = $this->analyzeAssessmentSource($assessment, $assessmentIndex);
+            $assessmentMeta = $analysis['assessment_meta'];
+            $selectedAssessmentRows = [];
+            $selectionConfigCompetencies = [];
+
+            foreach (KompetensiGuru::cases() as $kompetensi) {
+                $group = $analysis['competency_pools'][$kompetensi->value] ?? [
+                    'forms' => [],
+                    'pool' => [],
+                ];
+                $availableCount = count($group['pool'] ?? []);
+                $availableFormCount = count($group['forms'] ?? []);
+                $selection = $competencySelections[(int) $assessment->id][$kompetensi->value] ?? [
+                    'mode' => 'count',
+                    'count' => min(10, $availableCount),
+                ];
+                $selectionMode = $selection['mode'] === 'all' ? 'all' : 'count';
+                $requestedCount = $selectionMode === 'all'
+                    ? $availableCount
+                    : max((int) ($selection['count'] ?? 0), 0);
+
+                $selectionConfigCompetencies[] = $this->buildSelectionConfigCompetency(
+                    $kompetensi,
+                    $group,
+                    $selectionMode,
+                    $availableFormCount,
+                    $availableCount,
+                    $requestedCount
+                );
+
+                if ($availableCount < 1) {
+                    continue;
+                }
+
+                if ($selectionMode === 'all') {
+                    $selectedPool = $this->sortSelectionPool(collect($group['pool'] ?? []));
+                } else {
+                    if ($requestedCount < 1) {
+                        throw new InvalidArgumentException(
+                            'Jumlah soal per kompetensi minimal 1 atau pilih semua soal.'
+                        );
+                    }
+
+                    if ($requestedCount > $availableCount) {
+                        throw new InvalidArgumentException(
+                            'Jumlah soal kompetensi melebihi soal aktif yang tersedia.'
+                        );
+                    }
+
+                    $selectedPool = collect($group['pool'] ?? [])
+                        ->shuffle($this->resolveSelectionSeed($randomSeed, (int) $assessment->id, $kompetensi->value))
+                        ->take($requestedCount)
+                        ->values();
+                    $selectedPool = $this->sortSelectionPool($selectedPool);
+                }
+
+                foreach ($selectedPool as $poolEntry) {
+                    $selectedAssessmentRows[] = $this->buildSelectionRow($poolEntry);
+                }
+            }
+
+            $selectionConfigAutoForms = collect($analysis['auto_included_forms'])
+                ->map(function (array $formEntry) use (&$selectedAssessmentRows, $assessment, $assessmentMeta, $analysis) {
+                    foreach ($formEntry['available_fields'] as $fieldIndex => $field) {
+                        $selectedAssessmentRows[] = $this->buildSelectionRow([
+                            'assessment' => $assessment,
+                            'assessment_meta' => $assessmentMeta,
+                            'form' => $formEntry['form'],
+                            'form_meta' => $formEntry['form_meta'],
+                            'form_order' => (int) $formEntry['form_order'],
+                            'field' => $field,
+                            'field_source_order' => $fieldIndex + 1,
+                        ], (int) $analysis['assessment_order']);
+                    }
+
+                    return $this->buildSelectionConfigAutoForm($formEntry);
+                })
+                ->values()
+                ->all();
+
+            if ($selectedAssessmentRows === []) {
+                continue;
+            }
+
+            $rows = array_merge($rows, $selectedAssessmentRows);
+            $selectionConfigAssessments[] = [
+                'assessment_id' => (int) $assessment->id,
+                'assessment_code' => $assessment->kode_assessment,
+                'assessment_title' => $assessment->judul,
+                'instrument_type' => $assessmentMeta['instrument_type'] ?? null,
+                'instrument_label' => $assessmentMeta['instrument_label'] ?? null,
+                'competencies' => $selectionConfigCompetencies,
+                'auto_included_forms' => $selectionConfigAutoForms,
+                'auto_included_form_count' => count($selectionConfigAutoForms),
+                'auto_included_question_count' => (int) collect($selectionConfigAutoForms)
+                    ->sum('selected_question_count'),
+                'selected_question_count' => count($selectedAssessmentRows),
+            ];
+        }
+
+        return [$rows, $selectionConfigAssessments];
+    }
+
+    private function buildSelectionConfigCompetency(
+        KompetensiGuru $kompetensi,
+        array $group,
+        string $selectionMode,
+        int $availableFormCount,
+        int $availableCount,
+        int $requestedCount
+    ): array {
+        return [
+            'kompetensi' => $kompetensi->value,
+            'kompetensi_label' => $kompetensi->label(),
+            'selection_mode' => $availableCount < 1 ? 'unavailable' : $selectionMode,
+            'available_form_count' => $availableFormCount,
+            'available_question_count' => $availableCount,
+            'requested_question_count' => $availableCount < 1 ? 0 : $requestedCount,
+            'selected_question_count' => $availableCount < 1 ? 0 : $requestedCount,
+            'forms' => collect($group['forms'] ?? [])->values()->all(),
+        ];
+    }
+
+    private function buildSelectionConfigAutoForm(array $formEntry): array
+    {
+        return [
+            'form_id' => (int) $formEntry['form']->id,
+            'form_code' => $formEntry['form']->kode_form,
+            'form_title' => $formEntry['form']->judul_form,
+            'form_description' => $formEntry['form']->deskripsi,
+            'indikator_kode' => $formEntry['form_meta']['indikator_kode'] ?? null,
+            'indikator_label' => $formEntry['form_meta']['indikator_label'] ?? null,
+            'available_question_count' => (int) $formEntry['available_question_count'],
+            'selected_question_count' => (int) $formEntry['available_question_count'],
+            'selection_mode' => 'fixed_all',
+        ];
+    }
+
+    private function sortSelectionPool(Collection $pool): Collection
+    {
+        return $pool
+            ->sortBy(fn (array $entry) => $this->buildPoolSortKey($entry))
+            ->values();
+    }
+
+    private function buildPoolSortKey(array $entry): string
+    {
+        return sprintf(
+            '%05d-%05d-%05d',
+            (int) ($entry['assessment_order'] ?? 0),
+            (int) ($entry['form_order'] ?? 0),
+            (int) ($entry['field_source_order'] ?? 0),
+        );
+    }
+
+    private function buildSelectionRow(array $poolEntry, ?int $assessmentOrder = null): array
+    {
+        /** @var Assessment $assessment */
+        $assessment = $poolEntry['assessment'];
+        /** @var AssessmentForm $form */
+        $form = $poolEntry['form'];
+        /** @var AssessmentFormField $field */
+        $field = $poolEntry['field'];
+        $assessmentMeta = $poolEntry['assessment_meta'];
+        $formMeta = $poolEntry['form_meta'];
+
+        return [
+            'assessment_id' => $assessment->id,
+            'assessment_form_id' => $form->id,
+            'assessment_form_field_id' => $field->id,
+            'assessment_code' => $assessment->kode_assessment,
+            'assessment_title' => $assessment->judul,
+            'instrument_type' => $assessmentMeta['instrument_type'] ?? null,
+            'form_code' => $form->kode_form,
+            'form_title' => $form->judul_form,
+            'form_description' => $form->deskripsi,
+            'kompetensi' => $formMeta['kompetensi'] ?? null,
+            'indikator_kode' => $formMeta['indikator_kode'] ?? null,
+            'indikator_label' => $formMeta['indikator_label'] ?? null,
+            'form_is_scoreable' => (bool) ($formMeta['is_scoreable'] ?? false),
+            'form_scoring_config' => $form->scoring_config,
+            'field_label' => $field->label,
+            'field_description' => $field->deskripsi,
+            'field_name' => $field->nama_field,
+            'field_type' => $field->tipe_field,
+            'field_placeholder' => $field->placeholder,
+            'field_help' => $field->bantuan,
+            'field_options' => $field->opsi_field,
+            'field_validation' => $field->validasi,
+            'field_scoring_config' => $field->scoring_config,
+            'field_width' => $field->lebar_kolom ?: 'col-md-12',
+            'field_is_required' => (bool) $field->is_required,
+            'assessment_order' => $assessmentOrder ?? (int) ($poolEntry['assessment_order'] ?? 0),
+            'form_order' => (int) ($poolEntry['form_order'] ?? 0),
+            'field_order' => (int) ($poolEntry['field_source_order'] ?? 0),
+        ];
     }
 
     private function buildSignatureHash(array $rows): string
@@ -335,6 +592,8 @@ class AssessmentCombinationService
         $signature = collect($rows)
             ->map(fn (array $row) => (string) ($row['assessment_form_field_id'] ?? ''))
             ->filter(fn (string $fieldId) => $fieldId !== '')
+            ->sort()
+            ->values()
             ->implode('|');
 
         return $signature !== '' ? hash('sha256', $signature) : '';
@@ -466,7 +725,7 @@ class AssessmentCombinationService
         ];
     }
 
-    private function resolveSelectionSeed(string $randomSeed, int $assessmentId, int $formId): int
+    private function resolveSelectionSeed(string $randomSeed, int $assessmentId, string|int $selector): int
     {
         return (int) sprintf(
             '%u',
@@ -474,7 +733,7 @@ class AssessmentCombinationService
                 'assessment-combination',
                 $randomSeed,
                 $assessmentId,
-                $formId,
+                (string) $selector,
             ]))
         );
     }

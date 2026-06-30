@@ -5,17 +5,32 @@
         'target_ketenagaan',
         \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
-    $initialTakeCounts = collect((array) old('form_take_counts', []))
-        ->mapWithKeys(fn ($count, $formId) => [(int) $formId => max((int) $count, 0)])
+    $initialSelectionModes = collect((array) old('competency_selection_modes', []))
+        ->mapWithKeys(function ($modes, $assessmentId) {
+            return [
+                (int) $assessmentId => collect((array) $modes)
+                    ->mapWithKeys(fn ($mode, $kompetensi) => [trim((string) $kompetensi) => $mode === 'all' ? 'all' : 'count'])
+                    ->all(),
+            ];
+        })
         ->all();
-    $formTakeErrorMap = collect($errors->getMessages())
+    $initialTakeCounts = collect((array) old('competency_take_counts', []))
+        ->mapWithKeys(function ($counts, $assessmentId) {
+            return [
+                (int) $assessmentId => collect((array) $counts)
+                    ->mapWithKeys(fn ($count, $kompetensi) => [trim((string) $kompetensi) => max((int) $count, 0)])
+                    ->all(),
+            ];
+        })
+        ->all();
+    $competencyErrorMap = collect($errors->getMessages())
         ->mapWithKeys(function ($messages, $key) {
-            if (preg_match('/^form_take_counts\.(\d+)$/', $key, $matches) !== 1) {
+            if (preg_match('/^competency_(?:take_counts|selection_modes)\.(\d+)\.([a-z_]+)$/', $key, $matches) !== 1) {
                 return [];
             }
 
             return [
-                (int) $matches[1] => $messages[0] ?? '',
+                $matches[1].'.'.$matches[2] => $messages[0] ?? '',
             ];
         })
         ->all();
@@ -126,19 +141,66 @@
             padding: 1rem;
         }
 
-        .combination-form-table td,
-        .combination-form-table th {
-            vertical-align: middle;
-        }
-
-        .combination-form-table .form-control {
-            min-width: 110px;
-        }
-
         .combination-empty-state {
             color: #7b8898;
             padding: 2rem 1rem;
             text-align: center;
+        }
+
+        .combination-assessment-card {
+            border: 1px solid #e6ebf5;
+            border-radius: 0.35rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .combination-assessment-card__header {
+            background: #f8fbff;
+            border-bottom: 1px solid #e6ebf5;
+            padding: 1rem 1.1rem;
+        }
+
+        .combination-assessment-card__body {
+            padding: 1rem 1.1rem 1.15rem;
+        }
+
+        .combination-assessment-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .combination-assessment-meta .badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.42rem 0.6rem;
+        }
+
+        .combination-competency-table th,
+        .combination-competency-table td,
+        .combination-fixed-form-table th,
+        .combination-fixed-form-table td {
+            vertical-align: middle;
+        }
+
+        .combination-competency-table .form-control {
+            min-width: 120px;
+        }
+
+        .combination-row-disabled {
+            background: #fafbfd;
+        }
+
+        .combination-row-error {
+            border-left: 3px solid #fc544b;
+        }
+
+        .combination-fixed-note {
+            background: #fbfcfe;
+            border: 1px dashed #d9e1ef;
+            border-radius: 0.25rem;
+            padding: 0.85rem 0.95rem;
         }
 
         @media (max-width: 991.98px) {
@@ -168,9 +230,15 @@
                     </div>
                 @endif
 
-                @if ($errors->has('form_take_counts'))
+                @if ($errors->has('competency_selection_modes'))
                     <div class="alert alert-danger">
-                        {{ $errors->first('form_take_counts') }}
+                        {{ $errors->first('competency_selection_modes') }}
+                    </div>
+                @endif
+
+                @if ($errors->has('competency_take_counts'))
+                    <div class="alert alert-danger">
+                        {{ $errors->first('competency_take_counts') }}
                     </div>
                 @endif
 
@@ -185,9 +253,9 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="alert alert-light border mb-4">
-                                        Sistem akan mengambil soal acak dari setiap form aktif sesuai ketenagaan yang dipilih.
-                                        Jumlah soal per form disimpan sebagai child soal pada kombinasi ini, lalu penugasan
-                                        assessment dapat merujuk ke kombinasi tersebut.
+                                        Sistem akan mengambil child soal berdasarkan kompetensi pada setiap assessment.
+                                        Untuk form yang tidak memiliki kompetensi, seluruh input pada form tersebut akan ikut
+                                        otomatis dan tidak diacak.
                                     </div>
 
                                     <div class="form-group">
@@ -218,8 +286,8 @@
                                                         <span>
                                                             <span class="combination-ketenagaan-card__title">{{ $card['label'] }}</span>
                                                             <span class="combination-ketenagaan-card__hint">
-                                                                Semua form aktif pada ketenagaan ini akan dimunculkan
-                                                                untuk diatur jumlah soal acaknya.
+                                                                Assessment aktif pada ketenagaan ini akan dipetakan ke empat
+                                                                kompetensi dan form tanpa kompetensi.
                                                             </span>
                                                         </span>
                                                     </label>
@@ -245,37 +313,25 @@
                             <div class="card">
                                 <div class="card-header">
                                     <div class="d-flex flex-wrap justify-content-between align-items-center w-100">
-                                        <h4 class="mb-0">Jumlah Soal Per Form</h4>
-                                        <div class="d-flex align-items-center">
-                                            <input type="number" min="1" value="1"
+                                        <h4 class="mb-0">Input Soal Per Assessment</h4>
+                                        <div class="d-flex align-items-center flex-wrap">
+                                            <input type="number" min="1" value="10"
                                                 class="form-control form-control-sm mr-2" id="apply-all-count"
                                                 style="width: 90px;">
-                                            <button type="button" class="btn btn-sm btn-light" id="apply-all-button">
-                                                Terapkan ke Semua Form
+                                            <button type="button" class="btn btn-sm btn-light mr-2" id="apply-all-button">
+                                                Terapkan ke Semua Kompetensi
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="apply-all-mode-all">
+                                                Gunakan Semua Soal
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-striped combination-form-table mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Assessment</th>
-                                                    <th>Form</th>
-                                                    <th>Kompetensi / Indikator</th>
-                                                    <th class="text-center">Soal Aktif</th>
-                                                    <th class="text-center">Ambil Acak</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="combination-form-rows">
-                                                <tr>
-                                                    <td colspan="5" class="combination-empty-state">
-                                                        Memuat data form...
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                    <div id="combination-assessment-panels">
+                                        <div class="combination-empty-state">
+                                            Memuat data assessment...
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -315,7 +371,7 @@
                                     <div class="mb-0">
                                         <div class="text-muted small">Catatan</div>
                                         <div class="text-muted" id="summary-note">
-                                            Setiap form minimal mengambil 1 soal dan tidak boleh melebihi soal aktif yang tersedia.
+                                            Kompetensi memakai jumlah soal atau semua soal. Form tanpa kompetensi otomatis ikut seluruh input.
                                         </div>
                                     </div>
                                 </div>
@@ -323,7 +379,7 @@
                                 <div class="combination-summary-panel mb-4">
                                     <div class="text-muted small mb-2">Info Penting</div>
                                     <div class="font-weight-bold mb-2" id="current-source-title">
-                                        Pilih ketenagaan untuk melihat sumber form.
+                                        Pilih ketenagaan untuk melihat sumber assessment.
                                     </div>
                                     <div class="text-muted small mb-0" id="current-source-description">
                                         Kombinasi ini akan menjadi sumber snapshot ujian untuk penugasan yang memilihnya.
@@ -355,13 +411,16 @@
 @push('scripts')
     <script>
         (() => {
-            const formCatalogByKetenagaan = @json($formCatalogByKetenagaan);
+            const assessmentCatalogByKetenagaan = @json($assessmentCatalogByKetenagaan);
             const ketenagaanOptions = @json($ketenagaanOptions);
+            const initialSelectionModes = @json($initialSelectionModes);
             const initialTakeCounts = @json($initialTakeCounts);
-            const formTakeErrorMap = @json($formTakeErrorMap);
-            const formRowsNode = document.getElementById('combination-form-rows');
+            const competencyErrorMap = @json($competencyErrorMap);
+            const assessmentPanelsNode = document.getElementById('combination-assessment-panels');
             const applyAllInput = document.getElementById('apply-all-count');
             const applyAllButton = document.getElementById('apply-all-button');
+            const applyAllModeAllButton = document.getElementById('apply-all-mode-all');
+            const selectionModesState = Object.assign({}, initialSelectionModes);
             const takeCountsState = Object.assign({}, initialTakeCounts);
 
             function escapeHtml(value) {
@@ -377,131 +436,344 @@
                 return input ? input.value : '';
             }
 
-            function getFormsForSelectedKetenagaan() {
+            function getAssessmentsForSelectedKetenagaan() {
                 const target = getSelectedKetenagaan();
 
-                return target && Array.isArray(formCatalogByKetenagaan[target]) ? formCatalogByKetenagaan[target] : [];
+                return target && Array.isArray(assessmentCatalogByKetenagaan[target]) ? assessmentCatalogByKetenagaan[target] : [];
             }
 
-            function getTakeCount(form) {
-                const formId = Number(form.form_id || 0);
-                const currentValue = Number(takeCountsState[formId] || 0);
+            function ensureAssessmentState(assessment) {
+                const assessmentId = Number(assessment.assessment_id || 0);
 
-                if (currentValue > 0) {
-                    return Math.min(currentValue, Number(form.available_question_count || 0));
+                if (!selectionModesState[assessmentId] || typeof selectionModesState[assessmentId] !== 'object') {
+                    selectionModesState[assessmentId] = {};
                 }
 
-                return Math.min(1, Number(form.available_question_count || 0)) || 1;
+                if (!takeCountsState[assessmentId] || typeof takeCountsState[assessmentId] !== 'object') {
+                    takeCountsState[assessmentId] = {};
+                }
+
+                (assessment.competencies || []).forEach((competency) => {
+                    const key = String(competency.kompetensi || '');
+                    const available = Number(competency.available_question_count || 0);
+
+                    if (!key || available < 1) {
+                        return;
+                    }
+
+                    if (!['count', 'all'].includes(selectionModesState[assessmentId][key])) {
+                        selectionModesState[assessmentId][key] = 'count';
+                    }
+
+                    const currentValue = Number(takeCountsState[assessmentId][key] || 0);
+                    takeCountsState[assessmentId][key] = currentValue > 0
+                        ? Math.min(currentValue, available)
+                        : Math.min(10, available);
+                });
             }
 
-            function setTakeCount(formId, value) {
-                takeCountsState[Number(formId)] = Math.max(Number(value || 0), 0);
+            function getCompetencyMode(assessmentId, competencyKey, availableCount) {
+                if (availableCount < 1) {
+                    return 'unavailable';
+                }
+
+                const currentMode = selectionModesState[assessmentId]?.[competencyKey];
+
+                return currentMode === 'all' ? 'all' : 'count';
             }
 
-            function renderFormRows() {
-                const forms = getFormsForSelectedKetenagaan();
+            function getCompetencyCount(assessmentId, competencyKey, availableCount) {
+                if (availableCount < 1) {
+                    return 0;
+                }
 
-                if (!formRowsNode) {
+                const currentValue = Number(takeCountsState[assessmentId]?.[competencyKey] || 0);
+
+                if (currentValue > 0) {
+                    return Math.min(currentValue, availableCount);
+                }
+
+                return Math.min(10, availableCount);
+            }
+
+            function setCompetencyMode(assessmentId, competencyKey, value) {
+                if (!selectionModesState[assessmentId] || typeof selectionModesState[assessmentId] !== 'object') {
+                    selectionModesState[assessmentId] = {};
+                }
+
+                selectionModesState[assessmentId][competencyKey] = value === 'all' ? 'all' : 'count';
+            }
+
+            function setCompetencyCount(assessmentId, competencyKey, value) {
+                if (!takeCountsState[assessmentId] || typeof takeCountsState[assessmentId] !== 'object') {
+                    takeCountsState[assessmentId] = {};
+                }
+
+                takeCountsState[assessmentId][competencyKey] = Math.max(Number(value || 0), 0);
+            }
+
+            function renderAssessmentPanels() {
+                const assessments = getAssessmentsForSelectedKetenagaan();
+
+                if (!assessmentPanelsNode) {
                     return;
                 }
 
-                if (forms.length < 1) {
-                    formRowsNode.innerHTML = `
-                        <tr>
-                            <td colspan="5" class="combination-empty-state">
-                                Belum ada form aktif yang tersedia pada ketenagaan ini.
-                            </td>
-                        </tr>
+                if (assessments.length < 1) {
+                    assessmentPanelsNode.innerHTML = `
+                        <div class="combination-empty-state">
+                            Belum ada assessment aktif yang tersedia pada ketenagaan ini.
+                        </div>
                     `;
                     updateSummary();
 
                     return;
                 }
 
-                formRowsNode.innerHTML = forms.map((form) => {
-                    const formId = Number(form.form_id || 0);
-                    const available = Number(form.available_question_count || 0);
-                    const currentValue = getTakeCount(form);
-                    const competencyText = [form.kompetensi_label, form.indikator_kode ? 'Indikator ' + form.indikator_kode : null]
-                        .filter(Boolean)
-                        .join(' / ');
-                    const errorText = formTakeErrorMap[formId] || '';
+                assessmentPanelsNode.innerHTML = assessments.map((assessment, index) => {
+                    ensureAssessmentState(assessment);
 
-                    setTakeCount(formId, currentValue);
+                    const assessmentId = Number(assessment.assessment_id || 0);
+                    const competencies = Array.isArray(assessment.competencies) ? assessment.competencies : [];
+                    const autoIncludedForms = Array.isArray(assessment.auto_included_forms) ? assessment.auto_included_forms : [];
+                    const competencyRows = competencies.map((competency, competencyIndex) => {
+                        const competencyKey = String(competency.kompetensi || '');
+                        const available = Number(competency.available_question_count || 0);
+                        const availableForms = Number(competency.available_form_count || 0);
+                        const mode = getCompetencyMode(assessmentId, competencyKey, available);
+                        const count = mode === 'all' ? available : getCompetencyCount(assessmentId, competencyKey, available);
+                        const rowError = competencyErrorMap[`${assessmentId}.${competencyKey}`] || '';
+                        const indicatorText = Array.isArray(competency.indikator_codes)
+                            ? competency.indikator_codes.filter(Boolean).join(', ')
+                            : '';
+
+                        if (available > 0) {
+                            setCompetencyMode(assessmentId, competencyKey, mode);
+                            setCompetencyCount(assessmentId, competencyKey, count);
+                        }
+
+                        return `
+                            <tr class="${available < 1 ? 'combination-row-disabled' : ''} ${rowError ? 'combination-row-error' : ''}">
+                                <td>
+                                    <div class="font-weight-bold">${competencyIndex + 1}. ${escapeHtml(competency.kompetensi_label || '-')}</div>
+                                    <small class="text-muted">
+                                        ${indicatorText ? 'Indikator: ' + escapeHtml(indicatorText) : 'Pool semua form dengan kompetensi ini'}
+                                    </small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-light border">${availableForms} form</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-light border">${available} soal</span>
+                                </td>
+                                <td>
+                                    <select
+                                        name="competency_selection_modes[${assessmentId}][${competencyKey}]"
+                                        class="form-control js-competency-mode"
+                                        data-assessment-id="${assessmentId}"
+                                        data-competency-key="${escapeHtml(competencyKey)}"
+                                        data-available="${available}"
+                                        ${available < 1 ? 'disabled' : ''}
+                                    >
+                                        <option value="count" ${mode === 'count' ? 'selected' : ''}>Jumlah soal</option>
+                                        <option value="all" ${mode === 'all' ? 'selected' : ''}>Semua soal</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="${available}"
+                                        step="1"
+                                        name="competency_take_counts[${assessmentId}][${competencyKey}]"
+                                        value="${available < 1 ? 0 : count}"
+                                        class="form-control text-center js-competency-count ${rowError ? 'is-invalid' : ''}"
+                                        data-assessment-id="${assessmentId}"
+                                        data-competency-key="${escapeHtml(competencyKey)}"
+                                        data-available="${available}"
+                                        ${available < 1 ? 'disabled' : ''}
+                                        ${mode === 'all' ? 'readonly' : ''}
+                                    >
+                                    ${rowError ? `<div class="invalid-feedback d-block">${escapeHtml(rowError)}</div>` : ''}
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    const autoFormsHtml = autoIncludedForms.length > 0
+                        ? `
+                            <div class="mt-4">
+                                <div class="combination-fixed-note mb-3">
+                                    <div class="font-weight-bold mb-1">Form Tanpa Kompetensi</div>
+                                    <div class="text-muted small mb-0">
+                                        Seluruh input dari form berikut akan ikut otomatis dan tidak diacak.
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped combination-fixed-form-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Form</th>
+                                                <th class="text-center">Soal Aktif</th>
+                                                <th class="text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${autoIncludedForms.map((form) => `
+                                                <tr>
+                                                    <td>
+                                                        <div class="font-weight-bold">${escapeHtml(form.form_title || '-')}</div>
+                                                        <small class="text-muted">${escapeHtml(form.form_code || '-')}</small>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge badge-light border">${Number(form.available_question_count || 0)} soal</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge badge-info">Semua ikut</span>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `
+                        : '';
 
                     return `
-                        <tr>
-                            <td>
-                                <div class="font-weight-bold">${escapeHtml(form.assessment_title || '-')}</div>
-                                <small class="text-muted">${escapeHtml(form.assessment_code || '-')} | ${escapeHtml(form.instrument_label || 'Tanpa instrumen')}</small>
-                            </td>
-                            <td>
-                                <div class="font-weight-bold">${escapeHtml(form.form_title || '-')}</div>
-                                <small class="text-muted">${escapeHtml(form.form_code || '-')}</small>
-                            </td>
-                            <td>
-                                <div>${escapeHtml(competencyText || 'Belum ada kompetensi/indikator')}</div>
-                                <small class="text-muted">${form.is_scoreable ? 'Masuk penilaian' : 'Hanya pengumpulan data'}</small>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-light border">${available} soal</span>
-                            </td>
-                            <td class="text-center">
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="${available}"
-                                    step="1"
-                                    name="form_take_counts[${formId}]"
-                                    value="${currentValue}"
-                                    class="form-control text-center js-form-take-count ${errorText ? 'is-invalid' : ''}"
-                                    data-form-id="${formId}"
-                                    data-max="${available}"
-                                >
-                                ${errorText ? `<div class="invalid-feedback d-block text-left">${escapeHtml(errorText)}</div>` : ''}
-                            </td>
-                        </tr>
+                        <div class="combination-assessment-card">
+                            <div class="combination-assessment-card__header">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap">
+                                    <div>
+                                        <div class="text-primary font-weight-bold mb-1">Assessment ${index + 1}</div>
+                                        <div class="h6 mb-1">${escapeHtml(assessment.assessment_title || '-')}</div>
+                                        <div class="text-muted small">
+                                            ${escapeHtml(assessment.assessment_code || '-')} | ${escapeHtml(assessment.instrument_label || 'Tanpa instrumen')}
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small mt-2 mt-md-0">
+                                        ${Number(assessment.total_forms || 0)} form | ${Number(assessment.total_questions || 0)} soal sumber
+                                    </div>
+                                </div>
+                                <div class="combination-assessment-meta">
+                                    <span class="badge badge-primary">${competencies.filter((item) => Number(item.available_question_count || 0) > 0).length} kompetensi aktif</span>
+                                    <span class="badge badge-light border">${Number(assessment.auto_included_form_count || 0)} form auto</span>
+                                    <span class="badge badge-light border">${Number(assessment.auto_included_question_count || 0)} soal auto</span>
+                                </div>
+                            </div>
+                            <div class="combination-assessment-card__body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped combination-competency-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Kompetensi</th>
+                                                <th class="text-center">Pool Form</th>
+                                                <th class="text-center">Soal Tersedia</th>
+                                                <th>Mode</th>
+                                                <th class="text-center">Jumlah / Semua</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${competencyRows}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                ${autoFormsHtml}
+                            </div>
+                        </div>
                     `;
                 }).join('');
 
-                bindTakeCountInputs();
+                bindAssessmentInputs();
                 updateSummary();
             }
 
-            function bindTakeCountInputs() {
-                document.querySelectorAll('.js-form-take-count').forEach((input) => {
+            function bindAssessmentInputs() {
+                document.querySelectorAll('.js-competency-mode').forEach((input) => {
+                    input.addEventListener('change', () => {
+                        const assessmentId = Number(input.dataset.assessmentId || 0);
+                        const competencyKey = String(input.dataset.competencyKey || '');
+                        const available = Number(input.dataset.available || 0);
+                        const nextMode = input.value === 'all' ? 'all' : 'count';
+
+                        setCompetencyMode(assessmentId, competencyKey, nextMode);
+
+                        if (nextMode === 'all') {
+                            setCompetencyCount(assessmentId, competencyKey, available);
+                        } else if (getCompetencyCount(assessmentId, competencyKey, available) < 1) {
+                            setCompetencyCount(assessmentId, competencyKey, Math.min(10, available));
+                        }
+
+                        renderAssessmentPanels();
+                    });
+                });
+
+                document.querySelectorAll('.js-competency-count').forEach((input) => {
                     input.addEventListener('input', () => {
-                        const formId = Number(input.dataset.formId || 0);
-                        const max = Number(input.dataset.max || 0);
+                        const assessmentId = Number(input.dataset.assessmentId || 0);
+                        const competencyKey = String(input.dataset.competencyKey || '');
+                        const available = Number(input.dataset.available || 0);
                         let value = Number(input.value || 0);
 
                         if (value < 1) {
                             value = 1;
                         }
 
-                        if (max > 0 && value > max) {
-                            value = max;
+                        if (available > 0 && value > available) {
+                            value = available;
                         }
 
                         input.value = value;
-                        setTakeCount(formId, value);
+                        setCompetencyMode(assessmentId, competencyKey, 'count');
+                        setCompetencyCount(assessmentId, competencyKey, value);
                         updateSummary();
                     });
                 });
             }
 
             function updateSummary() {
-                const forms = getFormsForSelectedKetenagaan();
-                const uniqueAssessmentIds = Array.from(new Set(forms.map((form) => Number(form.assessment_id || 0)).filter((id) => id > 0)));
-                const sourceQuestionCount = forms.reduce((total, form) => total + Number(form.available_question_count || 0), 0);
-                const selectedQuestionCount = forms.reduce((total, form) => total + Number(getTakeCount(form) || 0), 0);
+                const assessments = getAssessmentsForSelectedKetenagaan();
                 const selectedKetenagaan = getSelectedKetenagaan();
+                const totalForms = assessments.reduce((total, assessment) => total + Number(assessment.total_forms || 0), 0);
+                const sourceQuestionCount = assessments.reduce((total, assessment) => total + Number(assessment.total_questions || 0), 0);
+                const autoFormCount = assessments.reduce((total, assessment) => total + Number(assessment.auto_included_form_count || 0), 0);
+                const autoQuestionCount = assessments.reduce((total, assessment) => total + Number(assessment.auto_included_question_count || 0), 0);
+                const selectedQuestionCount = assessments.reduce((total, assessment) => {
+                    ensureAssessmentState(assessment);
+
+                    const assessmentId = Number(assessment.assessment_id || 0);
+                    const competencySelectedCount = (assessment.competencies || []).reduce((competencyTotal, competency) => {
+                        const available = Number(competency.available_question_count || 0);
+
+                        if (available < 1) {
+                            return competencyTotal;
+                        }
+
+                        const mode = getCompetencyMode(assessmentId, String(competency.kompetensi || ''), available);
+
+                        if (mode === 'all') {
+                            return competencyTotal + available;
+                        }
+
+                        return competencyTotal + Number(getCompetencyCount(
+                            assessmentId,
+                            String(competency.kompetensi || ''),
+                            available
+                        ) || 0);
+                    }, 0);
+
+                    return total + competencySelectedCount + Number(assessment.auto_included_question_count || 0);
+                }, 0);
+                const activeCompetencyCount = assessments.reduce((total, assessment) => {
+                    return total + (assessment.competencies || []).filter((competency) => Number(competency.available_question_count || 0) > 0).length;
+                }, 0);
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
                 const summaryAssessments = document.getElementById('summary-assessments');
                 const summaryForms = document.getElementById('summary-forms');
                 const summarySourceQuestions = document.getElementById('summary-source-questions');
                 const summarySelectedQuestions = document.getElementById('summary-selected-questions');
+                const summaryNote = document.getElementById('summary-note');
                 const currentSourceTitle = document.getElementById('current-source-title');
                 const currentSourceDescription = document.getElementById('current-source-description');
 
@@ -510,11 +782,11 @@
                 }
 
                 if (summaryAssessments) {
-                    summaryAssessments.textContent = String(uniqueAssessmentIds.length);
+                    summaryAssessments.textContent = String(assessments.length);
                 }
 
                 if (summaryForms) {
-                    summaryForms.textContent = String(forms.length);
+                    summaryForms.textContent = String(totalForms);
                 }
 
                 if (summarySourceQuestions) {
@@ -525,40 +797,87 @@
                     summarySelectedQuestions.textContent = String(selectedQuestionCount);
                 }
 
+                if (summaryNote) {
+                    summaryNote.textContent = autoFormCount > 0
+                        ? `${activeCompetencyCount} kompetensi dipetakan manual, ${autoFormCount} form tanpa kompetensi ikut otomatis (${autoQuestionCount} soal).`
+                        : 'Semua child soal berasal dari pemetaan kompetensi assessment yang dipilih.';
+                }
+
                 if (currentSourceTitle) {
-                    currentSourceTitle.textContent = forms.length > 0
-                        ? 'Sumber form untuk ' + (ketenagaanOptions[selectedKetenagaan] || 'ketenagaan ini')
-                        : 'Belum ada sumber form aktif';
+                    currentSourceTitle.textContent = assessments.length > 0
+                        ? `${assessments.length} assessment sumber untuk ${ketenagaanOptions[selectedKetenagaan] || 'ketenagaan ini'}`
+                        : 'Belum ada assessment sumber aktif';
                 }
 
                 if (currentSourceDescription) {
-                    currentSourceDescription.textContent = forms.length > 0
-                        ? uniqueAssessmentIds.length + ' assessment sumber, ' + forms.length + ' form aktif, dan ' + sourceQuestionCount + ' soal siap diacak.'
-                        : 'Silakan lengkapi form assessment aktif pada ketenagaan ini terlebih dahulu.';
+                    currentSourceDescription.textContent = assessments.length > 0
+                        ? `${activeCompetencyCount} kompetensi aktif dipetakan, ${autoFormCount} form tanpa kompetensi ikut penuh, dan ${sourceQuestionCount} soal sumber tersedia.`
+                        : 'Silakan lengkapi assessment aktif pada ketenagaan ini terlebih dahulu.';
                 }
             }
 
-            function applyToAllForms() {
-                const forms = getFormsForSelectedKetenagaan();
-                const desiredCount = Math.max(Number(applyAllInput ? applyAllInput.value : 1), 1);
+            function applyToAllCompetencies() {
+                const assessments = getAssessmentsForSelectedKetenagaan();
+                const desiredCount = Math.max(Number(applyAllInput ? applyAllInput.value : 10), 1);
 
-                forms.forEach((form) => {
-                    const max = Number(form.available_question_count || 0);
-                    setTakeCount(Number(form.form_id || 0), Math.min(desiredCount, max));
+                assessments.forEach((assessment) => {
+                    ensureAssessmentState(assessment);
+
+                    (assessment.competencies || []).forEach((competency) => {
+                        const available = Number(competency.available_question_count || 0);
+
+                        if (available < 1) {
+                            return;
+                        }
+
+                        const assessmentId = Number(assessment.assessment_id || 0);
+                        const competencyKey = String(competency.kompetensi || '');
+
+                        setCompetencyMode(assessmentId, competencyKey, 'count');
+                        setCompetencyCount(assessmentId, competencyKey, Math.min(desiredCount, available));
+                    });
                 });
 
-                renderFormRows();
+                renderAssessmentPanels();
+            }
+
+            function applyAllModeAll() {
+                const assessments = getAssessmentsForSelectedKetenagaan();
+
+                assessments.forEach((assessment) => {
+                    ensureAssessmentState(assessment);
+
+                    (assessment.competencies || []).forEach((competency) => {
+                        const available = Number(competency.available_question_count || 0);
+
+                        if (available < 1) {
+                            return;
+                        }
+
+                        const assessmentId = Number(assessment.assessment_id || 0);
+                        const competencyKey = String(competency.kompetensi || '');
+
+                        setCompetencyMode(assessmentId, competencyKey, 'all');
+                        setCompetencyCount(assessmentId, competencyKey, available);
+                    });
+                });
+
+                renderAssessmentPanels();
             }
 
             document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
-                input.addEventListener('change', renderFormRows);
+                input.addEventListener('change', renderAssessmentPanels);
             });
 
             if (applyAllButton) {
-                applyAllButton.addEventListener('click', applyToAllForms);
+                applyAllButton.addEventListener('click', applyToAllCompetencies);
             }
 
-            renderFormRows();
+            if (applyAllModeAllButton) {
+                applyAllModeAllButton.addEventListener('click', applyAllModeAll);
+            }
+
+            renderAssessmentPanels();
         })();
     </script>
 @endpush

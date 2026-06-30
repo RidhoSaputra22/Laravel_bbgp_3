@@ -2,6 +2,7 @@
 
 @section('content')
     @php
+        $selectionAssessments = collect(data_get($combination->selection_config, 'assessments', []))->values();
         $selectionForms = collect(data_get($combination->selection_config, 'forms', []))->values();
         $sourceAssessments = collect($snapshot['assessments'] ?? [])->values();
     @endphp
@@ -149,7 +150,115 @@
                         <h4>Konfigurasi Pengambilan Soal</h4>
                     </div>
                     <div class="card-body">
-                        @if ($selectionForms->isEmpty())
+                        @if ($selectionAssessments->isNotEmpty())
+                            @foreach ($selectionAssessments as $assessment)
+                                @php
+                                    $competencies = collect($assessment['competencies'] ?? [])->values();
+                                    $autoIncludedForms = collect($assessment['auto_included_forms'] ?? [])->values();
+                                @endphp
+
+                                <div class="border rounded p-3 mb-4">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap mb-3">
+                                        <div>
+                                            <div class="font-weight-bold">
+                                                {{ $assessment['assessment_title'] ?? '-' }}
+                                            </div>
+                                            <div class="text-muted small">
+                                                {{ $assessment['assessment_code'] ?? '-' }}
+                                                @if (!empty($assessment['instrument_label']))
+                                                    | {{ $assessment['instrument_label'] }}
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="text-muted small mt-2 mt-md-0">
+                                            {{ $assessment['selected_question_count'] ?? 0 }} child soal
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-striped mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Kompetensi</th>
+                                                    <th class="text-center">Pool Form</th>
+                                                    <th class="text-center">Soal Tersedia</th>
+                                                    <th class="text-center">Mode</th>
+                                                    <th class="text-center">Diambil</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($competencies as $competency)
+                                                    <tr>
+                                                        <td>
+                                                            <div class="font-weight-bold">
+                                                                {{ $competency['kompetensi_label'] ?? '-' }}
+                                                            </div>
+                                                            @if (!empty($competency['forms']))
+                                                                <small class="text-muted">
+                                                                    {{ collect($competency['forms'])->pluck('form_title')->filter()->implode(', ') }}
+                                                                </small>
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{ $competency['available_form_count'] ?? 0 }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            {{ $competency['available_question_count'] ?? 0 }}
+                                                        </td>
+                                                        <td class="text-center">
+                                                            @php
+                                                                $mode = $competency['selection_mode'] ?? 'count';
+                                                            @endphp
+                                                            <span class="badge badge-{{ $mode === 'all' ? 'info' : ($mode === 'unavailable' ? 'secondary' : 'primary') }}">
+                                                                {{ $mode === 'all' ? 'Semua soal' : ($mode === 'unavailable' ? 'Tidak tersedia' : 'Jumlah soal') }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span class="badge badge-primary">
+                                                                {{ $competency['selected_question_count'] ?? 0 }} soal
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    @if ($autoIncludedForms->isNotEmpty())
+                                        <div class="mt-3">
+                                            <div class="font-weight-bold mb-2">Form Tanpa Kompetensi</div>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-striped mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Form</th>
+                                                            <th class="text-center">Soal Aktif</th>
+                                                            <th class="text-center">Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($autoIncludedForms as $form)
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="font-weight-bold">{{ $form['form_title'] ?? '-' }}</div>
+                                                                    <small class="text-muted">{{ $form['form_code'] ?? '-' }}</small>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    {{ $form['selected_question_count'] ?? 0 }}
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <span class="badge badge-info">Semua ikut</span>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @elseif ($selectionForms->isEmpty())
                             <div class="alert alert-warning mb-0">
                                 Konfigurasi pengambilan soal tidak ditemukan pada kombinasi ini.
                             </div>
