@@ -333,6 +333,8 @@ Route::group(
                     Route::get('/', 'AssessmentCombinationController@index')->name('assessment.combination.index');
                     Route::get('/create', 'AssessmentCombinationController@create')->name('assessment.combination.create');
                     Route::post('/store', 'AssessmentCombinationController@store')->name('assessment.combination.store');
+                    Route::get('/proses/show/{id}', 'AssessmentCombinationController@generationShow')->name('assessment.combination.generation.show');
+                    Route::post('/proses/retry/{id}', 'AssessmentCombinationController@retryGeneration')->name('assessment.combination.generation.retry');
                     Route::get('/show/{id}', 'AssessmentCombinationController@show')->name('assessment.combination.show');
                     Route::post('/hapus/{id}', 'AssessmentCombinationController@destroy')->name('assessment.combination.hapus');
                 });

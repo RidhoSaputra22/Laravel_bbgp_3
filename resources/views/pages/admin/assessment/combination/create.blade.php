@@ -5,6 +5,7 @@
         'target_ketenagaan',
         \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
+    $initialTotalKombinasi = max((int) old('total_kombinasi', 1), 1);
     $initialSelectionModes = collect((array) old('competency_selection_modes', []))
         ->mapWithKeys(function ($modes, $assessmentId) {
             return [
@@ -255,7 +256,7 @@
                                     <div class="alert alert-light border mb-4">
                                         Sistem akan mengambil child soal berdasarkan kompetensi pada setiap assessment.
                                         Untuk form yang tidak memiliki kompetensi, seluruh input pada form tersebut akan ikut
-                                        otomatis dan tidak diacak.
+                                        otomatis dan tidak diacak. Setiap kombinasi akan diproses sebagai job pada antrean batch.
                                     </div>
 
                                     <div class="form-group">
@@ -284,6 +285,28 @@
                                             @endforeach
                                         </div>
                                         @error('target_ketenagaan')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group mb-0">
+                                        <label for="total_kombinasi">Banyak Kombinasi Yang Ingin Dibuat <span
+                                                class="text-danger">*</span></label>
+                                        <div class="row align-items-center">
+                                            <div class="col-md-5">
+                                                <input type="number" min="1" step="1" class="form-control"
+                                                    id="total_kombinasi" name="total_kombinasi"
+                                                    value="{{ $initialTotalKombinasi }}" required>
+                                            </div>
+                                            <div class="col-md-7 mt-3 mt-md-0">
+                                                <div class="text-muted small">
+                                                    Sistem akan membuat kombinasi sebanyak angka ini secara otomatis.
+                                                    Setiap kombinasi diproses 1 job agar progres antrean, gagal total,
+                                                    dan gagal sebagian bisa dipantau serta di-resume.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @error('total_kombinasi')
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -322,8 +345,14 @@
                                 <div class="card card-body mb-4">
                                     <h6 class="text-primary mb-3">Ringkasan Kombinasi</h6>
                                     <div class="mb-3">
-                                        <div class="text-muted small">Kodenya</div>
-                                        <div class="font-weight-bold">Otomatis saat simpan</div>
+                                        <div class="text-muted small">Kode Proses</div>
+                                        <div class="font-weight-bold">Otomatis saat masuk antrean</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-muted small">Banyak Kombinasi</div>
+                                        <div class="font-weight-bold" id="summary-total-kombinasi">
+                                            {{ $initialTotalKombinasi }} kombinasi
+                                        </div>
                                     </div>
                                     <div class="mb-3">
                                         <div class="text-muted small">Ketenagaan Dipilih</div>
@@ -344,14 +373,20 @@
                                         </div>
                                     </div>
                                     <hr>
-                                    <div class="mb-3">
-                                        <div class="text-muted small">Total Child Soal</div>
-                                        <div class="font-weight-bold" id="summary-selected-questions">0</div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="text-muted small">Child Soal / Kombinasi</div>
+                                            <div class="font-weight-bold" id="summary-selected-questions">0</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-muted small">Estimasi Tersimpan</div>
+                                            <div class="font-weight-bold" id="summary-total-generated-questions">0</div>
+                                        </div>
                                     </div>
-                                    <div class="mb-0">
+                                    <div class="mb-0 mt-3">
                                         <div class="text-muted small">Catatan</div>
                                         <div class="text-muted" id="summary-note">
-                                            Kompetensi memakai jumlah soal atau semua soal. Form tanpa kompetensi otomatis ikut seluruh input.
+                                            Kompetensi memakai jumlah soal atau semua soal. Form tanpa kompetensi otomatis ikut seluruh input, lalu batch membuat banyak kombinasi sesuai permintaan.
                                         </div>
                                     </div>
                                 </div>
@@ -362,7 +397,7 @@
                                         Pilih ketenagaan untuk melihat sumber assessment.
                                     </div>
                                     <div class="text-muted small mb-0" id="current-source-description">
-                                        Kombinasi ini akan menjadi sumber snapshot ujian untuk penugasan yang memilihnya.
+                                        Setelah submit, Anda akan diarahkan ke halaman monitoring progres generate kombinasi.
                                     </div>
                                 </div>
 
@@ -372,7 +407,7 @@
                                     </div>
                                     <div class="card-body">
                                         <button type="submit" class="btn btn-primary btn-block">
-                                            <i class="fas fa-save"></i> Simpan Kombinasi
+                                            <i class="fas fa-layer-group"></i> Kirim ke Antrean Generate
                                         </button>
                                         <a href="{{ route('assessment.combination.index') }}" class="btn btn-light btn-block">
                                             Batal
@@ -400,6 +435,7 @@
             const applyAllInput = document.getElementById('apply-all-count');
             const applyAllButton = document.getElementById('apply-all-button');
             const applyAllModeAllButton = document.getElementById('apply-all-mode-all');
+            const totalCombinationInput = document.getElementById('total_kombinasi');
             const selectionModesState = Object.assign({}, initialSelectionModes);
             const takeCountsState = Object.assign({}, initialTakeCounts);
 
@@ -420,6 +456,17 @@
                 const target = getSelectedKetenagaan();
 
                 return target && Array.isArray(assessmentCatalogByKetenagaan[target]) ? assessmentCatalogByKetenagaan[target] : [];
+            }
+
+            function getTotalKombinasi() {
+                const rawValue = totalCombinationInput ? Number(totalCombinationInput.value || 0) : {{ $initialTotalKombinasi }};
+                const total = Math.max(Math.floor(rawValue || 0), 1);
+
+                if (totalCombinationInput) {
+                    totalCombinationInput.value = total;
+                }
+
+                return total;
             }
 
             function ensureAssessmentState(assessment) {
@@ -718,6 +765,7 @@
                 const sourceQuestionCount = assessments.reduce((total, assessment) => total + Number(assessment.total_questions || 0), 0);
                 const autoFormCount = assessments.reduce((total, assessment) => total + Number(assessment.auto_included_form_count || 0), 0);
                 const autoQuestionCount = assessments.reduce((total, assessment) => total + Number(assessment.auto_included_question_count || 0), 0);
+                const totalKombinasi = getTotalKombinasi();
                 const selectedQuestionCount = assessments.reduce((total, assessment) => {
                     ensureAssessmentState(assessment);
 
@@ -747,18 +795,25 @@
                 const activeCompetencyCount = assessments.reduce((total, assessment) => {
                     return total + (assessment.competencies || []).filter((competency) => Number(competency.available_question_count || 0) > 0).length;
                 }, 0);
+                const estimatedStoredQuestions = selectedQuestionCount * totalKombinasi;
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
+                const summaryTotalKombinasi = document.getElementById('summary-total-kombinasi');
                 const summaryAssessments = document.getElementById('summary-assessments');
                 const summaryForms = document.getElementById('summary-forms');
                 const summarySourceQuestions = document.getElementById('summary-source-questions');
                 const summarySelectedQuestions = document.getElementById('summary-selected-questions');
+                const summaryTotalGeneratedQuestions = document.getElementById('summary-total-generated-questions');
                 const summaryNote = document.getElementById('summary-note');
                 const currentSourceTitle = document.getElementById('current-source-title');
                 const currentSourceDescription = document.getElementById('current-source-description');
 
                 if (summaryKetenagaan) {
                     summaryKetenagaan.textContent = ketenagaanOptions[selectedKetenagaan] || '-';
+                }
+
+                if (summaryTotalKombinasi) {
+                    summaryTotalKombinasi.textContent = `${totalKombinasi} kombinasi`;
                 }
 
                 if (summaryAssessments) {
@@ -777,10 +832,14 @@
                     summarySelectedQuestions.textContent = String(selectedQuestionCount);
                 }
 
+                if (summaryTotalGeneratedQuestions) {
+                    summaryTotalGeneratedQuestions.textContent = String(estimatedStoredQuestions);
+                }
+
                 if (summaryNote) {
                     summaryNote.textContent = autoFormCount > 0
-                        ? `${activeCompetencyCount} kompetensi dipetakan manual, ${autoFormCount} form tanpa kompetensi ikut otomatis (${autoQuestionCount} soal).`
-                        : 'Semua child soal berasal dari pemetaan kompetensi assessment yang dipilih.';
+                        ? `${activeCompetencyCount} kompetensi dipetakan manual, ${autoFormCount} form tanpa kompetensi ikut otomatis (${autoQuestionCount} soal), lalu batch membuat ${totalKombinasi} kombinasi.`
+                        : `Semua child soal berasal dari pemetaan kompetensi assessment yang dipilih, lalu batch membuat ${totalKombinasi} kombinasi.`;
                 }
 
                 if (currentSourceTitle) {
@@ -791,7 +850,7 @@
 
                 if (currentSourceDescription) {
                     currentSourceDescription.textContent = assessments.length > 0
-                        ? `${activeCompetencyCount} kompetensi aktif dipetakan, ${autoFormCount} form tanpa kompetensi ikut penuh, dan ${sourceQuestionCount} soal sumber tersedia.`
+                        ? `${activeCompetencyCount} kompetensi aktif dipetakan, ${autoFormCount} form tanpa kompetensi ikut penuh, ${sourceQuestionCount} soal sumber tersedia, dan antrean akan membuat ${totalKombinasi} kombinasi.`
                         : 'Silakan lengkapi assessment aktif pada ketenagaan ini terlebih dahulu.';
                 }
             }
@@ -855,6 +914,11 @@
 
             if (applyAllModeAllButton) {
                 applyAllModeAllButton.addEventListener('click', applyAllModeAll);
+            }
+
+            if (totalCombinationInput) {
+                totalCombinationInput.addEventListener('input', updateSummary);
+                totalCombinationInput.addEventListener('change', updateSummary);
             }
 
             renderAssessmentPanels();

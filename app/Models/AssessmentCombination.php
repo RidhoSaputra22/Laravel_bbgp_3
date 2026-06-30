@@ -11,6 +11,8 @@ class AssessmentCombination extends Model
     use HasFactory;
 
     protected $fillable = [
+        'assessment_combination_generation_id',
+        'generation_sequence',
         'kode_kombinasi',
         'judul',
         'deskripsi',
@@ -28,6 +30,7 @@ class AssessmentCombination extends Model
     ];
 
     protected $casts = [
+        'generation_sequence' => 'integer',
         'selection_config' => 'array',
         'structure_snapshot' => 'array',
         'total_assessments' => 'integer',
@@ -49,6 +52,11 @@ class AssessmentCombination extends Model
     public function assignments()
     {
         return $this->hasMany(AssessmentAssignment::class, 'assessment_combination_id');
+    }
+
+    public function generation()
+    {
+        return $this->belongsTo(AssessmentCombinationGeneration::class, 'assessment_combination_generation_id');
     }
 
     public function generator()

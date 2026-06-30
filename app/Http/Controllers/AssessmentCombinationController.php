@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Models\AssessmentCombination;
+use App\Models\AssessmentCombinationGeneration;
 use App\Services\Assessment\AssessmentCombinationService;
+use App\Services\Assessment\AssessmentCombinationGenerationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -15,7 +17,8 @@ class AssessmentCombinationController extends Controller
     private string $menu = 'assessment-kombinasi';
 
     public function __construct(
-        private readonly AssessmentCombinationService $combinationService
+        private readonly AssessmentCombinationService $combinationService,
+        private readonly AssessmentCombinationGenerationService $generationService
     ) {}
 
     public function index()
@@ -23,14 +26,28 @@ class AssessmentCombinationController extends Controller
         $this->authorizeAccess();
 
         $datas = AssessmentCombination::query()
-            ->with('generator')
+            ->with(['generator', 'generation'])
             ->withCount(['items', 'assignments'])
             ->orderByDesc('id')
             ->get();
+        $generations = AssessmentCombinationGeneration::query()
+            ->with('generator')
+            ->withCount('combinations')
+            ->orderByDesc('id')
+            ->get();
+        $generationMonitoring = $generations
+            ->mapWithKeys(function (AssessmentCombinationGeneration $generation) {
+                return [
+                    $generation->id => $this->generationService->buildGenerationMonitoring($generation, false),
+                ];
+            })
+            ->all();
 
         return view('pages.admin.assessment.combination.index', [
             'menu' => $this->menu,
             'datas' => $datas,
+            'generations' => $generations,
+            'generationMonitoring' => $generationMonitoring,
         ]);
     }
 
@@ -52,14 +69,14 @@ class AssessmentCombinationController extends Controller
         $validated = $this->validatePayload($request);
 
         try {
-            $combination = $this->combinationService->createCombination(
+            $generation = $this->generationService->createGeneration(
                 $validated,
                 session('user_id') ? (int) session('user_id') : null
             );
 
             return redirect()
-                ->route('assessment.combination.show', $combination->id)
-                ->with('message', 'store');
+                ->route('assessment.combination.generation.show', $generation->id)
+                ->with('combination_notice', $this->buildGenerationCreateNotice($generation));
         } catch (\Throwable $exception) {
             report($exception);
 
@@ -76,7 +93,7 @@ class AssessmentCombinationController extends Controller
         $this->authorizeAccess();
 
         $combination = AssessmentCombination::query()
-            ->with(['generator', 'items', 'assignments'])
+            ->with(['generator', 'items', 'assignments', 'generation'])
             ->findOrFail($id);
 
         return view('pages.admin.assessment.combination.show', [
@@ -84,6 +101,56 @@ class AssessmentCombinationController extends Controller
             'combination' => $combination,
             'snapshot' => $combination->structure_snapshot ?? [],
         ]);
+    }
+
+    public function generationShow(string $id)
+    {
+        $this->authorizeAccess();
+
+        $generation = AssessmentCombinationGeneration::query()
+            ->with([
+                'generator',
+                'combinations' => function ($query) {
+                    $query->with(['generator'])
+                        ->withCount(['items', 'assignments']);
+                },
+            ])
+            ->withCount('combinations')
+            ->findOrFail($id);
+
+        return view('pages.admin.assessment.combination.generation-show', [
+            'menu' => $this->menu,
+            'generation' => $generation,
+            'monitoring' => $this->generationService->buildGenerationMonitoring($generation),
+        ]);
+    }
+
+    public function retryGeneration(string $id)
+    {
+        $this->authorizeAccess();
+
+        $generation = AssessmentCombinationGeneration::query()->findOrFail($id);
+
+        try {
+            $result = $this->generationService->retryGeneration($generation);
+
+            /** @var \App\Models\AssessmentCombinationGeneration $retriedGeneration */
+            $retriedGeneration = $result['generation'];
+
+            return redirect()
+                ->route('assessment.combination.generation.show', $retriedGeneration->id)
+                ->with('combination_notice', $this->buildGenerationRetryNotice($result));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('assessment.combination.generation.show', $generation->id)
+                ->withErrors([
+                    'combination' => $exception->getMessage() !== ''
+                        ? $exception->getMessage()
+                        : 'Terjadi kesalahan saat menjalankan retry generate kombinasi soal.',
+                ]);
+        }
     }
 
     public function destroy(string $id)
@@ -129,12 +196,16 @@ class AssessmentCombinationController extends Controller
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
+                'total_kombinasi' => 'required|integer|min:1',
                 'competency_selection_modes' => 'required|array|min:1',
                 'competency_take_counts' => 'required|array|min:1',
             ],
             [
                 'target_ketenagaan.required' => 'Ketenagaan wajib dipilih.',
                 'target_ketenagaan.in' => 'Ketenagaan harus sesuai pilihan yang tersedia.',
+                'total_kombinasi.required' => 'Jumlah kombinasi yang ingin dibuat wajib diisi.',
+                'total_kombinasi.integer' => 'Jumlah kombinasi harus berupa angka bulat.',
+                'total_kombinasi.min' => 'Jumlah kombinasi minimal 1.',
                 'competency_selection_modes.required' => 'Konfigurasi kompetensi kombinasi wajib diisi.',
                 'competency_take_counts.required' => 'Jumlah soal kompetensi wajib diisi.',
             ]
@@ -245,5 +316,26 @@ class AssessmentCombinationController extends Controller
         });
 
         return $validator->validate();
+    }
+
+    private function buildGenerationCreateNotice(AssessmentCombinationGeneration $generation): string
+    {
+        return 'Permintaan generate '
+            .$generation->total_kombinasi
+            .' kombinasi dikirim ke antrean batch. Pantau progresnya pada halaman ini.';
+    }
+
+    private function buildGenerationRetryNotice(array $result): string
+    {
+        if ($result['already_complete'] ?? false) {
+            return 'Tidak ada kombinasi yang perlu di-resume. Semua hasil sudah lengkap.';
+        }
+
+        $actionLabel = ($result['all_failed'] ?? false) ? 'Retry semua' : 'Resume sisa gagal';
+
+        return $actionLabel
+            .' dijalankan untuk '
+            .($result['resumed_count'] ?? 0)
+            .' kombinasi melalui batch job.';
     }
 }

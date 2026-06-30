@@ -7,9 +7,9 @@
 
 @section('content')
     @php
-        $activeCount = $datas->where('is_active', true)->count();
-        $totalQuestions = $datas->sum('total_questions');
-        $usedAssignments = $datas->sum('assignments_count');
+        $activeGenerationCount = $generations->where('status', 'diproses')->count();
+        $failedGenerationCount = $generations->where('status', 'gagal')->count();
+        $hasRunningGeneration = $activeGenerationCount > 0;
     @endphp
 
     <div class="main-content">
@@ -43,14 +43,14 @@
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="card card-statistic-1">
                             <div class="card-icon bg-primary">
-                                <i class="fas fa-random"></i>
+                                <i class="fas fa-layer-group"></i>
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Total Kombinasi</h4>
+                                    <h4>Total Proses Generate</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $datas->count() }}
+                                    {{ $generations->count() }}
                                 </div>
                             </div>
                         </div>
@@ -62,10 +62,10 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Kombinasi Aktif</h4>
+                                    <h4>Generate Aktif</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $activeCount }}
+                                    {{ $activeGenerationCount }}
                                 </div>
                             </div>
                         </div>
@@ -77,10 +77,10 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Total Soal Tersimpan</h4>
+                                    <h4>Total Kombinasi Tersimpan</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $totalQuestions }}
+                                    {{ $datas->count() }}
                                 </div>
                             </div>
                         </div>
@@ -92,13 +92,122 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Dipakai Penugasan</h4>
+                                    <h4>Generate Gagal</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $usedAssignments }}
+                                    {{ $failedGenerationCount }}
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Riwayat Proses Generate</h4>
+                    </div>
+                    <div class="card-body">
+                        @if ($hasRunningGeneration)
+                            <div class="alert alert-info">
+                                Ada proses generate yang masih berjalan. Halaman ini memuat ulang otomatis setiap 5 detik.
+                            </div>
+                        @endif
+
+                        @if ($generations->isEmpty())
+                            <div class="empty-state" data-height="220">
+                                <div class="empty-state-icon bg-primary">
+                                    <i class="fas fa-layer-group"></i>
+                                </div>
+                                <h2>Belum ada proses generate kombinasi</h2>
+                                <p class="lead">
+                                    Form buat kombinasi sekarang akan mengirim permintaan ke antrean batch dan hasilnya
+                                    dipantau dari tabel ini.
+                                </p>
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="table-combination-generation">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">#</th>
+                                            <th>Kode Proses</th>
+                                            <th>Ketenagaan</th>
+                                            <th>Progress</th>
+                                            <th>Dibuat</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($generations as $generation)
+                                            @php
+                                                $monitoring = $generationMonitoring[$generation->id] ?? [];
+                                                $statusMeta = $generation->status_meta;
+                                            @endphp
+                                            <tr>
+                                                <td class="text-center">{{ $loop->iteration }}</td>
+                                                <td>
+                                                    <div class="font-weight-bold">{{ $generation->kode_generate }}</div>
+                                                    <small class="text-muted">
+                                                        Batch ID: {{ $generation->job_batch_id ?: 'Belum tersimpan' }}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <small class="d-inline-block mb-1">
+                                                        <span class="badge badge-{{ $generation->target_ketenagaan_badge_class }}">
+                                                            {{ $generation->target_ketenagaan_label ?: '-' }}
+                                                        </span>
+                                                    </small>
+                                                    <small class="text-muted d-block">
+                                                        {{ $generation->total_kombinasi }} kombinasi diminta
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <span class="badge badge-{{ $statusMeta['badge_class'] }}">
+                                                            {{ $statusMeta['label'] }}
+                                                        </span>
+                                                        <span class="text-muted small">
+                                                            {{ $monitoring['generated_total'] ?? 0 }} / {{ $generation->total_kombinasi }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="progress" data-height="10">
+                                                        <div class="progress-bar bg-info" role="progressbar"
+                                                            style="width: {{ $monitoring['queue_progress'] ?? 0 }}%;"
+                                                            aria-valuenow="{{ $monitoring['queue_progress'] ?? 0 }}"
+                                                            aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-1">
+                                                        {{ $monitoring['missing_total'] ?? 0 }} kombinasi belum lengkap
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <div>{{ optional($generation->created_at)->format('d M Y H:i') }}</div>
+                                                    <small class="text-muted">
+                                                        {{ optional($generation->generator)->name ?: 'Sistem' }}
+                                                    </small>
+                                                </td>
+                                                <td class="text-center">
+                                                    <a href="{{ route('assessment.combination.generation.show', $generation->id) }}"
+                                                        class="btn btn-info btn-sm my-1">
+                                                        <i class="fas fa-eye mr-1"></i> Detail Proses
+                                                    </a>
+                                                    @if ($monitoring['retry_available'] ?? false)
+                                                        <form action="{{ route('assessment.combination.generation.retry', $generation->id) }}"
+                                                            method="POST" class="d-inline-block my-1">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                                <i class="fas fa-redo mr-1"></i>
+                                                                {{ ($monitoring['generated_total'] ?? 0) > 0 ? 'Resume' : 'Retry' }}
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -142,6 +251,9 @@
                                                     <div class="font-weight-bold">{{ $data->kode_kombinasi }}</div>
                                                     <small class="text-muted">
                                                         {{ $data->is_active ? 'Aktif' : 'Nonaktif' }}
+                                                        @if ($data->generation_sequence && $data->generation)
+                                                            | {{ $data->generation->kode_generate }} #{{ $data->generation_sequence }}
+                                                        @endif
                                                     </small>
                                                 </td>
                                                 <td>
@@ -213,8 +325,28 @@
     <script>
         $(document).ready(function() {
             const table = $('#table-combination-index');
+            const generationTable = $('#table-combination-generation');
+
+            if (generationTable.length) {
+                generationTable.DataTable({
+                    order: [],
+                    pageLength: 10,
+                    autoWidth: false,
+                    columnDefs: [{
+                        targets: [0, 5],
+                        orderable: false,
+                        searchable: false,
+                    }],
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
+                    },
+                });
+            }
 
             if (!table.length) {
+                @if ($hasRunningGeneration)
+                    window.setTimeout(() => window.location.reload(), 5000);
+                @endif
                 return;
             }
 
@@ -231,6 +363,10 @@
                     url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
                 },
             });
+
+            @if ($hasRunningGeneration)
+                window.setTimeout(() => window.location.reload(), 5000);
+            @endif
         });
     </script>
 @endpush

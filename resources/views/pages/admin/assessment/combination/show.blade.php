@@ -15,6 +15,12 @@
                     <a href="{{ route('assessment.combination.index') }}" class="btn btn-light mr-2">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
+                    @if ($combination->generation)
+                        <a href="{{ route('assessment.combination.generation.show', $combination->generation->id) }}"
+                            class="btn btn-info mr-2">
+                            <i class="fas fa-layer-group"></i> Detail Proses Generate
+                        </a>
+                    @endif
                     <a href="{{ route('assessment.combination.create') }}" class="btn btn-primary mr-2">
                         <i class="fas fa-random"></i> Buat Kombinasi Baru
                     </a>
@@ -131,6 +137,20 @@
                                 <div class="text-muted small">Status</div>
                                 <div>{{ $combination->is_active ? 'Aktif' : 'Nonaktif' }}</div>
                             </div>
+                            @if ($combination->generation)
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-muted small">Kode Proses Generate</div>
+                                    <div>
+                                        <a href="{{ route('assessment.combination.generation.show', $combination->generation->id) }}">
+                                            {{ $combination->generation->kode_generate }}
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="text-muted small">Urutan Dalam Batch</div>
+                                    <div>Kombinasi #{{ $combination->generation_sequence ?: '-' }}</div>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="mb-0">
