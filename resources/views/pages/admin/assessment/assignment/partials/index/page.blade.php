@@ -124,14 +124,13 @@
                                     <thead>
                                         <tr>
                                             <th class="text-center">#</th>
-                                            <th>Kode Penugasan</th>
-                                            <th>Judul Penugasan</th>
+                                            <th>Penugasan</th>
+
                                             <th>Assessment</th>
                                             <th>Periode</th>
                                             <th>Distribusi</th>
                                             <th>Target & Sesi</th>
-                                            <th>Dibuat Oleh</th>
-                                            <th>Update</th>
+
                                             <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -139,39 +138,36 @@
                                         @foreach ($datas as $data)
                                             @php
                                                 $monitoring = $monitoringByAssignmentId[$data->id] ?? null;
-                                                $statusBadge = [
-                                                    'draft' => 'secondary',
-                                                    'diproses' => 'warning',
-                                                    'selesai' => 'success',
-                                                    'gagal' => 'danger',
-                                                ][$data->status_distribusi] ?? 'secondary';
+                                                $statusBadge =
+                                                    [
+                                                        'draft' => 'secondary',
+                                                        'diproses' => 'warning',
+                                                        'selesai' => 'success',
+                                                        'gagal' => 'danger',
+                                                    ][$data->status_distribusi] ?? 'secondary';
                                                 $deliveryType = $data->job_batch_id ? 'Batch Job' : 'Langsung';
                                                 $assessments = $data->assessments;
                                                 $combination = $data->combination;
                                             @endphp
                                             <tr class="align-middle">
                                                 <td class="text-center">{{ $loop->iteration }}</td>
-                                                <td>
-                                                    <div class="font-weight-bold">{{ $data->kode_penugasan }}</div>
-                                                    <small class="text-muted">{{ $deliveryType }}</small>
-                                                </td>
-                                                <td>
-                                                    <div class="font-weight-bold">{{ $data->judul_penugasan }}</div>
+                                                <td >
+                                                    <small class="text-muted text-sm">{{ $data->kode_penugasan }}</small>
+                                                    <br>
+
+                                                    <span class="font-weight-bold">{{ $data->judul_penugasan }}</span>
+                                                    <br>
                                                     @if ($data->target_ketenagaan_label)
-                                                        <small class="d-inline-block mb-1">
-                                                            <span class="badge badge-{{ $data->target_ketenagaan_badge_class }}">
-                                                                {{ $data->target_ketenagaan_label }}
-                                                            </span>
+                                                        <small class="">
+                                                            {{ $data->target_ketenagaan_label }}
                                                         </small>
-                                                        <br>
                                                     @endif
-                                                    <small class="text-muted">
-                                                        {{ \Illuminate\Support\Str::limit($data->deskripsi, 80) ?: 'Tanpa deskripsi tambahan.' }}
-                                                    </small>
                                                 </td>
+
                                                 <td>
                                                     @if ($combination)
-                                                        <div class="font-weight-bold">{{ $combination->kode_kombinasi }}</div>
+                                                        <div class="font-weight-bold">{{ $combination->kode_kombinasi }}
+                                                        </div>
                                                         <small class="text-muted">
                                                             {{ $combination->total_assessments }} assessment sumber /
                                                             {{ $combination->total_forms }} form /
@@ -181,8 +177,10 @@
                                                         <div class="font-weight-bold">Distribusi kombinasi otomatis</div>
                                                         <small class="text-muted">
                                                             {{ $assessments->count() }} assessment sumber /
-                                                            {{ $assessments->sum(fn($assessment) => $assessment->forms->count()) }} form /
-                                                            {{ $assessments->sum(fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count())) }} soal
+                                                            {{ $assessments->sum(fn($assessment) => $assessment->forms->count()) }}
+                                                            form /
+                                                            {{ $assessments->sum(fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count())) }}
+                                                            soal
                                                         </small>
                                                     @endif
                                                 </td>
@@ -195,7 +193,8 @@
                                                     </small>
                                                     <br>
                                                     <small class="text-muted">
-                                                        s/d {{ $data->tanggal_selesai ? \App\Helpers\Helper::dateIndo($data->tanggal_selesai) : '-' }}
+                                                        s/d
+                                                        {{ $data->tanggal_selesai ? \App\Helpers\Helper::dateIndo($data->tanggal_selesai) : '-' }}
                                                     </small>
                                                 </td>
                                                 <td>
@@ -206,16 +205,19 @@
                                                         {{ $deliveryType }}
                                                     </div>
                                                     <small class="d-block text-muted mt-1">
-                                                        {{ $data->total_ditugaskan }}/{{ $data->total_target }} target tersimpan
+                                                        {{ $data->total_ditugaskan }}/{{ $data->total_target }} target
+                                                        tersimpan
                                                     </small>
                                                     @if (($monitoring['missing_target_total'] ?? 0) > 0)
                                                         <small class="d-block text-danger">
-                                                            {{ $monitoring['missing_target_total'] }} target belum tersimpan
+                                                            {{ $monitoring['missing_target_total'] }} target belum
+                                                            tersimpan
                                                         </small>
                                                     @endif
                                                     @if (($monitoring['batch']['found'] ?? false) && $data->job_batch_id)
                                                         <small class="d-block text-muted">
-                                                            Job: {{ $monitoring['batch']['processed_jobs'] ?? 0 }}/{{ $monitoring['batch']['total_jobs'] ?? 0 }}
+                                                            Job:
+                                                            {{ $monitoring['batch']['processed_jobs'] ?? 0 }}/{{ $monitoring['batch']['total_jobs'] ?? 0 }}
                                                             selesai
                                                             @if (($monitoring['batch']['failed_jobs'] ?? 0) > 0)
                                                                 / {{ $monitoring['batch']['failed_jobs'] }} gagal
@@ -226,7 +228,8 @@
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->total_target }} user</div>
                                                     <small class="text-muted">
-                                                        {{ $data->total_sesi }} sesi / {{ $data->kapasitas_per_sesi }} peserta per sesi
+                                                        {{ $data->total_sesi }} sesi / {{ $data->kapasitas_per_sesi }}
+                                                        peserta per sesi
                                                     </small>
                                                     <br>
                                                     <small class="text-muted">
@@ -234,21 +237,11 @@
                                                     </small>
                                                     <br>
                                                     <small class="text-muted">
-                                                        Sesi awal {{ $data->jam_mulai_label ? $data->jam_mulai_label . ' WITA' : 'belum diatur' }}
+                                                        Sesi awal
+                                                        {{ $data->jam_mulai_label ? $data->jam_mulai_label . ' WITA' : 'belum diatur' }}
                                                     </small>
                                                 </td>
-                                                <td>
-                                                    <div>{{ optional($data->creator)->name ?: 'Sistem' }}</div>
-                                                    <small class="text-muted">
-                                                        {{ $data->job_batch_id ? \Illuminate\Support\Str::limit($data->job_batch_id, 18) : 'Tanpa batch id' }}
-                                                    </small>
-                                                </td>
-                                                <td>
-                                                    <div>{{ \App\Helpers\Helper::dateIndo($data->updated_at) }}</div>
-                                                    <small class="text-muted">
-                                                        {{ $data->updated_at->format('H:i') }}
-                                                    </small>
-                                                </td>
+
                                                 <td class="text-center">
                                                     <a href="{{ route('assessment.assignment.show', $data->id) }}"
                                                         class="btn btn-info btn-sm my-1">
@@ -258,7 +251,8 @@
                                                         class="btn btn-warning btn-sm my-1">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
-                                                    <button type="button" class="btn btn-danger btn-sm my-1 js-assignment-delete-trigger"
+                                                    <button type="button"
+                                                        class="btn btn-danger btn-sm my-1 js-assignment-delete-trigger"
                                                         data-toggle="modal" data-target="#assignmentDeleteModal"
                                                         data-route="{{ route('assessment.assignment.hapus', $data->id) }}"
                                                         data-code="{{ $data->kode_penugasan }}"
@@ -267,8 +261,9 @@
                                                         <i class="fas fa-trash mr-1"></i> Hapus
                                                     </button>
                                                     @if ($monitoring['retry_available'] ?? false)
-                                                        <form action="{{ route('assessment.assignment.retry', $data->id) }}" method="POST"
-                                                            class="d-inline-block my-1">
+                                                        <form
+                                                            action="{{ route('assessment.assignment.retry', $data->id) }}"
+                                                            method="POST" class="d-inline-block my-1">
                                                             @csrf
                                                             <button type="submit" class="btn btn-danger btn-sm">
                                                                 <i class="fas fa-redo mr-1"></i> Retry
@@ -346,11 +341,10 @@
                 pageLength: 10,
                 autoWidth: false,
                 columnDefs: [{
-                        targets: [0, 9],
-                        orderable: false,
-                        searchable: false,
-                    },
-                ],
+                    targets: [0, 9],
+                    orderable: false,
+                    searchable: false,
+                }, ],
                 language: {
                     url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
                 },

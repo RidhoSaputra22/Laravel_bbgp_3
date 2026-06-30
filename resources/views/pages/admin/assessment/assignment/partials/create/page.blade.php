@@ -383,16 +383,6 @@
                                             </div>
                                         </div>
 
-                                        <div class="auto-summary-selected-jabatan" id="auto-summary-selected-jabatan">
-                                            <span class="text-muted small">
-                                                Pilih minimal satu jabatan target untuk menentukan peserta penugasan.
-                                            </span>
-                                        </div>
-                                        <div class="auto-summary-selected-jabatan" id="auto-summary-selected-kabupaten">
-                                            <span class="text-muted small">
-                                                Pilih minimal satu kabupaten target setelah memilih jabatan.
-                                            </span>
-                                        </div>
 
                                         <div class="row">
                                             <div class="col-md-4 col-6 mb-3">
@@ -403,10 +393,7 @@
                                                 <div class="text-muted small">Total Pertanyaan Sumber</div>
                                                 <div class="summary-value" id="auto-summary-field-count">0</div>
                                             </div>
-                                            <div class="col-md-4 col-12 mb-3">
-                                                <div class="text-muted small">Estimasi Distribusi</div>
-                                                <div class="summary-value" id="auto-summary-distribution">-</div>
-                                            </div>
+
                                         </div>
 
                                         <div class="alert alert-warning d-none" id="auto-summary-warning"></div>
@@ -437,11 +424,7 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="alert alert-light border mb-4">
-                                                Admin tidak perlu lagi memilih kombinasi soal secara manual. Sistem akan
-                                                mengambil seluruh kombinasi aktif pada ketenagaan target, mengacak urutan
-                                                kombinasinya secara stabil berdasarkan konfigurasi penugasan, lalu
-                                                membaginya otomatis per kabupaten dengan strategi round robin agar
-                                                distribusi tetap rata.
+                                                Data form kombinasi ini akan didistibusikan secara merata ke seluruh peserta yang dipilih
                                             </div>
 
                                             <div class="auto-summary-panel mb-0">
@@ -452,7 +435,7 @@
                                                             {{ count($currentCombinationOptions) > 0 ? count($currentCombinationOptions) . ' kombinasi siap dibagikan otomatis' : 'Belum ada kombinasi aktif untuk ketenagaan ini' }}
                                                         </div>
                                                         <small class="text-muted d-block" id="auto-combination-summary-code">
-                                                            Round robin per kabupaten dengan urutan acak stabil.
+                                                            Acak kabupaten dengan urutan acak stabil.
                                                         </small>
                                                     </div>
                                                     <div class="mb-3 text-right">
@@ -1301,7 +1284,7 @@
                 }, 0);
                 const distributionMethod = userCount === 0
                     ? '-'
-                    : `Round Robin per Kabupaten / ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
+                    : `Acak per Kabupaten / ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
 
                 if (labelNode) {
                     labelNode.textContent = summary ? summary.label : 'Pilih ketenagaan terlebih dahulu';
@@ -1347,7 +1330,7 @@
                 if (combinationCodeNode) {
                     combinationCodeNode.textContent = combinationOptions.length > 0
                         ? 'Urutan kombinasi diacak stabil dari judul penugasan + target jabatan/kabupaten.'
-                        : 'Round robin per kabupaten dengan urutan acak stabil.';
+                        : 'Acak per kabupaten dengan urutan acak stabil.';
                 }
 
                 if (combinationCountNode) {
@@ -1435,7 +1418,7 @@
                 const durationHours = getSelectedDurationHours();
                 const distributionMethod = userCount === 0
                     ? '-'
-                    : `Round Robin per Kabupaten / ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
+                    : ` ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
                 const summaryJabatan = document.getElementById('summary-jabatan');

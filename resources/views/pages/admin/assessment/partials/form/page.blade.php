@@ -2011,13 +2011,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="scoring-default-summary mb-3">
-                                        <div class="font-weight-bold mb-2">Yang bisa dibiarkan otomatis</div>
-                                        <div class="scoring-default-summary-content">
-                                            <span class="scoring-summary-pill">Skala: 1-5</span>
-                                            <span class="scoring-summary-pill">Ambang keyakinan: 0.55</span>
-                                        </div>
-                                    </div>
+
 
                                     <div class="scoring-choice-wrapper d-none mb-3">
                                         <div class="alert alert-light border mb-0">
