@@ -331,8 +331,11 @@ Route::group(
                 Route::prefix('penugasan')->group(function () {
                     Route::get('/', 'AssessmentAssignmentController@index')->name('assessment.assignment.index');
                     Route::get('/create', 'AssessmentAssignmentController@create')->name('assessment.assignment.create');
+                    Route::get('/edit/{id}', 'AssessmentAssignmentController@edit')->name('assessment.assignment.edit');
                     Route::get('/guru-options', 'AssessmentAssignmentController@guruOptions')->name('assessment.assignment.guru-options');
                     Route::post('/store', 'AssessmentAssignmentController@store')->name('assessment.assignment.store');
+                    Route::put('/update/{id}', 'AssessmentAssignmentController@update')->name('assessment.assignment.update');
+                    Route::post('/retry/{id}', 'AssessmentAssignmentController@retry')->name('assessment.assignment.retry');
                     Route::get('/show/{id}', 'AssessmentAssignmentController@show')->name('assessment.assignment.show');
                     Route::get('/review/{targetId}', 'AssessmentAttemptReviewController@show')->name('assessment.assignment.review.show');
                     Route::put('/review/{targetId}', 'AssessmentAttemptReviewController@update')->name('assessment.assignment.review.update');

@@ -31,6 +31,18 @@
                     <a href="{{ route('assessment.assignment.index') }}" class="btn btn-light mr-2">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
+                    <a href="{{ route('assessment.assignment.edit', $assignment->id) }}" class="btn btn-warning mr-2">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    @if ($monitoring['retry_available'] ?? false)
+                        <form action="{{ route('assessment.assignment.retry', $assignment->id) }}" method="POST"
+                            class="d-inline-block mr-2">
+                            @csrf
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-redo"></i> Retry
+                            </button>
+                        </form>
+                    @endif
                     <a href="{{ route('assessment.assignment.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Buat Penugasan Baru
                     </a>
@@ -38,6 +50,18 @@
             </div>
 
             <div class="section-body">
+                @if (session('assignment_notice'))
+                    <div class="alert alert-info">
+                        {{ session('assignment_notice') }}
+                    </div>
+                @endif
+
+                @if ($errors->has('assignment'))
+                    <div class="alert alert-danger">
+                        {{ $errors->first('assignment') }}
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="card card-statistic-1">
@@ -202,6 +226,106 @@
                             <div class="text-muted small">Deskripsi</div>
                             <div>{{ $assignment->deskripsi ?: 'Tidak ada deskripsi tambahan.' }}</div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Monitoring Distribusi Queue</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="text-muted small">Metode Distribusi</div>
+                                <div class="font-weight-bold">{{ ucfirst($monitoring['distribution_type'] ?? 'langsung') }}</div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="text-muted small">Target Tersimpan</div>
+                                <div class="font-weight-bold">
+                                    {{ $monitoring['assigned_total'] ?? 0 }} / {{ $monitoring['target_total'] ?? 0 }}
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="text-muted small">Belum Tersimpan</div>
+                                <div class="font-weight-bold text-{{ ($monitoring['missing_target_total'] ?? 0) > 0 ? 'danger' : 'success' }}">
+                                    {{ $monitoring['missing_target_total'] ?? 0 }} target
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-3">
+                                <div class="text-muted small">Batch ID</div>
+                                <div class="font-weight-bold">{{ $assignment->job_batch_id ?: 'Distribusi langsung' }}</div>
+                            </div>
+                        </div>
+
+                        @if ($monitoring['batch'])
+                            <div class="row">
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="text-muted small">Total Job Chunk</div>
+                                    <div class="font-weight-bold">{{ $monitoring['batch']['total_jobs'] ?? 0 }}</div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="text-muted small">Job Selesai</div>
+                                    <div class="font-weight-bold">{{ $monitoring['batch']['processed_jobs'] ?? 0 }}</div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="text-muted small">Job Pending</div>
+                                    <div class="font-weight-bold">{{ $monitoring['batch']['pending_jobs'] ?? 0 }}</div>
+                                </div>
+                                <div class="col-md-3 col-6 mb-3">
+                                    <div class="text-muted small">Job Gagal</div>
+                                    <div class="font-weight-bold text-{{ ($monitoring['batch']['failed_jobs'] ?? 0) > 0 ? 'danger' : 'success' }}">
+                                        {{ $monitoring['batch']['failed_jobs'] ?? 0 }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if ($monitoring['batch']['found'] ?? false)
+                                <div class="progress mb-3" data-height="18">
+                                    <div class="progress-bar bg-info" role="progressbar"
+                                        style="width: {{ $monitoring['batch']['progress'] ?? 0 }}%;"
+                                        aria-valuenow="{{ $monitoring['batch']['progress'] ?? 0 }}" aria-valuemin="0"
+                                        aria-valuemax="100">
+                                        {{ $monitoring['batch']['progress'] ?? 0 }}%
+                                    </div>
+                                </div>
+                            @else
+                                <div class="alert alert-warning">
+                                    Batch job tersimpan pada penugasan, tetapi data batch tidak ditemukan lagi pada tabel queue.
+                                </div>
+                            @endif
+                        @endif
+
+                        @if ($monitoring['failed_jobs'] ?? [])
+                            <div class="table-responsive">
+                                <table class="table table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Waktu Gagal</th>
+                                            <th>Queue</th>
+                                            <th>Target Chunk</th>
+                                            <th>Pesan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($monitoring['failed_jobs'] as $failedJob)
+                                            <tr>
+                                                <td>
+                                                    {{ $failedJob['failed_at'] ? $failedJob['failed_at']->format('d M Y H:i') : '-' }}
+                                                </td>
+                                                <td>{{ $failedJob['queue'] ?: '-' }}</td>
+                                                <td>{{ $failedJob['target_count'] }} target</td>
+                                                <td>{{ $failedJob['message'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @elseif ($assignment->status_distribusi === 'gagal')
+                            <div class="alert alert-warning mb-0">
+                                Tidak ada detail failed job yang bisa dibaca, tetapi sistem masih mendeteksi distribusi
+                                belum lengkap. Tombol retry akan me-resume target yang belum tersimpan.
+                            </div>
+                        @endif
                     </div>
                 </div>
 

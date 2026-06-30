@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class AssessmentAssignmentController extends Controller
 {
@@ -35,9 +36,16 @@ class AssessmentAssignmentController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $monitoringByAssignmentId = $datas
+            ->mapWithKeys(fn (AssessmentAssignment $assignment) => [
+                $assignment->id => $this->assignmentService->buildAssignmentMonitoring($assignment, false),
+            ])
+            ->all();
+
         return view('pages.admin.assessment.assignment.index', [
             'menu' => $this->menu,
             'datas' => $datas,
+            'monitoringByAssignmentId' => $monitoringByAssignmentId,
         ]);
     }
 
@@ -45,19 +53,22 @@ class AssessmentAssignmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $ketenagaanSummaries = $this->buildKetenagaanSummaries();
+        return view(
+            'pages.admin.assessment.assignment.create',
+            $this->buildFormViewData()
+        );
+    }
 
-        return view('pages.admin.assessment.assignment.create', [
-            'menu' => $this->menu,
-            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
-            'ketenagaanSummaries' => $ketenagaanSummaries,
-            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
-            'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
-            'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
-            'sessionCapacity' => AssessmentAssignmentService::TARGETS_PER_SESSION,
-            'defaultSessionDurationHours' => AssessmentAssignmentService::DEFAULT_SESSION_DURATION_HOURS,
-            'sessionDurationOptions' => AssessmentAssignmentService::SESSION_DURATION_OPTIONS,
-        ]);
+    public function edit(string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+
+        return view(
+            'pages.admin.assessment.assignment.create',
+            $this->buildFormViewData($assignment)
+        );
     }
 
     public function guruOptions(Request $request): JsonResponse
@@ -182,7 +193,68 @@ class AssessmentAssignmentController extends Controller
         return view('pages.admin.assessment.assignment.show', [
             'menu' => $this->menu,
             'assignment' => $assignment,
+            'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
         ]);
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+        $validated = $this->validatePayload($request);
+
+        try {
+            $result = $this->assignmentService->updateAssignment(
+                $assignment,
+                $validated,
+                session('user_id') ? (int) session('user_id') : null
+            );
+
+            /** @var \App\Models\AssessmentAssignment $updatedAssignment */
+            $updatedAssignment = $result['assignment'];
+
+            return redirect()
+                ->route('assessment.assignment.show', $updatedAssignment->id)
+                ->with('message', 'update')
+                ->with('assignment_notice', $this->buildUpdateNotice($result));
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'assignment' => 'Terjadi kesalahan saat memperbarui penugasan assessment.',
+                ]);
+        }
+    }
+
+    public function retry(string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+
+        try {
+            $result = $this->assignmentService->retryAssignment($assignment);
+
+            /** @var \App\Models\AssessmentAssignment $retriedAssignment */
+            $retriedAssignment = $result['assignment'];
+
+            return redirect()
+                ->route('assessment.assignment.show', $retriedAssignment->id)
+                ->with('assignment_notice', $this->buildRetryNotice($result));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('assessment.assignment.show', $assignment->id)
+                ->withErrors([
+                    'assignment' => 'Terjadi kesalahan saat menjalankan retry penugasan assessment.',
+                ]);
+        }
     }
 
     private function authorizeAccess(): void
@@ -191,6 +263,61 @@ class AssessmentAssignmentController extends Controller
             in_array(session('role'), ['admin', 'superadmin', 'kepala', 'database'], true),
             403
         );
+    }
+
+    private function buildFormViewData(?AssessmentAssignment $assignment = null): array
+    {
+        return [
+            'menu' => $this->menu,
+            'assignment' => $assignment,
+            'isEditMode' => $assignment !== null,
+            'pageTitle' => $assignment ? 'Edit Penugasan Assessment' : 'Buat Penugasan Assessment',
+            'formAction' => $assignment
+                ? route('assessment.assignment.update', $assignment->id)
+                : route('assessment.assignment.store'),
+            'formMethod' => $assignment ? 'PUT' : 'POST',
+            'submitLabel' => $assignment ? 'Simpan Perubahan' : 'Simpan Penugasan',
+            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
+            'ketenagaanSummaries' => $this->buildKetenagaanSummaries(),
+            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
+            'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
+            'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
+            'sessionCapacity' => AssessmentAssignmentService::TARGETS_PER_SESSION,
+            'defaultSessionDurationHours' => AssessmentAssignmentService::DEFAULT_SESSION_DURATION_HOURS,
+            'sessionDurationOptions' => AssessmentAssignmentService::SESSION_DURATION_OPTIONS,
+        ];
+    }
+
+    private function buildUpdateNotice(array $result): string
+    {
+        $parts = ['Penugasan assessment berhasil diperbarui.'];
+
+        if (($result['new_target_count'] ?? 0) > 0) {
+            $parts[] = $result['new_target_count'].' target baru ditambahkan.';
+        }
+
+        if (($result['cancelled_target_count'] ?? 0) > 0) {
+            $parts[] = $result['cancelled_target_count'].' target pending di luar filter dibatalkan.';
+        }
+
+        if (($result['preserved_locked_count'] ?? 0) > 0) {
+            $parts[] = $result['preserved_locked_count'].' peserta yang sudah berjalan tetap dipertahankan.';
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private function buildRetryNotice(array $result): string
+    {
+        if ($result['already_complete'] ?? false) {
+            return 'Tidak ada target yang perlu di-resume. Status penugasan sudah disegarkan kembali.';
+        }
+
+        $distributionMethod = ($result['queued'] ?? false) ? 'batch job' : 'proses langsung';
+
+        return 'Retry penugasan dijalankan. Resume untuk '
+            .($result['resumed_count'] ?? 0)
+            .' target diproses melalui '.$distributionMethod.'.';
     }
 
     private function buildKetenagaanSummaries(): array

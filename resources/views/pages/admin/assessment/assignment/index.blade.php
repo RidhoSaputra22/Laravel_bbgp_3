@@ -126,6 +126,7 @@
                                     <tbody>
                                         @foreach ($datas as $data)
                                             @php
+                                                $monitoring = $monitoringByAssignmentId[$data->id] ?? null;
                                                 $statusBadge = [
                                                     'draft' => 'secondary',
                                                     'diproses' => 'warning',
@@ -178,6 +179,23 @@
                                                     <div class="text-muted mt-1">
                                                         {{ $deliveryType }}
                                                     </div>
+                                                    <small class="d-block text-muted mt-1">
+                                                        {{ $data->total_ditugaskan }}/{{ $data->total_target }} target tersimpan
+                                                    </small>
+                                                    @if (($monitoring['missing_target_total'] ?? 0) > 0)
+                                                        <small class="d-block text-danger">
+                                                            {{ $monitoring['missing_target_total'] }} target belum tersimpan
+                                                        </small>
+                                                    @endif
+                                                    @if (($monitoring['batch']['found'] ?? false) && $data->job_batch_id)
+                                                        <small class="d-block text-muted">
+                                                            Job: {{ $monitoring['batch']['processed_jobs'] ?? 0 }}/{{ $monitoring['batch']['total_jobs'] ?? 0 }}
+                                                            selesai
+                                                            @if (($monitoring['batch']['failed_jobs'] ?? 0) > 0)
+                                                                / {{ $monitoring['batch']['failed_jobs'] }} gagal
+                                                            @endif
+                                                        </small>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->total_target }} user</div>
@@ -210,6 +228,19 @@
                                                         class="btn btn-info btn-sm my-1">
                                                         <i class="fas fa-eye mr-1"></i> Detail
                                                     </a>
+                                                    <a href="{{ route('assessment.assignment.edit', $data->id) }}"
+                                                        class="btn btn-warning btn-sm my-1">
+                                                        <i class="fas fa-edit mr-1"></i> Edit
+                                                    </a>
+                                                    @if ($monitoring['retry_available'] ?? false)
+                                                        <form action="{{ route('assessment.assignment.retry', $data->id) }}" method="POST"
+                                                            class="d-inline-block my-1">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                                <i class="fas fa-redo mr-1"></i> Retry
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endforeach

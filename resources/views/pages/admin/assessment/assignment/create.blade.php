@@ -1,19 +1,26 @@
-@extends('layouts.app', ['title' => 'Buat Penugasan Assessment'])
+@extends('layouts.app', ['title' => $pageTitle])
 
 @php
-    $selectedDurationHours = (int) old('durasi_sesi_jam', $defaultSessionDurationHours);
-    $selectedStartTime = old('jam_mulai');
+    $selectedDurationHours = (int) old(
+        'durasi_sesi_jam',
+        $assignment?->durasi_sesi_jam ?? $defaultSessionDurationHours,
+    );
+    $selectedStartTime = old('jam_mulai', $assignment?->jam_mulai_label);
+    $selectedJudul = old('judul_penugasan', $assignment?->judul_penugasan);
+    $selectedStartDate = old('tanggal_mulai', $assignment?->tanggal_mulai?->format('Y-m-d'));
+    $selectedEndDate = old('tanggal_selesai', $assignment?->tanggal_selesai?->format('Y-m-d'));
+    $selectedDeskripsi = old('deskripsi', $assignment?->deskripsi);
     $selectedTargetKetenagaan = old(
         'target_ketenagaan',
-        \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+        $assignment?->target_ketenagaan ?? \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
-    $selectedTargetJabatan = collect((array) old('target_jabatan', []))
+    $selectedTargetJabatan = collect((array) old('target_jabatan', $assignment?->target_jabatan ?? []))
         ->filter(fn ($jabatan) => filled($jabatan))
         ->map(fn ($jabatan) => trim((string) $jabatan))
         ->filter(fn ($jabatan) => $jabatan !== '')
         ->values()
         ->all();
-    $selectedTargetKabupaten = collect((array) old('target_kabupaten', []))
+    $selectedTargetKabupaten = collect((array) old('target_kabupaten', $assignment?->target_kabupaten ?? []))
         ->filter(fn ($kabupaten) => filled($kabupaten))
         ->map(fn ($kabupaten) => trim((string) $kabupaten))
         ->filter(fn ($kabupaten) => $kabupaten !== '')
@@ -224,7 +231,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Buat Penugasan Assessment</h1>
+                <h1>{{ $pageTitle }}</h1>
                 <div class="section-header-breadcrumb">
                     <a href="{{ route('assessment.assignment.index') }}" class="btn btn-light">
                         <i class="fas fa-arrow-left"></i> Kembali
@@ -239,8 +246,18 @@
                     </div>
                 @endif
 
-                <form action="{{ route('assessment.assignment.store') }}" method="POST">
+                @if ($isEditMode)
+                    <div class="alert alert-info">
+                        Perubahan filter akan membatalkan target yang masih pending di luar filter baru. Peserta yang
+                        sudah mulai atau selesai tetap dipertahankan agar histori assessment tidak rusak.
+                    </div>
+                @endif
+
+                <form action="{{ $formAction }}" method="POST">
                     @csrf
+                    @if ($isEditMode)
+                        @method($formMethod)
+                    @endif
 
                     <div class="row">
                         <div class="col-lg-8">
@@ -250,17 +267,23 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="alert alert-light border mb-4">
-                                        Kode penugasan dibuat otomatis. Admin cukup menentukan judul, ketenagaan target,
-                                        jabatan target, kabupaten target, dan jadwal. Sistem akan mengambil semua form
-                                        assessment aktif/publish beserta seluruh user yang sesuai dengan ketenagaan,
-                                        jabatan, dan kabupaten yang dipilih.
+                                        @if ($isEditMode)
+                                            Perbarui judul, target peserta, dan jadwal penugasan sesuai kebutuhan.
+                                            Sistem akan menyesuaikan target pending berdasarkan filter terbaru dan
+                                            menjaga peserta yang sudah berjalan tetap aman.
+                                        @else
+                                            Kode penugasan dibuat otomatis. Admin cukup menentukan judul, ketenagaan target,
+                                            jabatan target, kabupaten target, dan jadwal. Sistem akan mengambil semua form
+                                            assessment aktif/publish beserta seluruh user yang sesuai dengan ketenagaan,
+                                            jabatan, dan kabupaten yang dipilih.
+                                        @endif
                                     </div>
 
                                     <div class="form-group">
                                         <label>Judul Penugasan <span class="text-danger">*</span></label>
                                         <input type="text" name="judul_penugasan"
                                             class="form-control @error('judul_penugasan') is-invalid @enderror"
-                                            value="{{ old('judul_penugasan') }}"
+                                            value="{{ $selectedJudul }}"
                                             placeholder="Contoh: Assessment Tenaga Pendidik Periode Juli">
                                         @error('judul_penugasan')
                                             <div class="invalid-feedback">{{ $message }}</div>
@@ -425,7 +448,7 @@
                                                 <label>Tanggal Mulai</label>
                                                 <input type="date" name="tanggal_mulai"
                                                     class="form-control @error('tanggal_mulai') is-invalid @enderror"
-                                                    value="{{ old('tanggal_mulai') }}">
+                                                    value="{{ $selectedStartDate }}">
                                                 @error('tanggal_mulai')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
@@ -437,7 +460,7 @@
                                                 <label>Tanggal Selesai</label>
                                                 <input type="date" name="tanggal_selesai"
                                                     class="form-control @error('tanggal_selesai') is-invalid @enderror"
-                                                    value="{{ old('tanggal_selesai') }}">
+                                                    value="{{ $selectedEndDate }}">
                                                 @error('tanggal_selesai')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
@@ -479,7 +502,7 @@
                                     <div class="form-group mb-0">
                                         <label>Deskripsi Penugasan</label>
                                         <textarea name="deskripsi" rows="4" class="form-control @error('deskripsi') is-invalid @enderror"
-                                            placeholder="Catatan, instruksi, atau konteks penugasan untuk admin.">{{ old('deskripsi') }}</textarea>
+                                            placeholder="Catatan, instruksi, atau konteks penugasan untuk admin.">{{ $selectedDeskripsi }}</textarea>
                                         @error('deskripsi')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -494,7 +517,7 @@
                                     <h6 class="text-primary mb-3">Ringkasan Penugasan</h6>
                                     <div class="mb-3">
                                         <div class="text-muted small">Kode Penugasan</div>
-                                        <div class="summary-value">Otomatis saat simpan</div>
+                                        <div class="summary-value">{{ $assignment?->kode_penugasan ?: 'Otomatis saat simpan' }}</div>
                                     </div>
                                     <div class="mb-3">
                                         <div class="text-muted small">Ketenagaan Dipilih</div>
@@ -568,7 +591,7 @@
                                     </div>
                                     <div class="card-body">
                                         <button type="submit" class="btn btn-primary btn-block" id="assignment-submit-button">
-                                            <i class="fas fa-paper-plane"></i> Simpan Penugasan
+                                            <i class="fas fa-paper-plane"></i> {{ $submitLabel }}
                                         </button>
                                         <a href="{{ route('assessment.assignment.index') }}" class="btn btn-light btn-block">
                                             Batal

@@ -2,13 +2,16 @@
 
 namespace Tests\Unit;
 
+use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
+use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AssessmentAssignmentServiceSelectAllTest extends TestCase
@@ -103,10 +106,40 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
 
             $table->unique(['assessment_assignment_id', 'guru_id']);
         });
+
+        Schema::connection('sqlite')->create('assessment_attempts', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_assignment_target_id');
+            $table->string('status')->default('draft');
+            $table->timestamps();
+        });
+
+        Schema::connection('sqlite')->create('jobs', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('queue')->index();
+            $table->longText('payload');
+            $table->unsignedTinyInteger('attempts')->default(0);
+            $table->unsignedInteger('reserved_at')->nullable();
+            $table->unsignedInteger('available_at')->default(0);
+            $table->unsignedInteger('created_at')->default(0);
+        });
+
+        Schema::connection('sqlite')->create('failed_jobs', function (Blueprint $table) {
+            $table->id();
+            $table->string('uuid')->unique();
+            $table->text('connection')->nullable();
+            $table->text('queue')->nullable();
+            $table->longText('payload');
+            $table->longText('exception')->nullable();
+            $table->timestamp('failed_at')->nullable();
+        });
     }
 
     protected function tearDown(): void
     {
+        Schema::connection('sqlite')->dropIfExists('failed_jobs');
+        Schema::connection('sqlite')->dropIfExists('jobs');
+        Schema::connection('sqlite')->dropIfExists('assessment_attempts');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_targets');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_sessions');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_assessments');
@@ -364,6 +397,187 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertSame(1, $assignment->total_target);
         $this->assertSame([$makassarGuru->id], $assignedGuruIds);
         $this->assertNotContains($gowaGuru->id, $assignedGuruIds);
+    }
+
+    public function test_update_assignment_preserves_started_targets_and_cancels_removed_pending_targets(): void
+    {
+        Assessment::query()->create([
+            'kode_assessment' => 'ASM-030',
+            'judul' => 'Assessment Update',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $startedGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Mulai Makassar',
+            'email' => 'started@example.test',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+
+        $pendingGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Pending Makassar',
+            'email' => 'pending@example.test',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+
+        $newGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Baru Gowa',
+            'email' => 'new@example.test',
+            'kabupaten' => 'Kabupaten Gowa',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan Update',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->where('guru_id', $startedGuru->id)
+            ->update([
+                'status' => 'dikerjakan',
+                'started_at' => now(),
+            ]);
+
+        $result = app(AssessmentAssignmentService::class)->updateAssignment($assignment->fresh(), [
+            'judul_penugasan' => 'Penugasan Update Revisi',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kabupaten Gowa'],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        /** @var \App\Models\AssessmentAssignment $updatedAssignment */
+        $updatedAssignment = $result['assignment'];
+        $targetsByGuru = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $updatedAssignment->id)
+            ->get()
+            ->keyBy('guru_id');
+
+        $this->assertSame(1, $result['preserved_locked_count']);
+        $this->assertSame(1, $result['cancelled_target_count']);
+        $this->assertSame(1, $result['new_target_count']);
+        $this->assertSame(2, $updatedAssignment->total_target);
+        $this->assertSame(2, $updatedAssignment->total_ditugaskan);
+        $this->assertSame('selesai', $updatedAssignment->status_distribusi);
+        $this->assertSame('dikerjakan', $targetsByGuru[$startedGuru->id]->status);
+        $this->assertSame('dibatalkan', $targetsByGuru[$pendingGuru->id]->status);
+        $this->assertSame('ditugaskan', $targetsByGuru[$newGuru->id]->status);
+    }
+
+    public function test_retry_assignment_resumes_only_missing_targets_from_failed_job_payload(): void
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => 'ASM-040',
+            'judul' => 'Assessment Retry',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $storedGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Sudah Tersimpan',
+            'email' => 'stored@example.test',
+        ]);
+
+        $missingGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Belum Tersimpan',
+            'email' => 'missing@example.test',
+        ]);
+
+        $assignment = AssessmentAssignment::query()->create([
+            'kode_penugasan' => 'TGS-ASM-RETRY-001',
+            'judul_penugasan' => 'Penugasan Retry',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'kapasitas_per_sesi' => 41,
+            'durasi_sesi_jam' => 3,
+            'total_sesi' => 1,
+            'status_distribusi' => 'gagal',
+            'total_target' => 2,
+            'total_ditugaskan' => 1,
+            'job_batch_id' => 'batch-retry-001',
+        ]);
+
+        $assignment->assessments()->sync([
+            $assessment->id => ['urutan' => 1],
+        ]);
+
+        $session = $assignment->sessions()->create([
+            'nomor_sesi' => 1,
+            'label_sesi' => 'Sesi 1',
+            'kapasitas_peserta' => 41,
+            'total_peserta' => 2,
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        AssessmentAssignmentTarget::query()->create([
+            'assessment_assignment_id' => $assignment->id,
+            'assessment_assignment_session_id' => $session->id,
+            'guru_id' => $storedGuru->id,
+            'status' => 'ditugaskan',
+            'assigned_at' => now(),
+        ]);
+
+        $payloadRows = [
+            [
+                'assessment_assignment_id' => $assignment->id,
+                'assessment_assignment_session_id' => $session->id,
+                'guru_id' => $storedGuru->id,
+                'status' => 'ditugaskan',
+                'assigned_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'assessment_assignment_id' => $assignment->id,
+                'assessment_assignment_session_id' => $session->id,
+                'guru_id' => $missingGuru->id,
+                'status' => 'ditugaskan',
+                'assigned_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        $job = new ProcessAssessmentAssignmentTargetsJob($assignment->id, $payloadRows);
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => (string) Str::uuid(),
+            'connection' => 'database',
+            'queue' => 'assessment-assignment',
+            'payload' => json_encode([
+                'displayName' => ProcessAssessmentAssignmentTargetsJob::class,
+                'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',
+                'data' => [
+                    'commandName' => ProcessAssessmentAssignmentTargetsJob::class,
+                    'command' => serialize($job),
+                ],
+            ]),
+            'exception' => 'RuntimeException: Simulasi gagal',
+            'failed_at' => now(),
+        ]);
+
+        $result = app(AssessmentAssignmentService::class)->retryAssignment($assignment->fresh());
+
+        /** @var \App\Models\AssessmentAssignment $retriedAssignment */
+        $retriedAssignment = $result['assignment'];
+
+        $this->assertFalse($result['queued']);
+        $this->assertFalse($result['already_complete']);
+        $this->assertSame(1, $result['resumed_count']);
+        $this->assertSame(2, (int) $retriedAssignment->targets()->count());
+        $this->assertSame('selesai', $retriedAssignment->status_distribusi);
+        $this->assertNull($retriedAssignment->job_batch_id);
+        $this->assertDatabaseHas('assessment_assignment_targets', [
+            'assessment_assignment_id' => $assignment->id,
+            'guru_id' => $missingGuru->id,
+        ]);
     }
 
     private function createGuru(array $overrides = []): Guru

@@ -23,6 +23,12 @@ class AssessmentAssignmentCreateViewTest extends TestCase
             ->withViewErrors([])
             ->view('pages.admin.assessment.assignment.create', [
                 'menu' => 'assessment-penugasan',
+                'assignment' => null,
+                'isEditMode' => false,
+                'pageTitle' => 'Buat Penugasan Assessment',
+                'formAction' => route('assessment.assignment.store'),
+                'formMethod' => 'POST',
+                'submitLabel' => 'Simpan Penugasan',
                 'ketenagaanOptions' => [
                     'tenaga_pendidik' => 'Tenaga Pendidik',
                     'tenaga_kependidikan' => 'Tenaga Kependidikan',
