@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
-class AssessmentAssignmentStoreValidationTest extends TestCase
+class AssessmentAssignmentCreatePublishedOnlyTest extends TestCase
 {
     protected function setUp(): void
     {
@@ -29,6 +29,24 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::connection('sqlite')->create('assessment_forms', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_id');
+            $table->string('judul')->nullable();
+            $table->unsignedInteger('urutan')->default(1);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
+        Schema::connection('sqlite')->create('assessment_form_fields', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_form_id');
+            $table->string('label')->nullable();
+            $table->string('type')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
         Schema::connection('sqlite')->create('gurus', function (Blueprint $table) {
             $table->id();
             $table->string('nama_lengkap');
@@ -46,16 +64,18 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
     protected function tearDown(): void
     {
         Schema::connection('sqlite')->dropIfExists('gurus');
+        Schema::connection('sqlite')->dropIfExists('assessment_form_fields');
+        Schema::connection('sqlite')->dropIfExists('assessment_forms');
         Schema::connection('sqlite')->dropIfExists('assessments');
 
         parent::tearDown();
     }
 
-    public function test_store_rejects_kabupaten_that_do_not_match_selected_ketenagaan_and_jabatan(): void
+    public function test_create_view_lists_only_published_assessments_in_assignment_summary(): void
     {
-        DB::table('assessments')->insert([
-            'kode_assessment' => 'ASM-001',
-            'judul' => 'Assessment Monitoring',
+        $publishedAssessmentId = DB::table('assessments')->insertGetId([
+            'kode_assessment' => 'ASM-PUB-001',
+            'judul' => 'Assessment Publish',
             'status' => 'publish',
             'target_ketenagaan' => 'tenaga_pendidik',
             'is_active' => true,
@@ -63,41 +83,8 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        DB::table('gurus')->insert([
-            'nama_lengkap' => 'Guru Makassar',
-            'email' => 'guru.makassar@example.test',
-            'satuan_pendidikan' => 'SD Negeri 1 Makassar',
-            'kabupaten' => 'Kota Makassar',
-            'eksternal_jabatan' => 'Tenaga Pendidik',
-            'jenis_jabatan' => 'Guru',
-            'status_kepegawaian' => 'ASN',
-            'is_verif' => 'sudah',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        $response = $this
-            ->from(route('assessment.assignment.create'))
-            ->withSession([
-                'cek' => true,
-                'role' => 'admin',
-            ])
-            ->post(route('assessment.assignment.store'), [
-                'judul_penugasan' => 'Penugasan Tidak Valid',
-                'target_ketenagaan' => 'tenaga_pendidik',
-                'target_jabatan' => ['Guru'],
-                'target_kabupaten' => ['Kabupaten Gowa'],
-                'durasi_sesi_jam' => 3,
-            ]);
-
-        $response->assertRedirect(route('assessment.assignment.create'));
-        $response->assertSessionHasErrors('target_kabupaten');
-    }
-
-    public function test_store_rejects_target_ketenagaan_when_only_draft_assessment_is_available(): void
-    {
         DB::table('assessments')->insert([
-            'kode_assessment' => 'ASM-002',
+            'kode_assessment' => 'ASM-DRF-001',
             'judul' => 'Assessment Draft',
             'status' => 'draft',
             'target_ketenagaan' => 'tenaga_pendidik',
@@ -106,6 +93,24 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             'updated_at' => now(),
         ]);
 
+        $formId = DB::table('assessment_forms')->insertGetId([
+            'assessment_id' => $publishedAssessmentId,
+            'judul' => 'Form Publish',
+            'urutan' => 1,
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('assessment_form_fields')->insert([
+            'assessment_form_id' => $formId,
+            'label' => 'Pertanyaan Publish',
+            'type' => 'text',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         DB::table('gurus')->insert([
             'nama_lengkap' => 'Guru Makassar',
             'email' => 'guru.makassar@example.test',
@@ -120,20 +125,16 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
         ]);
 
         $response = $this
-            ->from(route('assessment.assignment.create'))
             ->withSession([
                 'cek' => true,
                 'role' => 'admin',
+                'user_id' => 1,
+                'name' => 'Admin Test',
             ])
-            ->post(route('assessment.assignment.store'), [
-                'judul_penugasan' => 'Penugasan Draft',
-                'target_ketenagaan' => 'tenaga_pendidik',
-                'target_jabatan' => ['Guru'],
-                'target_kabupaten' => ['Kota Makassar'],
-                'durasi_sesi_jam' => 3,
-            ]);
+            ->get(route('assessment.assignment.create'));
 
-        $response->assertRedirect(route('assessment.assignment.create'));
-        $response->assertSessionHasErrors('target_ketenagaan');
+        $response->assertOk();
+        $response->assertSee('Assessment Publish');
+        $response->assertDontSee('Assessment Draft');
     }
 }

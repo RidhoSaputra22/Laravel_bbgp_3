@@ -788,7 +788,7 @@ class AssessmentAssignmentService
         if ($targetKetenagaan) {
             return Assessment::query()
                 ->where('is_active', true)
-                ->whereIn('status', ['draft', 'publish'])
+                ->where('status', 'publish')
                 ->where('target_ketenagaan', $targetKetenagaan->value)
                 ->orderBy('judul')
                 ->pluck('id')

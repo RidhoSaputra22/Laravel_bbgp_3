@@ -395,14 +395,14 @@ class AssessmentAssignmentController extends Controller
                 'fields_count'
             )
             ->where('assessments.is_active', true)
-            ->whereIn('assessments.status', ['draft', 'publish']);
+            ->where('assessments.status', 'publish');
     }
 
     private function countAvailableAssessmentsForKetenagaan(AssessmentKetenagaanType $case): int
     {
         return (int) Assessment::query()
             ->where('is_active', true)
-            ->whereIn('status', ['draft', 'publish'])
+            ->where('status', 'publish')
             ->where('target_ketenagaan', $case->value)
             ->count();
     }
@@ -795,7 +795,7 @@ class AssessmentAssignmentController extends Controller
             if ($this->countAvailableAssessmentsForKetenagaan($targetKetenagaan) < 1) {
                 $validator->errors()->add(
                     'target_ketenagaan',
-                    'Belum ada assessment aktif/publish untuk ketenagaan yang dipilih.'
+                    'Belum ada assessment yang aktif dan berstatus publish untuk ketenagaan yang dipilih.'
                 );
             }
 

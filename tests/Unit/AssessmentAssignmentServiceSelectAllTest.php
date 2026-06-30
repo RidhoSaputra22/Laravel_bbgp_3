@@ -216,7 +216,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         );
     }
 
-    public function test_create_assignment_resolves_assessments_and_users_from_target_ketenagaan(): void
+    public function test_create_assignment_resolves_only_published_assessments_and_users_from_target_ketenagaan(): void
     {
         $assessmentA = Assessment::query()->create([
             'kode_assessment' => 'ASM-001',
@@ -272,7 +272,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertSame('tenaga_pendidik', $assignment->target_ketenagaan);
         $this->assertSame(2, $assignment->total_target);
         $this->assertSame(
-            [$assessmentA->id, $assessmentB->id],
+            [$assessmentA->id],
             $assignment->assessments()
                 ->orderBy('assessment_assignment_assessments.urutan')
                 ->pluck('assessments.id')

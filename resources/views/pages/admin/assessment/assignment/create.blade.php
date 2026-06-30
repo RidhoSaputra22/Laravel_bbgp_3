@@ -274,7 +274,7 @@
                                         @else
                                             Kode penugasan dibuat otomatis. Admin cukup menentukan judul, ketenagaan target,
                                             jabatan target, kabupaten target, dan jadwal. Sistem akan mengambil semua form
-                                            assessment aktif/publish beserta seluruh user yang sesuai dengan ketenagaan,
+                                            assessment yang aktif dan berstatus publish beserta seluruh user yang sesuai dengan ketenagaan,
                                             jabatan, dan kabupaten yang dipilih.
                                         @endif
                                     </div>
@@ -1000,7 +1000,7 @@
                     const warningMessages = [];
 
                     if (summary && assessmentCount === 0) {
-                        warningMessages.push('Belum ada assessment aktif/publish untuk ketenagaan ini.');
+                        warningMessages.push('Belum ada assessment yang aktif dan berstatus publish untuk ketenagaan ini.');
                     }
 
                     if (summary && availableJabatanItems.length === 0) {
