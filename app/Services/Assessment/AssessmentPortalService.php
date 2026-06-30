@@ -18,6 +18,7 @@ class AssessmentPortalService
     {
         $targets = AssessmentAssignmentTarget::with([
             'assignment.assessments.forms.fields',
+            'assignment.combination',
             'session',
             'attempt',
         ])
@@ -38,6 +39,7 @@ class AssessmentPortalService
     {
         return AssessmentAssignmentTarget::with([
             'assignment.assessments.forms.fields',
+            'assignment.combination',
             'session',
             'attempt.answers',
             'guru',
@@ -61,6 +63,7 @@ class AssessmentPortalService
                 'total_questions' => (int) data_get($snapshot, 'meta.total_questions', 0),
                 'required_questions' => (int) data_get($snapshot, 'meta.required_questions', 0),
                 'started_at' => $now,
+                'deadline_at' => null,
                 'last_answered_at' => $now,
             ]);
         } else {
@@ -82,9 +85,22 @@ class AssessmentPortalService
             }
         }
 
+        $target->setRelation('attempt', $attempt);
+        $startedAt = $attempt->started_at ?: $target->started_at ?: $now;
+        $deadlineAt = $attempt->deadline_at
+            ?: $target->deadline_at
+            ?: AssessmentTargetTiming::resolveDeadlineAt($target, $startedAt->copy());
+
+        $attempt->forceFill([
+            'status' => 'in_progress',
+            'started_at' => $startedAt,
+            'deadline_at' => $deadlineAt,
+        ])->save();
+
         $target->forceFill([
             'status' => $target->status === 'selesai' ? 'selesai' : 'dikerjakan',
-            'started_at' => $target->started_at ?: $now,
+            'started_at' => $target->started_at ?: $startedAt,
+            'deadline_at' => $target->deadline_at ?: $deadlineAt,
         ])->save();
 
         return $attempt->fresh([
@@ -99,24 +115,33 @@ class AssessmentPortalService
     {
         $attempt = $target->attempt;
         $assignment = $target->assignment;
+        $combination = $assignment->combination;
         $questionTotal = $attempt
             ? (int) ($attempt->total_questions ?: data_get($attempt->structure_snapshot, 'meta.total_questions', 0))
-            : $this->countQuestions($target);
+            : ($combination?->total_questions ?: $this->countQuestions($target));
 
-        $assessmentCount = $assignment->assessments->count();
-        $formCount = $assignment->assessments->sum(fn ($assessment) => $assessment->forms->where('is_active', true)->count());
+        $assessmentCount = $combination?->total_assessments ?: $assignment->assessments->count();
+        $formCount = $combination?->total_forms ?: $assignment->assessments->sum(
+            fn ($assessment) => $assessment->forms->where('is_active', true)->count()
+        );
         $now = now();
+        $startedAt = AssessmentTargetTiming::resolveStartedAt($target);
+        $deadlineAt = AssessmentTargetTiming::resolveDeadlineAt($target);
+        $durationMinutes = AssessmentTargetTiming::resolveDurationMinutes($target);
+        $completionMode = optional($target->attempt)->completion_mode ?: $target->completion_mode;
 
         $meta = [
             'status' => 'ready',
             'label' => 'Siap Dikerjakan',
             'badge' => 'success',
-            'description' => 'Assessment tersedia untuk mulai dikerjakan sekarang.',
+            'description' => 'Assessment siap dimulai. Waktu mulai pertama dan timer akan dicatat saat Anda menekan tombol Mulai Ujian.',
             'can_open' => true,
             'can_view_result' => false,
             'question_total' => $questionTotal,
             'assessment_total' => $assessmentCount,
             'form_total' => $formCount,
+            'combination_code' => $combination?->kode_kombinasi,
+            'combination_title' => $combination?->judul,
             'session_label' => optional($target->session)->label_sesi ?: 'Belum dibagi sesi',
             'session_schedule_text' => optional($target->session)->jadwal_sesi_label ?: 'Jadwal sesi belum ditentukan',
             'date_text' => $this->formatDateRange(
@@ -124,6 +149,10 @@ class AssessmentPortalService
                 $assignment->tanggal_selesai,
                 $assignment->jam_mulai_label
             ),
+            'started_at' => $startedAt?->toIso8601String(),
+            'deadline_at' => $deadlineAt?->toIso8601String(),
+            'duration_minutes' => $durationMinutes,
+            'completion_mode' => $completionMode,
         ];
 
         if ($target->status === 'dibatalkan') {
@@ -137,7 +166,8 @@ class AssessmentPortalService
         }
 
         if ($attempt && $attempt->status === 'submitted') {
-            $submittedAutomatically = data_get($attempt->result_summary ?? [], 'submission_mode') === 'deadline_auto';
+            $submittedAutomatically = $completionMode === 'timeout'
+                || data_get($attempt->result_summary ?? [], 'submission_mode') === 'deadline_auto';
 
             return array_merge($meta, [
                 'status' => 'submitted',
@@ -195,8 +225,6 @@ class AssessmentPortalService
             ]);
         }
 
-        $deadlineAt = AssessmentTargetTiming::resolveDeadlineAt($target);
-
         if ($deadlineAt && $now->greaterThanOrEqualTo($deadlineAt)) {
             return array_merge($meta, [
                 'status' => 'expired',
@@ -212,7 +240,9 @@ class AssessmentPortalService
                 'status' => 'in_progress',
                 'label' => 'Sedang Dikerjakan',
                 'badge' => 'warning',
-                'description' => 'Anda sudah memulai assessment ini. Lanjutkan dari halaman ujian.',
+                'description' => $deadlineAt
+                    ? 'Assessment sudah dimulai. Lanjutkan sebelum batas waktu berakhir pada '.$this->formatDateTime($deadlineAt).'.'
+                    : 'Assessment sudah dimulai. Lanjutkan dari halaman ujian.',
                 'can_open' => true,
             ]);
         }
@@ -222,6 +252,10 @@ class AssessmentPortalService
 
     private function countQuestions(AssessmentAssignmentTarget $target): int
     {
+        if ($target->assignment->combination) {
+            return (int) $target->assignment->combination->total_questions;
+        }
+
         return $target->assignment->assessments
             ->where('is_active', true)
             ->sum(function ($assessment) {

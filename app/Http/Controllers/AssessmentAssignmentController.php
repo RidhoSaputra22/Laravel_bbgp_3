@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enum\AssessmentKetenagaanType;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
+use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Models\Guru;
@@ -31,7 +32,7 @@ class AssessmentAssignmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $datas = AssessmentAssignment::with(['assessments', 'creator'])
+        $datas = AssessmentAssignment::with(['assessments', 'creator', 'combination'])
             ->withCount(['targets', 'sessions'])
             ->orderByDesc('id')
             ->get();
@@ -171,6 +172,7 @@ class AssessmentAssignmentController extends Controller
 
         $assignment = AssessmentAssignment::with([
             'assessments.forms.fields',
+            'combination',
             'creator',
             'sessions.targets',
             'targets.guru',
@@ -183,6 +185,7 @@ class AssessmentAssignmentController extends Controller
         $this->attemptLifecycleService->syncExpiredTargets($assignment->targets);
         $assignment->load([
             'assessments.forms.fields',
+            'combination',
             'creator',
             'sessions.targets',
             'targets.guru',
@@ -302,6 +305,7 @@ class AssessmentAssignmentController extends Controller
             'submitLabel' => $assignment ? 'Simpan Perubahan' : 'Simpan Penugasan',
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
             'ketenagaanSummaries' => $this->buildKetenagaanSummaries(),
+            'combinationOptionsByKetenagaan' => $this->buildCombinationOptionsByKetenagaan(),
             'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
             'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
             'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
@@ -456,11 +460,10 @@ class AssessmentAssignmentController extends Controller
             ->where('assessments.status', 'publish');
     }
 
-    private function countAvailableAssessmentsForKetenagaan(AssessmentKetenagaanType $case): int
+    private function countAvailableCombinationsForKetenagaan(AssessmentKetenagaanType $case): int
     {
-        return (int) Assessment::query()
+        return (int) AssessmentCombination::query()
             ->where('is_active', true)
-            ->where('status', 'publish')
             ->where('target_ketenagaan', $case->value)
             ->count();
     }
@@ -518,6 +521,58 @@ class AssessmentAssignmentController extends Controller
                                 'ketenagaan_label' => $case->label(),
                                 'user_count' => $userCount,
                             ],
+                        ];
+                    })
+                    ->all();
+
+                return [
+                    $case->value => $items,
+                ];
+            })
+            ->all();
+    }
+
+    private function buildCombinationOptionsByKetenagaan(): array
+    {
+        $combinationsByKetenagaan = AssessmentCombination::query()
+            ->where('is_active', true)
+            ->orderByDesc('generated_at')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('target_ketenagaan');
+
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) use ($combinationsByKetenagaan) {
+                $items = $combinationsByKetenagaan
+                    ->get($case->value, collect())
+                    ->values()
+                    ->map(function (AssessmentCombination $combination) {
+                        return [
+                            'id' => (int) $combination->id,
+                            'kode' => $combination->kode_kombinasi,
+                            'judul' => $combination->judul,
+                            'description' => trim(implode(' | ', array_filter([
+                                $combination->total_assessments.' assessment sumber',
+                                $combination->total_forms.' form',
+                                $combination->total_questions.' soal',
+                            ]))),
+                            'total_assessments' => (int) $combination->total_assessments,
+                            'total_forms' => (int) $combination->total_forms,
+                            'total_questions' => (int) $combination->total_questions,
+                            'updated_at_label' => \App\Helpers\Helper::dateIndo($combination->updated_at),
+                            'source_assessments' => collect(data_get($combination->structure_snapshot, 'assessments', []))
+                                ->map(function (array $assessment) {
+                                    return [
+                                        'id' => (int) ($assessment['id'] ?? 0),
+                                        'kode' => (string) ($assessment['kode_assessment'] ?? ''),
+                                        'judul' => (string) ($assessment['judul'] ?? ''),
+                                        'form_count' => count($assessment['forms'] ?? []),
+                                        'question_count' => collect($assessment['forms'] ?? [])
+                                            ->sum(fn ($form) => count($form['fields'] ?? [])),
+                                    ];
+                                })
+                                ->values()
+                                ->all(),
                         ];
                     })
                     ->all();
@@ -806,6 +861,7 @@ class AssessmentAssignmentController extends Controller
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
+                'assessment_combination_id' => 'required|integer',
                 'target_jabatan' => 'required|array|min:1',
                 'target_jabatan.*' => 'required|string|max:255',
                 'target_kabupaten' => 'required|array|min:1',
@@ -824,6 +880,7 @@ class AssessmentAssignmentController extends Controller
                 'judul_penugasan.required' => 'Judul penugasan wajib diisi.',
                 'target_ketenagaan.required' => 'Ketenagaan target wajib dipilih.',
                 'target_ketenagaan.in' => 'Ketenagaan target harus sesuai pilihan yang tersedia.',
+                'assessment_combination_id.required' => 'Kombinasi soal wajib dipilih.',
                 'target_jabatan.required' => 'Pilih minimal satu jabatan target.',
                 'target_jabatan.array' => 'Format jabatan target tidak valid.',
                 'target_jabatan.min' => 'Pilih minimal satu jabatan target.',
@@ -850,10 +907,10 @@ class AssessmentAssignmentController extends Controller
                 return;
             }
 
-            if ($this->countAvailableAssessmentsForKetenagaan($targetKetenagaan) < 1) {
+            if ($this->countAvailableCombinationsForKetenagaan($targetKetenagaan) < 1) {
                 $validator->errors()->add(
-                    'target_ketenagaan',
-                    'Belum ada assessment yang aktif dan berstatus publish untuk ketenagaan yang dipilih.'
+                    'assessment_combination_id',
+                    'Belum ada kombinasi soal aktif untuk ketenagaan yang dipilih.'
                 );
             }
 
@@ -861,6 +918,33 @@ class AssessmentAssignmentController extends Controller
                 $validator->errors()->add(
                     'target_ketenagaan',
                     'Belum ada user/peserta pada ketenagaan yang dipilih.'
+                );
+            }
+
+            $selectedCombinationId = (int) $request->input('assessment_combination_id');
+
+            if ($selectedCombinationId < 1) {
+                return;
+            }
+
+            $selectedCombination = AssessmentCombination::query()
+                ->whereKey($selectedCombinationId)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $selectedCombination) {
+                $validator->errors()->add(
+                    'assessment_combination_id',
+                    'Kombinasi soal yang dipilih tidak ditemukan atau sudah tidak aktif.'
+                );
+
+                return;
+            }
+
+            if ($selectedCombination->target_ketenagaan !== $targetKetenagaan->value) {
+                $validator->errors()->add(
+                    'assessment_combination_id',
+                    'Kombinasi soal harus sesuai dengan ketenagaan target yang dipilih.'
                 );
             }
 

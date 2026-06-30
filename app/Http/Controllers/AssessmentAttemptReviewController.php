@@ -91,6 +91,7 @@ class AssessmentAttemptReviewController extends Controller
     {
         $target = AssessmentAssignmentTarget::with([
             'assignment.assessments.forms.fields',
+            'assignment.combination',
             'session',
             'guru',
             'attempt.answers',

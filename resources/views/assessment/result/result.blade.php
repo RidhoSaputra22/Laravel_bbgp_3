@@ -3,8 +3,12 @@
 @section('content')
     @php
         $snapshot = $attempt->structure_snapshot ?? [];
+        $startedAt = ($attempt->started_at ?? $target->started_at)?->format('d M Y H:i');
         $submittedAt = $attempt->submitted_at?->format('d M Y H:i');
+        $deadlineAt = ($attempt->deadline_at ?? $target->deadline_at)?->format('d M Y H:i');
+        $startedAtLabel = $startedAt ? $startedAt . ' WITA' : '-';
         $submittedAtLabel = $submittedAt ? $submittedAt . ' WITA' : '-';
+        $deadlineAtLabel = $deadlineAt ? $deadlineAt . ' WITA' : '-';
         $durationMinutes = (int) ($summary['duration_minutes'] ?? 0);
         $completionPercentage = (int) ($summary['completion_percentage'] ?? 0);
         $totalQuestions = (int) ($summary['total_questions'] ?? 0);
@@ -16,7 +20,11 @@
         $sessionScheduleText = $meta['session_schedule_text'] ?? '-';
         $submissionStatusLabel = $meta['label'] ?? 'Dikirim';
         $submissionStatusTone = $meta['badge'] ?? 'success';
-        $autoSubmitted = ($summary['submission_mode'] ?? null) === 'deadline_auto';
+        $completionMode = $attempt->completion_mode
+            ?: $target->completion_mode
+            ?: (($summary['submission_mode'] ?? null) === 'deadline_auto' ? 'timeout' : 'manual');
+        $autoSubmitted = $completionMode === 'timeout';
+        $completionModeLabel = $autoSubmitted ? 'Timeout / Terlambat' : 'Selesai Manual';
         $primarySubmissionBadge = $autoSubmitted
             ? 'Assessment selesai otomatis karena batas waktu berakhir'
             : 'Assessment berhasil dikirim';
@@ -31,8 +39,20 @@
                 'value' => $submissionStatusLabel,
             ],
             [
+                'label' => 'Mulai Dikerjakan',
+                'value' => $startedAtLabel,
+            ],
+            [
+                'label' => 'Batas Selesai',
+                'value' => $deadlineAtLabel,
+            ],
+            [
                 'label' => 'Dikirim Pada',
                 'value' => $submittedAtLabel,
+            ],
+            [
+                'label' => 'Mode Penyelesaian',
+                'value' => $completionModeLabel,
             ],
             [
                 'label' => 'Kode Penugasan',
@@ -132,8 +152,16 @@
 
                 <div class="mt-5 flex flex-wrap gap-x-[18px] gap-y-2.5 text-sm text-[#6a7e90]">
                     <span class="inline-flex items-center gap-2">
+                        <i class="fas fa-play"></i>
+                        Mulai: {{ $startedAtLabel }}
+                    </span>
+                    <span class="inline-flex items-center gap-2">
                         <i class="far fa-calendar-check"></i>
                         Dikirim: {{ $submittedAtLabel }}
+                    </span>
+                    <span class="inline-flex items-center gap-2">
+                        <i class="fas fa-stopwatch"></i>
+                        Deadline: {{ $deadlineAtLabel }}
                     </span>
                     @if ($autoSubmitted)
                         <span class="inline-flex items-center gap-2">

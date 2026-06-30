@@ -41,10 +41,20 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             $table->string('is_verif')->default('belum');
             $table->timestamps();
         });
+
+        Schema::connection('sqlite')->create('assessment_combinations', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_kombinasi')->nullable();
+            $table->string('judul')->nullable();
+            $table->string('target_ketenagaan')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
     }
 
     protected function tearDown(): void
     {
+        Schema::connection('sqlite')->dropIfExists('assessment_combinations');
         Schema::connection('sqlite')->dropIfExists('gurus');
         Schema::connection('sqlite')->dropIfExists('assessments');
 
@@ -76,6 +86,15 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             'updated_at' => now(),
         ]);
 
+        $combinationId = DB::table('assessment_combinations')->insertGetId([
+            'kode_kombinasi' => 'KMB-001',
+            'judul' => 'Kombinasi Pendidik',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $response = $this
             ->from(route('assessment.assignment.create'))
             ->withSession([
@@ -85,6 +104,7 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             ->post(route('assessment.assignment.store'), [
                 'judul_penugasan' => 'Penugasan Tidak Valid',
                 'target_ketenagaan' => 'tenaga_pendidik',
+                'assessment_combination_id' => $combinationId,
                 'target_jabatan' => ['Guru'],
                 'target_kabupaten' => ['Kabupaten Gowa'],
                 'durasi_sesi_jam' => 3,
@@ -94,7 +114,7 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
         $response->assertSessionHasErrors('target_kabupaten');
     }
 
-    public function test_store_rejects_target_ketenagaan_when_only_draft_assessment_is_available(): void
+    public function test_store_rejects_penugasan_when_no_combination_is_available_for_target_ketenagaan(): void
     {
         DB::table('assessments')->insert([
             'kode_assessment' => 'ASM-002',
@@ -134,6 +154,6 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             ]);
 
         $response->assertRedirect(route('assessment.assignment.create'));
-        $response->assertSessionHasErrors('target_ketenagaan');
+        $response->assertSessionHasErrors('assessment_combination_id');
     }
 }

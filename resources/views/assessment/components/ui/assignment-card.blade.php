@@ -3,6 +3,21 @@
     'meta',
 ])
 
+@php
+    $durationMinutes = (int) ($meta['duration_minutes'] ?? 0);
+    $durationLabel = '-';
+
+    if ($durationMinutes > 0) {
+        $hours = intdiv($durationMinutes, 60);
+        $minutes = $durationMinutes % 60;
+
+        $durationLabel = collect([
+            $hours > 0 ? $hours . ' jam' : null,
+            $minutes > 0 ? $minutes . ' menit' : null,
+        ])->filter()->implode(' ');
+    }
+@endphp
+
 <div class="relative ">
     <x-assessment::ui.card>
          <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
@@ -48,6 +63,10 @@
             <i class="far fa-clock"></i>
             {{ $meta['session_label'] }} | {{ $meta['session_schedule_text'] }}
         </span>
+        <span class="inline-flex items-center gap-2">
+            <i class="fas fa-stopwatch"></i>
+            Durasi: {{ $durationLabel }}
+        </span>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -64,14 +83,26 @@
                 >
                     Lihat Hasil
                 </x-assessment::ui.button>
-            @elseif (in_array($meta['status'], ['ready', 'in_progress'], true))
+            @elseif ($meta['status'] === 'in_progress')
                 <x-assessment::ui.button
                     :href="route('assessment.portal.show', $target->id)"
                     icon="fas fa-play-circle"
                     class="font-bold"
                 >
-                    {{ $meta['status'] === 'in_progress' ? 'Lanjutkan Ujian' : 'Mulai Ujian' }}
+                    Lanjutkan Ujian
                 </x-assessment::ui.button>
+            @elseif ($meta['status'] === 'ready')
+                <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST">
+                    @csrf
+
+                    <x-assessment::ui.button
+                        type="submit"
+                        icon="fas fa-play-circle"
+                        class="font-bold"
+                    >
+                        Mulai Ujian
+                    </x-assessment::ui.button>
+                </form>
             @else
                 <x-assessment::ui.button
                     variant="muted"

@@ -111,6 +111,7 @@ Route::prefix('assessment')
 
         Route::middleware('assessment.portal')->group(function () {
             Route::get('/dashboard', [AssessmentPortalController::class, 'dashboard'])->name('dashboard');
+            Route::post('/show/{id}/start', [AssessmentPortalController::class, 'start'])->name('start');
             Route::get('/show/{id}', [AssessmentPortalController::class, 'show'])->name('show');
             Route::post('/show/{id}/autosave', [AssessmentPortalController::class, 'autosave'])->name('autosave');
             Route::post('/show/{id}/submit', [AssessmentPortalController::class, 'submit'])->name('submit');
@@ -327,6 +328,14 @@ Route::group(
                 Route::get('/edit/{id}', 'AssessmentController@edit')->name('assessment.edit');
                 Route::put('/update/{id}', 'AssessmentController@update')->name('assessment.update');
                 Route::post('/hapus/{id}', 'AssessmentController@destroy')->name('assessment.hapus');
+
+                Route::prefix('kombinasi')->group(function () {
+                    Route::get('/', 'AssessmentCombinationController@index')->name('assessment.combination.index');
+                    Route::get('/create', 'AssessmentCombinationController@create')->name('assessment.combination.create');
+                    Route::post('/store', 'AssessmentCombinationController@store')->name('assessment.combination.store');
+                    Route::get('/show/{id}', 'AssessmentCombinationController@show')->name('assessment.combination.show');
+                    Route::post('/hapus/{id}', 'AssessmentCombinationController@destroy')->name('assessment.combination.hapus');
+                });
 
                 Route::prefix('penugasan')->group(function () {
                     Route::get('/', 'AssessmentAssignmentController@index')->name('assessment.assignment.index');

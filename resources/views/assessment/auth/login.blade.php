@@ -39,75 +39,73 @@
                 </div>
 
                 <div class="lg:col-span-5 lg:col-start-8">
-                    <x-assessment::ui.card padding="p-0" rounded="rounded-sm"
-                        shadow="shadow-sm" class="overflow-hidden">
-                        <div class="p-[34px]">
-                            <div class="mb-2.5 text-[28px] font-bold text-[#0b3557]">
-                                Login Assessment
-                            </div>
 
-                            <div class="mb-6 leading-[1.7] text-[#6a7c8f]">
-                                Masukkan data akun yang aktif untuk melihat daftar assessment yang ditugaskan kepada Anda.
-                            </div>
-
-                            @if (session('assessment_portal_notice'))
-                                <x-assessment::ui.alert type="warning" class="mb-5">
-                                    {{ session('assessment_portal_notice') }}
-                                </x-assessment::ui.alert>
-                            @endif
-
-                            @if (session('assessment_portal_success'))
-                                <x-assessment::ui.alert type="success" class="mb-5">
-                                    {{ session('assessment_portal_success') }}
-                                </x-assessment::ui.alert>
-                            @endif
-
-                            @if ($errors->any())
-                                <x-assessment::ui.alert type="danger" class="mb-5">
-                                    <ul class="list-disc space-y-1 pl-5">
-                                        @foreach ($errors->all() as $error)
-                                            <li>{{ $error }}</li>
-                                        @endforeach
-                                    </ul>
-                                </x-assessment::ui.alert>
-                            @endif
-
-                            <form method="POST" action="{{ route('assessment.portal.login') }}" class="space-y-5">
-                                @csrf
-
-                                <x-assessment::form.input id="assessment-nik" name="nik" label="NIK"
-                                    :value="old('nik')" placeholder="Masukkan NIK" :required="true" :error="$errors->first('nik')" />
-
-                                <x-assessment::form.input id="assessment-password" type="password" name="password"
-                                    label="Password" placeholder="Masukkan password akun" :required="true"
-                                    :error="$errors->first('password')" />
-
-                                <x-assessment::form.select id="assessment-role" name="role" label="Peran Peserta"
-                                    placeholder="Pilih peran peserta" :required="true" :error="$errors->first('role')">
-                                    @foreach ($roleOptions as $value => $label)
-                                        <option value="{{ $value }}" @selected(old('role') === $value)>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </x-assessment::form.select>
-
-                                <x-assessment::ui.button type="submit" icon="fas fa-sign-in-alt" minHeight=""
-                                    rounded="rounded-sm" paddingX="px-5" class="w-full font-bold tracking-[0.2px]">
-                                    Masuk ke Portal
-                                </x-assessment::ui.button>
-                            </form>
+                    <div class="px-9 py-10 bg-white rounded-sm">
+                        <div class="mb-2.5 text-[28px] font-bold text-[#0b3557]">
+                            Login Assessment
                         </div>
 
+                        <div class="mb-6 leading-[1.7] text-[#6a7c8f]">
+                            Masukkan data akun yang aktif untuk melihat daftar assessment yang ditugaskan kepada Anda.
+                        </div>
+
+                        @if (session('assessment_portal_notice'))
+                            <x-assessment::ui.alert type="warning" class="mb-5">
+                                {{ session('assessment_portal_notice') }}
+                            </x-assessment::ui.alert>
+                        @endif
+
+                        @if (session('assessment_portal_success'))
+                            <x-assessment::ui.alert type="success" class="mb-5">
+                                {{ session('assessment_portal_success') }}
+                            </x-assessment::ui.alert>
+                        @endif
+
+                        @if ($errors->any())
+                            <x-assessment::ui.alert type="danger" class="mb-5">
+                                <ul class="list-disc space-y-1 pl-5">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </x-assessment::ui.alert>
+                        @endif
+
+                        <form method="POST" action="{{ route('assessment.portal.login') }}" class="space-y-5">
+                            @csrf
+
+                            <x-assessment::form.input id="assessment-nik" name="nik" label="NIK" :value="old('nik')"
+                                placeholder="Masukkan NIK" :required="true" :error="$errors->first('nik')" />
+
+                            <x-assessment::form.input id="assessment-password" type="password" name="password"
+                                label="Password" placeholder="Masukkan password akun" :required="true" :error="$errors->first('password')" />
+
+                            <x-assessment::form.select id="assessment-role" name="role" label="Peran Peserta"
+                                placeholder="Pilih peran peserta" :required="true" :error="$errors->first('role')">
+                                @foreach ($roleOptions as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('role') === $value)>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </x-assessment::form.select>
+
+                            <x-assessment::ui.button type="submit" icon="fas fa-sign-in-alt" minHeight=""
+                                rounded="rounded-sm" paddingX="px-5" class="w-full font-bold tracking-[0.2px]">
+                                Masuk ke Portal
+                            </x-assessment::ui.button>
+                        </form>
+
                         <div
-                            class="flex flex-wrap justify-between gap-x-4 gap-y-2 bg-[#f5f9fc] px-[34px] pb-7 pt-[18px] text-sm text-[#61778a]">
-                            <span>Gunakan akun peserta yang sama dengan sistem BBGTK.</span>
+                            class="mt-3 rounded-md justify-between  bg-[#f5f9fc] px-3 py-4 text-sm text-[#61778a]">
+                            <p>Gunakan akun peserta yang sama dengan sistem BBGTK.</p>
 
                             <a href="{{ route('user.index') }}"
                                 class="font-semibold text-[#1376bd] transition hover:text-[#0f619c]">
                                 Kembali ke beranda
                             </a>
                         </div>
-                    </x-assessment::ui.card>
+                    </div>
+
                 </div>
             </div>
         </div>

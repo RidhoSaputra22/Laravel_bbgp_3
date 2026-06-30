@@ -124,13 +124,18 @@
                </a>
             </li>
 
-            <li class="nav-item dropdown {{ in_array($menu, ['assessment', 'assessment-penugasan'], true) ? 'active' : '' }}">
+            <li class="nav-item dropdown {{ in_array($menu, ['assessment', 'assessment-kombinasi', 'assessment-penugasan'], true) ? 'active' : '' }}">
                <a href="#" class="nav-link has-dropdown"><i class="fas fa-clipboard-list"></i>
                   <span>Assessment</span></a>
                <ul class="dropdown-menu">
                   <li class="{{ $menu == 'assessment' ? 'active' : '' }}">
                      <a class="nav-link" href="{{ route('assessment.index') }}">
                         Buat Assessment
+                     </a>
+                  </li>
+                  <li class="{{ $menu == 'assessment-kombinasi' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('assessment.combination.index') }}">
+                        Kombinasi Soal
                      </a>
                   </li>
                   <li class="{{ $menu == 'assessment-penugasan' ? 'active' : '' }}">

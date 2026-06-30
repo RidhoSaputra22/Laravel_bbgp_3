@@ -35,6 +35,43 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                     'tenaga_kependidikan' => 'Tenaga Kependidikan',
                     'stakeholder' => 'Stakeholder',
                 ],
+                'combinationOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => 7,
+                            'kode' => 'KMB-001',
+                            'judul' => 'Kombinasi Pendidik',
+                            'description' => '2 assessment sumber | 5 form | 17 soal',
+                            'total_assessments' => 2,
+                            'total_forms' => 5,
+                            'total_questions' => 17,
+                            'updated_at_label' => '1 Jul 2026',
+                            'source_assessments' => [
+                                [
+                                    'id' => 5,
+                                    'kode' => 'ASM-001',
+                                    'judul' => 'Assessment Monitoring',
+                                    'form_count' => 3,
+                                    'question_count' => 9,
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [
+                        [
+                            'id' => 8,
+                            'kode' => 'KMB-002',
+                            'judul' => 'Kombinasi Stakeholder',
+                            'description' => '1 assessment sumber | 2 form | 6 soal',
+                            'total_assessments' => 1,
+                            'total_forms' => 2,
+                            'total_questions' => 6,
+                            'updated_at_label' => '1 Jul 2026',
+                            'source_assessments' => [],
+                        ],
+                    ],
+                ],
                 'ketenagaanSummaries' => [
                     'tenaga_pendidik' => [
                         'value' => 'tenaga_pendidik',
@@ -187,11 +224,14 @@ class AssessmentAssignmentCreateViewTest extends TestCase
         $response->assertSee('Jabatan Target');
         $response->assertSee('Kabupaten Target');
         $response->assertSee('const ketenagaanSummaries =', false);
+        $response->assertSee('const combinationOptionsByKetenagaan =', false);
         $response->assertSee('const jabatanOptionsByKetenagaan =', false);
         $response->assertSee('const kabupatenOptionsByKetenagaan =', false);
+        $response->assertSee('name="assessment_combination_id"', false);
         $response->assertSee('id="assignment-ketenagaan-tenaga_pendidik"', false);
         $response->assertSee('data-table-id="assignment-jabatan-selector"', false);
         $response->assertSee('data-table-id="assignment-kabupaten-selector"', false);
+        $response->assertSee('Kombinasi Pendidik');
         $response->assertSee('Kepala Sekolah');
         $response->assertSee('Kota Makassar');
         $response->assertDontSee('data-table-id="guru-selector"', false);
@@ -204,6 +244,7 @@ class AssessmentAssignmentCreateViewTest extends TestCase
             'id' => 99,
             'judul_penugasan' => 'Penugasan Ulang Assessment',
             'target_ketenagaan' => 'tenaga_pendidik',
+            'assessment_combination_id' => 7,
             'target_jabatan' => ['Guru'],
             'target_kabupaten' => ['Kota Makassar'],
             'durasi_sesi_jam' => 3,
@@ -229,6 +270,23 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                     'tenaga_pendidik' => 'Tenaga Pendidik',
                     'tenaga_kependidikan' => 'Tenaga Kependidikan',
                     'stakeholder' => 'Stakeholder',
+                ],
+                'combinationOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => 7,
+                            'kode' => 'KMB-001',
+                            'judul' => 'Kombinasi Pendidik',
+                            'description' => '2 assessment sumber | 5 form | 17 soal',
+                            'total_assessments' => 2,
+                            'total_forms' => 5,
+                            'total_questions' => 17,
+                            'updated_at_label' => '1 Jul 2026',
+                            'source_assessments' => [],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [],
                 ],
                 'ketenagaanSummaries' => [
                     'tenaga_pendidik' => [

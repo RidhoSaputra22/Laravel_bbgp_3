@@ -6,6 +6,7 @@ use App\Enum\AssessmentInstrumentType;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
+use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentQuestionRandomizerService;
@@ -131,6 +132,97 @@ class AssessmentQuestionRandomizerServiceTest extends TestCase
             'radio_options_for_pilihan_ganda_kompleks',
             data_get($firstSnapshot, 'meta.randomization.choice_order')
         );
+    }
+
+    public function test_it_uses_combination_snapshot_when_assignment_has_combination(): void
+    {
+        $fallbackAssessment = $this->makeAssessment(999, AssessmentInstrumentType::PORTOFOLIO->value, [
+            $this->makeForm(998, [
+                $this->makeField(997, 'Fallback', 'text'),
+            ]),
+        ], [
+            'kode_assessment' => 'ASM-FALLBACK',
+            'judul' => 'Assessment Fallback',
+        ]);
+
+        $combination = new AssessmentCombination([
+            'kode_kombinasi' => 'KMB-001',
+            'judul' => 'Kombinasi Pendidik',
+            'structure_snapshot' => [
+                'combination' => [
+                    'id' => 77,
+                    'kode_kombinasi' => 'KMB-001',
+                    'judul' => 'Kombinasi Pendidik',
+                ],
+                'assessments' => [
+                    [
+                        'id' => 501,
+                        'kode_assessment' => 'ASM-KOMBO',
+                        'judul' => 'Assessment Dari Kombinasi',
+                        'deskripsi' => 'Deskripsi kombinasi',
+                        'petunjuk' => 'Petunjuk kombinasi',
+                        'instrument_type' => AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value,
+                        'scoring_config' => ['weight' => 0.40],
+                        'forms' => [
+                            [
+                                'id' => 601,
+                                'assessment_id' => 501,
+                                'judul_form' => 'Form Kombinasi',
+                                'kode_form' => 'FORM-KMB',
+                                'deskripsi' => 'Form hasil kombinasi',
+                                'kompetensi' => 'pedagogik',
+                                'indikator_kode' => '1.1',
+                                'indikator_label' => 'Indikator Kombinasi',
+                                'is_scoreable' => true,
+                                'scoring_config' => ['profile' => 'pilihan_ganda_kompleks'],
+                                'fields' => [
+                                    [
+                                        'id' => 701,
+                                        'assessment_id' => 501,
+                                        'assessment_form_id' => 601,
+                                        'label' => 'Soal Kombinasi',
+                                        'deskripsi' => 'Pertanyaan dari kombinasi',
+                                        'nama_field' => 'soal_kombinasi',
+                                        'tipe_field' => 'radio',
+                                        'placeholder' => null,
+                                        'bantuan' => 'Pilih jawaban',
+                                        'opsi_field' => [
+                                            ['label' => 'A', 'value' => 'Pilihan 1'],
+                                            ['label' => 'B', 'value' => 'Pilihan 2'],
+                                            ['label' => 'C', 'value' => 'Pilihan 3'],
+                                        ],
+                                        'validasi' => ['required' => true],
+                                        'scoring_config' => ['enabled' => true, 'method' => 'choice_option_score'],
+                                        'is_required' => true,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $combination->id = 77;
+
+        $assignment = new AssessmentAssignment([
+            'kode_penugasan' => 'TGS-ASM-01',
+            'judul_penugasan' => 'Penugasan Kombinasi',
+        ]);
+        $assignment->id = 11;
+        $assignment->setRelation('assessments', new Collection([$fallbackAssessment]));
+        $assignment->setRelation('combination', $combination);
+
+        $target = new AssessmentAssignmentTarget;
+        $target->id = 33;
+        $target->setRelation('assignment', $assignment);
+
+        $snapshot = app(AssessmentQuestionRandomizerService::class)->buildSnapshot($target);
+
+        $this->assertSame('assessment_combination', data_get($snapshot, 'meta.source'));
+        $this->assertSame('KMB-001', data_get($snapshot, 'combination.kode_kombinasi'));
+        $this->assertSame('Assessment Dari Kombinasi', data_get($snapshot, 'assessments.0.judul'));
+        $this->assertSame([701], collect(data_get($snapshot, 'assessments.0.forms.0.fields', []))->pluck('id')->all());
+        $this->assertNotSame('Assessment Fallback', data_get($snapshot, 'assessments.0.judul'));
     }
 
     private function makeRandomizationTarget(int $targetId): AssessmentAssignmentTarget

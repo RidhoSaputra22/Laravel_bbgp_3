@@ -23,6 +23,9 @@
             <div class="section-header">
                 <h1>Data Assessment</h1>
                 <div class="section-header-breadcrumb">
+                    <a href="{{ route('assessment.combination.index') }}" class="btn btn-info mr-2">
+                        <i class="fas fa-random"></i> Panel Kombinasi
+                    </a>
                     <a href="{{ route('assessment.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Tambah Assessment
                     </a>
@@ -92,8 +95,11 @@
                                 <p class="lead">
                                     Mulai buat assessment baru untuk menyusun form dan pertanyaandinamis.
                                 </p>
-                                <a href="{{ route('assessment.create') }}" class="btn btn-primary mt-3">
+                                <a href="{{ route('assessment.create') }}" class="btn btn-primary mt-3 mr-2">
                                     Tambah Assessment
+                                </a>
+                                <a href="{{ route('assessment.combination.index') }}" class="btn btn-info mt-3">
+                                    Panel Kombinasi
                                 </a>
                             </div>
                         @else

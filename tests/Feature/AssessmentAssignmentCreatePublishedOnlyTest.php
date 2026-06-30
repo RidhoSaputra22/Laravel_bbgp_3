@@ -59,10 +59,25 @@ class AssessmentAssignmentCreatePublishedOnlyTest extends TestCase
             $table->string('is_verif')->default('belum');
             $table->timestamps();
         });
+
+        Schema::connection('sqlite')->create('assessment_combinations', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_kombinasi')->nullable();
+            $table->string('judul')->nullable();
+            $table->string('target_ketenagaan')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->json('structure_snapshot')->nullable();
+            $table->unsignedInteger('total_assessments')->default(0);
+            $table->unsignedInteger('total_forms')->default(0);
+            $table->unsignedInteger('total_questions')->default(0);
+            $table->timestamp('generated_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     protected function tearDown(): void
     {
+        Schema::connection('sqlite')->dropIfExists('assessment_combinations');
         Schema::connection('sqlite')->dropIfExists('gurus');
         Schema::connection('sqlite')->dropIfExists('assessment_form_fields');
         Schema::connection('sqlite')->dropIfExists('assessment_forms');

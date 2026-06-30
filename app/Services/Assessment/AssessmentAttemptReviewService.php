@@ -92,6 +92,7 @@ class AssessmentAttemptReviewService
         $attempt = $attempt->fresh([
             'answers',
             'target.assignment.assessments.forms.fields',
+            'target.assignment.combination',
             'target.session',
             'target.guru',
         ]);
@@ -101,6 +102,7 @@ class AssessmentAttemptReviewService
         return $attempt->fresh([
             'answers',
             'target.assignment.assessments.forms.fields',
+            'target.assignment.combination',
             'target.session',
             'target.guru',
         ]);

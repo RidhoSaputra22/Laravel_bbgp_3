@@ -147,6 +147,7 @@
                                                 ][$data->status_distribusi] ?? 'secondary';
                                                 $deliveryType = $data->job_batch_id ? 'Batch Job' : 'Langsung';
                                                 $assessments = $data->assessments;
+                                                $combination = $data->combination;
                                             @endphp
                                             <tr class="align-middle">
                                                 <td class="text-center">{{ $loop->iteration }}</td>
@@ -169,8 +170,17 @@
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <div class="font-weight-bold">{{ $assessments->count() }} Assessment ditugaskan</div>
-
+                                                    @if ($combination)
+                                                        <div class="font-weight-bold">{{ $combination->judul }}</div>
+                                                        <small class="text-muted d-block">{{ $combination->kode_kombinasi }}</small>
+                                                        <small class="text-muted">
+                                                            {{ $combination->total_assessments }} assessment sumber /
+                                                            {{ $combination->total_forms }} form /
+                                                            {{ $combination->total_questions }} soal
+                                                        </small>
+                                                    @else
+                                                        <div class="font-weight-bold">{{ $assessments->count() }} Assessment ditugaskan</div>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <div>

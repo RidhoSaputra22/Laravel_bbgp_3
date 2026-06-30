@@ -20,7 +20,10 @@ class AssessmentAttempt extends Model
         'answered_questions',
         'answered_required_questions',
         'started_at',
+        'deadline_at',
         'submitted_at',
+        'completion_mode',
+        'timed_out_at',
         'last_answered_at',
     ];
 
@@ -29,7 +32,9 @@ class AssessmentAttempt extends Model
         'result_summary' => 'array',
         'scoring_summary' => 'array',
         'started_at' => 'datetime',
+        'deadline_at' => 'datetime',
         'submitted_at' => 'datetime',
+        'timed_out_at' => 'datetime',
         'last_answered_at' => 'datetime',
         'total_questions' => 'integer',
         'required_questions' => 'integer',

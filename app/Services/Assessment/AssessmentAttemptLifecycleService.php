@@ -20,17 +20,25 @@ class AssessmentAttemptLifecycleService
     ): AssessmentAttempt {
         $attempt = $target->attempt;
         $now = now();
+        $targetStartedAt = $target->started_at;
+        $shouldCarryStartedAt = $markStarted || (bool) $targetStartedAt;
+        $resolvedStartedAt = $markStarted ? $now : $targetStartedAt;
 
         if (! $attempt) {
             $snapshot = $this->randomizer->buildSnapshot($target);
+            $target->setRelation('attempt', null);
+            $initialDeadlineAt = $resolvedStartedAt
+                ? AssessmentTargetTiming::resolveDeadlineAt($target, $resolvedStartedAt->copy())
+                : null;
 
             $attempt = $target->attempt()->create([
-                'status' => $markStarted ? 'in_progress' : 'draft',
+                'status' => $shouldCarryStartedAt ? 'in_progress' : 'draft',
                 'structure_snapshot' => $snapshot,
                 'total_questions' => (int) data_get($snapshot, 'meta.total_questions', 0),
                 'required_questions' => (int) data_get($snapshot, 'meta.required_questions', 0),
-                'started_at' => $markStarted ? $now : null,
-                'last_answered_at' => $markStarted ? $now : null,
+                'started_at' => $resolvedStartedAt,
+                'deadline_at' => $initialDeadlineAt,
+                'last_answered_at' => $shouldCarryStartedAt ? $now : null,
             ]);
         } else {
             if (empty($attempt->structure_snapshot)) {
@@ -43,24 +51,40 @@ class AssessmentAttemptLifecycleService
                 ])->save();
             }
 
-            if ($markStarted && $attempt->status !== 'submitted') {
+            if ($shouldCarryStartedAt && $attempt->status !== 'submitted') {
                 $attempt->forceFill([
                     'status' => 'in_progress',
-                    'started_at' => $attempt->started_at ?: $now,
+                    'started_at' => $attempt->started_at ?: $resolvedStartedAt,
                 ])->save();
             }
         }
 
-        if ($markStarted) {
+        if ($shouldCarryStartedAt) {
+            $target->setRelation('attempt', $attempt);
+            $startedAt = $attempt->started_at ?: $target->started_at ?: $resolvedStartedAt ?: $now;
+            $deadlineAt = $attempt->deadline_at
+                ?: $target->deadline_at
+                ?: AssessmentTargetTiming::resolveDeadlineAt($target, $startedAt->copy());
+
+            if ($attempt->status !== 'submitted') {
+                $attempt->forceFill([
+                    'status' => 'in_progress',
+                    'started_at' => $startedAt,
+                    'deadline_at' => $deadlineAt,
+                ])->save();
+            }
+
             $target->forceFill([
                 'status' => $target->status === 'selesai' ? 'selesai' : 'dikerjakan',
-                'started_at' => $target->started_at ?: $now,
+                'started_at' => $target->started_at ?: $startedAt,
+                'deadline_at' => $target->deadline_at ?: $deadlineAt,
             ])->save();
         }
 
         return $attempt->fresh([
             'answers',
             'target.assignment.assessments.forms.fields',
+            'target.assignment.combination',
             'target.session',
             'target.guru',
         ]);
@@ -77,6 +101,7 @@ class AssessmentAttemptLifecycleService
 
         return $attempt->target->load([
             'assignment.assessments.forms.fields',
+            'assignment.combination',
             'session',
             'attempt.answers',
             'guru',
@@ -102,6 +127,10 @@ class AssessmentAttemptLifecycleService
         }
 
         if ($target->attempt && $target->attempt->status === 'submitted') {
+            return false;
+        }
+
+        if (! $target->started_at && ! optional($target->attempt)->started_at) {
             return false;
         }
 

@@ -791,7 +791,24 @@
                                 {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur assessment.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun assessment baru.' }}
                             </p>
 
-
+                            <div class="assessment-summary-grid mb-4">
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Total Form</span>
+                                    <span class="assessment-summary-stat__value" id="summary-total-forms">{{ $initialBuilderSummary['total_forms'] }}</span>
+                                </div>
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Total Soal</span>
+                                    <span class="assessment-summary-stat__value" id="summary-total-questions">{{ $initialBuilderSummary['total_questions'] }}</span>
+                                </div>
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Form Aktif</span>
+                                    <span class="assessment-summary-stat__value" id="summary-active-forms">{{ $initialBuilderSummary['active_forms'] }}</span>
+                                </div>
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Skor Otomatis</span>
+                                    <span class="assessment-summary-stat__value" id="summary-auto-scoring-questions">{{ $initialBuilderSummary['auto_scoring_questions'] }}</span>
+                                </div>
+                            </div>
 
                             <div class="assessment-summary-section">
                                 <div class="assessment-summary-section-title">Detail Cepat</div>
@@ -825,6 +842,13 @@
 
                             <div class="assessment-summary-note mt-4" id="summary-builder-note">
                                 {{ $initialBuilderSummary['builder_note'] }}
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="button" class="btn btn-outline-primary btn-block" id="btn-sidebar-add-form"
+                                    data-builder-loading-lock disabled>
+                                    <i class="fas fa-plus"></i> Tambah Form
+                                </button>
                             </div>
 
                             <div class="assessment-summary-actions mt-4 row g-2 px-2 ">

@@ -49,7 +49,7 @@ class PortalController extends Controller
         ]);
     }
 
-    public function show(string $id)
+    public function start(string $id)
     {
         $guru = $this->requireGuru();
         $target = $this->portalService->findTargetForGuru($guru, (int) $id);
@@ -68,8 +68,47 @@ class PortalController extends Controller
                 ]);
         }
 
+        $this->attemptLifecycleService->ensureAttempt($target, true);
+
+        return redirect()
+            ->route('assessment.portal.show', $target->id)
+            ->with('assessment_portal_success', 'Assessment dimulai. Timer pengerjaan sudah berjalan.');
+    }
+
+    public function show(string $id)
+    {
+        $guru = $this->requireGuru();
+        $target = $this->portalService->findTargetForGuru($guru, (int) $id);
+        $target = $this->attemptLifecycleService->syncExpiredTarget($target);
+        $meta = $this->portalService->buildTargetMeta($target);
+
+        if ($meta['status'] === 'submitted') {
+            return redirect()->route('assessment.portal.result', $target->id);
+        }
+
+        if ($meta['status'] === 'ready') {
+            return redirect()
+                ->route('assessment.portal.dashboard')
+                ->withErrors([
+                    'portal' => 'Klik tombol Mulai Ujian terlebih dahulu agar waktu mulai dan timer assessment tercatat.',
+                ]);
+        }
+
+        if ($meta['status'] !== 'in_progress') {
+            return redirect()
+                ->route('assessment.portal.dashboard')
+                ->withErrors([
+                    'portal' => $meta['description'],
+                ]);
+        }
+
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
-        $freshTarget = $target->fresh(['assignment.assessments.forms.fields', 'session', 'attempt.answers']);
+        $freshTarget = $target->fresh([
+            'assignment.assessments.forms.fields',
+            'assignment.combination',
+            'session',
+            'attempt.answers',
+        ]);
 
         return view('assessment.show.show', [
             'menu' => 'assessment-portal',
@@ -179,7 +218,12 @@ class PortalController extends Controller
                 ->with('assessment_portal_warning', 'Batas waktu berakhir. Jawaban terakhir langsung diproses dan soal kosong diberi skor 0.');
         }
 
-        $meta = $this->portalService->buildTargetMeta($target->fresh(['assignment.assessments.forms.fields', 'session', 'attempt']));
+        $meta = $this->portalService->buildTargetMeta($target->fresh([
+            'assignment.assessments.forms.fields',
+            'assignment.combination',
+            'session',
+            'attempt',
+        ]));
 
         if (! in_array($meta['status'], ['ready', 'in_progress'], true)) {
             return redirect()

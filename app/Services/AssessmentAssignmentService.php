@@ -6,6 +6,7 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
+use App\Models\AssessmentCombination;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
@@ -37,13 +38,17 @@ class AssessmentAssignmentService
         $shouldBatch = count($context['guru_ids']) > self::BATCH_THRESHOLD;
 
         $assignmentData = DB::transaction(function () use ($payload, $context, $assignedBy, $shouldBatch) {
-            $assessmentSyncData = $this->buildAssessmentSyncData($context['assessment_ids']);
+            $assessmentSyncData = $this->buildAssessmentSyncData(
+                $context['assessment_ids'],
+                ! $context['uses_combination']
+            );
             $totalSessions = $this->calculateTotalSessions(count($context['guru_ids']));
 
             $assignment = AssessmentAssignment::create([
                 'kode_penugasan' => $this->generateUniqueCode(),
                 'judul_penugasan' => $payload['judul_penugasan'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
+                'assessment_combination_id' => $context['assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
                 'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
@@ -90,7 +95,7 @@ class AssessmentAssignmentService
             $assignment->refresh();
         }
 
-        return $assignment->load(['assessments', 'creator', 'sessions'])->loadCount('targets');
+        return $assignment->load(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets');
     }
 
     public function updateAssignment(
@@ -109,7 +114,10 @@ class AssessmentAssignmentService
             $assignedBy,
             $shouldBatch
         ) {
-            $assessmentSyncData = $this->buildAssessmentSyncData($context['assessment_ids']);
+            $assessmentSyncData = $this->buildAssessmentSyncData(
+                $context['assessment_ids'],
+                ! $context['uses_combination']
+            );
             $totalSessions = $this->calculateTotalSessions(count($context['guru_ids']));
 
             $this->cancelAssignmentBatch($assignment->job_batch_id);
@@ -119,6 +127,7 @@ class AssessmentAssignmentService
             $assignment->forceFill([
                 'judul_penugasan' => $payload['judul_penugasan'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
+                'assessment_combination_id' => $context['assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
                 'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
@@ -172,7 +181,7 @@ class AssessmentAssignmentService
         }
 
         return [
-            'assignment' => $freshAssignment->load(['assessments', 'creator', 'sessions'])->loadCount('targets'),
+            'assignment' => $freshAssignment->load(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets'),
             'reset_target_count' => $cleanupSummary['target_count'],
             'deleted_attempt_count' => $cleanupSummary['attempt_count'],
             'deleted_answer_count' => $cleanupSummary['answer_count'],
@@ -222,7 +231,7 @@ class AssessmentAssignmentService
             $this->refreshAssignmentSummary($assignment->id);
 
             return [
-                'assignment' => $assignment->fresh(['assessments', 'creator', 'sessions'])->loadCount('targets'),
+                'assignment' => $assignment->fresh(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets'),
                 'resumed_count' => 0,
                 'queued' => false,
                 'already_complete' => true,
@@ -236,7 +245,7 @@ class AssessmentAssignmentService
             $this->dispatchBatch($freshAssignment, $resumeRows);
 
             return [
-                'assignment' => $freshAssignment->fresh(['assessments', 'creator', 'sessions'])->loadCount('targets'),
+                'assignment' => $freshAssignment->fresh(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets'),
                 'resumed_count' => $resumeCount,
                 'queued' => true,
                 'already_complete' => false,
@@ -251,7 +260,7 @@ class AssessmentAssignmentService
         $this->refreshAssignmentSummary($assignment->id);
 
         return [
-            'assignment' => $assignment->fresh(['assessments', 'creator', 'sessions'])->loadCount('targets'),
+            'assignment' => $assignment->fresh(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets'),
             'resumed_count' => $resumeCount,
             'queued' => false,
             'already_complete' => false,
@@ -336,11 +345,14 @@ class AssessmentAssignmentService
     private function prepareAssignmentContext(array $payload): array
     {
         $targetKetenagaan = $this->resolveTargetKetenagaan($payload);
+        $assessmentCombination = $this->resolveAssessmentCombination($payload, $targetKetenagaan);
         $startTime = $this->normalizeStartTime($payload['jam_mulai'] ?? null);
 
         return [
             'target_ketenagaan' => $targetKetenagaan,
-            'assessment_ids' => $this->resolveAssessmentIds($payload, $targetKetenagaan),
+            'assessment_combination' => $assessmentCombination,
+            'uses_combination' => $assessmentCombination !== null,
+            'assessment_ids' => $this->resolveAssessmentIds($payload, $targetKetenagaan, $assessmentCombination),
             'guru_ids' => $this->resolveGuruIds($payload, $targetKetenagaan),
             'session_duration_hours' => (int) ($payload['durasi_sesi_jam'] ?? self::DEFAULT_SESSION_DURATION_HOURS),
             'start_time' => $startTime,
@@ -897,8 +909,13 @@ class AssessmentAssignmentService
 
     private function resolveAssessmentIds(
         array $payload,
-        ?AssessmentKetenagaanType $targetKetenagaan = null
+        ?AssessmentKetenagaanType $targetKetenagaan = null,
+        ?AssessmentCombination $assessmentCombination = null
     ): array {
+        if ($assessmentCombination) {
+            return $this->extractAssessmentIdsFromCombination($assessmentCombination);
+        }
+
         if ($targetKetenagaan) {
             return Assessment::query()
                 ->where('is_active', true)
@@ -1028,6 +1045,37 @@ class AssessmentAssignmentService
         return array_values(array_unique(array_map('intval', $assessmentIds)));
     }
 
+    private function resolveAssessmentCombination(
+        array $payload,
+        ?AssessmentKetenagaanType $targetKetenagaan = null
+    ): ?AssessmentCombination {
+        $combinationId = (int) ($payload['assessment_combination_id'] ?? 0);
+
+        if ($combinationId < 1) {
+            return null;
+        }
+
+        $query = AssessmentCombination::query()
+            ->whereKey($combinationId)
+            ->where('is_active', true);
+
+        if ($targetKetenagaan) {
+            $query->where('target_ketenagaan', $targetKetenagaan->value);
+        }
+
+        return $query->firstOrFail();
+    }
+
+    private function extractAssessmentIdsFromCombination(AssessmentCombination $assessmentCombination): array
+    {
+        return collect(data_get($assessmentCombination->structure_snapshot, 'assessments', []))
+            ->pluck('id')
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->values()
+            ->all();
+    }
+
     private function generateUniqueCode(): string
     {
         do {
@@ -1114,26 +1162,37 @@ class AssessmentAssignmentService
         return (int) ceil($totalTargets / self::TARGETS_PER_SESSION);
     }
 
-    private function buildAssessmentSyncData(array $assessmentIds): array
+    private function buildAssessmentSyncData(array $assessmentIds, bool $strict = true): array
     {
         if ($assessmentIds === []) {
             return [];
         }
 
-        $validAssessmentIds = Assessment::query()
-            ->whereKey($assessmentIds)
-            ->where('is_active', true)
-            ->whereIn('status', ['draft', 'publish'])
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->all();
+        if ($strict) {
+            $validAssessmentIds = Assessment::query()
+                ->whereKey($assessmentIds)
+                ->where('is_active', true)
+                ->whereIn('status', ['draft', 'publish'])
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
 
-        if (count($validAssessmentIds) !== count($assessmentIds)) {
-            throw (new ModelNotFoundException)->setModel(Assessment::class, $assessmentIds);
+            if (count($validAssessmentIds) !== count($assessmentIds)) {
+                throw (new ModelNotFoundException)->setModel(Assessment::class, $assessmentIds);
+            }
+
+            $usableAssessmentIds = $validAssessmentIds;
+        } else {
+            $usableAssessmentIds = Assessment::query()
+                ->whereKey($assessmentIds)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
         }
 
         return collect($assessmentIds)
             ->values()
+            ->filter(fn (int $assessmentId) => in_array($assessmentId, $usableAssessmentIds, true))
             ->mapWithKeys(fn (int $assessmentId, int $index) => [
                 $assessmentId => [
                     'urutan' => $index + 1,

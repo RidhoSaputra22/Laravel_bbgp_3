@@ -14,6 +14,15 @@
         'target_ketenagaan',
         $assignment?->target_ketenagaan ?? \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
+    $selectedCombinationId = (int) old(
+        'assessment_combination_id',
+        $assignment?->assessment_combination_id ?? 0,
+    );
+    $currentCombinationOptions = collect($combinationOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])
+        ->values()
+        ->all();
+    $currentSelectedCombination = collect($currentCombinationOptions)
+        ->first(fn ($item) => (int) data_get($item, 'id') === $selectedCombinationId);
     $selectedTargetJabatan = collect((array) old('target_jabatan', $assignment?->target_jabatan ?? []))
         ->filter(fn ($jabatan) => filled($jabatan))
         ->map(fn ($jabatan) => trim((string) $jabatan))
@@ -373,7 +382,7 @@
                                                 </div>
                                             </div>
                                             <div class="mb-3 text-right">
-                                                <span class="auto-summary-pill" id="auto-summary-assessment-count">0 assessment</span>
+                                                <span class="auto-summary-pill" id="auto-summary-assessment-count">0 assessment sumber</span>
                                                 <span class="auto-summary-pill" id="auto-summary-jabatan-count">0 jabatan</span>
                                                 <span class="auto-summary-pill" id="auto-summary-kabupaten-count">0 kabupaten</span>
                                                 <span class="auto-summary-pill" id="auto-summary-user-count">0 user</span>
@@ -393,11 +402,11 @@
 
                                         <div class="row">
                                             <div class="col-md-4 col-6 mb-3">
-                                                <div class="text-muted small">Total Form</div>
+                                                <div class="text-muted small">Total Form Sumber</div>
                                                 <div class="summary-value" id="auto-summary-form-count">0</div>
                                             </div>
                                             <div class="col-md-4 col-6 mb-3">
-                                                <div class="text-muted small">Total Pertanyaan</div>
+                                                <div class="text-muted small">Total Pertanyaan Sumber</div>
                                                 <div class="summary-value" id="auto-summary-field-count">0</div>
                                             </div>
                                             <div class="col-md-4 col-12 mb-3">
@@ -425,6 +434,98 @@
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border shadow-none mb-4">
+                                        <div class="card-header bg-white">
+                                            <h4 class="mb-0">Kombinasi Soal <span class="text-danger">*</span></h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="assessment_combination_id">Pilih Kombinasi Soal</label>
+                                                <select name="assessment_combination_id" id="assessment_combination_id"
+                                                    class="form-control @error('assessment_combination_id') is-invalid @enderror">
+                                                    <option value="">Pilih kombinasi soal</option>
+                                                    @foreach ($currentCombinationOptions as $combinationOption)
+                                                        <option value="{{ $combinationOption['id'] }}"
+                                                            @selected($selectedCombinationId === (int) $combinationOption['id'])>
+                                                            {{ $combinationOption['judul'] }}
+                                                            ({{ $combinationOption['total_questions'] }} soal)
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <small class="form-text text-muted">
+                                                    Snapshot ujian, child soal, dan sistem penilaian akan merujuk pada
+                                                    kombinasi ini, bukan langsung ke bank soal aktif.
+                                                </small>
+                                                @error('assessment_combination_id')
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+
+                                            <div class="auto-summary-panel mb-0">
+                                                <div class="d-flex flex-wrap justify-content-between align-items-start">
+                                                    <div class="mb-3">
+                                                        <div class="text-muted small">Ringkasan Kombinasi Terpilih</div>
+                                                        <div class="font-weight-bold" id="combination-summary-title">
+                                                            {{ $currentSelectedCombination['judul'] ?? 'Pilih kombinasi soal terlebih dahulu' }}
+                                                        </div>
+                                                        <small class="text-muted d-block" id="combination-summary-code">
+                                                            {{ $currentSelectedCombination['kode'] ?? '-' }}
+                                                        </small>
+                                                    </div>
+                                                    <div class="mb-3 text-right">
+                                                        <span class="auto-summary-pill" id="combination-summary-assessments">
+                                                            {{ (int) ($currentSelectedCombination['total_assessments'] ?? 0) }} assessment
+                                                        </span>
+                                                        <span class="auto-summary-pill" id="combination-summary-forms">
+                                                            {{ (int) ($currentSelectedCombination['total_forms'] ?? 0) }} form
+                                                        </span>
+                                                        <span class="auto-summary-pill" id="combination-summary-questions">
+                                                            {{ (int) ($currentSelectedCombination['total_questions'] ?? 0) }} soal
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm auto-summary-table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Kode</th>
+                                                                <th>Assessment Sumber</th>
+                                                                <th>Struktur</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="combination-summary-assessment-list">
+                                                            @if (!empty($currentSelectedCombination['source_assessments']))
+                                                                @foreach ($currentSelectedCombination['source_assessments'] as $sourceAssessment)
+                                                                    <tr>
+                                                                        <td class="font-weight-bold">
+                                                                            {{ $sourceAssessment['kode'] ?: '-' }}
+                                                                        </td>
+                                                                        <td>
+                                                                            <div class="font-weight-600">
+                                                                                {{ $sourceAssessment['judul'] ?: '-' }}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td>
+                                                                            {{ $sourceAssessment['form_count'] ?? 0 }} form /
+                                                                            {{ $sourceAssessment['question_count'] ?? 0 }} soal
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            @else
+                                                                <tr>
+                                                                    <td colspan="3" class="auto-summary-empty">
+                                                                        Detail assessment sumber akan tampil setelah kombinasi dipilih.
+                                                                    </td>
+                                                                </tr>
+                                                            @endif
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -529,21 +630,27 @@
                                         <div class="summary-value summary-value--compact" id="summary-jabatan">Belum dipilih</div>
                                     </div>
                                     <div class="mb-3">
+                                        <div class="text-muted small">Kombinasi Dipilih</div>
+                                        <div class="summary-value summary-value--compact" id="summary-combination-title">
+                                            {{ $currentSelectedCombination['judul'] ?? 'Belum dipilih' }}
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
                                         <div class="text-muted small">Kabupaten Dipilih</div>
                                         <div class="summary-value summary-value--compact" id="summary-kabupaten">Belum dipilih</div>
                                     </div>
                                     <div class="mb-3">
-                                        <div class="text-muted small">Total Assessment</div>
+                                        <div class="text-muted small">Assessment Sumber Kombinasi</div>
                                         <div class="summary-value" id="summary-assessment-count">0</div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-6">
-                                            <div class="text-muted small">Total Form</div>
+                                            <div class="text-muted small">Form Kombinasi</div>
                                             <div class="summary-value" id="summary-forms">0</div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="text-muted small">Total Pertanyaan</div>
+                                            <div class="text-muted small">Child Soal</div>
                                             <div class="summary-value" id="summary-fields">0</div>
                                         </div>
                                     </div>
@@ -654,6 +761,7 @@
     <script>
         (() => {
             const ketenagaanSummaries = @json($ketenagaanSummaries);
+            const combinationOptionsByKetenagaan = @json($combinationOptionsByKetenagaan);
             const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
             const kabupatenOptionsByKetenagaan = @json($kabupatenOptionsByKetenagaan);
             const sessionCapacity = {{ $sessionCapacity }};
@@ -941,6 +1049,26 @@
                 return Number((durationSelect ? durationSelect.value : '') || defaultDurationHours);
             }
 
+            function getCombinationSelect() {
+                return document.getElementById('assessment_combination_id');
+            }
+
+            function getAvailableCombinationOptions(target = getSelectedTargetKetenagaan()) {
+                return target && Array.isArray(combinationOptionsByKetenagaan[target]) ? combinationOptionsByKetenagaan[target] : [];
+            }
+
+            function getSelectedCombinationId() {
+                const select = getCombinationSelect();
+
+                return Number((select ? select.value : '') || 0);
+            }
+
+            function getSelectedCombination() {
+                const selectedId = getSelectedCombinationId();
+
+                return getAvailableCombinationOptions().find((item) => Number(item.id || 0) === selectedId) || null;
+            }
+
             function getSelectedStartTime() {
                 const startTimeInput = document.getElementById('jam_mulai');
 
@@ -982,6 +1110,89 @@
                 }).join('');
             }
 
+            function renderCombinationOptions() {
+                const select = getCombinationSelect();
+
+                if (!select) {
+                    return;
+                }
+
+                const options = getAvailableCombinationOptions();
+                const previousValue = Number(select.value || 0);
+                const nextValue = options.some((item) => Number(item.id || 0) === previousValue)
+                    ? previousValue
+                    : Number(options[0] && options[0].id ? options[0].id : 0);
+
+                select.innerHTML = ['<option value="">Pilih kombinasi soal</option>']
+                    .concat(options.map((item) => {
+                        const itemId = Number(item.id || 0);
+                        const isSelected = nextValue > 0 && itemId === nextValue;
+
+                        return `<option value="${itemId}" ${isSelected ? 'selected' : ''}>${escapeHtml(item.judul || '-')}` +
+                            ` (${Number(item.total_questions || 0)} soal)</option>`;
+                    }))
+                    .join('');
+            }
+
+            function renderCombinationSummary() {
+                const combination = getSelectedCombination();
+                const titleNode = document.getElementById('combination-summary-title');
+                const codeNode = document.getElementById('combination-summary-code');
+                const assessmentsNode = document.getElementById('combination-summary-assessments');
+                const formsNode = document.getElementById('combination-summary-forms');
+                const questionsNode = document.getElementById('combination-summary-questions');
+                const tbody = document.getElementById('combination-summary-assessment-list');
+                const sourceAssessments = combination && Array.isArray(combination.source_assessments) ? combination.source_assessments : [];
+
+                if (titleNode) {
+                    titleNode.textContent = combination ? (combination.judul || '-') : 'Pilih kombinasi soal terlebih dahulu';
+                }
+
+                if (codeNode) {
+                    codeNode.textContent = combination ? (combination.kode || '-') : '-';
+                }
+
+                if (assessmentsNode) {
+                    assessmentsNode.textContent = Number(combination && combination.total_assessments || 0) + ' assessment';
+                }
+
+                if (formsNode) {
+                    formsNode.textContent = Number(combination && combination.total_forms || 0) + ' form';
+                }
+
+                if (questionsNode) {
+                    questionsNode.textContent = Number(combination && combination.total_questions || 0) + ' soal';
+                }
+
+                if (!tbody) {
+                    return;
+                }
+
+                if (sourceAssessments.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="auto-summary-empty">
+                                Detail assessment sumber akan tampil setelah kombinasi dipilih.
+                            </td>
+                        </tr>
+                    `;
+
+                    return;
+                }
+
+                tbody.innerHTML = sourceAssessments.map((item) => {
+                    return `
+                        <tr>
+                            <td class="font-weight-bold">${escapeHtml(item.kode || '-')}</td>
+                            <td>
+                                <div class="font-weight-600">${escapeHtml(item.judul || '-')}</div>
+                            </td>
+                            <td>${Number(item.form_count || 0)} form / ${Number(item.question_count || 0)} soal</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
             function updateAutoSummaryPanel() {
                 const summary = getSelectedSummary();
                 const availableJabatanItems = getAvailableJabatanItems();
@@ -998,6 +1209,7 @@
                 const distributionNode = document.getElementById('auto-summary-distribution');
                 const warningNode = document.getElementById('auto-summary-warning');
                 const submitButton = document.getElementById('assignment-submit-button');
+                const selectedCombination = getSelectedCombination();
 
                 const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
                 const userCount = selectedKabupatenItems.reduce((total, item) => {
@@ -1010,7 +1222,7 @@
                 }
 
                 if (assessmentCountNode) {
-                    assessmentCountNode.textContent = assessmentCount + ' assessment';
+                    assessmentCountNode.textContent = assessmentCount + ' assessment sumber';
                 }
 
                 if (jabatanCountNode) {
@@ -1047,6 +1259,10 @@
                         warningMessages.push('Belum ada assessment yang aktif dan berstatus publish untuk ketenagaan ini.');
                     }
 
+                    if (summary && !selectedCombination) {
+                        warningMessages.push('Pilih kombinasi soal yang akan dipakai pada penugasan ini.');
+                    }
+
                     if (summary && availableJabatanItems.length === 0) {
                         warningMessages.push('Belum ada data jabatan untuk ketenagaan ini.');
                     } else if (summary && selectedJabatanItems.length === 0) {
@@ -1064,21 +1280,23 @@
                 }
 
                 if (submitButton) {
-                    submitButton.disabled = !summary || assessmentCount === 0 || selectedJabatanItems.length === 0 ||
+                    submitButton.disabled = !summary || !selectedCombination || assessmentCount === 0 || selectedJabatanItems.length === 0 ||
                         selectedKabupatenItems.length === 0 ||
                         userCount === 0;
                 }
 
                 renderAssessmentList(summary);
+                renderCombinationSummary();
             }
 
             function updateSidebarSummary() {
                 const summary = getSelectedSummary();
+                const combination = getSelectedCombination();
                 const selectedJabatanItems = getSelectedJabatanItems();
                 const selectedKabupatenItems = getSelectedKabupatenItems();
-                const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
-                const formCount = summary ? Number(summary.form_count || 0) : 0;
-                const fieldCount = summary ? Number(summary.field_count || 0) : 0;
+                const assessmentCount = combination ? Number(combination.total_assessments || 0) : 0;
+                const formCount = combination ? Number(combination.total_forms || 0) : 0;
+                const fieldCount = combination ? Number(combination.total_questions || 0) : 0;
                 const userCount = selectedKabupatenItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
@@ -1088,6 +1306,7 @@
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
                 const summaryJabatan = document.getElementById('summary-jabatan');
+                const summaryCombinationTitle = document.getElementById('summary-combination-title');
                 const summaryKabupaten = document.getElementById('summary-kabupaten');
                 const summaryAssessmentCount = document.getElementById('summary-assessment-count');
                 const summaryForms = document.getElementById('summary-forms');
@@ -1105,6 +1324,10 @@
 
                 if (summaryJabatan) {
                     summaryJabatan.textContent = formatSelectedJabatanSummary(selectedJabatanItems);
+                }
+
+                if (summaryCombinationTitle) {
+                    summaryCombinationTitle.textContent = combination ? (combination.judul || '-') : 'Belum dipilih';
                 }
 
                 if (summaryKabupaten) {
@@ -1170,11 +1393,18 @@
 
                 document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
                     input.addEventListener('change', function() {
+                        renderCombinationOptions();
                         syncJabatanSelector();
                         syncKabupatenSelector();
                         refreshSummaries();
                     });
                 });
+
+                const combinationSelect = getCombinationSelect();
+
+                if (combinationSelect) {
+                    combinationSelect.addEventListener('change', refreshSummaries);
+                }
 
                 const durationSelect = document.getElementById('durasi_sesi_jam');
                 const startTimeInput = document.getElementById('jam_mulai');
@@ -1187,6 +1417,7 @@
                     startTimeInput.addEventListener('change', updateSidebarSummary);
                 }
 
+                renderCombinationOptions();
                 refreshSummaries();
 
                 @if ($isEditMode)

@@ -18,6 +18,11 @@ class AssessmentQuestionRandomizerService
     {
         $assignment = $target->assignment;
         $targetId = (int) ($target->getKey() ?? 0);
+        $combination = $assignment->combination;
+
+        if ($combination && ! empty($combination->structure_snapshot)) {
+            return $this->buildSnapshotFromCombination($target, $combination->structure_snapshot);
+        }
 
         $assessments = $assignment->assessments
             ->filter(fn ($assessment) => (bool) $assessment->is_active)
@@ -132,6 +137,102 @@ class AssessmentQuestionRandomizerService
         ];
     }
 
+    private function buildSnapshotFromCombination(
+        AssessmentAssignmentTarget $target,
+        array $combinationSnapshot
+    ): array {
+        $assignment = $target->assignment;
+        $targetId = (int) ($target->getKey() ?? 0);
+
+        $assessments = collect($combinationSnapshot['assessments'] ?? [])
+            ->values()
+            ->map(function (array $assessmentData) use ($targetId) {
+                $assessmentMeta = $this->metadataResolver->decorateAssessment($assessmentData);
+                $instrumentType = AssessmentInstrumentType::tryFromMixed($assessmentMeta['instrument_type'] ?? null);
+                $forms = collect($assessmentData['forms'] ?? [])
+                    ->values()
+                    ->map(function (array $formData) use ($assessmentMeta, $instrumentType, $targetId) {
+                        $formMeta = $this->metadataResolver->decorateForm($formData, $assessmentMeta);
+                        $fields = collect($formData['fields'] ?? [])
+                            ->values()
+                            ->map(fn (array $fieldData) => $this->mapSnapshotField(
+                                $fieldData,
+                                (int) ($assessmentMeta['id'] ?? 0),
+                                (int) ($formMeta['id'] ?? 0),
+                                $instrumentType,
+                                $targetId
+                            ))
+                            ->all();
+
+                        if ($fields === []) {
+                            return null;
+                        }
+
+                        return [
+                            'id' => $formMeta['id'],
+                            'assessment_id' => $assessmentMeta['id'],
+                            'judul_form' => $formMeta['judul_form'],
+                            'kode_form' => $formMeta['kode_form'],
+                            'deskripsi' => $formMeta['deskripsi'],
+                            'kompetensi' => $formMeta['kompetensi'],
+                            'kompetensi_label' => $formMeta['kompetensi_label'],
+                            'indikator_kode' => $formMeta['indikator_kode'],
+                            'indikator_label' => $formMeta['indikator_label'],
+                            'is_scoreable' => (bool) ($formMeta['is_scoreable'] ?? false),
+                            'scoring_config' => $formData['scoring_config'] ?? [],
+                            'fields' => $fields,
+                        ];
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                if ($forms === []) {
+                    return null;
+                }
+
+                return [
+                    'id' => $assessmentMeta['id'],
+                    'kode_assessment' => $assessmentMeta['kode_assessment'],
+                    'judul' => $assessmentMeta['judul'],
+                    'deskripsi' => $assessmentMeta['deskripsi'],
+                    'petunjuk' => $assessmentMeta['petunjuk'],
+                    'instrument_type' => $assessmentMeta['instrument_type'],
+                    'instrument_label' => $assessmentMeta['instrument_label'],
+                    'scoring_config' => $assessmentData['scoring_config'] ?? [],
+                    'forms' => $forms,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        $allFields = collect($assessments)
+            ->flatMap(fn ($assessment) => $assessment['forms'] ?? [])
+            ->flatMap(fn ($form) => $form['fields'] ?? []);
+
+        return [
+            'generated_at' => now()->toIso8601String(),
+            'assignment' => [
+                'id' => $assignment->id,
+                'kode_penugasan' => $assignment->kode_penugasan,
+                'judul_penugasan' => $assignment->judul_penugasan,
+            ],
+            'combination' => data_get($combinationSnapshot, 'combination', []),
+            'assessments' => $assessments,
+            'meta' => [
+                'source' => 'assessment_combination',
+                'total_questions' => $allFields->count(),
+                'required_questions' => $allFields->where('is_required', true)->count(),
+                'randomization' => [
+                    'version' => 2,
+                    'question_order' => 'fixed_from_combination',
+                    'choice_order' => 'radio_options_for_pilihan_ganda_kompleks',
+                ],
+            ],
+        ];
+    }
+
     private function mapField(
         AssessmentFormField $field,
         int $assessmentId,
@@ -153,6 +254,36 @@ class AssessmentQuestionRandomizerService
             'validasi' => $field->validasi,
             'scoring_config' => $field->scoring_config,
             'is_required' => (bool) $field->is_required,
+        ];
+    }
+
+    private function mapSnapshotField(
+        array $field,
+        int $assessmentId,
+        int $formId,
+        ?AssessmentInstrumentType $instrumentType,
+        int $targetId
+    ): array {
+        return [
+            'id' => (int) ($field['id'] ?? 0),
+            'assessment_id' => $assessmentId,
+            'assessment_form_id' => $formId,
+            'label' => $field['label'] ?? null,
+            'deskripsi' => $field['deskripsi'] ?? null,
+            'nama_field' => $field['nama_field'] ?? null,
+            'tipe_field' => $field['tipe_field'] ?? null,
+            'placeholder' => $field['placeholder'] ?? null,
+            'bantuan' => $field['bantuan'] ?? null,
+            'opsi_field' => $this->mapSnapshotFieldOptions(
+                $field,
+                $instrumentType,
+                $targetId,
+                $assessmentId,
+                $formId
+            ),
+            'validasi' => $field['validasi'] ?? [],
+            'scoring_config' => $field['scoring_config'] ?? [],
+            'is_required' => (bool) ($field['is_required'] ?? false),
         ];
     }
 
@@ -179,6 +310,29 @@ class AssessmentQuestionRandomizerService
             ->all();
     }
 
+    private function mapSnapshotFieldOptions(
+        array $field,
+        ?AssessmentInstrumentType $instrumentType,
+        int $targetId,
+        int $assessmentId,
+        int $formId
+    ): array {
+        if (($field['tipe_field'] ?? null) === 'repeater') {
+            return is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+        }
+
+        $options = $this->normalizeOptions(is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []);
+
+        if (! $this->shouldRandomizeSnapshotChoiceOptions($field, $instrumentType)) {
+            return $options;
+        }
+
+        return collect($options)
+            ->shuffle($this->resolveChoiceOptionSeed($targetId, $assessmentId, $formId, (int) ($field['id'] ?? 0)))
+            ->values()
+            ->all();
+    }
+
     private function normalizeOptions(?array $options): array
     {
         return collect(ChoiceOptionNormalizer::normalizeMany($options ?? []))
@@ -200,6 +354,14 @@ class AssessmentQuestionRandomizerService
     ): bool {
         return $instrumentType === AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS
             && $field->tipe_field === 'radio';
+    }
+
+    private function shouldRandomizeSnapshotChoiceOptions(
+        array $field,
+        ?AssessmentInstrumentType $instrumentType
+    ): bool {
+        return $instrumentType === AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS
+            && ($field['tipe_field'] ?? null) === 'radio';
     }
 
     private function resolveChoiceOptionSeed(

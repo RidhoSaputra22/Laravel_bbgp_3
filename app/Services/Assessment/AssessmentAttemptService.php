@@ -252,7 +252,10 @@ class AssessmentAttemptService
                 'scoring_summary' => $scoringSummary,
                 'answered_questions' => (int) $summary['answered_questions'],
                 'answered_required_questions' => (int) $summary['answered_required_questions'],
+                'deadline_at' => $attempt->deadline_at,
                 'submitted_at' => $submittedAt,
+                'completion_mode' => $forceZeroForUnanswered ? 'timeout' : 'manual',
+                'timed_out_at' => $forceZeroForUnanswered ? $submittedAt : null,
                 'last_answered_at' => $submittedAt,
             ])->save();
 
@@ -262,7 +265,10 @@ class AssessmentAttemptService
                 $target->forceFill([
                     'status' => 'selesai',
                     'started_at' => $target->started_at ?: $attempt->started_at ?: $submittedAt,
+                    'deadline_at' => $target->deadline_at ?: $attempt->deadline_at,
                     'submitted_at' => $submittedAt,
+                    'completion_mode' => $forceZeroForUnanswered ? 'timeout' : 'manual',
+                    'timed_out_at' => $forceZeroForUnanswered ? $submittedAt : null,
                 ])->save();
             }
         });
@@ -971,6 +977,7 @@ class AssessmentAttemptService
         return $attempt->load([
             'answers',
             'target.assignment.assessments.forms.fields',
+            'target.assignment.combination',
             'target.session',
             'target.guru',
         ]);

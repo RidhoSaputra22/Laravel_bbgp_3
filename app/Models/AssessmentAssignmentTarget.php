@@ -16,13 +16,18 @@ class AssessmentAssignmentTarget extends Model
         'status',
         'assigned_at',
         'started_at',
+        'deadline_at',
         'submitted_at',
+        'completion_mode',
+        'timed_out_at',
     ];
 
     protected $casts = [
         'assigned_at' => 'datetime',
         'started_at' => 'datetime',
+        'deadline_at' => 'datetime',
         'submitted_at' => 'datetime',
+        'timed_out_at' => 'datetime',
     ];
 
     public function assignment()

@@ -31,13 +31,16 @@
         $sessionStartAt = $session?->waktu_mulai;
         $sessionEndAt = $session?->waktu_selesai;
         $attemptStartedAt = $attempt->started_at ?? $target->started_at;
-        $assignmentDeadlineAt = $target->assignment->tanggal_selesai?->copy()->endOfDay();
         $countdownTargetAt = \App\Support\Assessment\AssessmentTargetTiming::resolveDeadlineAt($target);
-        $usesSessionDeadline = $countdownTargetAt && $sessionEndAt && $countdownTargetAt->equalTo($sessionEndAt);
-        $countdownTitle = $usesSessionDeadline ? 'Sisa Waktu Sesi' : 'Sisa Waktu Penugasan';
-        $countdownCaption = $usesSessionDeadline
-            ? 'Gunakan hitung mundur ini sebagai acuan sebelum sesi assessment Anda ditutup.'
-            : 'Timer mengikuti batas akhir penugasan karena waktu selesai sesi belum tersedia.';
+        $durationMinutes = \App\Support\Assessment\AssessmentTargetTiming::resolveDurationMinutes($target);
+        $durationLabel = $durationMinutes
+            ? collect([
+                intdiv($durationMinutes, 60) > 0 ? intdiv($durationMinutes, 60) . ' jam' : null,
+                $durationMinutes % 60 > 0 ? $durationMinutes % 60 . ' menit' : null,
+            ])->filter()->implode(' ')
+            : 'Tanpa batas durasi';
+        $countdownTitle = 'Sisa Waktu Pengerjaan';
+        $countdownCaption = 'Timer dimulai saat peserta menekan tombol Mulai Ujian dan mengikuti durasi penugasan yang tersimpan.';
         $formatDateTime = fn($value) => $value ? $value->format('d M Y H:i') . ' WITA' : '-';
         $sessionDetails = [
             [
@@ -51,6 +54,10 @@
             [
                 'label' => 'Mulai Sesi',
                 'value' => $formatDateTime($sessionStartAt),
+            ],
+            [
+                'label' => 'Durasi Pengerjaan',
+                'value' => $durationLabel,
             ],
             [
                 'label' => 'Batas Selesai',

@@ -56,6 +56,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->string('kode_penugasan')->unique();
             $table->string('judul_penugasan');
             $table->string('target_ketenagaan')->nullable();
+            $table->unsignedBigInteger('assessment_combination_id')->nullable();
             $table->text('target_jabatan')->nullable();
             $table->text('target_kabupaten')->nullable();
             $table->text('deskripsi')->nullable();

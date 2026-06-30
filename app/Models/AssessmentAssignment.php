@@ -14,6 +14,7 @@ class AssessmentAssignment extends Model
         'kode_penugasan',
         'judul_penugasan',
         'target_ketenagaan',
+        'assessment_combination_id',
         'target_jabatan',
         'target_kabupaten',
         'deskripsi',
@@ -50,6 +51,11 @@ class AssessmentAssignment extends Model
             ->withPivot('urutan')
             ->withTimestamps()
             ->orderBy('assessment_assignment_assessments.urutan');
+    }
+
+    public function combination()
+    {
+        return $this->belongsTo(AssessmentCombination::class, 'assessment_combination_id');
     }
 
     public function creator()

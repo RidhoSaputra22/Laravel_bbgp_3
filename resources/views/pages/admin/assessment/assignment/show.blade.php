@@ -16,9 +16,10 @@
             ][$assignment->status_distribusi] ?? 'secondary';
 
         $assessments = $assignment->assessments;
-        $totalAssessments = $assessments->count();
-        $totalForms = $assessments->sum(fn($assessment) => $assessment->forms->count());
-        $totalFields = $assessments->sum(
+        $combination = $assignment->combination;
+        $totalAssessments = $combination?->total_assessments ?: $assessments->count();
+        $totalForms = $combination?->total_forms ?: $assessments->sum(fn($assessment) => $assessment->forms->count());
+        $totalFields = $combination?->total_questions ?: $assessments->sum(
             fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count()),
         );
     @endphp
@@ -217,10 +218,24 @@
                         </div>
                         <div class="mb-3">
                             <div class="text-muted small">Form Assessment Dipilih</div>
-                            <div>{{ $totalAssessments }} assessment</div>
+                            <div>{{ $totalAssessments }} assessment sumber</div>
                             <small class="text-muted">
                                 {{ $totalForms }} form / {{ $totalFields }} pertanyaan
                             </small>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Kombinasi Soal Dipakai</div>
+                            <div>
+                                @if ($combination)
+                                    <a href="{{ route('assessment.combination.show', $combination->id) }}">
+                                        {{ $combination->judul }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ $combination->kode_kombinasi }}</small>
+                                @else
+                                    <span class="text-muted">Belum terhubung ke kombinasi soal.</span>
+                                @endif
+                            </div>
                         </div>
                         <div class="mb-3">
                             <div class="text-muted small">Batch ID</div>
@@ -469,6 +484,10 @@
                                             <th>Sesi Assessment</th>
                                             <th>Status Target</th>
                                             <th>Waktu Ditugaskan</th>
+                                            <th>Mulai Dikerjakan</th>
+                                            <th>Batas Selesai</th>
+                                            <th>Selesai / Timeout</th>
+                                            <th>Mode Selesai</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -483,6 +502,8 @@
                                                         'dibatalkan' => 'secondary',
                                                     ][$target->status] ?? 'secondary';
                                                 $attemptStatus = optional($target->attempt)->status;
+                                                $completionMode = optional($target->attempt)->completion_mode ?: $target->completion_mode;
+                                                $completionBadge = $completionMode === 'timeout' ? 'secondary' : 'success';
                                             @endphp
                                             <tr>
                                                 <td class="text-center">{{ $loop->iteration }}</td>
@@ -515,6 +536,30 @@
                                                 </td>
                                                 <td>
                                                     {{ $target->assigned_at ? $target->assigned_at->format('d M Y H:i') : '-' }}
+                                                </td>
+                                                <td>
+                                                    {{ $target->started_at ? $target->started_at->format('d M Y H:i') : '-' }}
+                                                </td>
+                                                <td>
+                                                    {{ $target->deadline_at ? $target->deadline_at->format('d M Y H:i') : '-' }}
+                                                </td>
+                                                <td>
+                                                    @if ($target->submitted_at)
+                                                        {{ $target->submitted_at->format('d M Y H:i') }}
+                                                    @elseif ($target->timed_out_at)
+                                                        {{ $target->timed_out_at->format('d M Y H:i') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($completionMode)
+                                                        <span class="badge badge-{{ $completionBadge }}">
+                                                            {{ $completionMode === 'timeout' ? 'Timeout' : 'Manual' }}
+                                                        </span>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     @if ($attemptStatus === 'submitted')
@@ -612,7 +657,7 @@
 
             initDataTable('#table-assignment-assessment', [0]);
             initDataTable('#table-assignment-session', [0]);
-            initDataTable('#table-assignment-target', [0, 7]);
+            initDataTable('#table-assignment-target', [0, 11]);
         });
     </script>
 @endpush
