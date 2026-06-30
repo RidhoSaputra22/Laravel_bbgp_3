@@ -228,10 +228,8 @@
                             <div>
                                 @if ($combination)
                                     <a href="{{ route('assessment.combination.show', $combination->id) }}">
-                                        {{ $combination->judul }}
+                                        {{ $combination->kode_kombinasi }}
                                     </a>
-                                    <br>
-                                    <small class="text-muted">{{ $combination->kode_kombinasi }}</small>
                                 @else
                                     <span class="text-muted">Belum terhubung ke kombinasi soal.</span>
                                 @endif

@@ -259,17 +259,6 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Judul Kombinasi <span class="text-danger">*</span></label>
-                                        <input type="text" name="judul"
-                                            class="form-control @error('judul') is-invalid @enderror"
-                                            value="{{ old('judul') }}"
-                                            placeholder="Contoh: Kombinasi Soal Tenaga Pendidik Juli 2026">
-                                        @error('judul')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="form-group">
                                         <label>Ketenagaan <span class="text-danger">*</span></label>
                                         <div class="combination-ketenagaan-grid">
                                             @foreach ($ketenagaanCards as $value => $card)
@@ -296,15 +285,6 @@
                                         </div>
                                         @error('target_ketenagaan')
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Deskripsi</label>
-                                        <textarea name="deskripsi" rows="4" class="form-control @error('deskripsi') is-invalid @enderror"
-                                            placeholder="Catatan tambahan untuk admin.">{{ old('deskripsi') }}</textarea>
-                                        @error('deskripsi')
-                                            <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>

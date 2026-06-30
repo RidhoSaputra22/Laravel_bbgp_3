@@ -85,7 +85,6 @@ class AssessmentCombinationService
         ];
 
         return DB::transaction(function () use (
-            $payload,
             $generatedBy,
             $targetKetenagaan,
             $kodeKombinasi,
@@ -97,8 +96,8 @@ class AssessmentCombinationService
         ) {
             $combination = AssessmentCombination::create([
                 'kode_kombinasi' => $kodeKombinasi,
-                'judul' => trim((string) $payload['judul']),
-                'deskripsi' => filled($payload['deskripsi'] ?? null) ? trim((string) $payload['deskripsi']) : null,
+                'judul' => $kodeKombinasi,
+                'deskripsi' => null,
                 'target_ketenagaan' => $targetKetenagaan->value,
                 'random_seed' => $randomSeed,
                 'signature_hash' => $signatureHash,
@@ -708,7 +707,7 @@ class AssessmentCombinationService
             'combination' => [
                 'id' => $combination->id,
                 'kode_kombinasi' => $combination->kode_kombinasi,
-                'judul' => $combination->judul,
+                'judul' => $combination->kode_kombinasi,
                 'target_ketenagaan' => $combination->target_ketenagaan,
             ],
             'assessments' => $assessments,

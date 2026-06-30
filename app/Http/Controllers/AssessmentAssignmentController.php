@@ -550,7 +550,7 @@ class AssessmentAssignmentController extends Controller
                         return [
                             'id' => (int) $combination->id,
                             'kode' => $combination->kode_kombinasi,
-                            'judul' => $combination->judul,
+                            'judul' => $combination->kode_kombinasi,
                             'description' => trim(implode(' | ', array_filter([
                                 $combination->total_assessments.' assessment sumber',
                                 $combination->total_forms.' form',

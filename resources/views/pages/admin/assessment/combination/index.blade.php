@@ -128,7 +128,7 @@
                                         <tr>
                                             <th class="text-center">#</th>
                                             <th>Kode</th>
-                                            <th>Judul</th>
+                                            <th>Ketenagaan</th>
                                             <th>Struktur</th>
                                             <th>Dibuat</th>
                                             <th class="text-center">Action</th>
@@ -145,17 +145,17 @@
                                                     </small>
                                                 </td>
                                                 <td>
-                                                    <div class="font-weight-bold">{{ $data->judul }}</div>
                                                     @if ($data->target_ketenagaan_label)
                                                         <small class="d-inline-block mb-1">
                                                             <span class="badge badge-{{ $data->target_ketenagaan_badge_class }}">
                                                                 {{ $data->target_ketenagaan_label }}
                                                             </span>
                                                         </small>
-                                                        <br>
+                                                    @else
+                                                        <span class="text-muted">-</span>
                                                     @endif
-                                                    <small class="text-muted">
-                                                        {{ \Illuminate\Support\Str::limit($data->deskripsi ?: 'Tanpa deskripsi tambahan.', 90) }}
+                                                    <small class="text-muted d-block">
+                                                        Identitas kombinasi memakai kode otomatis.
                                                     </small>
                                                 </td>
                                                 <td>
@@ -180,7 +180,7 @@
                                                     @if ($data->assignments_count < 1)
                                                         <form action="{{ route('assessment.combination.hapus', $data->id) }}"
                                                             method="POST" class="d-inline-block my-1"
-                                                            onsubmit="return confirm('Hapus kombinasi soal {{ $data->judul }}?')">
+                                                            onsubmit="return confirm('Hapus kombinasi soal {{ $data->kode_kombinasi }}?')">
                                                             @csrf
                                                             <button type="submit" class="btn btn-danger btn-sm">
                                                                 <i class="fas fa-trash mr-1"></i> Hapus

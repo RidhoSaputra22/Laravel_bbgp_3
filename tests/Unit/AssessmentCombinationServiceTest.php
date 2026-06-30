@@ -171,7 +171,6 @@ class AssessmentCombinationServiceTest extends TestCase
 
         /** @var AssessmentCombination $combination */
         $combination = app(AssessmentCombinationService::class)->createCombination([
-            'judul' => 'Kombinasi Kompetensi Guru',
             'target_ketenagaan' => 'tenaga_pendidik',
             'competency_selection_modes' => [
                 $assessment->id => [
@@ -187,6 +186,9 @@ class AssessmentCombinationServiceTest extends TestCase
             ],
         ]);
 
+        $this->assertStringStartsWith('KMB-ASM-', $combination->kode_kombinasi);
+        $this->assertSame($combination->kode_kombinasi, $combination->judul);
+        $this->assertNull($combination->deskripsi);
         $this->assertSame(1, $combination->total_assessments);
         $this->assertSame(5, $combination->total_questions);
 

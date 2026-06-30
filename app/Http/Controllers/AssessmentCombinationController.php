@@ -124,8 +124,6 @@ class AssessmentCombinationController extends Controller
         $validator = Validator::make(
             $request->all(),
             [
-                'judul' => 'required|string|max:255',
-                'deskripsi' => 'nullable|string',
                 'target_ketenagaan' => [
                     'required',
                     'string',
@@ -135,7 +133,6 @@ class AssessmentCombinationController extends Controller
                 'competency_take_counts' => 'required|array|min:1',
             ],
             [
-                'judul.required' => 'Judul kombinasi wajib diisi.',
                 'target_ketenagaan.required' => 'Ketenagaan wajib dipilih.',
                 'target_ketenagaan.in' => 'Ketenagaan harus sesuai pilihan yang tersedia.',
                 'competency_selection_modes.required' => 'Konfigurasi kompetensi kombinasi wajib diisi.',

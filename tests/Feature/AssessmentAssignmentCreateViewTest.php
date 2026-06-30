@@ -40,7 +40,7 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                         [
                             'id' => 7,
                             'kode' => 'KMB-001',
-                            'judul' => 'Kombinasi Pendidik',
+                            'judul' => 'KMB-001',
                             'description' => '2 assessment sumber | 5 form | 17 soal',
                             'total_assessments' => 2,
                             'total_forms' => 5,
@@ -62,7 +62,7 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                         [
                             'id' => 8,
                             'kode' => 'KMB-002',
-                            'judul' => 'Kombinasi Stakeholder',
+                            'judul' => 'KMB-002',
                             'description' => '1 assessment sumber | 2 form | 6 soal',
                             'total_assessments' => 1,
                             'total_forms' => 2,
@@ -231,7 +231,7 @@ class AssessmentAssignmentCreateViewTest extends TestCase
         $response->assertSee('id="assignment-ketenagaan-tenaga_pendidik"', false);
         $response->assertSee('data-table-id="assignment-jabatan-selector"', false);
         $response->assertSee('data-table-id="assignment-kabupaten-selector"', false);
-        $response->assertSee('Kombinasi Pendidik');
+        $response->assertSee('KMB-001');
         $response->assertSee('Kepala Sekolah');
         $response->assertSee('Kota Makassar');
         $response->assertDontSee('data-table-id="guru-selector"', false);
@@ -276,7 +276,7 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                         [
                             'id' => 7,
                             'kode' => 'KMB-001',
-                            'judul' => 'Kombinasi Pendidik',
+                            'judul' => 'KMB-001',
                             'description' => '2 assessment sumber | 5 form | 17 soal',
                             'total_assessments' => 2,
                             'total_forms' => 5,

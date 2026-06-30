@@ -443,14 +443,14 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="form-group">
-                                                <label for="assessment_combination_id">Pilih Kombinasi Soal</label>
+                                                <label for="assessment_combination_id">Pilih Kode Kombinasi Soal</label>
                                                 <select name="assessment_combination_id" id="assessment_combination_id"
                                                     class="form-control @error('assessment_combination_id') is-invalid @enderror">
                                                     <option value="">Pilih kombinasi soal</option>
                                                     @foreach ($currentCombinationOptions as $combinationOption)
                                                         <option value="{{ $combinationOption['id'] }}"
                                                             @selected($selectedCombinationId === (int) $combinationOption['id'])>
-                                                            {{ $combinationOption['judul'] }}
+                                                            {{ $combinationOption['kode'] }}
                                                             ({{ $combinationOption['total_questions'] }} soal)
                                                         </option>
                                                     @endforeach
@@ -469,7 +469,7 @@
                                                     <div class="mb-3">
                                                         <div class="text-muted small">Ringkasan Kombinasi Terpilih</div>
                                                         <div class="font-weight-bold" id="combination-summary-title">
-                                                            {{ $currentSelectedCombination['judul'] ?? 'Pilih kombinasi soal terlebih dahulu' }}
+                                                            {{ $currentSelectedCombination['kode'] ?? 'Pilih kombinasi soal terlebih dahulu' }}
                                                         </div>
                                                         <small class="text-muted d-block" id="combination-summary-code">
                                                             {{ $currentSelectedCombination['kode'] ?? '-' }}
@@ -632,7 +632,7 @@
                                     <div class="mb-3">
                                         <div class="text-muted small">Kombinasi Dipilih</div>
                                         <div class="summary-value summary-value--compact" id="summary-combination-title">
-                                            {{ $currentSelectedCombination['judul'] ?? 'Belum dipilih' }}
+                                            {{ $currentSelectedCombination['kode'] ?? 'Belum dipilih' }}
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -1128,7 +1128,7 @@
                         const itemId = Number(item.id || 0);
                         const isSelected = nextValue > 0 && itemId === nextValue;
 
-                        return `<option value="${itemId}" ${isSelected ? 'selected' : ''}>${escapeHtml(item.judul || '-')}` +
+                        return `<option value="${itemId}" ${isSelected ? 'selected' : ''}>${escapeHtml(item.kode || '-')}` +
                             ` (${Number(item.total_questions || 0)} soal)</option>`;
                     }))
                     .join('');
@@ -1145,7 +1145,7 @@
                 const sourceAssessments = combination && Array.isArray(combination.source_assessments) ? combination.source_assessments : [];
 
                 if (titleNode) {
-                    titleNode.textContent = combination ? (combination.judul || '-') : 'Pilih kombinasi soal terlebih dahulu';
+                    titleNode.textContent = combination ? (combination.kode || '-') : 'Pilih kombinasi soal terlebih dahulu';
                 }
 
                 if (codeNode) {
@@ -1327,7 +1327,7 @@
                 }
 
                 if (summaryCombinationTitle) {
-                    summaryCombinationTitle.textContent = combination ? (combination.judul || '-') : 'Belum dipilih';
+                    summaryCombinationTitle.textContent = combination ? (combination.kode || '-') : 'Belum dipilih';
                 }
 
                 if (summaryKabupaten) {

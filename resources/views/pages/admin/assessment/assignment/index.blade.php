@@ -171,8 +171,7 @@
                                                 </td>
                                                 <td>
                                                     @if ($combination)
-                                                        <div class="font-weight-bold">{{ $combination->judul }}</div>
-                                                        <small class="text-muted d-block">{{ $combination->kode_kombinasi }}</small>
+                                                        <div class="font-weight-bold">{{ $combination->kode_kombinasi }}</div>
                                                         <small class="text-muted">
                                                             {{ $combination->total_assessments }} assessment sumber /
                                                             {{ $combination->total_forms }} form /

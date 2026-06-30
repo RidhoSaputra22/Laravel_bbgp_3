@@ -96,9 +96,12 @@ class AssessmentCombinationCreateViewTest extends TestCase
         $response->assertSee('Input Soal Per Assessment');
         $response->assertSee('Gunakan Semua Soal');
         $response->assertSee('Form Tanpa Kompetensi');
+        $response->assertSee('Otomatis saat simpan');
         $response->assertSee('name="target_ketenagaan"', false);
         $response->assertSee('competency_selection_modes[${assessmentId}][${competencyKey}]', false);
         $response->assertSee('competency_take_counts[${assessmentId}][${competencyKey}]', false);
+        $response->assertDontSee('name="judul"', false);
+        $response->assertDontSee('name="deskripsi"', false);
         $response->assertDontSee('form_take_counts[', false);
     }
 }

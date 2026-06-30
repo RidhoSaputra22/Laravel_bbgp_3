@@ -21,7 +21,7 @@
                     @if ($combination->assignments->isEmpty())
                         <form action="{{ route('assessment.combination.hapus', $combination->id) }}" method="POST"
                             class="d-inline-block"
-                            onsubmit="return confirm('Hapus kombinasi soal {{ $combination->judul }}?')">
+                            onsubmit="return confirm('Hapus kombinasi soal {{ $combination->kode_kombinasi }}?')">
                             @csrf
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-trash"></i> Hapus
@@ -133,14 +133,9 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="text-muted small">Judul</div>
-                            <div class="font-weight-bold">{{ $combination->judul }}</div>
-                        </div>
-
                         <div class="mb-0">
-                            <div class="text-muted small">Deskripsi</div>
-                            <div>{{ $combination->deskripsi ?: 'Tidak ada deskripsi tambahan.' }}</div>
+                            <div class="text-muted small">Catatan</div>
+                            <div>Identitas kombinasi ini memakai kode otomatis tanpa judul atau deskripsi manual.</div>
                         </div>
                     </div>
                 </div>
