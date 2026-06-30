@@ -57,7 +57,6 @@ class AssessmentAssignmentController extends Controller
             'menu' => $this->menu,
             'datas' => $datas,
             'monitoringByAssignmentId' => $monitoringByAssignmentId,
-            'monitoringPanel' => $this->assessmentMonitoringService->buildGlobalDashboard($datas),
         ]);
     }
 

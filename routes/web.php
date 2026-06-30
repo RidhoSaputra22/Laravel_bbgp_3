@@ -341,6 +341,8 @@ Route::group(
                     Route::post('/hapus/{id}', 'AssessmentCombinationController@destroy')->name('assessment.combination.hapus');
                 });
 
+                Route::get('/monitoring', 'AssessmentMonitoringController@index')->name('assessment.monitoring.index');
+
                 Route::prefix('penugasan')->group(function () {
                     Route::get('/', 'AssessmentAssignmentController@index')->name('assessment.assignment.index');
                     Route::get('/create', 'AssessmentAssignmentController@create')->name('assessment.assignment.create');

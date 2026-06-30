@@ -124,7 +124,7 @@
                </a>
             </li>
 
-            <li class="nav-item dropdown {{ in_array($menu, ['assessment', 'assessment-kombinasi', 'assessment-penugasan'], true) ? 'active' : '' }}">
+            <li class="nav-item dropdown {{ in_array($menu, ['assessment', 'assessment-kombinasi', 'assessment-penugasan', 'assessment-monitoring'], true) ? 'active' : '' }}">
                <a href="#" class="nav-link has-dropdown"><i class="fas fa-clipboard-list"></i>
                   <span>Assessment</span></a>
                <ul class="dropdown-menu">
@@ -141,6 +141,11 @@
                   <li class="{{ $menu == 'assessment-penugasan' ? 'active' : '' }}">
                      <a class="nav-link" href="{{ route('assessment.assignment.index') }}">
                         Penugasan
+                     </a>
+                  </li>
+                  <li class="{{ $menu == 'assessment-monitoring' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('assessment.monitoring.index') }}">
+                        Monitoring
                      </a>
                   </li>
                </ul>
