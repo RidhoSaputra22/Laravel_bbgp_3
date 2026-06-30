@@ -18,7 +18,7 @@ class AssessmentQuestionRandomizerService
     {
         $assignment = $target->assignment;
         $targetId = (int) ($target->getKey() ?? 0);
-        $combination = $assignment->combination;
+        $combination = $target->combination ?: $assignment->combination;
 
         if ($combination && ! empty($combination->structure_snapshot)) {
             return $this->buildSnapshotFromCombination($target, $combination->structure_snapshot);

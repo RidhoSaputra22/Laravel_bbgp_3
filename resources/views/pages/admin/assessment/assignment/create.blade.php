@@ -14,15 +14,9 @@
         'target_ketenagaan',
         $assignment?->target_ketenagaan ?? \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
-    $selectedCombinationId = (int) old(
-        'assessment_combination_id',
-        $assignment?->assessment_combination_id ?? 0,
-    );
     $currentCombinationOptions = collect($combinationOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])
         ->values()
         ->all();
-    $currentSelectedCombination = collect($currentCombinationOptions)
-        ->first(fn ($item) => (int) data_get($item, 'id') === $selectedCombinationId);
     $selectedTargetJabatan = collect((array) old('target_jabatan', $assignment?->target_jabatan ?? []))
         ->filter(fn ($jabatan) => filled($jabatan))
         ->map(fn ($jabatan) => trim((string) $jabatan))
@@ -439,89 +433,95 @@
 
                                     <div class="card border shadow-none mb-4">
                                         <div class="card-header bg-white">
-                                            <h4 class="mb-0">Kombinasi Soal <span class="text-danger">*</span></h4>
+                                            <h4 class="mb-0">Distribusi Kombinasi Soal Otomatis</h4>
                                         </div>
                                         <div class="card-body">
-                                            <div class="form-group">
-                                                <label for="assessment_combination_id">Pilih Kode Kombinasi Soal</label>
-                                                <select name="assessment_combination_id" id="assessment_combination_id"
-                                                    class="form-control @error('assessment_combination_id') is-invalid @enderror">
-                                                    <option value="">Pilih kombinasi soal</option>
-                                                    @foreach ($currentCombinationOptions as $combinationOption)
-                                                        <option value="{{ $combinationOption['id'] }}"
-                                                            @selected($selectedCombinationId === (int) $combinationOption['id'])>
-                                                            {{ $combinationOption['kode'] }}
-                                                            ({{ $combinationOption['total_questions'] }} soal)
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <small class="form-text text-muted">
-                                                    Snapshot ujian, child soal, dan sistem penilaian akan merujuk pada
-                                                    kombinasi ini, bukan langsung ke bank soal aktif.
-                                                </small>
-                                                @error('assessment_combination_id')
-                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                                @enderror
+                                            <div class="alert alert-light border mb-4">
+                                                Admin tidak perlu lagi memilih kombinasi soal secara manual. Sistem akan
+                                                mengambil seluruh kombinasi aktif pada ketenagaan target, mengacak urutan
+                                                kombinasinya secara stabil berdasarkan konfigurasi penugasan, lalu
+                                                membaginya otomatis per kabupaten dengan strategi round robin agar
+                                                distribusi tetap rata.
                                             </div>
 
                                             <div class="auto-summary-panel mb-0">
                                                 <div class="d-flex flex-wrap justify-content-between align-items-start">
                                                     <div class="mb-3">
-                                                        <div class="text-muted small">Ringkasan Kombinasi Terpilih</div>
-                                                        <div class="font-weight-bold" id="combination-summary-title">
-                                                            {{ $currentSelectedCombination['kode'] ?? 'Pilih kombinasi soal terlebih dahulu' }}
+                                                        <div class="text-muted small">Pool Kombinasi Aktif</div>
+                                                        <div class="font-weight-bold" id="auto-combination-summary-title">
+                                                            {{ count($currentCombinationOptions) > 0 ? count($currentCombinationOptions) . ' kombinasi siap dibagikan otomatis' : 'Belum ada kombinasi aktif untuk ketenagaan ini' }}
                                                         </div>
-                                                        <small class="text-muted d-block" id="combination-summary-code">
-                                                            {{ $currentSelectedCombination['kode'] ?? '-' }}
+                                                        <small class="text-muted d-block" id="auto-combination-summary-code">
+                                                            Round robin per kabupaten dengan urutan acak stabil.
                                                         </small>
                                                     </div>
                                                     <div class="mb-3 text-right">
-                                                        <span class="auto-summary-pill" id="combination-summary-assessments">
-                                                            {{ (int) ($currentSelectedCombination['total_assessments'] ?? 0) }} assessment
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-count">
+                                                            {{ count($currentCombinationOptions) }} kombinasi
                                                         </span>
-                                                        <span class="auto-summary-pill" id="combination-summary-forms">
-                                                            {{ (int) ($currentSelectedCombination['total_forms'] ?? 0) }} form
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-assessments">
+                                                            0 assessment
                                                         </span>
-                                                        <span class="auto-summary-pill" id="combination-summary-questions">
-                                                            {{ (int) ($currentSelectedCombination['total_questions'] ?? 0) }} soal
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-forms">
+                                                            0 form
+                                                        </span>
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-questions">
+                                                            0 soal
                                                         </span>
                                                     </div>
                                                 </div>
 
-                                                <div class="table-responsive">
+                                                <div class="table-responsive mb-4">
                                                     <table class="table table-sm auto-summary-table mb-0">
                                                         <thead>
                                                             <tr>
-                                                                <th>Kode</th>
+                                                                <th>Kode Kombinasi</th>
                                                                 <th>Assessment Sumber</th>
                                                                 <th>Struktur</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody id="combination-summary-assessment-list">
-                                                            @if (!empty($currentSelectedCombination['source_assessments']))
-                                                                @foreach ($currentSelectedCombination['source_assessments'] as $sourceAssessment)
+                                                        <tbody id="auto-combination-list">
+                                                            @if (!empty($currentCombinationOptions))
+                                                                @foreach ($currentCombinationOptions as $combinationOption)
                                                                     <tr>
                                                                         <td class="font-weight-bold">
-                                                                            {{ $sourceAssessment['kode'] ?: '-' }}
+                                                                            {{ $combinationOption['kode'] ?: '-' }}
                                                                         </td>
                                                                         <td>
-                                                                            <div class="font-weight-600">
-                                                                                {{ $sourceAssessment['judul'] ?: '-' }}
-                                                                            </div>
+                                                                            {{ $combinationOption['total_assessments'] ?? 0 }} assessment sumber
                                                                         </td>
                                                                         <td>
-                                                                            {{ $sourceAssessment['form_count'] ?? 0 }} form /
-                                                                            {{ $sourceAssessment['question_count'] ?? 0 }} soal
+                                                                            {{ $combinationOption['total_forms'] ?? 0 }} form /
+                                                                            {{ $combinationOption['total_questions'] ?? 0 }} soal
                                                                         </td>
                                                                     </tr>
                                                                 @endforeach
                                                             @else
                                                                 <tr>
                                                                     <td colspan="3" class="auto-summary-empty">
-                                                                        Detail assessment sumber akan tampil setelah kombinasi dipilih.
+                                                                        Kombinasi aktif akan tampil otomatis setelah ketenagaan dipilih.
                                                                     </td>
                                                                 </tr>
                                                             @endif
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm auto-summary-table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Kabupaten</th>
+                                                                <th>Kode Kombinasi</th>
+                                                                <th>Target User</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="auto-combination-distribution-list">
+                                                            <tr>
+                                                                <td colspan="3" class="auto-summary-empty">
+                                                                    Preview pembagian kabupaten akan tampil setelah jabatan dan kabupaten target dipilih.
+                                                                </td>
+                                                            </tr>
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -630,9 +630,9 @@
                                         <div class="summary-value summary-value--compact" id="summary-jabatan">Belum dipilih</div>
                                     </div>
                                     <div class="mb-3">
-                                        <div class="text-muted small">Kombinasi Dipilih</div>
+                                        <div class="text-muted small">Distribusi Kombinasi</div>
                                         <div class="summary-value summary-value--compact" id="summary-combination-title">
-                                            {{ $currentSelectedCombination['kode'] ?? 'Belum dipilih' }}
+                                            {{ count($currentCombinationOptions) > 0 ? count($currentCombinationOptions) . ' kombinasi otomatis' : 'Belum tersedia' }}
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -640,13 +640,13 @@
                                         <div class="summary-value summary-value--compact" id="summary-kabupaten">Belum dipilih</div>
                                     </div>
                                     <div class="mb-3">
-                                        <div class="text-muted small">Assessment Sumber Kombinasi</div>
+                                        <div class="text-muted small">Assessment Sumber</div>
                                         <div class="summary-value" id="summary-assessment-count">0</div>
                                     </div>
 
                                     <div class="row">
                                         <div class="col-6">
-                                            <div class="text-muted small">Form Kombinasi</div>
+                                            <div class="text-muted small">Form Sumber</div>
                                             <div class="summary-value" id="summary-forms">0</div>
                                         </div>
                                         <div class="col-6">
@@ -1002,7 +1002,15 @@
                     return;
                 }
 
+                selectedKabupatenNode.innerHTML = selectedKabupatenItems.map((item) => {
+                    const userCount = Number((item.payload && item.payload.user_count) || 0);
 
+                    return `
+                        <span class="auto-summary-pill">
+                            ${escapeHtml(item.label || item.id || '-')} (${userCount} user)
+                        </span>
+                    `;
+                }).join('');
             }
 
             function formatSelectedJabatanSummary(selectedJabatanItems) {
@@ -1049,24 +1057,100 @@
                 return Number((durationSelect ? durationSelect.value : '') || defaultDurationHours);
             }
 
-            function getCombinationSelect() {
-                return document.getElementById('assessment_combination_id');
-            }
-
             function getAvailableCombinationOptions(target = getSelectedTargetKetenagaan()) {
                 return target && Array.isArray(combinationOptionsByKetenagaan[target]) ? combinationOptionsByKetenagaan[target] : [];
             }
 
-            function getSelectedCombinationId() {
-                const select = getCombinationSelect();
+            function getAssignmentTitle() {
+                const titleInput = document.querySelector('input[name="judul_penugasan"]');
 
-                return Number((select ? select.value : '') || 0);
+                return titleInput ? String(titleInput.value || '').trim() : '';
             }
 
-            function getSelectedCombination() {
-                const selectedId = getSelectedCombinationId();
+            function normalizeSeedSelectionList(values) {
+                return values
+                    .map((value) => String(value || '').trim())
+                    .filter((value) => value !== '')
+                    .sort((left, right) => left.localeCompare(right, 'id', {
+                        sensitivity: 'base',
+                        numeric: true,
+                    }));
+            }
 
-                return getAvailableCombinationOptions().find((item) => Number(item.id || 0) === selectedId) || null;
+            function buildCombinationSeedKey() {
+                return [
+                    getAssignmentTitle(),
+                    getSelectedTargetKetenagaan(),
+                    normalizeSeedSelectionList(getSelectedJabatanIds()).join(','),
+                    normalizeSeedSelectionList(getSelectedKabupatenIds()).join(','),
+                ].join('|');
+            }
+
+            function stableHash(value) {
+                let hash = 5381;
+
+                for (let index = 0; index < value.length; index += 1) {
+                    hash = (((hash << 5) + hash) + value.charCodeAt(index)) & 0x7fffffff;
+                }
+
+                return hash >>> 0;
+            }
+
+            function sortCombinationOptionsForRoundRobin(options, seedKey = buildCombinationSeedKey()) {
+                return [...options].sort((left, right) => {
+                    const leftHash = stableHash(seedKey + '|' + Number(left.id || 0));
+                    const rightHash = stableHash(seedKey + '|' + Number(right.id || 0));
+
+                    if (leftHash === rightHash) {
+                        return Number(left.id || 0) - Number(right.id || 0);
+                    }
+
+                    return leftHash - rightHash;
+                });
+            }
+
+            function buildAutoCombinationDistribution() {
+                const combinationOptions = getAvailableCombinationOptions();
+                const orderedCombinations = sortCombinationOptionsForRoundRobin(combinationOptions);
+                const selectedKabupatenItems = [...getSelectedKabupatenItems()].sort((left, right) => {
+                    const leftLabel = String(left.label || left.id || '');
+                    const rightLabel = String(right.label || right.id || '');
+
+                    return leftLabel.localeCompare(rightLabel, 'id', {
+                        sensitivity: 'base',
+                        numeric: true,
+                    });
+                });
+                const rows = selectedKabupatenItems.map((item, index) => {
+                    return {
+                        kabupaten: item,
+                        combination: orderedCombinations[index % orderedCombinations.length] || null,
+                    };
+                });
+
+                return {
+                    combinationOptions,
+                    orderedCombinations,
+                    rows,
+                };
+            }
+
+            function buildMetricValue(options, key) {
+                const values = [...new Set(options.map((item) => Number(item && item[key] || 0)))].sort((left, right) => left - right);
+
+                if (values.length === 0) {
+                    return '0';
+                }
+
+                if (values.length === 1) {
+                    return String(values[0]);
+                }
+
+                return `${values[0]}-${values[values.length - 1]}`;
+            }
+
+            function buildMetricLabel(options, key, label) {
+                return `${buildMetricValue(options, key)} ${label}`;
             }
 
             function getSelectedStartTime() {
@@ -1110,69 +1194,18 @@
                 }).join('');
             }
 
-            function renderCombinationOptions() {
-                const select = getCombinationSelect();
-
-                if (!select) {
-                    return;
-                }
-
-                const options = getAvailableCombinationOptions();
-                const previousValue = Number(select.value || 0);
-                const nextValue = options.some((item) => Number(item.id || 0) === previousValue)
-                    ? previousValue
-                    : Number(options[0] && options[0].id ? options[0].id : 0);
-
-                select.innerHTML = ['<option value="">Pilih kombinasi soal</option>']
-                    .concat(options.map((item) => {
-                        const itemId = Number(item.id || 0);
-                        const isSelected = nextValue > 0 && itemId === nextValue;
-
-                        return `<option value="${itemId}" ${isSelected ? 'selected' : ''}>${escapeHtml(item.kode || '-')}` +
-                            ` (${Number(item.total_questions || 0)} soal)</option>`;
-                    }))
-                    .join('');
-            }
-
-            function renderCombinationSummary() {
-                const combination = getSelectedCombination();
-                const titleNode = document.getElementById('combination-summary-title');
-                const codeNode = document.getElementById('combination-summary-code');
-                const assessmentsNode = document.getElementById('combination-summary-assessments');
-                const formsNode = document.getElementById('combination-summary-forms');
-                const questionsNode = document.getElementById('combination-summary-questions');
-                const tbody = document.getElementById('combination-summary-assessment-list');
-                const sourceAssessments = combination && Array.isArray(combination.source_assessments) ? combination.source_assessments : [];
-
-                if (titleNode) {
-                    titleNode.textContent = combination ? (combination.kode || '-') : 'Pilih kombinasi soal terlebih dahulu';
-                }
-
-                if (codeNode) {
-                    codeNode.textContent = combination ? (combination.kode || '-') : '-';
-                }
-
-                if (assessmentsNode) {
-                    assessmentsNode.textContent = Number(combination && combination.total_assessments || 0) + ' assessment';
-                }
-
-                if (formsNode) {
-                    formsNode.textContent = Number(combination && combination.total_forms || 0) + ' form';
-                }
-
-                if (questionsNode) {
-                    questionsNode.textContent = Number(combination && combination.total_questions || 0) + ' soal';
-                }
+            function renderAutoCombinationList(orderedCombinations) {
+                const tbody = document.getElementById('auto-combination-list');
 
                 if (!tbody) {
                     return;
                 }
 
-                if (sourceAssessments.length === 0) {
+                if (orderedCombinations.length === 0) {
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="3" class="auto-summary-empty">
-                                Detail assessment sumber akan tampil setelah kombinasi dipilih.
+                                Kombinasi aktif akan tampil otomatis setelah ketenagaan dipilih.
                             </td>
                         </tr>
                     `;
@@ -1180,14 +1213,58 @@
                     return;
                 }
 
-                tbody.innerHTML = sourceAssessments.map((item) => {
+                tbody.innerHTML = orderedCombinations.map((item) => {
                     return `
                         <tr>
                             <td class="font-weight-bold">${escapeHtml(item.kode || '-')}</td>
-                            <td>
-                                <div class="font-weight-600">${escapeHtml(item.judul || '-')}</div>
+                            <td>${Number(item.total_assessments || 0)} assessment sumber</td>
+                            <td>${Number(item.total_forms || 0)} form / ${Number(item.total_questions || 0)} soal</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            function renderAutoCombinationDistribution(distributionRows, combinationOptions, selectedKabupatenItems) {
+                const tbody = document.getElementById('auto-combination-distribution-list');
+
+                if (!tbody) {
+                    return;
+                }
+
+                if (combinationOptions.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="auto-summary-empty">
+                                Belum ada kombinasi aktif yang bisa dibagikan otomatis untuk ketenagaan ini.
                             </td>
-                            <td>${Number(item.form_count || 0)} form / ${Number(item.question_count || 0)} soal</td>
+                        </tr>
+                    `;
+
+                    return;
+                }
+
+                if (selectedKabupatenItems.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="auto-summary-empty">
+                                Preview pembagian kabupaten akan tampil setelah jabatan dan kabupaten target dipilih.
+                            </td>
+                        </tr>
+                    `;
+
+                    return;
+                }
+
+                tbody.innerHTML = distributionRows.map((row) => {
+                    const userCount = Number((row.kabupaten.payload && row.kabupaten.payload.user_count) || 0);
+
+                    return `
+                        <tr>
+                            <td class="font-weight-bold">${escapeHtml(row.kabupaten.label || row.kabupaten.id || '-')}</td>
+                            <td>
+                                <div class="font-weight-600">${escapeHtml(row.combination && row.combination.kode || '-')}</div>
+                            </td>
+                            <td>${userCount} user</td>
                         </tr>
                     `;
                 }).join('');
@@ -1199,6 +1276,8 @@
                 const selectedJabatanItems = getSelectedJabatanItems();
                 const availableKabupatenItems = buildKabupatenItemsForSelection();
                 const selectedKabupatenItems = getSelectedKabupatenItems();
+                const combinationDistribution = buildAutoCombinationDistribution();
+                const combinationOptions = combinationDistribution.combinationOptions;
                 const labelNode = document.getElementById('auto-summary-ketenagaan-label');
                 const assessmentCountNode = document.getElementById('auto-summary-assessment-count');
                 const jabatanCountNode = document.getElementById('auto-summary-jabatan-count');
@@ -1209,13 +1288,20 @@
                 const distributionNode = document.getElementById('auto-summary-distribution');
                 const warningNode = document.getElementById('auto-summary-warning');
                 const submitButton = document.getElementById('assignment-submit-button');
-                const selectedCombination = getSelectedCombination();
+                const combinationTitleNode = document.getElementById('auto-combination-summary-title');
+                const combinationCodeNode = document.getElementById('auto-combination-summary-code');
+                const combinationCountNode = document.getElementById('auto-combination-summary-count');
+                const combinationAssessmentsNode = document.getElementById('auto-combination-summary-assessments');
+                const combinationFormsNode = document.getElementById('auto-combination-summary-forms');
+                const combinationQuestionsNode = document.getElementById('auto-combination-summary-questions');
 
                 const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
                 const userCount = selectedKabupatenItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
-                const distributionMethod = userCount === 0 ? '-' : (userCount > batchThreshold ? 'Batch Job' : 'Langsung');
+                const distributionMethod = userCount === 0
+                    ? '-'
+                    : `Round Robin per Kabupaten / ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
 
                 if (labelNode) {
                     labelNode.textContent = summary ? summary.label : 'Pilih ketenagaan terlebih dahulu';
@@ -1252,6 +1338,46 @@
                 renderSelectedJabatanBadges(selectedJabatanItems);
                 renderSelectedKabupatenBadges(selectedKabupatenItems, selectedJabatanItems);
 
+                if (combinationTitleNode) {
+                    combinationTitleNode.textContent = combinationOptions.length > 0
+                        ? `${combinationOptions.length} kombinasi siap dibagikan otomatis`
+                        : 'Belum ada kombinasi aktif untuk ketenagaan ini';
+                }
+
+                if (combinationCodeNode) {
+                    combinationCodeNode.textContent = combinationOptions.length > 0
+                        ? 'Urutan kombinasi diacak stabil dari judul penugasan + target jabatan/kabupaten.'
+                        : 'Round robin per kabupaten dengan urutan acak stabil.';
+                }
+
+                if (combinationCountNode) {
+                    combinationCountNode.textContent = combinationOptions.length + ' kombinasi';
+                }
+
+                if (combinationAssessmentsNode) {
+                    combinationAssessmentsNode.textContent = buildMetricLabel(
+                        combinationOptions,
+                        'total_assessments',
+                        'assessment'
+                    );
+                }
+
+                if (combinationFormsNode) {
+                    combinationFormsNode.textContent = buildMetricLabel(
+                        combinationOptions,
+                        'total_forms',
+                        'form'
+                    );
+                }
+
+                if (combinationQuestionsNode) {
+                    combinationQuestionsNode.textContent = buildMetricLabel(
+                        combinationOptions,
+                        'total_questions',
+                        'soal'
+                    );
+                }
+
                 if (warningNode) {
                     const warningMessages = [];
 
@@ -1259,8 +1385,8 @@
                         warningMessages.push('Belum ada assessment yang aktif dan berstatus publish untuk ketenagaan ini.');
                     }
 
-                    if (summary && !selectedCombination) {
-                        warningMessages.push('Pilih kombinasi soal yang akan dipakai pada penugasan ini.');
+                    if (summary && combinationOptions.length === 0) {
+                        warningMessages.push('Belum ada kombinasi soal aktif yang bisa dibagikan otomatis pada ketenagaan ini.');
                     }
 
                     if (summary && availableJabatanItems.length === 0) {
@@ -1280,29 +1406,36 @@
                 }
 
                 if (submitButton) {
-                    submitButton.disabled = !summary || !selectedCombination || assessmentCount === 0 || selectedJabatanItems.length === 0 ||
+                    submitButton.disabled = !summary || combinationOptions.length === 0 || assessmentCount === 0 || selectedJabatanItems.length === 0 ||
                         selectedKabupatenItems.length === 0 ||
                         userCount === 0;
                 }
 
                 renderAssessmentList(summary);
-                renderCombinationSummary();
+                renderAutoCombinationList(combinationDistribution.orderedCombinations);
+                renderAutoCombinationDistribution(
+                    combinationDistribution.rows,
+                    combinationOptions,
+                    selectedKabupatenItems
+                );
             }
 
             function updateSidebarSummary() {
                 const summary = getSelectedSummary();
-                const combination = getSelectedCombination();
                 const selectedJabatanItems = getSelectedJabatanItems();
                 const selectedKabupatenItems = getSelectedKabupatenItems();
-                const assessmentCount = combination ? Number(combination.total_assessments || 0) : 0;
-                const formCount = combination ? Number(combination.total_forms || 0) : 0;
-                const fieldCount = combination ? Number(combination.total_questions || 0) : 0;
+                const combinationOptions = getAvailableCombinationOptions();
+                const assessmentCount = buildMetricValue(combinationOptions, 'total_assessments');
+                const formCount = buildMetricValue(combinationOptions, 'total_forms');
+                const fieldCount = buildMetricValue(combinationOptions, 'total_questions');
                 const userCount = selectedKabupatenItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
                 const totalSessions = userCount > 0 ? Math.ceil(userCount / sessionCapacity) : 0;
                 const durationHours = getSelectedDurationHours();
-                const distributionMethod = userCount === 0 ? '-' : (userCount > batchThreshold ? 'Batch Job' : 'Langsung');
+                const distributionMethod = userCount === 0
+                    ? '-'
+                    : `Round Robin per Kabupaten / ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
                 const summaryJabatan = document.getElementById('summary-jabatan');
@@ -1327,7 +1460,9 @@
                 }
 
                 if (summaryCombinationTitle) {
-                    summaryCombinationTitle.textContent = combination ? (combination.kode || '-') : 'Belum dipilih';
+                    summaryCombinationTitle.textContent = combinationOptions.length > 0
+                        ? `${combinationOptions.length} kombinasi / round robin`
+                        : 'Belum tersedia';
                 }
 
                 if (summaryKabupaten) {
@@ -1379,6 +1514,7 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const jabatanSelector = getJabatanSelector();
                 const kabupatenSelector = getKabupatenSelector();
+                const titleInput = document.querySelector('input[name="judul_penugasan"]');
 
                 if (jabatanSelector) {
                     jabatanSelector.addEventListener('multiple-choice-table:change', function() {
@@ -1393,21 +1529,18 @@
 
                 document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
                     input.addEventListener('change', function() {
-                        renderCombinationOptions();
                         syncJabatanSelector();
                         syncKabupatenSelector();
                         refreshSummaries();
                     });
                 });
 
-                const combinationSelect = getCombinationSelect();
-
-                if (combinationSelect) {
-                    combinationSelect.addEventListener('change', refreshSummaries);
-                }
-
                 const durationSelect = document.getElementById('durasi_sesi_jam');
                 const startTimeInput = document.getElementById('jam_mulai');
+
+                if (titleInput) {
+                    titleInput.addEventListener('input', refreshSummaries);
+                }
 
                 if (durationSelect) {
                     durationSelect.addEventListener('change', updateSidebarSummary);
@@ -1417,7 +1550,6 @@
                     startTimeInput.addEventListener('change', updateSidebarSummary);
                 }
 
-                renderCombinationOptions();
                 refreshSummaries();
 
                 @if ($isEditMode)

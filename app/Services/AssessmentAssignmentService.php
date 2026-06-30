@@ -6,13 +6,15 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
-use App\Models\AssessmentCombination;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
+use App\Models\AssessmentCombination;
+use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -32,6 +34,36 @@ class AssessmentAssignmentService
 
     public const SESSION_DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
+    public function getAvailableCombinationsForKetenagaan(
+        AssessmentKetenagaanType $targetKetenagaan
+    ): Collection {
+        if (! Schema::hasTable('assessment_combinations')) {
+            return collect();
+        }
+
+        $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
+
+        if ($latestGenerationId) {
+            $generatedCombinations = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
+                ->where('assessment_combination_generation_id', $latestGenerationId)
+                ->reorder()
+                ->orderByRaw('case when generation_sequence is null then 1 else 0 end')
+                ->orderBy('generation_sequence')
+                ->when(
+                    Schema::hasColumn('assessment_combinations', 'generated_at'),
+                    fn ($query) => $query->orderByDesc('generated_at')
+                )
+                ->orderByDesc('id')
+                ->get();
+
+            if ($generatedCombinations->isNotEmpty()) {
+                return $generatedCombinations->values();
+            }
+        }
+
+        return $this->buildCombinationPoolBaseQuery($targetKetenagaan)->get()->values();
+    }
+
     public function createAssignment(array $payload, ?int $assignedBy = null): AssessmentAssignment
     {
         $context = $this->prepareAssignmentContext($payload);
@@ -48,7 +80,7 @@ class AssessmentAssignmentService
                 'kode_penugasan' => $this->generateUniqueCode(),
                 'judul_penugasan' => $payload['judul_penugasan'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
-                'assessment_combination_id' => $context['assessment_combination']?->id,
+                'assessment_combination_id' => $context['primary_assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
                 'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
@@ -73,7 +105,12 @@ class AssessmentAssignmentService
                 $context['first_session_start_at']
             );
 
-            $targetRows = $this->buildTargetRows($assignment->id, $context['guru_ids'], $sessionRows);
+            $targetRows = $this->buildTargetRows(
+                $assignment,
+                $context['guru_ids'],
+                $sessionRows,
+                $context['assessment_combinations']
+            );
 
             if (! $shouldBatch) {
                 $this->storeTargetRows($targetRows);
@@ -127,7 +164,7 @@ class AssessmentAssignmentService
             $assignment->forceFill([
                 'judul_penugasan' => $payload['judul_penugasan'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
-                'assessment_combination_id' => $context['assessment_combination']?->id,
+                'assessment_combination_id' => $context['primary_assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
                 'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
@@ -155,9 +192,10 @@ class AssessmentAssignmentService
             );
 
             $targetRows = $this->buildTargetRows(
-                $assignment->id,
+                $assignment,
                 $context['guru_ids'],
-                $sessions
+                $sessions,
+                $context['assessment_combinations']
             );
 
             if (! $shouldBatch) {
@@ -345,14 +383,17 @@ class AssessmentAssignmentService
     private function prepareAssignmentContext(array $payload): array
     {
         $targetKetenagaan = $this->resolveTargetKetenagaan($payload);
-        $assessmentCombination = $this->resolveAssessmentCombination($payload, $targetKetenagaan);
+        $assessmentCombinations = $this->resolveAssessmentCombinations($payload, $targetKetenagaan);
         $startTime = $this->normalizeStartTime($payload['jam_mulai'] ?? null);
 
         return [
             'target_ketenagaan' => $targetKetenagaan,
-            'assessment_combination' => $assessmentCombination,
-            'uses_combination' => $assessmentCombination !== null,
-            'assessment_ids' => $this->resolveAssessmentIds($payload, $targetKetenagaan, $assessmentCombination),
+            'assessment_combinations' => $assessmentCombinations,
+            'primary_assessment_combination' => $assessmentCombinations->count() === 1
+                ? $assessmentCombinations->first()
+                : null,
+            'uses_combination' => $assessmentCombinations->isNotEmpty(),
+            'assessment_ids' => $this->resolveAssessmentIds($payload, $targetKetenagaan, $assessmentCombinations),
             'guru_ids' => $this->resolveGuruIds($payload, $targetKetenagaan),
             'session_duration_hours' => (int) ($payload['durasi_sesi_jam'] ?? self::DEFAULT_SESSION_DURATION_HOURS),
             'start_time' => $startTime,
@@ -444,7 +485,12 @@ class AssessmentAssignmentService
         if ($resumeRows === []) {
             $expectedGuruIds = $this->resolveExpectedGuruIdsFromAssignment($assignment);
             $sessions = $this->ensureSessionsForAssignment($assignment, count($expectedGuruIds));
-            $resumeRows = $this->buildTargetRows($assignment->id, $expectedGuruIds, $sessions);
+            $resumeRows = $this->buildTargetRows(
+                $assignment,
+                $expectedGuruIds,
+                $sessions,
+                $this->resolveAssessmentCombinationsFromAssignment($assignment)
+            );
         }
 
         return $this->filterMissingTargetRows($assignment, $resumeRows);
@@ -510,6 +556,9 @@ class AssessmentAssignmentService
             ->filter(fn ($row) => is_array($row) && filled($row['guru_id'] ?? null))
             ->reject(fn ($row) => isset($existingGuruIdLookup[(int) $row['guru_id']]))
             ->map(function (array $row) {
+                $row['assessment_combination_id'] = filled($row['assessment_combination_id'] ?? null)
+                    ? (int) $row['assessment_combination_id']
+                    : null;
                 $row['status'] = $row['status'] ?? 'ditugaskan';
                 $row['assigned_at'] = $this->normalizeQueueDateTime($row['assigned_at'] ?? null) ?? now();
                 $row['created_at'] = $this->normalizeQueueDateTime($row['created_at'] ?? null) ?? now();
@@ -688,6 +737,7 @@ class AssessmentAssignmentService
             ['assessment_assignment_id', 'guru_id'],
             [
                 'assessment_assignment_session_id',
+                'assessment_combination_id',
                 'status',
                 'assigned_at',
                 'updated_at',
@@ -910,10 +960,10 @@ class AssessmentAssignmentService
     private function resolveAssessmentIds(
         array $payload,
         ?AssessmentKetenagaanType $targetKetenagaan = null,
-        ?AssessmentCombination $assessmentCombination = null
+        ?Collection $assessmentCombinations = null
     ): array {
-        if ($assessmentCombination) {
-            return $this->extractAssessmentIdsFromCombination($assessmentCombination);
+        if ($assessmentCombinations && $assessmentCombinations->isNotEmpty()) {
+            return $this->extractAssessmentIdsFromCombinations($assessmentCombinations);
         }
 
         if ($targetKetenagaan) {
@@ -1045,10 +1095,61 @@ class AssessmentAssignmentService
         return array_values(array_unique(array_map('intval', $assessmentIds)));
     }
 
-    private function resolveAssessmentCombination(
+    private function resolveAssessmentCombinations(
+        array $payload,
+        ?AssessmentKetenagaanType $targetKetenagaan = null
+    ): Collection {
+        if ($targetKetenagaan) {
+            $combinationPool = $this->getAvailableCombinationsForKetenagaan($targetKetenagaan);
+
+            if ($combinationPool->isNotEmpty()) {
+                return $combinationPool;
+            }
+        }
+
+        $legacyCombination = $this->resolveLegacySelectedCombination($payload, $targetKetenagaan);
+
+        return $legacyCombination ? collect([$legacyCombination]) : collect();
+    }
+
+    private function resolveAssessmentCombinationsFromAssignment(
+        AssessmentAssignment $assignment
+    ): Collection {
+        $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($assignment->target_ketenagaan);
+
+        if ($targetKetenagaan) {
+            $combinationPool = $this->getAvailableCombinationsForKetenagaan($targetKetenagaan);
+
+            if ($combinationPool->isNotEmpty()) {
+                return $combinationPool;
+            }
+        }
+
+        if (
+            Schema::hasTable('assessment_combinations') &&
+            filled($assignment->assessment_combination_id)
+        ) {
+            $legacyCombination = AssessmentCombination::query()
+                ->whereKey((int) $assignment->assessment_combination_id)
+                ->where('is_active', true)
+                ->first();
+
+            if ($legacyCombination) {
+                return collect([$legacyCombination]);
+            }
+        }
+
+        return collect();
+    }
+
+    private function resolveLegacySelectedCombination(
         array $payload,
         ?AssessmentKetenagaanType $targetKetenagaan = null
     ): ?AssessmentCombination {
+        if (! Schema::hasTable('assessment_combinations')) {
+            return null;
+        }
+
         $combinationId = (int) ($payload['assessment_combination_id'] ?? 0);
 
         if ($combinationId < 1) {
@@ -1066,6 +1167,15 @@ class AssessmentAssignmentService
         return $query->firstOrFail();
     }
 
+    private function extractAssessmentIdsFromCombinations(Collection $assessmentCombinations): array
+    {
+        return $assessmentCombinations
+            ->flatMap(fn (AssessmentCombination $assessmentCombination) => $this->extractAssessmentIdsFromCombination($assessmentCombination))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function extractAssessmentIdsFromCombination(AssessmentCombination $assessmentCombination): array
     {
         return collect(data_get($assessmentCombination->structure_snapshot, 'assessments', []))
@@ -1074,6 +1184,112 @@ class AssessmentAssignmentService
             ->filter(fn (int $assessmentId) => $assessmentId > 0)
             ->values()
             ->all();
+    }
+
+    private function buildCombinationPoolBaseQuery(
+        AssessmentKetenagaanType $targetKetenagaan
+    ) {
+        $query = AssessmentCombination::query()
+            ->where('is_active', true)
+            ->where('target_ketenagaan', $targetKetenagaan->value);
+
+        if (Schema::hasColumn('assessment_combinations', 'generated_at')) {
+            $query->orderByDesc('generated_at');
+        }
+
+        return $query->orderByDesc('id');
+    }
+
+    private function resolveLatestFinishedCombinationGenerationId(
+        AssessmentKetenagaanType $targetKetenagaan
+    ): ?int {
+        if (
+            ! Schema::hasTable('assessment_combination_generations') ||
+            ! Schema::hasColumn('assessment_combinations', 'assessment_combination_generation_id')
+        ) {
+            return null;
+        }
+
+        $generation = AssessmentCombinationGeneration::query()
+            ->where('target_ketenagaan', $targetKetenagaan->value)
+            ->where('status', 'selesai')
+            ->whereHas('combinations', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->orderByDesc('processed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        return $generation ? (int) $generation->id : null;
+    }
+
+    private function buildCombinationSeedKey(
+        ?string $title,
+        ?string $targetKetenagaan,
+        array $selectedJabatan = [],
+        array $selectedKabupaten = []
+    ): string {
+        return implode('|', [
+            trim((string) $title),
+            trim((string) $targetKetenagaan),
+            implode(',', $this->normalizeSeedSelectionList($selectedJabatan)),
+            implode(',', $this->normalizeSeedSelectionList($selectedKabupaten)),
+        ]);
+    }
+
+    private function buildCombinationSeedKeyFromAssignment(AssessmentAssignment $assignment): string
+    {
+        return $this->buildCombinationSeedKey(
+            $assignment->judul_penugasan,
+            $assignment->target_ketenagaan,
+            $assignment->target_jabatan ?? [],
+            $assignment->target_kabupaten ?? []
+        );
+    }
+
+    private function normalizeSeedSelectionList(array $values): array
+    {
+        $normalized = collect($values)
+            ->filter(fn ($value) => filled($value))
+            ->map(fn ($value) => trim((string) $value))
+            ->filter(fn (string $value) => $value !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        natcasesort($normalized);
+
+        return array_values($normalized);
+    }
+
+    private function sortCombinationsForRoundRobin(
+        Collection $assessmentCombinations,
+        string $seedKey
+    ): Collection {
+        return $assessmentCombinations
+            ->sort(function (AssessmentCombination $left, AssessmentCombination $right) use ($seedKey) {
+                $leftHash = $this->stableHash($seedKey.'|'.(int) $left->id);
+                $rightHash = $this->stableHash($seedKey.'|'.(int) $right->id);
+
+                if ($leftHash === $rightHash) {
+                    return (int) $left->id <=> (int) $right->id;
+                }
+
+                return $leftHash <=> $rightHash;
+            })
+            ->values();
+    }
+
+    private function stableHash(string $value): int
+    {
+        $hash = 5381;
+        $length = strlen($value);
+
+        for ($index = 0; $index < $length; $index++) {
+            $hash = (($hash << 5) + $hash + ord($value[$index])) & 0x7FFFFFFF;
+        }
+
+        return $hash;
     }
 
     private function generateUniqueCode(): string
@@ -1125,24 +1341,47 @@ class AssessmentAssignmentService
     }
 
     private function buildTargetRows(
-        int $assignmentId,
+        AssessmentAssignment $assignment,
         array $guruIds,
-        array $sessions
+        array $sessions,
+        ?Collection $assessmentCombinations = null
     ): array {
         if ($guruIds === []) {
             return [];
         }
 
         $now = now();
+        $assessmentCombinations = $assessmentCombinations ?? collect();
+        $orderedCombinations = $this->sortCombinationsForRoundRobin(
+            $assessmentCombinations,
+            $this->buildCombinationSeedKeyFromAssignment($assignment)
+        );
+        $guruKabupatenLookup = $this->resolveGuruKabupatenLookup($guruIds);
+        $kabupatenCombinationLookup = $this->buildKabupatenCombinationLookup(
+            $guruKabupatenLookup,
+            $orderedCombinations
+        );
+        $fallbackCombinationId = $orderedCombinations->isNotEmpty()
+            ? (int) $orderedCombinations->first()->id
+            : null;
 
         return collect($guruIds)
             ->values()
-            ->map(function (int $guruId, int $index) use ($assignmentId, $sessions, $now) {
+            ->map(function (int $guruId, int $index) use (
+                $assignment,
+                $sessions,
+                $now,
+                $guruKabupatenLookup,
+                $kabupatenCombinationLookup,
+                $fallbackCombinationId
+            ) {
                 $sessionIndex = intdiv($index, self::TARGETS_PER_SESSION);
+                $kabupatenKey = $guruKabupatenLookup[$guruId] ?? '';
 
                 return [
-                    'assessment_assignment_id' => $assignmentId,
+                    'assessment_assignment_id' => $assignment->id,
                     'assessment_assignment_session_id' => $sessions[$sessionIndex]->id ?? null,
+                    'assessment_combination_id' => $kabupatenCombinationLookup[$kabupatenKey] ?? $fallbackCombinationId,
                     'guru_id' => $guruId,
                     'status' => 'ditugaskan',
                     'assigned_at' => $now,
@@ -1151,6 +1390,56 @@ class AssessmentAssignmentService
                 ];
             })
             ->all();
+    }
+
+    private function resolveGuruKabupatenLookup(array $guruIds): array
+    {
+        if ($guruIds === []) {
+            return [];
+        }
+
+        return Guru::query()
+            ->whereIn('id', $guruIds)
+            ->pluck('kabupaten', 'id')
+            ->mapWithKeys(function ($kabupaten, $guruId) {
+                return [
+                    (int) $guruId => $this->normalizeKabupatenKey($kabupaten),
+                ];
+            })
+            ->all();
+    }
+
+    private function buildKabupatenCombinationLookup(
+        array $guruKabupatenLookup,
+        Collection $orderedCombinations
+    ): array {
+        if ($orderedCombinations->isEmpty()) {
+            return [];
+        }
+
+        $kabupatenKeys = collect($guruKabupatenLookup)
+            ->filter(fn (string $kabupatenKey) => $kabupatenKey !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        natcasesort($kabupatenKeys);
+        $kabupatenKeys = array_values($kabupatenKeys);
+
+        return collect($kabupatenKeys)
+            ->mapWithKeys(function (string $kabupatenKey, int $index) use ($orderedCombinations) {
+                $combination = $orderedCombinations[$index % $orderedCombinations->count()] ?? null;
+
+                return [
+                    $kabupatenKey => $combination ? (int) $combination->id : null,
+                ];
+            })
+            ->all();
+    }
+
+    private function normalizeKabupatenKey(mixed $kabupaten): string
+    {
+        return trim((string) ($kabupaten ?? ''));
     }
 
     private function calculateTotalSessions(int $totalTargets): int

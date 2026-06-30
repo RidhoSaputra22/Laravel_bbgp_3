@@ -106,6 +106,7 @@ class PortalController extends Controller
         $freshTarget = $target->fresh([
             'assignment.assessments.forms.fields',
             'assignment.combination',
+            'combination',
             'session',
             'attempt.answers',
         ]);
@@ -221,6 +222,7 @@ class PortalController extends Controller
         $meta = $this->portalService->buildTargetMeta($target->fresh([
             'assignment.assessments.forms.fields',
             'assignment.combination',
+            'combination',
             'session',
             'attempt',
         ]));

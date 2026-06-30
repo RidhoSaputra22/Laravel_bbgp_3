@@ -5,6 +5,8 @@
         $selectionAssessments = collect(data_get($combination->selection_config, 'assessments', []))->values();
         $selectionForms = collect(data_get($combination->selection_config, 'forms', []))->values();
         $sourceAssessments = collect($snapshot['assessments'] ?? [])->values();
+        $usageCount = (int) ($combination->assignments_count ?? $combination->assignments->count()) +
+            (int) ($combination->assignment_targets_count ?? $combination->assignmentTargets->count());
     @endphp
 
     <div class="main-content">
@@ -24,7 +26,7 @@
                     <a href="{{ route('assessment.combination.create') }}" class="btn btn-primary mr-2">
                         <i class="fas fa-random"></i> Buat Kombinasi Baru
                     </a>
-                    @if ($combination->assignments->isEmpty())
+                    @if ($usageCount < 1)
                         <form action="{{ route('assessment.combination.hapus', $combination->id) }}" method="POST"
                             class="d-inline-block"
                             onsubmit="return confirm('Hapus kombinasi soal {{ $combination->kode_kombinasi }}?')">
@@ -94,7 +96,7 @@
                                     <h4>Dipakai Penugasan</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $combination->assignments->count() }}
+                                    {{ $usageCount }}
                                 </div>
                             </div>
                         </div>

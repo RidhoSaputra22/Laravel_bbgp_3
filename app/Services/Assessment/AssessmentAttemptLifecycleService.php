@@ -85,6 +85,7 @@ class AssessmentAttemptLifecycleService
             'answers',
             'target.assignment.assessments.forms.fields',
             'target.assignment.combination',
+            'target.combination',
             'target.session',
             'target.guru',
         ]);
@@ -102,6 +103,7 @@ class AssessmentAttemptLifecycleService
         return $attempt->target->load([
             'assignment.assessments.forms.fields',
             'assignment.combination',
+            'combination',
             'session',
             'attempt.answers',
             'guru',

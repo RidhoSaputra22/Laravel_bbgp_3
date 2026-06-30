@@ -12,6 +12,7 @@ class AssessmentAssignmentTarget extends Model
     protected $fillable = [
         'assessment_assignment_id',
         'assessment_assignment_session_id',
+        'assessment_combination_id',
         'guru_id',
         'status',
         'assigned_at',
@@ -43,6 +44,11 @@ class AssessmentAssignmentTarget extends Model
     public function session()
     {
         return $this->belongsTo(AssessmentAssignmentSession::class, 'assessment_assignment_session_id');
+    }
+
+    public function combination()
+    {
+        return $this->belongsTo(AssessmentCombination::class, 'assessment_combination_id');
     }
 
     public function attempt()

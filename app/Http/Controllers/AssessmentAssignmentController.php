@@ -176,6 +176,7 @@ class AssessmentAssignmentController extends Controller
             'creator',
             'sessions.targets',
             'targets.guru',
+            'targets.combination',
             'targets.session',
             'targets.attempt',
         ])
@@ -189,6 +190,7 @@ class AssessmentAssignmentController extends Controller
             'creator',
             'sessions.targets',
             'targets.guru',
+            'targets.combination',
             'targets.session',
             'targets.attempt',
         ]);
@@ -462,9 +464,8 @@ class AssessmentAssignmentController extends Controller
 
     private function countAvailableCombinationsForKetenagaan(AssessmentKetenagaanType $case): int
     {
-        return (int) AssessmentCombination::query()
-            ->where('is_active', true)
-            ->where('target_ketenagaan', $case->value)
+        return $this->assignmentService
+            ->getAvailableCombinationsForKetenagaan($case)
             ->count();
     }
 
@@ -534,17 +535,10 @@ class AssessmentAssignmentController extends Controller
 
     private function buildCombinationOptionsByKetenagaan(): array
     {
-        $combinationsByKetenagaan = AssessmentCombination::query()
-            ->where('is_active', true)
-            ->orderByDesc('generated_at')
-            ->orderByDesc('id')
-            ->get()
-            ->groupBy('target_ketenagaan');
-
         return collect(AssessmentKetenagaanType::cases())
-            ->mapWithKeys(function (AssessmentKetenagaanType $case) use ($combinationsByKetenagaan) {
-                $items = $combinationsByKetenagaan
-                    ->get($case->value, collect())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) {
+                $items = $this->assignmentService
+                    ->getAvailableCombinationsForKetenagaan($case)
                     ->values()
                     ->map(function (AssessmentCombination $combination) {
                         return [
@@ -861,7 +855,6 @@ class AssessmentAssignmentController extends Controller
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
-                'assessment_combination_id' => 'required|integer',
                 'target_jabatan' => 'required|array|min:1',
                 'target_jabatan.*' => 'required|string|max:255',
                 'target_kabupaten' => 'required|array|min:1',
@@ -880,7 +873,6 @@ class AssessmentAssignmentController extends Controller
                 'judul_penugasan.required' => 'Judul penugasan wajib diisi.',
                 'target_ketenagaan.required' => 'Ketenagaan target wajib dipilih.',
                 'target_ketenagaan.in' => 'Ketenagaan target harus sesuai pilihan yang tersedia.',
-                'assessment_combination_id.required' => 'Kombinasi soal wajib dipilih.',
                 'target_jabatan.required' => 'Pilih minimal satu jabatan target.',
                 'target_jabatan.array' => 'Format jabatan target tidak valid.',
                 'target_jabatan.min' => 'Pilih minimal satu jabatan target.',
@@ -909,7 +901,7 @@ class AssessmentAssignmentController extends Controller
 
             if ($this->countAvailableCombinationsForKetenagaan($targetKetenagaan) < 1) {
                 $validator->errors()->add(
-                    'assessment_combination_id',
+                    'target_ketenagaan',
                     'Belum ada kombinasi soal aktif untuk ketenagaan yang dipilih.'
                 );
             }
@@ -918,33 +910,6 @@ class AssessmentAssignmentController extends Controller
                 $validator->errors()->add(
                     'target_ketenagaan',
                     'Belum ada user/peserta pada ketenagaan yang dipilih.'
-                );
-            }
-
-            $selectedCombinationId = (int) $request->input('assessment_combination_id');
-
-            if ($selectedCombinationId < 1) {
-                return;
-            }
-
-            $selectedCombination = AssessmentCombination::query()
-                ->whereKey($selectedCombinationId)
-                ->where('is_active', true)
-                ->first();
-
-            if (! $selectedCombination) {
-                $validator->errors()->add(
-                    'assessment_combination_id',
-                    'Kombinasi soal yang dipilih tidak ditemukan atau sudah tidak aktif.'
-                );
-
-                return;
-            }
-
-            if ($selectedCombination->target_ketenagaan !== $targetKetenagaan->value) {
-                $validator->errors()->add(
-                    'assessment_combination_id',
-                    'Kombinasi soal harus sesuai dengan ketenagaan target yang dipilih.'
                 );
             }
 

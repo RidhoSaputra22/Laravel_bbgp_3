@@ -86,7 +86,7 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $combinationId = DB::table('assessment_combinations')->insertGetId([
+        DB::table('assessment_combinations')->insert([
             'kode_kombinasi' => 'KMB-001',
             'judul' => 'Kombinasi Pendidik',
             'target_ketenagaan' => 'tenaga_pendidik',
@@ -104,7 +104,6 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             ->post(route('assessment.assignment.store'), [
                 'judul_penugasan' => 'Penugasan Tidak Valid',
                 'target_ketenagaan' => 'tenaga_pendidik',
-                'assessment_combination_id' => $combinationId,
                 'target_jabatan' => ['Guru'],
                 'target_kabupaten' => ['Kabupaten Gowa'],
                 'durasi_sesi_jam' => 3,
@@ -154,6 +153,6 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
             ]);
 
         $response->assertRedirect(route('assessment.assignment.create'));
-        $response->assertSessionHasErrors('assessment_combination_id');
+        $response->assertSessionHasErrors('target_ketenagaan');
     }
 }

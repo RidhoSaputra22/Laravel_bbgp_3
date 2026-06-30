@@ -6,8 +6,8 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
-use App\Services\Assessment\AssessmentCombinationService;
 use App\Services\Assessment\AssessmentCombinationGenerationService;
+use App\Services\Assessment\AssessmentCombinationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -27,7 +27,7 @@ class AssessmentCombinationController extends Controller
 
         $datas = AssessmentCombination::query()
             ->with(['generator', 'generation'])
-            ->withCount(['items', 'assignments'])
+            ->withCount(['items', 'assignments', 'assignmentTargets'])
             ->orderByDesc('id')
             ->get();
         $generations = AssessmentCombinationGeneration::query()
@@ -93,7 +93,8 @@ class AssessmentCombinationController extends Controller
         $this->authorizeAccess();
 
         $combination = AssessmentCombination::query()
-            ->with(['generator', 'items', 'assignments', 'generation'])
+            ->with(['generator', 'items', 'assignments', 'assignmentTargets', 'generation'])
+            ->withCount(['assignments', 'assignmentTargets'])
             ->findOrFail($id);
 
         return view('pages.admin.assessment.combination.show', [
@@ -112,7 +113,7 @@ class AssessmentCombinationController extends Controller
                 'generator',
                 'combinations' => function ($query) {
                     $query->with(['generator'])
-                        ->withCount(['items', 'assignments']);
+                        ->withCount(['items', 'assignments', 'assignmentTargets']);
                 },
             ])
             ->withCount('combinations')
@@ -158,10 +159,10 @@ class AssessmentCombinationController extends Controller
         $this->authorizeAccess();
 
         $combination = AssessmentCombination::query()
-            ->withCount('assignments')
+            ->withCount(['assignments', 'assignmentTargets'])
             ->findOrFail($id);
 
-        if ($combination->assignments_count > 0) {
+        if ($combination->assignments_count > 0 || $combination->assignment_targets_count > 0) {
             return redirect()
                 ->route('assessment.combination.index')
                 ->withErrors([

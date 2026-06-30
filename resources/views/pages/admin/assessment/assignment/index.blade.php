@@ -178,7 +178,12 @@
                                                             {{ $combination->total_questions }} soal
                                                         </small>
                                                     @else
-                                                        <div class="font-weight-bold">{{ $assessments->count() }} Assessment ditugaskan</div>
+                                                        <div class="font-weight-bold">Distribusi kombinasi otomatis</div>
+                                                        <small class="text-muted">
+                                                            {{ $assessments->count() }} assessment sumber /
+                                                            {{ $assessments->sum(fn($assessment) => $assessment->forms->count()) }} form /
+                                                            {{ $assessments->sum(fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count())) }} soal
+                                                        </small>
                                                     @endif
                                                 </td>
                                                 <td>

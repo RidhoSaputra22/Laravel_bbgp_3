@@ -51,6 +51,20 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::connection('sqlite')->create('assessment_combinations', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_kombinasi')->nullable();
+            $table->string('judul')->nullable();
+            $table->string('target_ketenagaan')->nullable();
+            $table->json('structure_snapshot')->nullable();
+            $table->unsignedInteger('total_assessments')->default(0);
+            $table->unsignedInteger('total_forms')->default(0);
+            $table->unsignedInteger('total_questions')->default(0);
+            $table->timestamp('generated_at')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
         Schema::connection('sqlite')->create('assessment_assignments', function (Blueprint $table) {
             $table->id();
             $table->string('kode_penugasan')->unique();
@@ -100,6 +114,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->id();
             $table->unsignedBigInteger('assessment_assignment_id');
             $table->unsignedBigInteger('assessment_assignment_session_id')->nullable();
+            $table->unsignedBigInteger('assessment_combination_id')->nullable();
             $table->unsignedBigInteger('guru_id');
             $table->string('status')->default('ditugaskan');
             $table->timestamp('assigned_at')->nullable();
@@ -156,6 +171,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_sessions');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_assessments');
         Schema::connection('sqlite')->dropIfExists('assessment_assignments');
+        Schema::connection('sqlite')->dropIfExists('assessment_combinations');
         Schema::connection('sqlite')->dropIfExists('gurus');
         Schema::connection('sqlite')->dropIfExists('assessments');
 
@@ -409,6 +425,83 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertSame(1, $assignment->total_target);
         $this->assertSame([$makassarGuru->id], $assignedGuruIds);
         $this->assertNotContains($gowaGuru->id, $assignedGuruIds);
+    }
+
+    public function test_create_assignment_assigns_one_combination_per_kabupaten_with_round_robin_distribution(): void
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => 'ASM-025',
+            'judul' => 'Assessment Round Robin',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $this->createCombination('KMB-A', $assessment->id);
+        $this->createCombination('KMB-B', $assessment->id);
+
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Makassar 1',
+            'email' => 'makassar-1@example.test',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Makassar 2',
+            'email' => 'makassar-2@example.test',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Gowa 1',
+            'email' => 'gowa-1@example.test',
+            'kabupaten' => 'Kabupaten Gowa',
+        ]);
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Gowa 2',
+            'email' => 'gowa-2@example.test',
+            'kabupaten' => 'Kabupaten Gowa',
+        ]);
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Bone 1',
+            'email' => 'bone-1@example.test',
+            'kabupaten' => 'Kabupaten Bone',
+        ]);
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Bone 2',
+            'email' => 'bone-2@example.test',
+            'kabupaten' => 'Kabupaten Bone',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan Round Robin Kabupaten',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kabupaten Bone', 'Kabupaten Gowa', 'Kota Makassar'],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $targets = AssessmentAssignmentTarget::query()
+            ->with('guru')
+            ->where('assessment_assignment_id', $assignment->id)
+            ->get();
+
+        $combinationIdsByKabupaten = $targets
+            ->groupBy(fn (AssessmentAssignmentTarget $target) => (string) $target->guru->kabupaten)
+            ->map(fn ($rows) => $rows->pluck('assessment_combination_id')->filter()->unique()->values()->all());
+        $kabupatenCountByCombination = $targets
+            ->groupBy('assessment_combination_id')
+            ->map(fn ($rows) => $rows->pluck('guru.kabupaten')->filter()->unique()->count())
+            ->values()
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame(6, $assignment->total_target);
+        $this->assertSame(3, $combinationIdsByKabupaten->count());
+        $this->assertCount(1, $combinationIdsByKabupaten['Kabupaten Bone']);
+        $this->assertCount(1, $combinationIdsByKabupaten['Kabupaten Gowa']);
+        $this->assertCount(1, $combinationIdsByKabupaten['Kota Makassar']);
+        $this->assertCount(2, $targets->pluck('assessment_combination_id')->filter()->unique());
+        $this->assertSame([1, 2], $kabupatenCountByCombination);
     }
 
     public function test_update_assignment_resets_existing_history_and_forces_targets_to_restart_from_zero(): void
@@ -724,6 +817,29 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertDatabaseHas('assessment_assignment_targets', [
             'assessment_assignment_id' => $assignment->id,
             'guru_id' => $missingGuru->id,
+        ]);
+    }
+
+    private function createCombination(string $code, int $assessmentId): void
+    {
+        DB::table('assessment_combinations')->insert([
+            'kode_kombinasi' => $code,
+            'judul' => $code,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'structure_snapshot' => json_encode([
+                'assessments' => [
+                    [
+                        'id' => $assessmentId,
+                    ],
+                ],
+            ]),
+            'total_assessments' => 1,
+            'total_forms' => 1,
+            'total_questions' => 1,
+            'generated_at' => now(),
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 

@@ -978,6 +978,7 @@ class AssessmentAttemptService
             'answers',
             'target.assignment.assessments.forms.fields',
             'target.assignment.combination',
+            'target.combination',
             'target.session',
             'target.guru',
         ]);

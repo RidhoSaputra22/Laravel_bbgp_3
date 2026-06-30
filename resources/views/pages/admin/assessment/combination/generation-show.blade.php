@@ -279,6 +279,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($generatedCombinations as $combination)
+                                            @php($usageCount = (int) ($combination->assignments_count ?? 0) + (int) ($combination->assignment_targets_count ?? 0))
                                             <tr>
                                                 <td class="text-center">
                                                     {{ $combination->generation_sequence ?: $loop->iteration }}
@@ -292,7 +293,7 @@
                                                 <td>
                                                     <div>{{ $combination->total_assessments }} assessment sumber</div>
                                                     <div>{{ $combination->total_forms }} form</div>
-                                                    <small class="text-muted">{{ $combination->assignments_count }} penugasan</small>
+                                                    <small class="text-muted">{{ $usageCount }} pemakaian</small>
                                                 </td>
                                                 <td>
                                                     <div>{{ optional($combination->generated_at ?: $combination->created_at)->format('d M Y H:i') }}

@@ -245,6 +245,7 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($datas as $data)
+                                            @php($usageCount = (int) ($data->assignments_count ?? 0) + (int) ($data->assignment_targets_count ?? 0))
                                             <tr>
                                                 <td class="text-center">{{ $loop->iteration }}</td>
                                                 <td>
@@ -275,7 +276,7 @@
                                                     <div>{{ $data->total_forms }} form</div>
                                                     <div class="text-muted">{{ $data->total_questions }} child soal</div>
                                                     <small class="text-muted">
-                                                        {{ $data->items_count }} item tersimpan / {{ $data->assignments_count }} penugasan
+                                                        {{ $data->items_count }} item tersimpan / {{ $usageCount }} pemakaian
                                                     </small>
                                                 </td>
                                                 <td>
@@ -289,7 +290,7 @@
                                                         class="btn btn-info btn-sm my-1">
                                                         <i class="fas fa-eye mr-1"></i> Detail
                                                     </a>
-                                                    @if ($data->assignments_count < 1)
+                                                    @if ($usageCount < 1)
                                                         <form action="{{ route('assessment.combination.hapus', $data->id) }}"
                                                             method="POST" class="d-inline-block my-1"
                                                             onsubmit="return confirm('Hapus kombinasi soal {{ $data->kode_kombinasi }}?')">

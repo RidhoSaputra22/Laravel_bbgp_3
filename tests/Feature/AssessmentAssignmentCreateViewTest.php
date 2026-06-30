@@ -227,13 +227,16 @@ class AssessmentAssignmentCreateViewTest extends TestCase
         $response->assertSee('const combinationOptionsByKetenagaan =', false);
         $response->assertSee('const jabatanOptionsByKetenagaan =', false);
         $response->assertSee('const kabupatenOptionsByKetenagaan =', false);
-        $response->assertSee('name="assessment_combination_id"', false);
+        $response->assertSee('Distribusi Kombinasi Soal Otomatis');
+        $response->assertSee('id="auto-combination-list"', false);
+        $response->assertSee('id="auto-combination-distribution-list"', false);
         $response->assertSee('id="assignment-ketenagaan-tenaga_pendidik"', false);
         $response->assertSee('data-table-id="assignment-jabatan-selector"', false);
         $response->assertSee('data-table-id="assignment-kabupaten-selector"', false);
         $response->assertSee('KMB-001');
         $response->assertSee('Kepala Sekolah');
         $response->assertSee('Kota Makassar');
+        $response->assertDontSee('name="assessment_combination_id"', false);
         $response->assertDontSee('data-table-id="guru-selector"', false);
         $response->assertDontSee('data-table-id="assessment-selector"', false);
     }

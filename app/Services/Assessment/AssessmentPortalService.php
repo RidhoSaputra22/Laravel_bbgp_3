@@ -19,6 +19,7 @@ class AssessmentPortalService
         $targets = AssessmentAssignmentTarget::with([
             'assignment.assessments.forms.fields',
             'assignment.combination',
+            'combination',
             'session',
             'attempt',
         ])
@@ -40,6 +41,7 @@ class AssessmentPortalService
         return AssessmentAssignmentTarget::with([
             'assignment.assessments.forms.fields',
             'assignment.combination',
+            'combination',
             'session',
             'attempt.answers',
             'guru',
@@ -115,7 +117,7 @@ class AssessmentPortalService
     {
         $attempt = $target->attempt;
         $assignment = $target->assignment;
-        $combination = $assignment->combination;
+        $combination = $target->combination ?: $assignment->combination;
         $questionTotal = $attempt
             ? (int) ($attempt->total_questions ?: data_get($attempt->structure_snapshot, 'meta.total_questions', 0))
             : ($combination?->total_questions ?: $this->countQuestions($target));
@@ -252,6 +254,10 @@ class AssessmentPortalService
 
     private function countQuestions(AssessmentAssignmentTarget $target): int
     {
+        if ($target->combination) {
+            return (int) $target->combination->total_questions;
+        }
+
         if ($target->assignment->combination) {
             return (int) $target->assignment->combination->total_questions;
         }
@@ -288,6 +294,7 @@ class AssessmentPortalService
 
         return 'Tanpa batas tanggal';
     }
+
     private function formatDateTime(\Illuminate\Support\Carbon $dateTime): string
     {
         return $dateTime->format('d M Y H:i').' WITA';

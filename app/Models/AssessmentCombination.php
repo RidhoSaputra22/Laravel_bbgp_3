@@ -54,6 +54,11 @@ class AssessmentCombination extends Model
         return $this->hasMany(AssessmentAssignment::class, 'assessment_combination_id');
     }
 
+    public function assignmentTargets()
+    {
+        return $this->hasMany(AssessmentAssignmentTarget::class, 'assessment_combination_id');
+    }
+
     public function generation()
     {
         return $this->belongsTo(AssessmentCombinationGeneration::class, 'assessment_combination_generation_id');
