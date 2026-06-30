@@ -455,6 +455,15 @@ class AssessmentController extends Controller
                             );
                         }
                     }
+
+                    $keywordGroupsValidation = $this->validateKeywordGroupsText(data_get($field, 'scoring.keyword_groups_text'));
+
+                    if (! $keywordGroupsValidation['valid']) {
+                        $validator->errors()->add(
+                            "forms.$formIndex.fields.$fieldIndex.scoring.keyword_groups_text",
+                            $keywordGroupsValidation['message']
+                        );
+                    }
                 }
             }
         });
@@ -697,7 +706,7 @@ class AssessmentController extends Controller
             'scale_min' => is_numeric($rawConfig['scale_min'] ?? null) ? (float) $rawConfig['scale_min'] : null,
             'scale_max' => is_numeric($rawConfig['scale_max'] ?? null) ? (float) $rawConfig['scale_max'] : null,
             'reference_answer' => trim((string) ($rawConfig['reference_answer'] ?? '')) ?: null,
-            'keyword_groups_text' => trim((string) ($rawConfig['keyword_groups_text'] ?? '')) ?: null,
+            'keyword_groups_text' => $this->normalizeKeywordGroupsText($rawConfig['keyword_groups_text'] ?? null),
             'synonym_map_text' => trim((string) ($rawConfig['synonym_map_text'] ?? '')) ?: null,
             'min_words' => is_numeric($rawConfig['min_words'] ?? null) ? (int) $rawConfig['min_words'] : null,
             'confidence_threshold' => is_numeric($rawConfig['confidence_threshold'] ?? null) ? (float) $rawConfig['confidence_threshold'] : null,
@@ -979,7 +988,7 @@ class AssessmentController extends Controller
                             'scale_max' => data_get($field->scoring_config, 'scale_max'),
                             'reference_answer' => data_get($field->scoring_config, 'reference_answer'),
                             'keyword_groups_text' => $this->formatKeywordGroupsText(data_get($field->scoring_config, 'keyword_groups_text') ?: data_get($field->scoring_config, 'keyword_groups')),
-                            'synonym_map_text' => $this->formatSynonymsText(data_get($field->scoring_config, 'synonym_map_text') ?: data_get($field->scoring_config, 'synonyms')),
+                            'synonym_map_text' => $this->resolveSynonymMapTextForBuilder($field->scoring_config ?? []),
                             'min_words' => data_get($field->scoring_config, 'min_words'),
                             'confidence_threshold' => data_get($field->scoring_config, 'confidence_threshold'),
                             'manual_review_below_confidence' => (bool) data_get($field->scoring_config, 'manual_review_below_confidence', false),
@@ -1013,27 +1022,72 @@ class AssessmentController extends Controller
         return $scoredOptions->isEmpty() ? null : $scoredOptions->implode("\n");
     }
 
-    private function formatKeywordGroupsText(mixed $value): ?string
+    /**
+     * @return array{valid:bool,message?:string}
+     */
+    private function validateKeywordGroupsText(mixed $value): array
     {
-        if (is_string($value)) {
-            return trim($value) !== '' ? trim($value) : null;
+        $raw = trim((string) $value);
+
+        if ($raw === '') {
+            return ['valid' => true];
         }
 
-        if (! is_array($value)) {
+        if ($this->keywordGroupsUseLegacyFormat($raw)) {
+            return [
+                'valid' => false,
+                'message' => 'Pisahkan kata kunci hanya dengan koma. Contoh: sertifikat, program studi, lembaga. Jangan gunakan baris baru, tanda |, atau titik koma.',
+            ];
+        }
+
+        return ['valid' => true];
+    }
+
+    private function normalizeKeywordGroupsText(mixed $value): ?string
+    {
+        $raw = trim((string) $value);
+
+        if ($raw === '') {
             return null;
         }
 
-        $lines = collect($value)
-            ->map(function ($group) {
-                return collect((array) $group)
-                    ->map(fn ($item) => trim((string) $item))
-                    ->filter()
-                    ->implode(' | ');
-            })
+        if ($this->keywordGroupsUseLegacyFormat($raw)) {
+            return $raw;
+        }
+
+        $keywords = collect(explode(',', $raw))
+            ->map(fn ($keyword) => trim((string) $keyword))
             ->filter()
+            ->unique()
             ->values();
 
-        return $lines->isEmpty() ? null : $lines->implode("\n");
+        return $keywords->isEmpty() ? null : $keywords->implode(', ');
+    }
+
+    private function formatKeywordGroupsText(mixed $value): ?string
+    {
+        $keywords = collect($this->extractKeywordGroups($value))
+            ->map(fn (array $group) => $group[0] ?? null)
+            ->filter()
+            ->unique()
+            ->values();
+
+        return $keywords->isEmpty() ? null : $keywords->implode(', ');
+    }
+
+    private function resolveSynonymMapTextForBuilder(array $scoringConfig): ?string
+    {
+        $synonyms = data_get($scoringConfig, 'synonym_map_text') ?: data_get($scoringConfig, 'synonyms');
+
+        if (filled($synonyms)) {
+            return $this->formatSynonymsText($synonyms);
+        }
+
+        return $this->formatSynonymsText(
+            $this->buildSynonymMapFromKeywordGroups(
+                data_get($scoringConfig, 'keyword_groups_text') ?: data_get($scoringConfig, 'keyword_groups')
+            )
+        );
     }
 
     private function formatSynonymsText(mixed $value): ?string
@@ -1065,6 +1119,83 @@ class AssessmentController extends Controller
             ->values();
 
         return $lines->isEmpty() ? null : $lines->implode("\n");
+    }
+
+    /**
+     * @return array<int, array<int, string>>
+     */
+    private function extractKeywordGroups(mixed $value): array
+    {
+        if (is_array($value)) {
+            return collect($value)
+                ->map(function ($group) {
+                    return collect((array) $group)
+                        ->map(fn ($item) => trim((string) $item))
+                        ->filter()
+                        ->values()
+                        ->all();
+                })
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        $raw = trim((string) $value);
+
+        if ($raw === '') {
+            return [];
+        }
+
+        if (! $this->keywordGroupsUseLegacyFormat($raw)) {
+            return collect(explode(',', $raw))
+                ->map(fn ($keyword) => trim((string) $keyword))
+                ->filter()
+                ->values()
+                ->map(fn ($keyword) => [$keyword])
+                ->all();
+        }
+
+        return collect(preg_split('/\r\n|\r|\n/', $raw))
+            ->map(function ($line) {
+                return collect(preg_split('/\s*(?:\||;|,)\s*/', (string) $line))
+                    ->map(fn ($keyword) => trim((string) $keyword))
+                    ->filter()
+                    ->values()
+                    ->all();
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function buildSynonymMapFromKeywordGroups(mixed $value): array
+    {
+        return collect($this->extractKeywordGroups($value))
+            ->reduce(function (array $carry, array $group) {
+                $baseKeyword = trim((string) ($group[0] ?? ''));
+                $variants = collect(array_slice($group, 1))
+                    ->map(fn ($keyword) => trim((string) $keyword))
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                if ($baseKeyword === '' || $variants === []) {
+                    return $carry;
+                }
+
+                $carry[$baseKeyword] = $variants;
+
+                return $carry;
+            }, []);
+    }
+
+    private function keywordGroupsUseLegacyFormat(string $value): bool
+    {
+        return Str::contains($value, ["\n", "\r", '|', ';']);
     }
 
     private function formatAdvancedRulesText(mixed $value): ?string

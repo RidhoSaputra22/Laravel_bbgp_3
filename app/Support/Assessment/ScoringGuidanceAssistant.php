@@ -123,7 +123,10 @@ class ScoringGuidanceAssistant
         return [
             'keyword_groups_text' => $keywordGroups === []
                 ? null
-                : collect($keywordGroups)->map(fn (array $group) => implode(' | ', $group))->implode("\n"),
+                : collect($keywordGroups)
+                    ->map(fn (array $group) => $group[0] ?? null)
+                    ->filter()
+                    ->implode(', '),
             'synonym_map_text' => $synonymLines === [] ? null : implode("\n", array_slice($synonymLines, 0, 4)),
             'min_words' => $this->estimateMinWords($normalized, $fieldType),
             'advanced_rules' => $advancedRules,

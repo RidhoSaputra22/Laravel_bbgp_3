@@ -48,6 +48,115 @@
     ];
     $isEditMode = $httpMethod !== 'POST';
     $previewUrl = $isEditMode && $assessment->id ? route('assessment.show', $assessment->id) : null;
+    $normalizeCheckedValue = function (mixed $value, bool $default = false): bool {
+        if ($value === null) {
+            return $default;
+        }
+
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value === 1;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            if ($normalized === '') {
+                return $default;
+            }
+
+            return in_array($normalized, ['1', 'true', 'on', 'yes'], true);
+        }
+
+        return (bool) $value;
+    };
+    $initialStatus = old('status', $assessment->status ?: 'draft');
+    $initialInstrumentValue = old('instrument_type', $assessment->instrument_type);
+    $initialSummaryTitle = trim((string) old('judul', $assessment->judul));
+    $builderSeedCollection = collect($builderSeed)
+        ->map(fn ($form) => is_array($form) ? $form : (array) $form)
+        ->values();
+    $resolveMeaningfulFields = function (array $form) {
+        return collect((array) ($form['fields'] ?? []))
+            ->map(fn ($field) => is_array($field) ? $field : (array) $field)
+            ->filter(fn ($field) => trim((string) ($field['label'] ?? '')) !== '')
+            ->values();
+    };
+    $initialTotalForms = $builderSeedCollection->count();
+    $initialTotalQuestions = $builderSeedCollection->sum(
+        fn ($form) => $resolveMeaningfulFields($form)->count()
+    );
+    $initialActiveForms = $builderSeedCollection->filter(
+        fn ($form) => $normalizeCheckedValue($form['is_active'] ?? true, true)
+    )->count();
+    $initialScoreableForms = $builderSeedCollection->filter(function ($form) use (
+        $normalizeCheckedValue,
+        $resolveMeaningfulFields
+    ) {
+        return $normalizeCheckedValue($form['is_scoreable'] ?? true, true)
+            && $resolveMeaningfulFields($form)->isNotEmpty();
+    })->count();
+    $initialAutoScoringQuestions = $builderSeedCollection->sum(function ($form) use (
+        $normalizeCheckedValue,
+        $resolveMeaningfulFields
+    ) {
+        return $resolveMeaningfulFields($form)->filter(function ($field) use ($normalizeCheckedValue) {
+            return $normalizeCheckedValue(data_get($field, 'scoring.enabled'), false);
+        })->count();
+    });
+    $initialVisibleQuestions = $builderSeedCollection->sum(function ($form) use (
+        $normalizeCheckedValue,
+        $resolveMeaningfulFields
+    ) {
+        if (! $normalizeCheckedValue($form['is_active'] ?? true, true)) {
+            return 0;
+        }
+
+        return $resolveMeaningfulFields($form)->filter(function ($field) use ($normalizeCheckedValue) {
+            return $normalizeCheckedValue($field['is_active'] ?? true, true);
+        })->count();
+    });
+    $initialPreviewForms = $builderSeedCollection->filter(function ($form) use (
+        $normalizeCheckedValue,
+        $resolveMeaningfulFields
+    ) {
+        if (! $normalizeCheckedValue($form['is_active'] ?? true, true)) {
+            return false;
+        }
+
+        return $resolveMeaningfulFields($form)->contains(function ($field) use ($normalizeCheckedValue) {
+            return $normalizeCheckedValue($field['is_active'] ?? true, true);
+        });
+    })->count();
+    $initialBuilderSummary = [
+        'title' => $initialSummaryTitle,
+        'status' => $initialStatus,
+        'status_label' => ucfirst((string) $initialStatus),
+        'is_active' => $normalizeCheckedValue(old('is_active', $assessment->is_active), false),
+        'target_label' => $ketenagaanOptions[$selectedTargetKetenagaan] ?? 'Belum dipilih',
+        'instrument_label' => $instrumentTypes[$initialInstrumentValue] ?? 'Belum dipilih',
+        'total_forms' => $initialTotalForms,
+        'total_questions' => $initialTotalQuestions,
+        'active_forms' => $initialActiveForms,
+        'scoreable_forms' => $initialScoreableForms,
+        'auto_scoring_questions' => $initialAutoScoringQuestions,
+        'visible_questions' => $initialVisibleQuestions,
+        'preview_forms' => $initialPreviewForms,
+    ];
+    $initialBuilderSummary['display_label'] = $initialBuilderSummary['preview_forms'] > 0
+        ? $initialBuilderSummary['preview_forms'].' form / '.$initialBuilderSummary['visible_questions'].' soal'
+        : 'Belum ada form aktif';
+    $initialBuilderSummary['builder_note'] = match (true) {
+        $initialBuilderSummary['title'] === '' => 'Isi judul assessment terlebih dahulu agar struktur yang Anda susun mudah dikenali.',
+        $initialBuilderSummary['total_questions'] < 1 => 'Tambahkan minimal satu pertanyaan agar assessment siap dipakai pada penugasan.',
+        $initialBuilderSummary['preview_forms'] < 1 => 'Aktifkan minimal satu form agar pertanyaan bisa tampil pada sisi peserta.',
+        ! $initialBuilderSummary['is_active'] => 'Struktur assessment sudah terisi, tetapi assessment utama masih nonaktif.',
+        $initialBuilderSummary['status'] !== 'publish' => 'Struktur sudah siap, namun status assessment masih '.strtolower($initialBuilderSummary['status_label']).'.',
+        default => $initialBuilderSummary['preview_forms'].' form aktif dengan '.$initialBuilderSummary['visible_questions'].' pertanyaan siap ditampilkan ke peserta. '.$initialBuilderSummary['scoreable_forms'].' form masuk penilaian.',
+    };
 @endphp
 
 @if ($errors->any())
@@ -275,9 +384,64 @@
             gap: 1rem;
         }
 
+        .assessment-builder-shell {
+            min-height: 220px;
+
+        }
+
+        .assessment-builder-shell.is-loading #form-builder-empty,
+        .assessment-builder-shell.is-loading #form-builder-list {
+            display: hidden;
+        }
+
+        .assessment-builder-loading {
+            align-items: end;
+
+
+
+            height: 5px;
+            text-align: end;
+
+            padding: 1.5rem;
+            position: absolute;
+            top: 0;
+            right: 0;
+
+
+
+
+            z-index: 2;
+        }
+
+        .assessment-builder-loading__content {
+            max-width: 340px;
+        }
+
+        .assessment-builder-loading .spinner-border {
+            height: 2rem;
+
+        }
+
+        .assessment-builder-loading__title {
+            color: #23396b;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .assessment-builder-loading__text {
+            color: #64748b;
+            font-size: 0.9rem;
+            line-height: 1.55;
+        }
+
         .assessment-summary-card {
             border: 1px solid #dfe7f7;
             overflow: hidden;
+        }
+
+        .assessment-summary-card.is-loading {
+            border-color: #cfdaf7;
+            box-shadow: inset 0 0 0 1px rgba(103, 119, 239, 0.08);
         }
 
         .assessment-summary-eyebrow {
@@ -342,7 +506,7 @@
             font-size: 0.88rem;
             gap: 1rem;
             justify-content: space-between;
-            padding: 0.85rem 0;
+            padding: 0.4rem 0;
         }
 
         .assessment-summary-row span {
@@ -410,7 +574,7 @@
     @endif
 
     <div class="row assessment-builder-layout">
-        <div class="col-xl-9 col-lg-8">
+        <div class="col-xl-8 col-lg-8">
             <div class="card">
                 <div class="card-header">
                     <h4>{{ $pageTitle }}</h4>
@@ -581,21 +745,32 @@
                         </ul>
                     </div>
 
-                    <div id="form-builder-empty" class="empty-state d-none" data-height="220">
-                        <div class="empty-state-icon bg-primary">
-                            <i class="fas fa-layer-group"></i>
-                        </div>
-                        <h2>Belum ada form</h2>
-                        <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur assessment dinamis.</p>
-                    </div>
+                    <div class="assessment-builder-shell is-loading" id="assessment-builder-shell" aria-busy="true"
+                        aria-live="polite">
+                        <div class="assessment-builder-loading" id="assessment-builder-loading" role="status">
+                            <div class="assessment-builder-loading__content">
+                                <div class="spinner-border text-primary mb-3" aria-hidden="true"></div>
 
-                    <div id="form-builder-list"></div>
+                            </div>
+                        </div>
+
+                        <div id="form-builder-empty" class="empty-state d-none" data-height="220">
+                            <div class="empty-state-icon bg-primary">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <h2>Belum ada form</h2>
+                            <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur assessment dinamis.</p>
+                        </div>
+
+                        <div id="form-builder-list"></div>
+                    </div>
                     @error('forms')
                         <div class="invalid-feedback mt-2">{{ $message }}</div>
                     @enderror
 
                     <div class="text-right mt-3">
-                        <button type="button" class="btn btn-primary btn-sm" id="btn-add-form">
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-add-form"
+                            data-builder-loading-lock disabled>
                             <i class="fas fa-plus"></i> Tambah Form
                         </button>
                     </div>
@@ -603,8 +778,8 @@
             </div>
         </div>
 
-        <div class="col-xl-3 col-lg-4">
-            <aside class="assessment-builder-sidebar">
+        <div class="col-xl-4 col-lg-4 sticky-top ">
+            <aside class="assessment-builder-sidebar ">
                 <div class="assessment-builder-sidebar-inner">
                     <div class="card assessment-summary-card" id="assessment-builder-summary">
                         <div class="card-body">
@@ -612,78 +787,58 @@
                             <h5 class="mb-2" id="summary-assessment-title">
                                 {{ old('judul', $assessment->judul) ?: 'Judul assessment belum diisi' }}
                             </h5>
-                            <p class="text-muted mb-4">
+                            <p class="text-muted mb-2">
                                 {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur assessment.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun assessment baru.' }}
                             </p>
 
-                            <div class="assessment-summary-grid mb-4">
-                                <div class="assessment-summary-stat">
-                                    <span class="assessment-summary-stat__label">Total Form</span>
-                                    <span class="assessment-summary-stat__value" id="summary-total-forms">0</span>
-                                </div>
-                                <div class="assessment-summary-stat">
-                                    <span class="assessment-summary-stat__label">Total Soal</span>
-                                    <span class="assessment-summary-stat__value" id="summary-total-questions">0</span>
-                                </div>
-                                <div class="assessment-summary-stat">
-                                    <span class="assessment-summary-stat__label">Form Aktif</span>
-                                    <span class="assessment-summary-stat__value" id="summary-active-forms">0</span>
-                                </div>
-                                <div class="assessment-summary-stat">
-                                    <span class="assessment-summary-stat__label">Auto Scoring</span>
-                                    <span class="assessment-summary-stat__value"
-                                        id="summary-auto-scoring-questions">0</span>
-                                </div>
-                            </div>
+
 
                             <div class="assessment-summary-section">
                                 <div class="assessment-summary-section-title">Detail Cepat</div>
                                 <div class="assessment-summary-list">
                                     <div class="assessment-summary-row">
                                         <span>Status</span>
-                                        <strong id="summary-status-label">Draft</strong>
+                                        <strong id="summary-status-label">{{ $initialBuilderSummary['status_label'] }}</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Aktivasi</span>
-                                        <strong id="summary-activation-label">Nonaktif</strong>
+                                        <strong id="summary-activation-label">{{ $initialBuilderSummary['is_active'] ? 'Aktif' : 'Nonaktif' }}</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Target</span>
-                                        <strong id="summary-target-label">Belum dipilih</strong>
+                                        <strong id="summary-target-label">{{ $initialBuilderSummary['target_label'] }}</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Instrumen</span>
-                                        <strong id="summary-instrument-label">Belum dipilih</strong>
+                                        <strong id="summary-instrument-label">{{ $initialBuilderSummary['instrument_label'] }}</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Masuk Penilaian</span>
-                                        <strong id="summary-scoreable-label">0 form</strong>
+                                        <strong id="summary-scoreable-label">{{ $initialBuilderSummary['scoreable_forms'] }} form</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Siap Tampil</span>
-                                        <strong id="summary-display-label">Belum ada form aktif</strong>
+                                        <strong id="summary-display-label">{{ $initialBuilderSummary['display_label'] }}</strong>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="assessment-summary-note mt-4" id="summary-builder-note">
-                                Tambahkan form dan pertanyaan untuk mulai menyusun assessment.
+                                {{ $initialBuilderSummary['builder_note'] }}
                             </div>
 
-                            <div class="assessment-summary-actions mt-4">
-                                <button type="button" class="btn btn-outline-primary btn-block mb-2"
-                                    id="btn-sidebar-add-form">
-                                    <i class="fas fa-plus"></i> Tambah Form
-                                </button>
+                            <div class="assessment-summary-actions mt-4 row g-2 px-2 ">
+
                                 @if ($previewUrl)
-                                    <a href="{{ $previewUrl }}" class="btn btn-info btn-block mb-2">
+                                    <a href="{{ $previewUrl }}" class="col btn mx-1 btn-info  ">
                                         <i class="fas fa-eye"></i> Lihat Preview
                                     </a>
                                 @endif
-                                <a href="{{ route('assessment.index') }}" class="btn btn-light btn-block mb-2">
+                                <a href="{{ route('assessment.index') }}" class="col btn mx-1 btn-light  ">
                                     Kembali
                                 </a>
-                                <button type="submit" class="btn btn-primary btn-block" id="assessment-summary-submit">
+                                <button type="submit" class="col btn mx-1 btn-primary " id="assessment-summary-submit"
+                                    data-builder-loading-lock disabled>
                                     <i class="fas fa-save"></i> {{ $submitLabel }}
                                 </button>
                             </div>
@@ -704,6 +859,7 @@
             const formScoringProfiles = @json($formScoringProfiles);
             const fieldScoringMethods = @json($fieldScoringMethods);
             const ketenagaanLabels = @json($ketenagaanOptions);
+            const instrumentTypes = @json($instrumentTypes);
             const scoringGuidancePreset = @json($scoringGuidancePreset);
             const initialForms = @json($builderSeed);
             const validationErrors = @json($validationErrors);
@@ -711,16 +867,77 @@
             const multipleChoiceFieldType = 'radio';
             const repeaterFieldType = 'repeater';
             const columnOptions = ['col-md-12', 'col-md-8', 'col-md-6', 'col-md-4'];
+            const $builderShell = $('#assessment-builder-shell');
+            const $builderLoading = $('#assessment-builder-loading');
+            const $builderLoadingText = $('#assessment-builder-loading-text');
+            const $summaryCard = $('#assessment-builder-summary');
+            const $loadingLockedActions = $('[data-builder-loading-lock]');
+            const $submitButton = $('#assessment-summary-submit');
             const $previewPanel = $('#assessment-preview-panel');
             const $previewContent = $('#assessment-preview-content');
             const $previewToggleButton = $('.btn-toggle-preview-panel');
             const requiredMarker = '<span class="assessment-required">*</span>';
             const errorKeys = Object.keys(validationErrors || {});
+            const submitButtonDefaultHtml = $submitButton.html();
             let formIndexCounter = 0;
             let previewRenderTimer = null;
 
             const escapeHtml = (value) => $('<div>').text(value ?? '').html();
             const joinClasses = (...classes) => classes.filter(Boolean).join(' ');
+            const scheduleAfterPaint = (callback) => {
+                if (window.requestAnimationFrame) {
+                    window.requestAnimationFrame(() => window.requestAnimationFrame(callback));
+                    return;
+                }
+
+                window.setTimeout(callback, 32);
+            };
+
+            const buildBuilderLoadingMessage = (loadedCount, totalCount) => {
+                if (totalCount <= 1) {
+                    return loadedCount < totalCount
+                        ? 'Menyiapkan form awal agar siap diedit.'
+                        : 'Merapikan tampilan form...';
+                }
+
+                if (loadedCount <= 0) {
+                    return `Menyiapkan ${totalCount} form agar siap diedit oleh admin.`;
+                }
+
+                if (loadedCount >= totalCount) {
+                    return 'Merapikan tampilan akhir assessment...';
+                }
+
+                return `Memuat ${loadedCount} dari ${totalCount} form. Tombol simpan akan aktif setelah proses selesai.`;
+            };
+
+            const setBuilderLoadingState = (isLoading, message = '') => {
+                if ($builderShell.length) {
+                    $builderShell
+                        .toggleClass('is-loading', isLoading)
+                        .attr('aria-busy', isLoading ? 'true' : 'false');
+                }
+
+                $builderLoading.toggleClass('d-none', !isLoading);
+                $summaryCard.toggleClass('is-loading', isLoading);
+                $loadingLockedActions.prop('disabled', isLoading);
+
+                if (message) {
+                    $builderLoadingText.text(message);
+
+                    if (isLoading) {
+                        $('#summary-builder-note').text(message);
+                    }
+                }
+
+                if ($submitButton.length) {
+                    $submitButton.html(
+                        isLoading
+                            ? '<i class="fas fa-spinner fa-spin"></i> Memuat Form...'
+                            : submitButtonDefaultHtml
+                    );
+                }
+            };
 
             const nameToErrorKey = (name) => String(name || '')
                 .replace(/\[(.*?)\]/g, '.$1')
@@ -1064,11 +1281,107 @@
                 }
 
                 return {
-                    keyword_groups_text: keywordGroups.length ? keywordGroups.map((group) => group.join(' | ')).join('\n') : '',
+                    keyword_groups_text: keywordGroups.length
+                        ? keywordGroups.map((group) => group[0]).filter(Boolean).join(', ')
+                        : '',
                     synonym_map_text: synonymLines.join('\n'),
                     min_words: estimateScoringMinWords(sourceText, fieldType),
                     advanced_rules_text: Object.keys(advancedRules).length ? JSON.stringify(advancedRules, null, 2) : '',
                 };
+            };
+
+            const keywordGroupsFieldSelector = 'textarea[name$="[scoring][keyword_groups_text]"]';
+            const keywordGroupsCommaOnlyMessage = 'Pisahkan kata kunci hanya dengan koma. Contoh: sertifikat, program studi, lembaga. Jangan gunakan Enter, tanda |, atau titik koma.';
+
+            const normalizeKeywordGroupsText = (value) => {
+                return String(value || '')
+                    .split(',')
+                    .map((keyword) => keyword.trim())
+                    .filter(Boolean)
+                    .filter((keyword, index, keywords) => keywords.indexOf(keyword) === index)
+                    .join(', ');
+            };
+
+            const getKeywordGroupsValidationMessage = (value) => {
+                const rawValue = String(value || '').trim();
+
+                if (!rawValue) {
+                    return '';
+                }
+
+                return /[\r\n|;]/.test(rawValue) ? keywordGroupsCommaOnlyMessage : '';
+            };
+
+            const setKeywordGroupsFieldValidationState = ($input, message = '') => {
+                if (!$input.length) {
+                    return;
+                }
+
+                const inputElement = $input.get(0);
+                const $clientFeedback = $input.siblings('.keyword-groups-client-feedback');
+                const hasServerFeedback = $input.siblings('.invalid-feedback').not('.keyword-groups-client-feedback').length > 0;
+
+                if (inputElement?.setCustomValidity) {
+                    inputElement.setCustomValidity(message || '');
+                }
+
+                if (!message) {
+                    $clientFeedback.remove();
+
+                    if (!hasServerFeedback) {
+                        $input.removeClass('is-invalid');
+                    }
+
+                    return;
+                }
+
+                if ($clientFeedback.length) {
+                    $clientFeedback.text(message);
+                } else {
+                    $('<div class="invalid-feedback d-block keyword-groups-client-feedback"></div>')
+                        .text(message)
+                        .insertAfter($input);
+                }
+
+                $input.addClass('is-invalid');
+            };
+
+            const validateKeywordGroupsField = ($input, options = {}) => {
+                if (!$input.length) {
+                    return true;
+                }
+
+                const message = getKeywordGroupsValidationMessage($input.val());
+
+                if (!message && options.normalize) {
+                    $input.val(normalizeKeywordGroupsText($input.val()));
+                }
+
+                setKeywordGroupsFieldValidationState($input, message);
+
+                return !message;
+            };
+
+            const validateAllKeywordGroupsFields = () => {
+                let $firstInvalidField = null;
+
+                $(keywordGroupsFieldSelector).each(function() {
+                    const $input = $(this);
+                    const isValid = validateKeywordGroupsField($input, { normalize: true });
+
+                    if (!isValid && !$firstInvalidField) {
+                        $firstInvalidField = $input;
+                    }
+                });
+
+                if ($firstInvalidField) {
+                    $firstInvalidField.trigger('focus');
+                    $firstInvalidField.get(0)?.reportValidity?.();
+
+                    return false;
+                }
+
+                return true;
             };
 
             const resolveScoringGuidanceSource = ($fieldCard) => {
@@ -1137,6 +1450,7 @@
                 fillIfNeeded('textarea[name$="[scoring][synonym_map_text]"]', suggestion.synonym_map_text);
                 fillIfNeeded('input[name$="[scoring][min_words]"]', suggestion.min_words);
                 fillIfNeeded('textarea[name$="[scoring][advanced_rules_text]"]', suggestion.advanced_rules_text);
+                validateKeywordGroupsField($fieldCard.find(keywordGroupsFieldSelector), { normalize: true });
 
                 updateScoringAssistantStatus(
                     $fieldCard,
@@ -1778,10 +2092,10 @@
                                             <textarea class="${getInputClass(scoringKeywordGroupsName)}"
                                                 name="${scoringKeywordGroupsName}"
                                                 rows="4"
-                                                placeholder="Satu fokus per baris, misalnya: sertifikat | piagam&#10;program studi | bidang studi">${escapeHtml(scoringData.keyword_groups_text)}</textarea>
+                                                placeholder="Pisahkan dengan koma, misalnya: sertifikat, program studi, lembaga, bukti dukung">${escapeHtml(scoringData.keyword_groups_text)}</textarea>
                                             ${buildInvalidFeedback(scoringKeywordGroupsName)}
                                             <small class="text-muted d-block mt-2">
-                                                Boleh dikosongkan lalu gunakan bantuan otomatis. Anda tetap bisa mengubah hasilnya kapan saja.
+                                                Pisahkan kata kunci hanya dengan koma. Jangan gunakan Enter, tanda <code>|</code>, atau titik koma. Jika perlu padanan kata, isi di pengaturan lanjutan.
                                             </small>
                                         </div>
                                     </div>
@@ -1929,16 +2243,7 @@
                                         ${buildInvalidFeedback(bantuanName)}
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>Lebar Kolom</label>
-                                        <select class="${getInputClass(lebarKolomName)}"
-                                            name="${lebarKolomName}">
-                                            ${buildColumnOptions(fieldData.lebar_kolom || 'col-md-12')}
-                                        </select>
-                                        ${buildInvalidFeedback(lebarKolomName)}
-                                    </div>
-                                </div>
+
                             </div>
 
 
@@ -2123,7 +2428,7 @@
                 `;
             };
 
-            const appendField = ($formCard, fieldData = {}) => {
+            const appendField = ($formCard, fieldData = {}, options = {}) => {
                 const formIndex = Number($formCard.data('form-index'));
                 const fieldIndex = Number($formCard.attr('data-field-counter'));
 
@@ -2134,19 +2439,27 @@
                 toggleOptionWrapper($fieldCard);
                 toggleScoringWrapper($fieldCard);
                 updateAutoFieldNameHint($fieldCard);
-                renderBuilderSummary();
+
+                if (!options.skipSummary) {
+                    renderBuilderSummary();
+                }
             };
 
-            const appendForm = (formData = {}) => {
+            const appendForm = (formData = {}, options = {}) => {
                 const formIndex = formIndexCounter++;
 
                 $('#form-builder-list').append(buildFormCard(formIndex, formData));
                 const $formCard = $('.assessment-form-card').last();
                 const fields = Array.isArray(formData.fields) && formData.fields.length ? formData.fields : [{}];
 
-                fields.forEach((field) => appendField($formCard, field));
+                fields.forEach((field) => appendField($formCard, field, {
+                    skipSummary: true,
+                }));
                 toggleEmptyState();
-                renderBuilderSummary();
+
+                if (!options.skipSummary) {
+                    renderBuilderSummary();
+                }
             };
 
             const appendRadioOption = ($fieldCard, optionData = {}) => {
@@ -3019,22 +3332,66 @@
                 schedulePreviewRender();
             });
 
-            $('#assessment-builder-form').on('submit', function() {
+            $('#assessment-builder-form').on('input', keywordGroupsFieldSelector, function() {
+                validateKeywordGroupsField($(this));
+            });
+
+            $('#assessment-builder-form').on('change focusout', keywordGroupsFieldSelector, function() {
+                validateKeywordGroupsField($(this), { normalize: true });
+            });
+
+            $('#assessment-builder-form').on('submit', function(event) {
+                if ($builderShell.hasClass('is-loading')) {
+                    event.preventDefault();
+                    setBuilderLoadingState(true, 'Form masih dimuat. Tunggu sebentar sampai seluruh struktur selesai tampil.');
+                    return false;
+                }
+
                 $('.assessment-field-card').each(function() {
                     applyScoringGuidanceSuggestion($(this));
                 });
+
+                if (!validateAllKeywordGroupsFields()) {
+                    event.preventDefault();
+                    return false;
+                }
+
                 $('#forms-payload').val(JSON.stringify(collectBuilderPayload()));
                 $('#form-builder-list').find('input, textarea, select').prop('disabled', true);
             });
 
-            if (Array.isArray(initialForms) && initialForms.length) {
-                initialForms.forEach((form) => appendForm(form));
-            } else {
-                appendForm();
-            }
+            const initializeBuilder = () => {
+                const formsToRender = Array.isArray(initialForms) && initialForms.length ? initialForms : [{}];
+                const totalForms = formsToRender.length;
+                const batchSize = totalForms > 12 ? 1 : (totalForms > 4 ? 2 : totalForms);
+                let renderedForms = 0;
 
-            renderBuilderSummary();
-            updatePreviewToggleButton();
+                const renderBatch = () => {
+                    formsToRender.slice(renderedForms, renderedForms + batchSize).forEach((form) => {
+                        appendForm(form, {
+                            skipSummary: true,
+                        });
+                    });
+
+                    renderedForms = Math.min(renderedForms + batchSize, totalForms);
+
+                    if (renderedForms < totalForms) {
+                        setBuilderLoadingState(true, buildBuilderLoadingMessage(renderedForms, totalForms));
+                        scheduleAfterPaint(renderBatch);
+                        return;
+                    }
+
+                    toggleEmptyState();
+                    renderBuilderSummary();
+                    updatePreviewToggleButton();
+                    setBuilderLoadingState(false);
+                };
+
+                setBuilderLoadingState(true, buildBuilderLoadingMessage(0, totalForms));
+                scheduleAfterPaint(renderBatch);
+            };
+
+            initializeBuilder();
         });
     </script>
 @endpush

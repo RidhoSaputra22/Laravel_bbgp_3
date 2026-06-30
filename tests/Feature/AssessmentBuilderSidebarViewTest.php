@@ -44,7 +44,7 @@ class AssessmentBuilderSidebarViewTest extends TestCase
             'status' => 'publish',
             'is_active' => true,
             'target_ketenagaan' => 'tenaga_kependidikan',
-            'instrument_type' => 'study_case',
+            'instrument_type' => 'studi_kasus',
             'deskripsi' => 'Deskripsi assessment.',
             'petunjuk' => 'Petunjuk assessment.',
         ]);
@@ -76,6 +76,9 @@ class AssessmentBuilderSidebarViewTest extends TestCase
                                 'urutan' => 1,
                                 'is_active' => true,
                                 'is_required' => true,
+                                'scoring' => [
+                                    'enabled' => true,
+                                ],
                             ],
                         ],
                     ],
@@ -88,6 +91,17 @@ class AssessmentBuilderSidebarViewTest extends TestCase
         $response->assertSee(route('assessment.show', 99), false);
         $response->assertSee('Lihat Preview');
         $response->assertSee('Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur assessment.');
+        $response->assertSee('id="summary-total-forms">1</span>', false);
+        $response->assertSee('id="summary-total-questions">1</span>', false);
+        $response->assertSee('id="summary-active-forms">1</span>', false);
+        $response->assertSee('id="summary-auto-scoring-questions">1</span>', false);
+        $response->assertSee('id="summary-status-label">Publish</strong>', false);
+        $response->assertSee('id="summary-activation-label">Aktif</strong>', false);
+        $response->assertSee('id="summary-target-label">Tenaga Kependidikan</strong>', false);
+        $response->assertSee('id="summary-instrument-label">Studi Kasus</strong>', false);
+        $response->assertSee('id="summary-scoreable-label">1 form</strong>', false);
+        $response->assertSee('id="summary-display-label">1 form / 1 soal</strong>', false);
+        $response->assertSee('const instrumentTypes =', false);
     }
 
     private function fieldTypes(): array

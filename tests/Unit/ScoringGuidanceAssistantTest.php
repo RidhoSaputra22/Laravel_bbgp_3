@@ -16,8 +16,9 @@ class ScoringGuidanceAssistantTest extends TestCase
             'textarea'
         );
 
-        $this->assertStringContainsString('riwayat pendidikan | pendidikan formal', (string) $suggestion['keyword_groups_text']);
-        $this->assertStringContainsString('program studi | bidang studi', (string) $suggestion['keyword_groups_text']);
+        $this->assertStringContainsString('riwayat pendidikan', (string) $suggestion['keyword_groups_text']);
+        $this->assertStringContainsString('program studi', (string) $suggestion['keyword_groups_text']);
+        $this->assertStringNotContainsString('|', (string) $suggestion['keyword_groups_text']);
         $this->assertStringContainsString('bukti dukung: dokumen pendukung', (string) $suggestion['synonym_map_text']);
         $this->assertSame(18, $suggestion['min_words']);
         $this->assertContains('kebutuhan mengajar', $suggestion['advanced_rules']['signal_keywords']);

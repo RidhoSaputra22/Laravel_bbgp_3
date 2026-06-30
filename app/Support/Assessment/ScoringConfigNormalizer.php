@@ -109,23 +109,22 @@ class ScoringConfigNormalizer
     private function parseKeywordGroups(mixed $value): array
     {
         if (is_array($value)) {
-            return collect($value)
-                ->map(function ($item) {
-                    return collect((array) $item)
-                        ->map(fn ($part) => trim((string) $part))
-                        ->filter()
-                        ->values()
-                        ->all();
-                })
-                ->filter()
-                ->values()
-                ->all();
+            return $this->normalizeKeywordGroupsArray($value);
         }
 
         $raw = trim((string) $value);
 
         if ($raw === '') {
             return [];
+        }
+
+        if (! $this->keywordGroupsUsesLegacySeparators($raw)) {
+            return collect(explode(',', $raw))
+                ->map(fn ($keyword) => trim((string) $keyword))
+                ->filter()
+                ->values()
+                ->map(fn ($keyword) => [$keyword])
+                ->all();
         }
 
         return collect(preg_split('/\r\n|\r|\n/', $raw))
@@ -139,6 +138,30 @@ class ScoringConfigNormalizer
             ->filter()
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<int, mixed>  $value
+     * @return array<int, array<int, string>>
+     */
+    private function normalizeKeywordGroupsArray(array $value): array
+    {
+        return collect($value)
+            ->map(function ($item) {
+                return collect((array) $item)
+                    ->map(fn ($part) => trim((string) $part))
+                    ->filter()
+                    ->values()
+                    ->all();
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function keywordGroupsUsesLegacySeparators(string $value): bool
+    {
+        return preg_match('/[\r\n|;]/', $value) === 1;
     }
 
     /**

@@ -605,47 +605,50 @@
                     </div>
                 </form>
 
-                @if ($isEditMode)
-                    <div class="modal fade" id="assignmentEditWarningModal" tabindex="-1" role="dialog"
-                        aria-labelledby="assignmentEditWarningModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header bg-warning">
-                                    <h5 class="modal-title text-dark" id="assignmentEditWarningModalLabel">
-                                        Reset Penugasan Saat Edit
-                                    </h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <p class="mb-3">
-                                        Menyimpan perubahan untuk <strong>{{ $assignment?->judul_penugasan }}</strong>
-                                        akan mereset penugasan ini dari nol.
-                                    </p>
-                                    <ul class="pl-3 mb-3">
-                                        <li>Pembagian target dan sesi lama akan dibentuk ulang.</li>
-                                        <li>Riwayat mulai/submit, jawaban, penilaian, dan file unggahan peserta akan dihapus.</li>
-                                        <li>Seluruh peserta target harus mengerjakan assessment kembali dari awal.</li>
-                                    </ul>
-                                    <div class="alert alert-warning mb-0">
-                                        Lanjutkan hanya jika Anda yakin data lama pada penugasan ini memang harus dibersihkan.
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
-                                    <button type="button" class="btn btn-warning" id="assignment-edit-confirm-button">
-                                        Ya, Reset dan Simpan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
             </div>
         </section>
     </div>
 @endsection
+
+@if ($isEditMode)
+    @push('modals')
+        <div class="modal fade" id="assignmentEditWarningModal" tabindex="-1" role="dialog"
+            aria-labelledby="assignmentEditWarningModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title text-dark" id="assignmentEditWarningModalLabel">
+                            Reset Penugasan Saat Edit
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">
+                            Menyimpan perubahan untuk <strong>{{ $assignment?->judul_penugasan }}</strong>
+                            akan mereset penugasan ini dari nol.
+                        </p>
+                        <ul class="pl-3 mb-3">
+                            <li>Pembagian target dan sesi lama akan dibentuk ulang.</li>
+                            <li>Riwayat mulai/submit, jawaban, penilaian, dan file unggahan peserta akan dihapus.</li>
+                            <li>Seluruh peserta target harus mengerjakan assessment kembali dari awal.</li>
+                        </ul>
+                        <div class="alert alert-warning mb-0">
+                            Lanjutkan hanya jika Anda yakin data lama pada penugasan ini memang harus dibersihkan.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-warning" id="assignment-edit-confirm-button">
+                            Ya, Reset dan Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endpush
+@endif
 
 @push('scripts')
     <script>
