@@ -4,6 +4,7 @@ namespace App\Services\Assessment;
 
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
+use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentTargetTiming;
 use Illuminate\Support\Collection;
 
@@ -23,6 +24,10 @@ class AssessmentAttemptLifecycleService
         $targetStartedAt = $target->started_at;
         $shouldCarryStartedAt = $markStarted || (bool) $targetStartedAt;
         $resolvedStartedAt = $markStarted ? $now : $targetStartedAt;
+        $target->loadMissing('assignment');
+        $securityConfigSnapshot = AssessmentSecurityConfig::normalize(
+            $target->assignment?->security_config
+        );
 
         if (! $attempt) {
             $snapshot = $this->randomizer->buildSnapshot($target);
@@ -34,6 +39,7 @@ class AssessmentAttemptLifecycleService
             $attempt = $target->attempt()->create([
                 'status' => $shouldCarryStartedAt ? 'in_progress' : 'draft',
                 'structure_snapshot' => $snapshot,
+                'security_config_snapshot' => $securityConfigSnapshot,
                 'total_questions' => (int) data_get($snapshot, 'meta.total_questions', 0),
                 'required_questions' => (int) data_get($snapshot, 'meta.required_questions', 0),
                 'started_at' => $resolvedStartedAt,
@@ -46,8 +52,13 @@ class AssessmentAttemptLifecycleService
 
                 $attempt->forceFill([
                     'structure_snapshot' => $snapshot,
+                    'security_config_snapshot' => $attempt->security_config_snapshot ?: $securityConfigSnapshot,
                     'total_questions' => (int) data_get($snapshot, 'meta.total_questions', 0),
                     'required_questions' => (int) data_get($snapshot, 'meta.required_questions', 0),
+                ])->save();
+            } elseif (empty($attempt->security_config_snapshot)) {
+                $attempt->forceFill([
+                    'security_config_snapshot' => $securityConfigSnapshot,
                 ])->save();
             }
 

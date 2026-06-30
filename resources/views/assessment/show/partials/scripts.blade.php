@@ -70,6 +70,923 @@
             };
         };
 
+        window.createAssessmentSecurityGuard = function(component, securityConfig) {
+            const config = securityConfig && typeof securityConfig === 'object' ? securityConfig : null;
+
+            if (!config || config.enabled !== true) {
+                return {
+                    init() {},
+                    destroy() {},
+                };
+            }
+
+            const seriousIndicators = Array.from(document.querySelectorAll('[data-security-serious-indicator]'));
+            const chancesIndicators = Array.from(document.querySelectorAll('[data-security-chances-indicator]'));
+            const warningIndicators = Array.from(document.querySelectorAll('[data-security-warning-indicator]'));
+            const examContent = document.querySelector('[data-assessment-exam-content]');
+            const warningOverlay = document.querySelector('[data-security-overlay]');
+            const warningMessage = document.querySelector('[data-security-warning-message]');
+            const warningType = document.querySelector('[data-security-warning-type]');
+            const overlayViolations = document.querySelector('[data-security-overlay-violations]');
+            const overlayChances = document.querySelector('[data-security-overlay-chances]');
+            const overlayWarnings = document.querySelector('[data-security-overlay-warning-count]');
+            const warningTimer = document.querySelector('[data-security-warning-timer]');
+            const warningButton = document.querySelector('[data-security-warning-button]');
+            const maxSeriousViolations = Math.max(1, Number(config.maxSeriousViolations ?? 3));
+            const temporaryLockDurationInSeconds = Math.max(1, Number(config.temporaryLockSeconds ?? 2));
+            const fullscreenGracePeriodInSeconds = Math.max(3, Number(config.fullscreenGraceSeconds ?? 10));
+            const requireFullscreenMode = Boolean(config.requireFullscreen);
+            let seriousViolationCount = Math.max(0, Number(config.seriousViolationCount ?? 0));
+            let warningOnlyTotal = Math.max(0, Number(config.warningViolationCount ?? 0));
+            let hadFullscreen = false;
+            let pageWasHidden = false;
+            let activeLockMode = null;
+            let countdownIntervalId = null;
+            let fullscreenRetryStarted = false;
+            let isDisqualifying = Boolean(config.disqualified ?? false);
+            let fileDialogGraceUntil = 0;
+            let lastViolationFingerprint = null;
+            let lastViolationAt = 0;
+            let retryFullscreenHandler = null;
+            const listeners = [];
+
+            const bind = (target, eventName, handler, options = false) => {
+                if (!target) {
+                    return;
+                }
+
+                target.addEventListener(eventName, handler, options);
+                listeners.push(() => target.removeEventListener(eventName, handler, options));
+            };
+
+            const nowIso = () => new Date().toISOString();
+            const remainingSeriousChances = () => Math.max(0, maxSeriousViolations - seriousViolationCount);
+            const isFullscreenActive = () => Boolean(document.fullscreenElement);
+            const shouldIgnoreBecauseFileDialog = () => Date.now() < fileDialogGraceUntil;
+
+            const syncServerState = (payload) => {
+                if (!payload || typeof payload !== 'object') {
+                    return;
+                }
+
+                if (Number.isFinite(Number(payload.seriousViolationCount))) {
+                    seriousViolationCount = Math.max(0, Number(payload.seriousViolationCount));
+                }
+
+                if (Number.isFinite(Number(payload.warningViolationCount))) {
+                    warningOnlyTotal = Math.max(0, Number(payload.warningViolationCount));
+                }
+
+                if (payload.disqualified === true) {
+                    isDisqualifying = true;
+                }
+
+                if (typeof payload.disqualificationReason === 'string' && payload.disqualificationReason.trim() !== '') {
+                    config.disqualificationReason = payload.disqualificationReason.trim();
+                }
+
+                updateViolationUi();
+            };
+
+            const showOverlay = () => {
+                warningOverlay?.classList.remove('hidden');
+                warningOverlay?.classList.add('flex');
+            };
+
+            const hideOverlay = () => {
+                warningOverlay?.classList.add('hidden');
+                warningOverlay?.classList.remove('flex');
+            };
+
+            const applyExamLock = () => {
+                component.showFinishModal = false;
+                examContent?.classList.add('pointer-events-none', 'select-none', 'blur-sm');
+            };
+
+            const removeExamLock = () => {
+                examContent?.classList.remove('pointer-events-none', 'select-none', 'blur-sm');
+            };
+
+            const clearWarningTimers = () => {
+                if (countdownIntervalId) {
+                    window.clearInterval(countdownIntervalId);
+                    countdownIntervalId = null;
+                }
+            };
+
+            const redirectToSafety = (url) => {
+                window.location.replace(url || config.resultUrl || window.location.href);
+            };
+
+            const updateViolationUi = () => {
+                const chancesLeft = remainingSeriousChances();
+                const violationText = `Pelanggaran: ${seriousViolationCount}/${maxSeriousViolations}`;
+                const chancesText = `Sisa kesempatan: ${chancesLeft}`;
+                const warningOnlyText = `Warning tidak sengaja: ${warningOnlyTotal}`;
+
+                seriousIndicators.forEach((node) => {
+                    node.textContent = violationText;
+                });
+
+                chancesIndicators.forEach((node) => {
+                    node.textContent = chancesText;
+                    node.className = `text-xs ${chancesLeft <= 1 ? 'text-red-600' : 'text-slate-500'}`;
+                });
+
+                warningIndicators.forEach((node) => {
+                    node.textContent = warningOnlyText;
+                });
+
+                if (overlayViolations) {
+                    overlayViolations.textContent = violationText;
+                }
+
+                if (overlayChances) {
+                    overlayChances.textContent = chancesText;
+                    overlayChances.className = `text-sm ${chancesLeft <= 1 ? 'text-red-600' : 'text-slate-700'}`;
+                }
+
+                if (overlayWarnings) {
+                    overlayWarnings.textContent = warningOnlyText;
+                }
+            };
+
+            const applyViolationType = (type, countsTowardDisqualify) => {
+                if (!warningType) {
+                    return;
+                }
+
+                if (type === 'intentional') {
+                    warningType.textContent = countsTowardDisqualify
+                        ? 'Tipe: Sengaja - dihitung sebagai pelanggaran'
+                        : 'Tipe: Sengaja';
+                    warningType.className = 'mt-4 text-sm font-semibold text-red-600';
+                    return;
+                }
+
+                if (type === 'system') {
+                    warningType.textContent = 'Tipe: Sistem Guard';
+                    warningType.className = 'mt-4 text-sm font-semibold text-slate-700';
+                    return;
+                }
+
+                warningType.textContent = countsTowardDisqualify
+                    ? 'Tipe: Tidak Sengaja - tetap dihitung'
+                    : 'Tipe: Tidak Sengaja - warning saja';
+                warningType.className = 'mt-4 text-sm font-semibold text-amber-700';
+            };
+
+            const resetOverlayContent = () => {
+                if (warningButton) {
+                    warningButton.disabled = true;
+                    warningButton.textContent = 'Tunggu...';
+                }
+
+                if (warningTimer) {
+                    warningTimer.textContent = 'Mohon tunggu sebentar...';
+                }
+
+                applyViolationType('unintentional', false);
+            };
+
+            const requestFullscreen = async () => {
+                if (!requireFullscreenMode || isFullscreenActive() || !document.documentElement.requestFullscreen) {
+                    return;
+                }
+
+                try {
+                    await document.documentElement.requestFullscreen();
+                } catch (error) {
+                    return;
+                }
+            };
+
+            const stopFullscreenRetry = () => {
+                if (!fullscreenRetryStarted || !retryFullscreenHandler) {
+                    return;
+                }
+
+                fullscreenRetryStarted = false;
+                document.removeEventListener('click', retryFullscreenHandler, true);
+                document.removeEventListener('keydown', retryFullscreenHandler, true);
+                document.removeEventListener('pointerdown', retryFullscreenHandler, true);
+                document.removeEventListener('touchstart', retryFullscreenHandler, true);
+                retryFullscreenHandler = null;
+            };
+
+            const startFullscreenRetry = () => {
+                if (!requireFullscreenMode || fullscreenRetryStarted) {
+                    return;
+                }
+
+                fullscreenRetryStarted = true;
+                retryFullscreenHandler = () => {
+                    void requestFullscreen();
+
+                    if (isFullscreenActive()) {
+                        stopFullscreenRetry();
+                    }
+                };
+
+                document.addEventListener('click', retryFullscreenHandler, true);
+                document.addEventListener('keydown', retryFullscreenHandler, true);
+                document.addEventListener('pointerdown', retryFullscreenHandler, true);
+                document.addEventListener('touchstart', retryFullscreenHandler, true);
+            };
+
+            const unlockExam = ({
+                force = false
+            } = {}) => {
+                if (!examContent || !warningOverlay || isDisqualifying) {
+                    return;
+                }
+
+                if (activeLockMode === 'fullscreen' && requireFullscreenMode && !isFullscreenActive() && !force) {
+                    return;
+                }
+
+                activeLockMode = null;
+                clearWarningTimers();
+                removeExamLock();
+                hideOverlay();
+                resetOverlayContent();
+            };
+
+            const appendNestedFormValue = (formData, key, value) => {
+                if (value === undefined || value === null) {
+                    return;
+                }
+
+                if (Array.isArray(value)) {
+                    value.forEach((item, index) => appendNestedFormValue(formData, `${key}[${index}]`, item));
+                    return;
+                }
+
+                if (value instanceof File) {
+                    formData.append(key, value);
+                    return;
+                }
+
+                if (typeof value === 'object') {
+                    Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+                        appendNestedFormValue(formData, `${key}[${nestedKey}]`, nestedValue);
+                    });
+                    return;
+                }
+
+                formData.append(key, String(value));
+            };
+
+            const parseJsonResponse = async (response) => {
+                try {
+                    return await response.json();
+                } catch (error) {
+                    return null;
+                }
+            };
+
+            const postViolationToServer = async (payload) => {
+                try {
+                    const response = await fetch(config.violationUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken || '',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify(payload),
+                    });
+                    const serverPayload = await parseJsonResponse(response);
+
+                    if (serverPayload?.redirect_url) {
+                        redirectToSafety(serverPayload.redirect_url);
+                        return;
+                    }
+
+                    if (serverPayload?.status === 'expired_submitted') {
+                        redirectToSafety(serverPayload.redirect_url || config.resultUrl);
+                        return;
+                    }
+
+                    syncServerState(serverPayload);
+
+                    if (serverPayload?.requires_disqualification && !isDisqualifying) {
+                        void disqualifyExam(
+                            serverPayload.reason || 'Assessment dihentikan oleh sistem guard karena pelanggaran aturan ujian.',
+                            {
+                                recordTrigger: false,
+                                metadata: {
+                                    source: 'server_threshold',
+                                },
+                            }
+                        );
+                    }
+                } catch (error) {
+                    return;
+                }
+            };
+
+            const disqualifyExam = async (reason, options = {}) => {
+                if (isDisqualifying) {
+                    return;
+                }
+
+                isDisqualifying = true;
+                activeLockMode = 'disqualified';
+                clearWarningTimers();
+                applyExamLock();
+                showOverlay();
+                updateViolationUi();
+
+                if (warningMessage) {
+                    warningMessage.textContent = reason;
+                }
+
+                applyViolationType('system', false);
+
+                if (warningTimer) {
+                    warningTimer.textContent = 'Assessment akan dihentikan dan jawaban terakhir diproses.';
+                }
+
+                if (warningButton) {
+                    warningButton.disabled = true;
+                    warningButton.textContent = 'Memproses...';
+                }
+
+                const form = component.formElement();
+                const formData = form ? new FormData(form) : new FormData();
+
+                if (!form && config.csrfToken) {
+                    formData.append('_token', config.csrfToken);
+                }
+
+                formData.append('reason', reason);
+                formData.append('record_trigger', options.recordTrigger ? '1' : '0');
+                formData.append('client_occurred_at', nowIso());
+                appendNestedFormValue(formData, 'metadata', options.metadata || {});
+
+                if (options.triggerEvent && typeof options.triggerEvent === 'object') {
+                    appendNestedFormValue(formData, 'trigger_event', options.triggerEvent);
+                }
+
+                try {
+                    const response = await fetch(config.disqualifyUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        credentials: 'same-origin',
+                        body: formData,
+                    });
+                    const serverPayload = await parseJsonResponse(response);
+
+                    if (serverPayload?.security) {
+                        syncServerState(serverPayload.security);
+                    }
+
+                    redirectToSafety(serverPayload?.redirect_url || config.resultUrl);
+                } catch (error) {
+                    redirectToSafety(config.resultUrl);
+                }
+            };
+
+            const requireFullscreen = (message = 'Mode fullscreen wajib aktif untuk melanjutkan ujian.', options = {}) => {
+                if (!requireFullscreenMode || !examContent || !warningOverlay || !warningMessage) {
+                    return;
+                }
+
+                clearWarningTimers();
+                activeLockMode = 'fullscreen';
+                warningMessage.textContent = message;
+                applyViolationType(
+                    options.type ?? 'unintentional',
+                    options.countsTowardDisqualify ?? false,
+                );
+                applyExamLock();
+                showOverlay();
+
+                let remainingSeconds = fullscreenGracePeriodInSeconds;
+
+                const updateFullscreenWarning = () => {
+                    if (warningTimer) {
+                        warningTimer.textContent = `Kembali ke mode fullscreen dalam ${remainingSeconds} detik atau ujian akan dihentikan.`;
+                    }
+
+                    if (warningButton) {
+                        warningButton.disabled = false;
+                        warningButton.textContent = `Aktifkan Fullscreen (${remainingSeconds})`;
+                    }
+                };
+
+                updateFullscreenWarning();
+                void requestFullscreen();
+                startFullscreenRetry();
+
+                countdownIntervalId = window.setInterval(() => {
+                    if (isFullscreenActive()) {
+                        unlockExam({
+                            force: true
+                        });
+                        return;
+                    }
+
+                    remainingSeconds -= 1;
+
+                    if (remainingSeconds <= 0) {
+                        void disqualifyExam(
+                            'Anda didiskualifikasi karena tidak kembali ke mode fullscreen dalam batas waktu guard.',
+                            {
+                                recordTrigger: true,
+                                triggerEvent: {
+                                    event_key: 'fullscreen_timeout',
+                                    message,
+                                    type: 'system',
+                                    mode: 'fullscreen',
+                                    client_occurred_at: nowIso(),
+                                    metadata: {
+                                        reason: 'fullscreen_timeout',
+                                    },
+                                },
+                                metadata: {
+                                    source: 'fullscreen_timeout',
+                                },
+                            }
+                        );
+                        return;
+                    }
+
+                    updateFullscreenWarning();
+                }, 1000);
+            };
+
+            const temporaryLockModeMessage = (remainingSeconds) => {
+                if (warningType?.textContent?.includes('Sengaja')) {
+                    return `Pelanggaran sengaja tercatat. Laman ujian dikunci sementara selama ${remainingSeconds} detik.`;
+                }
+
+                return `Warning tercatat. Laman ujian dikunci sementara selama ${remainingSeconds} detik.`;
+            };
+
+            const startWarningCountdown = () => {
+                if (!warningTimer || !warningButton) {
+                    return;
+                }
+
+                clearWarningTimers();
+                let remainingSeconds = temporaryLockDurationInSeconds;
+
+                warningButton.disabled = true;
+                warningButton.textContent = `Tunggu ${remainingSeconds} detik`;
+                warningTimer.textContent = temporaryLockModeMessage(remainingSeconds);
+
+                countdownIntervalId = window.setInterval(() => {
+                    remainingSeconds -= 1;
+
+                    if (remainingSeconds <= 0) {
+                        if (!requireFullscreenMode || isFullscreenActive()) {
+                            unlockExam({
+                                force: true
+                            });
+                        } else {
+                            requireFullscreen('Kembali ke mode fullscreen untuk melanjutkan ujian.');
+                        }
+                        return;
+                    }
+
+                    warningButton.textContent = `Tunggu ${remainingSeconds} detik`;
+                    warningTimer.textContent = temporaryLockModeMessage(remainingSeconds);
+                }, 1000);
+            };
+
+            const registerViolation = ({
+                eventKey,
+                message,
+                mode = 'temporary',
+                type = 'unintentional',
+                metadata = {},
+            }) => {
+                if (isDisqualifying) {
+                    return;
+                }
+
+                const now = Date.now();
+                const fingerprint = `${eventKey}:${type}:${mode}:${message}`;
+
+                if (lastViolationFingerprint === fingerprint && now - lastViolationAt < 400) {
+                    return;
+                }
+
+                lastViolationFingerprint = fingerprint;
+                lastViolationAt = now;
+
+                const effectiveMode = !requireFullscreenMode && mode === 'fullscreen'
+                    ? 'temporary'
+                    : mode;
+                const countsTowardDisqualify = type === 'intentional';
+                const violationPayload = {
+                    event_key: eventKey,
+                    message,
+                    type,
+                    mode: effectiveMode,
+                    client_occurred_at: nowIso(),
+                    metadata,
+                };
+
+                if (type === 'intentional') {
+                    seriousViolationCount = Math.min(maxSeriousViolations, seriousViolationCount + 1);
+                } else if (type === 'unintentional') {
+                    warningOnlyTotal += 1;
+                }
+
+                updateViolationUi();
+
+                if (countsTowardDisqualify && seriousViolationCount >= maxSeriousViolations) {
+                    void disqualifyExam(
+                        'Anda didiskualifikasi karena telah melakukan pelanggaran serius berulang selama ujian.',
+                        {
+                            recordTrigger: true,
+                            triggerEvent: violationPayload,
+                            metadata: {
+                                source: 'local_threshold',
+                            },
+                        }
+                    );
+                    return;
+                }
+
+                void postViolationToServer(violationPayload);
+
+                const chancesLeft = remainingSeriousChances();
+                const violationSummary = countsTowardDisqualify
+                    ? `${message} Ini termasuk pelanggaran sengaja ke-${seriousViolationCount} dari ${maxSeriousViolations}. Sisa kesempatan anda ${chancesLeft}.`
+                    : `${message} Ini termasuk pelanggaran tidak sengaja. Sistem hanya memberi warning dan tidak mengurangi kesempatan anda.`;
+
+                if (activeLockMode === 'fullscreen') {
+                    if (warningMessage) {
+                        warningMessage.textContent = violationSummary;
+                    }
+
+                    applyViolationType(type, countsTowardDisqualify);
+                    showOverlay();
+                    void requestFullscreen();
+                    return;
+                }
+
+                if (effectiveMode === 'fullscreen' && activeLockMode === 'temporary') {
+                    requireFullscreen(violationSummary, {
+                        type,
+                        countsTowardDisqualify,
+                    });
+                    return;
+                }
+
+                if (activeLockMode === 'temporary') {
+                    if (warningMessage) {
+                        warningMessage.textContent = violationSummary;
+                    }
+
+                    applyViolationType(type, countsTowardDisqualify);
+                    showOverlay();
+                    return;
+                }
+
+                if (effectiveMode === 'fullscreen') {
+                    requireFullscreen(violationSummary, {
+                        type,
+                        countsTowardDisqualify,
+                    });
+                    return;
+                }
+
+                if (!examContent || !warningOverlay || !warningMessage) {
+                    return;
+                }
+
+                activeLockMode = 'temporary';
+                warningMessage.textContent = violationSummary;
+                applyViolationType(type, countsTowardDisqualify);
+                applyExamLock();
+                showOverlay();
+                startWarningCountdown();
+            };
+
+            const preventAndWarn = (event, message, options = {}) => {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation?.();
+
+                if (event.repeat) {
+                    return;
+                }
+
+                registerViolation({
+                    message,
+                    ...options,
+                });
+            };
+
+            const isModifierPressed = (event) => event.ctrlKey || event.metaKey;
+
+            const blockNavigationShortcut = (event) => {
+                const key = String(event.key || '').toLowerCase();
+                const modifierPressed = isModifierPressed(event);
+                const intentionalMessage =
+                    'Aksi tersebut diblokir karena terindikasi upaya akses yang tidak diperbolehkan.';
+                const warningMessageText =
+                    'Tombol kombinasi tersebut diblokir. Tetap di laman ujian sampai sesi selesai.';
+
+                if (event.key === 'F5' || event.key === 'F11' || event.key === 'F12' || key === 'printscreen') {
+                    return preventAndWarn(
+                        event,
+                        event.key === 'F12' || key === 'printscreen' ? intentionalMessage : warningMessageText,
+                        {
+                            eventKey: event.key === 'F12' || key === 'printscreen'
+                                ? 'blocked_sensitive_shortcut'
+                                : 'blocked_refresh_shortcut',
+                            type: event.key === 'F12' || key === 'printscreen' ? 'intentional' : 'unintentional',
+                        },
+                    );
+                }
+
+                if (event.altKey && ['tab', 'f4', 'arrowleft', 'arrowright'].includes(key)) {
+                    return preventAndWarn(event, warningMessageText, {
+                        eventKey: 'blocked_alt_navigation_shortcut',
+                        type: 'unintentional',
+                    });
+                }
+
+                if (event.shiftKey && modifierPressed && ['i', 'j', 'c', 'k', 's'].includes(key)) {
+                    return preventAndWarn(event, intentionalMessage, {
+                        eventKey: 'blocked_devtools_shortcut',
+                        type: 'intentional',
+                    });
+                }
+
+                if (modifierPressed && ['u', 't', 'n', 'w', 'r', 'p', 's', 'c', 'v', 'x'].includes(key)) {
+                    return preventAndWarn(
+                        event,
+                        ['c', 'v', 'x'].includes(key) ? intentionalMessage : warningMessageText,
+                        {
+                            eventKey: ['c', 'v', 'x'].includes(key)
+                                ? 'blocked_clipboard_shortcut'
+                                : 'blocked_navigation_shortcut',
+                            type: ['c', 'v', 'x'].includes(key) ? 'intentional' : 'unintentional',
+                        },
+                    );
+                }
+
+                if (modifierPressed && event.altKey && key === 'delete') {
+                    return preventAndWarn(event, warningMessageText, {
+                        eventKey: 'blocked_system_shortcut',
+                        type: 'unintentional',
+                    });
+                }
+
+                if (event.ctrlKey && event.shiftKey && key === 'escape') {
+                    return preventAndWarn(event, intentionalMessage, {
+                        eventKey: 'blocked_task_manager_shortcut',
+                        type: 'intentional',
+                    });
+                }
+            };
+
+            const blockMouseAndClipboardActions = (event) => {
+                const blockedEvents = {
+                    contextmenu: {
+                        eventKey: 'blocked_context_menu',
+                        message: 'Klik kanan dinonaktifkan selama ujian berlangsung.',
+                        type: 'unintentional',
+                    },
+                    copy: {
+                        eventKey: 'blocked_copy',
+                        message: 'Copy dinonaktifkan selama ujian berlangsung.',
+                        type: 'intentional',
+                    },
+                    cut: {
+                        eventKey: 'blocked_cut',
+                        message: 'Cut dinonaktifkan selama ujian berlangsung.',
+                        type: 'intentional',
+                    },
+                    paste: {
+                        eventKey: 'blocked_paste',
+                        message: 'Paste dinonaktifkan selama ujian berlangsung.',
+                        type: 'intentional',
+                    },
+                    dragstart: {
+                        eventKey: 'blocked_dragstart',
+                        message: 'Drag dinonaktifkan selama ujian berlangsung.',
+                        type: 'unintentional',
+                    },
+                };
+
+                if (!blockedEvents[event.type]) {
+                    return;
+                }
+
+                preventAndWarn(event, blockedEvents[event.type].message, blockedEvents[event.type]);
+            };
+
+            const armFileDialogGrace = () => {
+                fileDialogGraceUntil = Date.now() + 30000;
+            };
+
+            const handleFileInputPointer = (event) => {
+                const target = event.target;
+
+                if (target instanceof HTMLInputElement && target.type === 'file') {
+                    armFileDialogGrace();
+                }
+            };
+
+            const handleFileInputKey = (event) => {
+                const target = event.target;
+
+                if (
+                    target instanceof HTMLInputElement &&
+                    target.type === 'file' &&
+                    ['enter', ' '].includes(String(event.key || '').toLowerCase())
+                ) {
+                    armFileDialogGrace();
+                }
+            };
+
+            const handleFileInputChange = (event) => {
+                const target = event.target;
+
+                if (target instanceof HTMLInputElement && target.type === 'file') {
+                    fileDialogGraceUntil = 0;
+                }
+            };
+
+            return {
+                init() {
+                    if (isDisqualifying) {
+                        redirectToSafety(config.resultUrl);
+                        return;
+                    }
+
+                    history.pushState(null, '', window.location.href);
+                    updateViolationUi();
+                    resetOverlayContent();
+
+                    if (requireFullscreenMode) {
+                        void requestFullscreen();
+                        startFullscreenRetry();
+
+                        window.setTimeout(() => {
+                            if (!isFullscreenActive()) {
+                                requireFullscreen('Ujian hanya bisa dikerjakan dalam mode fullscreen.');
+                            }
+                        }, 300);
+                    }
+
+                    bind(document, 'keydown', blockNavigationShortcut, true);
+                    bind(document, 'contextmenu', blockMouseAndClipboardActions, true);
+                    bind(document, 'copy', blockMouseAndClipboardActions, true);
+                    bind(document, 'cut', blockMouseAndClipboardActions, true);
+                    bind(document, 'paste', blockMouseAndClipboardActions, true);
+                    bind(document, 'dragstart', blockMouseAndClipboardActions, true);
+                    bind(document, 'click', handleFileInputPointer, true);
+                    bind(document, 'keydown', handleFileInputKey, true);
+                    bind(document, 'change', handleFileInputChange, true);
+
+                    bind(warningButton, 'click', async () => {
+                        if (isDisqualifying) {
+                            return;
+                        }
+
+                        if (activeLockMode === 'fullscreen') {
+                            await requestFullscreen();
+
+                            if (isFullscreenActive()) {
+                                unlockExam({
+                                    force: true
+                                });
+                            }
+
+                            return;
+                        }
+
+                        if (!requireFullscreenMode) {
+                            unlockExam({
+                                force: true
+                            });
+                            return;
+                        }
+
+                        if (isFullscreenActive()) {
+                            return;
+                        }
+
+                        requireFullscreen('Mode fullscreen wajib aktif untuk melanjutkan ujian.');
+                    });
+
+                    bind(window, 'popstate', () => {
+                        history.pushState(null, '', window.location.href);
+                        registerViolation({
+                            eventKey: 'blocked_history_navigation',
+                            message: 'Anda mencoba keluar dari halaman ujian.',
+                            mode: requireFullscreenMode && !isFullscreenActive() ? 'fullscreen' : 'temporary',
+                            type: 'unintentional',
+                        });
+                    });
+
+                    bind(document, 'visibilitychange', () => {
+                        if (document.visibilityState === 'hidden') {
+                            pageWasHidden = true;
+                            return;
+                        }
+
+                        if (!pageWasHidden) {
+                            return;
+                        }
+
+                        pageWasHidden = false;
+
+                        if (shouldIgnoreBecauseFileDialog()) {
+                            fileDialogGraceUntil = 0;
+                            return;
+                        }
+
+                        registerViolation({
+                            eventKey: 'visibility_focus_loss',
+                            message: 'Anda terdeteksi keluar dari fokus ujian.',
+                            mode: requireFullscreenMode && !isFullscreenActive() ? 'fullscreen' : 'temporary',
+                            type: 'unintentional',
+                        });
+                    });
+
+                    bind(window, 'focus', () => {
+                        if (requireFullscreenMode) {
+                            void requestFullscreen();
+                        }
+
+                        if (shouldIgnoreBecauseFileDialog()) {
+                            fileDialogGraceUntil = 0;
+
+                            if (activeLockMode === 'fullscreen' && (!requireFullscreenMode || isFullscreenActive())) {
+                                unlockExam({
+                                    force: true
+                                });
+                            }
+
+                            return;
+                        }
+
+                        if (requireFullscreenMode && !isFullscreenActive()) {
+                            requireFullscreen('Kembali ke mode fullscreen untuk melanjutkan ujian.');
+                            return;
+                        }
+
+                        if (activeLockMode === 'fullscreen') {
+                            unlockExam({
+                                force: true
+                            });
+                        }
+                    });
+
+                    bind(document, 'fullscreenchange', () => {
+                        if (!requireFullscreenMode) {
+                            return;
+                        }
+
+                        if (isFullscreenActive()) {
+                            hadFullscreen = true;
+
+                            if (activeLockMode === 'fullscreen') {
+                                unlockExam({
+                                    force: true
+                                });
+                            }
+
+                            return;
+                        }
+
+                        if (shouldIgnoreBecauseFileDialog()) {
+                            return;
+                        }
+
+                        if (hadFullscreen || activeLockMode === 'fullscreen') {
+                            registerViolation({
+                                eventKey: 'fullscreen_exit',
+                                message: 'Mode fullscreen dimatikan.',
+                                mode: 'fullscreen',
+                                type: 'unintentional',
+                            });
+                        }
+                    });
+                },
+                destroy() {
+                    clearWarningTimers();
+                    stopFullscreenRetry();
+                    listeners.splice(0).forEach((cleanup) => cleanup());
+                },
+            };
+        };
+
         window.assessmentExamFlow = function(config) {
             return {
                 currentAssessmentIndex: Number(config.initialIndex ?? 0),
@@ -78,6 +995,8 @@
                 autosaveUrl: typeof config.autosaveUrl === 'string' ? config.autosaveUrl : '',
                 resultUrl: typeof config.resultUrl === 'string' ? config.resultUrl : '',
                 deadlineAt: typeof config.deadlineAt === 'string' ? config.deadlineAt : null,
+                securityConfig: config.security && typeof config.security === 'object' ? config.security : null,
+                securityGuard: null,
                 showFinishModal: false,
                 isSubmitting: false,
                 isAutosaving: false,
@@ -105,12 +1024,16 @@
                         });
 
                         this.startDeadlineWatcher();
+                        this.securityGuard = window.createAssessmentSecurityGuard(this, this.securityConfig);
+                        this.securityGuard.init();
                     });
                 },
                 destroy() {
                     if (this.deadlineWatcherId) {
                         clearInterval(this.deadlineWatcherId);
                     }
+
+                    this.securityGuard?.destroy?.();
                 },
                 formElement() {
                     return this.$refs.assessmentExamForm ?? null;

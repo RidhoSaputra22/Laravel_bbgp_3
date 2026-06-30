@@ -86,7 +86,7 @@ class AssessmentAttemptService
             return $this->loadAttemptRelations($attempt);
         }
 
-        return $this->finalizeAttempt($attempt, $answers, $files, false);
+        return $this->finalizeAttempt($attempt, $answers, $files);
     }
 
     public function submitExpired(
@@ -98,7 +98,36 @@ class AssessmentAttemptService
             return $this->loadAttemptRelations($attempt);
         }
 
-        return $this->finalizeAttempt($attempt, $answers, $files, true);
+        return $this->finalizeAttempt($attempt, $answers, $files, [
+            'force_zero_for_unanswered' => true,
+        ]);
+    }
+
+    public function submitDisqualified(
+        AssessmentAttempt $attempt,
+        array $answers = [],
+        array $files = [],
+        ?string $reason = null
+    ): AssessmentAttempt {
+        if ($attempt->status === 'submitted') {
+            return $this->loadAttemptRelations($attempt);
+        }
+
+        $reason = trim((string) ($reason ?? ''));
+
+        return $this->finalizeAttempt($attempt, $answers, $files, [
+            'force_zero_for_unanswered' => true,
+            'submission_mode' => 'security_disqualified',
+            'submission_note' => $reason !== ''
+                ? $reason
+                : 'Assessment dihentikan oleh sistem guard karena terdeteksi pelanggaran aturan ujian.',
+            'completion_mode' => null,
+            'timed_out_at' => null,
+            'disqualified_at' => now(),
+            'disqualification_reason' => $reason !== ''
+                ? $reason
+                : 'Assessment dihentikan oleh sistem guard karena terdeteksi pelanggaran aturan ujian.',
+        ]);
     }
 
     public function buildResultSummary(AssessmentAttempt $attempt): array
@@ -181,8 +210,9 @@ class AssessmentAttemptService
         AssessmentAttempt $attempt,
         array $answers,
         array $files,
-        bool $forceZeroForUnanswered
+        array $options = []
     ): AssessmentAttempt {
+        $forceZeroForUnanswered = (bool) ($options['force_zero_for_unanswered'] ?? false);
         $snapshot = $attempt->structure_snapshot ?? [];
         $fields = $this->flattenFields($snapshot);
         $processedFieldIds = collect($fields)
@@ -203,6 +233,23 @@ class AssessmentAttemptService
             ! $forceZeroForUnanswered
         );
         $submittedAt = now();
+        $submissionMode = (string) ($options['submission_mode'] ?? ($forceZeroForUnanswered ? 'deadline_auto' : 'manual'));
+        $submissionNote = $options['submission_note']
+            ?? ($forceZeroForUnanswered
+                ? 'Batas waktu berakhir. Jawaban terakhir yang tersimpan diproses otomatis dan soal kosong diberi skor 0.'
+                : 'Jawaban dikirim langsung oleh peserta.');
+        $completionMode = array_key_exists('completion_mode', $options)
+            ? $options['completion_mode']
+            : ($forceZeroForUnanswered ? 'timeout' : 'manual');
+        $timedOutAt = array_key_exists('timed_out_at', $options)
+            ? $options['timed_out_at']
+            : ($forceZeroForUnanswered ? $submittedAt : null);
+        $disqualifiedAt = array_key_exists('disqualified_at', $options)
+            ? $options['disqualified_at']
+            : null;
+        $disqualificationReason = array_key_exists('disqualification_reason', $options)
+            ? $options['disqualification_reason']
+            : null;
 
         DB::transaction(function () use (
             $attempt,
@@ -211,7 +258,13 @@ class AssessmentAttemptService
             $processedFieldIds,
             $normalizedAnswers,
             $submittedAt,
-            $forceZeroForUnanswered
+            $forceZeroForUnanswered,
+            $submissionMode,
+            $submissionNote,
+            $completionMode,
+            $timedOutAt,
+            $disqualifiedAt,
+            $disqualificationReason
         ) {
             $this->persistNormalizedAnswers(
                 $attempt,
@@ -238,11 +291,11 @@ class AssessmentAttemptService
                 $submittedAt
             );
 
-            $summary['submission_mode'] = $forceZeroForUnanswered ? 'deadline_auto' : 'manual';
-            $summary['submission_note'] = $forceZeroForUnanswered
-                ? 'Batas waktu berakhir. Jawaban terakhir yang tersimpan diproses otomatis dan soal kosong diberi skor 0.'
-                : 'Jawaban dikirim langsung oleh peserta.';
+            $summary['submission_mode'] = $submissionMode;
+            $summary['submission_note'] = $submissionNote;
             $summary['auto_submitted_at'] = $forceZeroForUnanswered ? $submittedAt->toIso8601String() : null;
+            $summary['disqualified_at'] = $disqualifiedAt?->toIso8601String();
+            $summary['disqualification_reason'] = $disqualificationReason;
 
             $scoringSummary = $this->scoringService->buildSummary($attempt);
 
@@ -254,9 +307,11 @@ class AssessmentAttemptService
                 'answered_required_questions' => (int) $summary['answered_required_questions'],
                 'deadline_at' => $attempt->deadline_at,
                 'submitted_at' => $submittedAt,
-                'completion_mode' => $forceZeroForUnanswered ? 'timeout' : 'manual',
-                'timed_out_at' => $forceZeroForUnanswered ? $submittedAt : null,
+                'completion_mode' => $completionMode,
+                'timed_out_at' => $timedOutAt,
                 'last_answered_at' => $submittedAt,
+                'disqualified_at' => $disqualifiedAt,
+                'disqualification_reason' => $disqualificationReason,
             ])->save();
 
             $target = $attempt->target;
@@ -267,8 +322,8 @@ class AssessmentAttemptService
                     'started_at' => $target->started_at ?: $attempt->started_at ?: $submittedAt,
                     'deadline_at' => $target->deadline_at ?: $attempt->deadline_at,
                     'submitted_at' => $submittedAt,
-                    'completion_mode' => $forceZeroForUnanswered ? 'timeout' : 'manual',
-                    'timed_out_at' => $forceZeroForUnanswered ? $submittedAt : null,
+                    'completion_mode' => $completionMode,
+                    'timed_out_at' => $timedOutAt,
                 ])->save();
             }
         });
@@ -976,6 +1031,7 @@ class AssessmentAttemptService
     {
         return $attempt->load([
             'answers',
+            'securityEvents',
             'target.assignment.assessments.forms.fields',
             'target.assignment.combination',
             'target.combination',

@@ -8,6 +8,10 @@
         $pendingManualItems = (int) data_get($scoringSummary, 'manual_review.pending_items', 0);
         $statusLabel = data_get($scoringSummary, 'status_label', 'Belum Ada Skor');
         $statusDescription = data_get($scoringSummary, 'status_description', '-');
+        $securityEventRows = $attempt->securityEvents ?? collect();
+        $seriousViolationCount = (int) ($attempt->serious_violation_count ?? 0);
+        $warningViolationCount = (int) ($attempt->warning_violation_count ?? 0);
+        $isDisqualified = $attempt->disqualified_at !== null;
     @endphp
 
     <div class="main-content">
@@ -126,12 +130,64 @@
                                         <div class="text-muted small">Status Skor</div>
                                         <div class="font-weight-bold">{{ $statusLabel }}</div>
                                     </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="text-muted small">Pelanggaran Serius</div>
+                                        <div class="font-weight-bold">{{ $seriousViolationCount }}</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="text-muted small">Warning Tidak Sengaja</div>
+                                        <div class="font-weight-bold">{{ $warningViolationCount }}</div>
+                                    </div>
                                 </div>
                                 <div class="alert alert-light border mb-0">
                                     {{ $statusDescription }}
                                 </div>
+                                @if ($isDisqualified)
+                                    <div class="alert alert-danger mt-3 mb-0">
+                                        Peserta didiskualifikasi oleh guard ujian.
+                                        {{ $attempt->disqualification_reason ?: 'Tidak ada alasan tambahan yang tersimpan.' }}
+                                    </div>
+                                @endif
                             </div>
                         </div>
+
+                        @if ($securityEventRows->isNotEmpty())
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>Log Guard Ujian</h4>
+                                </div>
+                                <div class="card-body table-responsive">
+                                    <table class="table table-sm table-bordered mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Waktu</th>
+                                                <th>Event</th>
+                                                <th>Tipe</th>
+                                                <th>Mode</th>
+                                                <th>Dampak</th>
+                                                <th>Pesan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($securityEventRows as $event)
+                                                <tr>
+                                                    <td>
+                                                        {{ $event->client_occurred_at?->format('d M Y H:i:s') ?: $event->created_at?->format('d M Y H:i:s') ?: '-' }}
+                                                    </td>
+                                                    <td>{{ $event->event_key }}</td>
+                                                    <td>{{ ucfirst($event->violation_type ?: '-') }}</td>
+                                                    <td>{{ $event->lock_mode ?: '-' }}</td>
+                                                    <td>
+                                                        {{ $event->counts_toward_disqualify ? 'Hitung serius' : 'Warning / sistem' }}
+                                                    </td>
+                                                    <td>{{ $event->message }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
 
                         <form action="{{ route('assessment.assignment.review.update', $target->id) }}" method="POST">
                             @csrf

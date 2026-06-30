@@ -27,6 +27,10 @@
             </div>
         </div>
 
+        @include('assessment.show.partials.security-status', [
+            'securityPayload' => $securityPayload ?? [],
+        ])
+
         @if ($assessmentCount > 0)
             <div class="flex flex-col gap-4 mt-2">
 

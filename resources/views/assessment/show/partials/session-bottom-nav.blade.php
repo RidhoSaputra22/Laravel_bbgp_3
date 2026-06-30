@@ -18,6 +18,10 @@
         </div>
         @if ($assessmentCount > 0)
             <div class="flex flex-col gap-4 mt-2">
+                @include('assessment.show.partials.security-status', [
+                    'securityPayload' => $securityPayload ?? [],
+                ])
+
                 <div class="flex flex-col gap-3 sm:flex-row justify-end">
                     <x-assessment::ui.button type="button" variant="outline" icon="fas fa-arrow-left"
                         x-show="!isFirstAssessment()" x-bind:disabled="isBusy()"

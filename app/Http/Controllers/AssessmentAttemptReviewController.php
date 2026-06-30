@@ -95,6 +95,7 @@ class AssessmentAttemptReviewController extends Controller
             'session',
             'guru',
             'attempt.answers',
+            'attempt.securityEvents',
         ])->findOrFail($targetId);
 
         $target = $this->attemptLifecycleService->syncExpiredTarget($target);

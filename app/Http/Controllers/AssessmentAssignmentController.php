@@ -9,6 +9,8 @@ use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Models\Guru;
+use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\JsonResponse;
@@ -25,14 +27,22 @@ class AssessmentAssignmentController extends Controller
 
     public function __construct(
         private readonly AssessmentAssignmentService $assignmentService,
-        private readonly AssessmentAttemptLifecycleService $attemptLifecycleService
+        private readonly AssessmentAttemptLifecycleService $attemptLifecycleService,
+        private readonly AssessmentMonitoringService $assessmentMonitoringService
     ) {}
 
     public function index()
     {
         $this->authorizeAccess();
 
-        $datas = AssessmentAssignment::with(['assessments', 'creator', 'combination'])
+        $datas = AssessmentAssignment::with([
+            'assessments.forms.fields',
+            'creator',
+            'combination',
+            'targets.guru',
+            'targets.attempt',
+            'sessions',
+        ])
             ->withCount(['targets', 'sessions'])
             ->orderByDesc('id')
             ->get();
@@ -47,6 +57,7 @@ class AssessmentAssignmentController extends Controller
             'menu' => $this->menu,
             'datas' => $datas,
             'monitoringByAssignmentId' => $monitoringByAssignmentId,
+            'monitoringPanel' => $this->assessmentMonitoringService->buildGlobalDashboard($datas),
         ]);
     }
 
@@ -199,6 +210,7 @@ class AssessmentAssignmentController extends Controller
             'menu' => $this->menu,
             'assignment' => $assignment,
             'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
+            'monitoringPanel' => $this->assessmentMonitoringService->buildAssignmentDetail($assignment),
         ]);
     }
 
@@ -868,6 +880,11 @@ class AssessmentAssignmentController extends Controller
                     'integer',
                     Rule::in(AssessmentAssignmentService::SESSION_DURATION_OPTIONS),
                 ],
+                'security_enabled' => 'nullable|boolean',
+                'security_require_fullscreen' => 'nullable|boolean',
+                'security_max_serious_violations' => 'nullable|integer|min:1|max:10',
+                'security_temporary_lock_seconds' => 'nullable|integer|min:1|max:30',
+                'security_fullscreen_grace_seconds' => 'nullable|integer|min:3|max:60',
             ],
             [
                 'judul_penugasan.required' => 'Judul penugasan wajib diisi.',
@@ -887,6 +904,12 @@ class AssessmentAssignmentController extends Controller
                 'durasi_sesi_jam.required' => 'Durasi sesi assessment wajib dipilih.',
                 'durasi_sesi_jam.in' => 'Durasi sesi assessment harus sesuai pilihan yang tersedia.',
                 'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
+                'security_max_serious_violations.min' => 'Batas pelanggaran serius minimal 1.',
+                'security_max_serious_violations.max' => 'Batas pelanggaran serius maksimal 10.',
+                'security_temporary_lock_seconds.min' => 'Durasi kunci sementara minimal 1 detik.',
+                'security_temporary_lock_seconds.max' => 'Durasi kunci sementara maksimal 30 detik.',
+                'security_fullscreen_grace_seconds.min' => 'Tenggang fullscreen minimal 3 detik.',
+                'security_fullscreen_grace_seconds.max' => 'Tenggang fullscreen maksimal 60 detik.',
             ]
         );
 
@@ -995,6 +1018,9 @@ class AssessmentAssignmentController extends Controller
             }
         });
 
-        return $validator->validate();
+        $validated = $validator->validate();
+        $validated['security_config'] = AssessmentSecurityConfig::fromRequest($validated);
+
+        return $validated;
     }
 }

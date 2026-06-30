@@ -44,6 +44,7 @@ class AssessmentPortalService
             'combination',
             'session',
             'attempt.answers',
+            'attempt.securityEvents',
             'guru',
         ])
             ->where('guru_id', $guru->id)
@@ -168,6 +169,18 @@ class AssessmentPortalService
         }
 
         if ($attempt && $attempt->status === 'submitted') {
+            if ($attempt->disqualified_at || ($attempt->result_summary['submission_mode'] ?? null) === 'security_disqualified') {
+                return array_merge($meta, [
+                    'status' => 'submitted',
+                    'label' => 'Didiskualifikasi',
+                    'badge' => 'danger',
+                    'description' => $attempt->disqualification_reason
+                        ?: 'Assessment dihentikan oleh sistem guard karena pelanggaran aturan ujian.',
+                    'can_open' => false,
+                    'can_view_result' => true,
+                ]);
+            }
+
             $submittedAutomatically = $completionMode === 'timeout'
                 || data_get($attempt->result_summary ?? [], 'submission_mode') === 'deadline_auto';
 

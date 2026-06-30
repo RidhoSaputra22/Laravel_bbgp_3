@@ -12,6 +12,7 @@ use App\Models\AssessmentAttemptAnswer;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
+use App\Support\Assessment\AssessmentSecurityConfig;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -89,6 +90,7 @@ class AssessmentAssignmentService
                 'tanggal_selesai' => $payload['tanggal_selesai'] ?? null,
                 'kapasitas_per_sesi' => self::TARGETS_PER_SESSION,
                 'durasi_sesi_jam' => $context['session_duration_hours'],
+                'security_config' => AssessmentSecurityConfig::normalize($payload['security_config'] ?? []),
                 'total_sesi' => $totalSessions,
                 'status_distribusi' => $shouldBatch ? 'diproses' : 'draft',
                 'total_target' => count($context['guru_ids']),
@@ -173,6 +175,7 @@ class AssessmentAssignmentService
                 'tanggal_selesai' => $payload['tanggal_selesai'] ?? null,
                 'kapasitas_per_sesi' => self::TARGETS_PER_SESSION,
                 'durasi_sesi_jam' => $context['session_duration_hours'],
+                'security_config' => AssessmentSecurityConfig::normalize($payload['security_config'] ?? []),
                 'total_sesi' => $totalSessions,
                 'status_distribusi' => $shouldBatch ? 'diproses' : 'draft',
                 'total_target' => count($context['guru_ids']),

@@ -123,6 +123,14 @@
                     ),
                 )
                 : 0;
+        $securityPayload = array_merge($securityPayload ?? [], [
+            'enabled' => (bool) data_get($securityPayload ?? [], 'enabled', false),
+            'violationUrl' => route('assessment.portal.security.violation', $target->id),
+            'disqualifyUrl' => route('assessment.portal.security.disqualify', $target->id),
+            'resultUrl' => route('assessment.portal.result', $target->id),
+            'csrfToken' => csrf_token(),
+            'targetId' => (int) $target->id,
+        ]);
     @endphp
 
     @include('assessment.show.partials.portal-header', ['guru' => $guru])
@@ -134,56 +142,64 @@
         autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
         resultUrl: @js(route('assessment.portal.result', $target->id)),
         deadlineAt: @js(optional($countdownTargetAt)->toIso8601String()),
+        security: @js($securityPayload),
     })" class="space-y-6 **:text-xs sm:**:text-sm">
-        <section class="grid gap-8 p-6 grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] md:gap-10 md:p-14">
-            <div class="space-y-8 md:space-y-12" x-ref="assessmentFlowTop">
-                <form id="assessment-exam-form" x-ref="assessmentExamForm"
-                    action="{{ route('assessment.portal.submit', $target->id) }}" method="POST"
-                    enctype="multipart/form-data" novalidate @submit.prevent="handleSubmit($event)">
-                    @csrf
-                    <input type="hidden" name="active_assessment_index" x-model="currentAssessmentIndex">
-
-                    @if ($assessmentCount === 0)
-                        @include('assessment.show.partials.empty-state')
-                    @endif
-
-                    @foreach ($assessmentItems as $assessmentItem)
-                        @include('assessment.show.partials.assessment-item', [
-                            'assessmentItem' => $assessmentItem,
-                            'assessment' => $assessmentItem['data'],
-                        ])
-                    @endforeach
-
-                    @if ($assessmentCount > 0)
-                        @include('assessment.show.partials.finish-modal', [
-                            'assessmentCount' => $assessmentCount,
-                            'totalQuestions' => $totalQuestions,
-                            'requiredQuestions' => $requiredQuestions,
-                        ])
-                    @endif
-                </form>
-            </div>
-
-                @include('assessment.show.partials.session-sidebar', [
-                    'assessmentCount' => $assessmentCount,
-                    'meta' => $meta,
-                    'countdownTitle' => $countdownTitle,
-                    'countdownTargetAt' => $countdownTargetAt,
-                    'countdownCaption' => $countdownCaption,
-                    'sessionDetails' => $sessionDetails,
-                ])
-
-        </section>
-
-        @include('assessment.show.partials.session-bottom-nav', [
-            'assessmentCount' => $assessmentCount,
-            'meta' => $meta,
-            'countdownTitle' => $countdownTitle,
-            'countdownTargetAt' => $countdownTargetAt,
-            'countdownCaption' => $countdownCaption,
-            'sessionDetails' => $sessionDetails,
+        @include('assessment.show.partials.security-overlay', [
+            'securityPayload' => $securityPayload,
         ])
 
+        <div class="space-y-6" data-assessment-exam-content>
+            <section class="grid gap-8 p-6 grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] md:gap-10 md:p-14">
+                <div class="space-y-8 md:space-y-12" x-ref="assessmentFlowTop">
+                    <form id="assessment-exam-form" x-ref="assessmentExamForm"
+                        action="{{ route('assessment.portal.submit', $target->id) }}" method="POST"
+                        enctype="multipart/form-data" novalidate @submit.prevent="handleSubmit($event)">
+                        @csrf
+                        <input type="hidden" name="active_assessment_index" x-model="currentAssessmentIndex">
+
+                        @if ($assessmentCount === 0)
+                            @include('assessment.show.partials.empty-state')
+                        @endif
+
+                        @foreach ($assessmentItems as $assessmentItem)
+                            @include('assessment.show.partials.assessment-item', [
+                                'assessmentItem' => $assessmentItem,
+                                'assessment' => $assessmentItem['data'],
+                            ])
+                        @endforeach
+
+                        @if ($assessmentCount > 0)
+                            @include('assessment.show.partials.finish-modal', [
+                                'assessmentCount' => $assessmentCount,
+                                'totalQuestions' => $totalQuestions,
+                                'requiredQuestions' => $requiredQuestions,
+                            ])
+                        @endif
+                    </form>
+                </div>
+
+                    @include('assessment.show.partials.session-sidebar', [
+                        'assessmentCount' => $assessmentCount,
+                        'meta' => $meta,
+                        'countdownTitle' => $countdownTitle,
+                        'countdownTargetAt' => $countdownTargetAt,
+                        'countdownCaption' => $countdownCaption,
+                        'sessionDetails' => $sessionDetails,
+                        'securityPayload' => $securityPayload,
+                    ])
+
+            </section>
+
+            @include('assessment.show.partials.session-bottom-nav', [
+                'assessmentCount' => $assessmentCount,
+                'meta' => $meta,
+                'countdownTitle' => $countdownTitle,
+                'countdownTargetAt' => $countdownTargetAt,
+                'countdownCaption' => $countdownCaption,
+                'sessionDetails' => $sessionDetails,
+                'securityPayload' => $securityPayload,
+            ])
+        </div>
     </div>
 
     @include('assessment.show.partials.scripts')

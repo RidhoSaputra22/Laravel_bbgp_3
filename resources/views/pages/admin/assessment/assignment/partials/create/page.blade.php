@@ -5,6 +5,31 @@
         'durasi_sesi_jam',
         $assignment?->durasi_sesi_jam ?? $defaultSessionDurationHours,
     );
+    $resolvedSecurityConfig = \App\Support\Assessment\AssessmentSecurityConfig::normalize($assignment?->security_config ?? []);
+    $selectedSecurityEnabled = filter_var(
+        old('security_enabled', $resolvedSecurityConfig['enabled'] ? '1' : '0'),
+        FILTER_VALIDATE_BOOLEAN,
+        FILTER_NULL_ON_FAILURE,
+    );
+    $selectedSecurityEnabled = $selectedSecurityEnabled ?? $resolvedSecurityConfig['enabled'];
+    $selectedSecurityRequireFullscreen = filter_var(
+        old('security_require_fullscreen', $resolvedSecurityConfig['require_fullscreen'] ? '1' : '0'),
+        FILTER_VALIDATE_BOOLEAN,
+        FILTER_NULL_ON_FAILURE,
+    );
+    $selectedSecurityRequireFullscreen = $selectedSecurityRequireFullscreen ?? $resolvedSecurityConfig['require_fullscreen'];
+    $selectedSecurityMaxSeriousViolations = (int) old(
+        'security_max_serious_violations',
+        $resolvedSecurityConfig['max_serious_violations'],
+    );
+    $selectedSecurityTemporaryLockSeconds = (int) old(
+        'security_temporary_lock_seconds',
+        $resolvedSecurityConfig['temporary_lock_seconds'],
+    );
+    $selectedSecurityFullscreenGraceSeconds = (int) old(
+        'security_fullscreen_grace_seconds',
+        $resolvedSecurityConfig['fullscreen_grace_seconds'],
+    );
     $selectedStartTime = old('jam_mulai', $assignment?->jam_mulai_label);
     $selectedJudul = old('judul_penugasan', $assignment?->judul_penugasan);
     $selectedStartDate = old('tanggal_mulai', $assignment?->tanggal_mulai?->format('Y-m-d'));
@@ -580,6 +605,94 @@
                                                     Sistem otomatis membagi {{ $sessionCapacity }} peserta untuk setiap
                                                     sesi assessment.
                                                 </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border shadow-none mb-4">
+                                        <div class="card-header bg-white">
+                                            <h4 class="mb-0">Guard Ujian & Anti Kecurangan</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-light border mb-4">
+                                                Konfigurasi ini mengaktifkan blok shortcut, pantauan fokus halaman, serta
+                                                kontrol fullscreen pada portal peserta. Seluruh pelanggaran akan masuk
+                                                ke database attempt sebagai log audit.
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="custom-control custom-switch mb-3">
+                                                        <input type="hidden" name="security_enabled" value="0">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="security_enabled" name="security_enabled" value="1"
+                                                            @checked($selectedSecurityEnabled)>
+                                                        <label class="custom-control-label" for="security_enabled">
+                                                            Aktifkan Guard Ujian
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="custom-control custom-switch mb-3">
+                                                        <input type="hidden" name="security_require_fullscreen" value="0">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="security_require_fullscreen"
+                                                            name="security_require_fullscreen" value="1"
+                                                            @checked($selectedSecurityRequireFullscreen)>
+                                                        <label class="custom-control-label"
+                                                            for="security_require_fullscreen">
+                                                            Wajib Fullscreen
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Batas Pelanggaran Serius</label>
+                                                        <input type="number" min="1" max="10"
+                                                            name="security_max_serious_violations"
+                                                            class="form-control @error('security_max_serious_violations') is-invalid @enderror"
+                                                            value="{{ $selectedSecurityMaxSeriousViolations }}">
+                                                        <small class="text-muted">
+                                                            Saat limit tercapai, ujian dihentikan otomatis.
+                                                        </small>
+                                                        @error('security_max_serious_violations')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Kunci Sementara (detik)</label>
+                                                        <input type="number" min="1" max="30"
+                                                            name="security_temporary_lock_seconds"
+                                                            class="form-control @error('security_temporary_lock_seconds') is-invalid @enderror"
+                                                            value="{{ $selectedSecurityTemporaryLockSeconds }}">
+                                                        <small class="text-muted">
+                                                            Waktu lock saat warning atau pelanggaran non-final.
+                                                        </small>
+                                                        @error('security_temporary_lock_seconds')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Tenggang Fullscreen (detik)</label>
+                                                        <input type="number" min="3" max="60"
+                                                            name="security_fullscreen_grace_seconds"
+                                                            class="form-control @error('security_fullscreen_grace_seconds') is-invalid @enderror"
+                                                            value="{{ $selectedSecurityFullscreenGraceSeconds }}">
+                                                        <small class="text-muted">
+                                                            Batas kembali ke fullscreen sebelum diskualifikasi.
+                                                        </small>
+                                                        @error('security_fullscreen_grace_seconds')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

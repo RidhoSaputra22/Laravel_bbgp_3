@@ -114,6 +114,8 @@ Route::prefix('assessment')
             Route::post('/show/{id}/start', [AssessmentPortalController::class, 'start'])->name('start');
             Route::get('/show/{id}', [AssessmentPortalController::class, 'show'])->name('show');
             Route::post('/show/{id}/autosave', [AssessmentPortalController::class, 'autosave'])->name('autosave');
+            Route::post('/show/{id}/security/violation', [AssessmentPortalController::class, 'securityViolation'])->name('security.violation');
+            Route::post('/show/{id}/security/disqualify', [AssessmentPortalController::class, 'securityDisqualify'])->name('security.disqualify');
             Route::post('/show/{id}/submit', [AssessmentPortalController::class, 'submit'])->name('submit');
             Route::get('/result/{id}', [AssessmentPortalController::class, 'result'])->name('result');
             Route::post('/logout', [AssessmentPortalAuthController::class, 'logout'])->name('logout');

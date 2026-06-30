@@ -20,19 +20,27 @@
         $sessionScheduleText = $meta['session_schedule_text'] ?? '-';
         $submissionStatusLabel = $meta['label'] ?? 'Dikirim';
         $submissionStatusTone = $meta['badge'] ?? 'success';
+        $isDisqualified = $attempt->disqualified_at !== null
+            || ($summary['submission_mode'] ?? null) === 'security_disqualified';
         $completionMode = $attempt->completion_mode
             ?: $target->completion_mode
             ?: (($summary['submission_mode'] ?? null) === 'deadline_auto' ? 'timeout' : 'manual');
         $autoSubmitted = $completionMode === 'timeout';
-        $completionModeLabel = $autoSubmitted ? 'Timeout / Terlambat' : 'Selesai Manual';
-        $primarySubmissionBadge = $autoSubmitted
-            ? 'Assessment selesai otomatis karena batas waktu berakhir'
-            : 'Assessment berhasil dikirim';
+        $completionModeLabel = $isDisqualified
+            ? 'Didiskualifikasi Guard'
+            : ($autoSubmitted ? 'Timeout / Terlambat' : 'Selesai Manual');
+        $primarySubmissionBadge = $isDisqualified
+            ? 'Assessment dihentikan oleh guard ujian'
+            : ($autoSubmitted
+                ? 'Assessment selesai otomatis karena batas waktu berakhir'
+                : 'Assessment berhasil dikirim');
         $assignmentDateText = $meta['date_text'] ?? '-';
         $assessmentTotal = (int) ($meta['assessment_total'] ?? 0);
         $formTotal = (int) ($meta['form_total'] ?? 0);
         $description = $meta['description'] ?? 'Hasil assessment ini tersimpan pada portal peserta.';
         $answerHelper = \App\Support\Assessment\AssessmentAnswerViewHelper::class;
+        $seriousViolationCount = (int) ($attempt->serious_violation_count ?? 0);
+        $warningViolationCount = (int) ($attempt->warning_violation_count ?? 0);
         $sessionDetails = [
             [
                 'label' => 'Status Submission',
@@ -169,6 +177,12 @@
                             Soal yang kosong otomatis dinilai 0
                         </span>
                     @endif
+                    @if ($isDisqualified)
+                        <span class="inline-flex items-center gap-2 text-red-600">
+                            <i class="fas fa-shield-alt"></i>
+                            {{ $attempt->disqualification_reason ?: 'Guard ujian menghentikan sesi ini.' }}
+                        </span>
+                    @endif
                     <span class="inline-flex items-center gap-2">
                         <i class="fas fa-layer-group"></i>
                         {{ $assessmentTotal }} assessment
@@ -228,6 +242,60 @@
                     </div>
                 </x-assessment::ui.card>
             </div>
+
+            @if ($seriousViolationCount > 0 || $warningViolationCount > 0 || $isDisqualified)
+                <x-assessment::ui.card>
+                    <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-[#0d3557]">
+                                Ringkasan Guard Ujian
+                            </h3>
+                            <p class="mt-2 text-sm leading-relaxed text-[#6a7e90]">
+                                Semua aktivitas guard tersimpan sebagai audit attempt dan menjadi bagian dari hasil sesi ini.
+                            </p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2">
+                            <x-assessment::ui.status-badge :tone="$isDisqualified ? 'danger' : 'warning'" class="rounded-sm px-3 py-1.5">
+                                {{ $isDisqualified ? 'Didiskualifikasi' : 'Terdeteksi Aktivitas Guard' }}
+                            </x-assessment::ui.status-badge>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid gap-4 sm:grid-cols-3">
+                        <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-4">
+                            <div class="text-sm font-medium text-slate-500">
+                                Pelanggaran Serius
+                            </div>
+                            <div class="mt-2 text-[30px] font-bold leading-none text-[#0d3557]">
+                                {{ $seriousViolationCount }}
+                            </div>
+                        </div>
+                        <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-4">
+                            <div class="text-sm font-medium text-slate-500">
+                                Warning Tidak Sengaja
+                            </div>
+                            <div class="mt-2 text-[30px] font-bold leading-none text-[#0d3557]">
+                                {{ $warningViolationCount }}
+                            </div>
+                        </div>
+                        <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-4">
+                            <div class="text-sm font-medium text-slate-500">
+                                Status Guard
+                            </div>
+                            <div class="mt-2 text-lg font-bold leading-tight {{ $isDisqualified ? 'text-red-600' : 'text-[#0d3557]' }}">
+                                {{ $isDisqualified ? 'Sesi dihentikan guard' : 'Sesi tetap selesai' }}
+                            </div>
+                        </div>
+                    </div>
+
+                    @if ($isDisqualified)
+                        <div class="mt-5 rounded-sm border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+                            {{ $attempt->disqualification_reason ?: 'Assessment dihentikan oleh sistem guard karena pelanggaran aturan ujian.' }}
+                        </div>
+                    @endif
+                </x-assessment::ui.card>
+            @endif
 
             @forelse ($snapshot['assessments'] ?? [] as $assessment)
                 @php

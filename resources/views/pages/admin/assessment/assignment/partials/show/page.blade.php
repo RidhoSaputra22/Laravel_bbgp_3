@@ -3,6 +3,28 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('library/datatables.net-select-bs4/css/select.bootstrap4.min.css') }}">
+    <style>
+        .monitor-kpi-card .card-body {
+            padding: 1rem;
+        }
+
+        .monitor-kpi-card .monitor-kpi-label {
+            font-size: 0.82rem;
+            color: #6c757d;
+            margin-bottom: 0.35rem;
+        }
+
+        .monitor-kpi-card .monitor-kpi-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .monitor-mini-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -22,6 +44,10 @@
         $totalFields = $combination?->total_questions ?: $assessments->sum(
             fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count()),
         );
+        $resolvedSecurityConfig = \App\Support\Assessment\AssessmentSecurityConfig::normalize($assignment->security_config ?? []);
+        $monitoringSummary = $monitoringPanel['summary'] ?? [];
+        $detailLists = $monitoringPanel['lists'] ?? [];
+        $detailCharts = $monitoringPanel['charts'] ?? [];
     @endphp
 
     <div class="main-content">
@@ -217,6 +243,20 @@
                             @endif
                         </div>
                         <div class="mb-3">
+                            <div class="text-muted small">Guard Ujian</div>
+                            <div class="font-weight-bold">
+                                {{ $resolvedSecurityConfig['enabled'] ? 'Aktif' : 'Tidak Aktif' }}
+                            </div>
+                            <small class="text-muted d-block">
+                                Fullscreen: {{ $resolvedSecurityConfig['require_fullscreen'] ? 'Wajib' : 'Opsional' }}
+                            </small>
+                            <small class="text-muted d-block">
+                                Limit serius: {{ $resolvedSecurityConfig['max_serious_violations'] }} |
+                                Lock: {{ $resolvedSecurityConfig['temporary_lock_seconds'] }} detik |
+                                Grace fullscreen: {{ $resolvedSecurityConfig['fullscreen_grace_seconds'] }} detik
+                            </small>
+                        </div>
+                        <div class="mb-3">
                             <div class="text-muted small">Form Assessment Dipilih</div>
                             <div>{{ $totalAssessments }} assessment sumber</div>
                             <small class="text-muted">
@@ -343,6 +383,295 @@
                                 belum lengkap. Tombol retry akan me-resume target yang belum tersimpan.
                             </div>
                         @endif
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Panel Monitor Peserta</h4>
+                        <div class="card-header-action">
+                            <span class="badge badge-light">Refresh browser untuk memuat progres terbaru</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-light border">
+                            Panel ini membaca progres peserta langsung dari database saat halaman dibuka. Cocok untuk
+                            memantau siapa yang sudah mengisi, belum mengisi, timeout, dan hasil yang masih butuh
+                            review assessor tanpa polling otomatis.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Total Target</div>
+                                        <div class="monitor-kpi-value text-dark">
+                                            {{ $monitoringSummary['target_total'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Sudah Mengisi</div>
+                                        <div class="monitor-kpi-value text-success">
+                                            {{ $monitoringSummary['submitted_total'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Belum Mengisi</div>
+                                        <div class="monitor-kpi-value text-danger">
+                                            {{ $monitoringSummary['pending_total'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Sedang Mengerjakan</div>
+                                        <div class="monitor-kpi-value text-warning">
+                                            {{ $monitoringSummary['in_progress_total'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Belum Mulai</div>
+                                        <div class="monitor-kpi-value text-secondary">
+                                            {{ $monitoringSummary['not_started_total'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Timeout</div>
+                                        <div class="monitor-kpi-value text-info">
+                                            {{ $monitoringSummary['timeout_total'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Review Pending</div>
+                                        <div class="monitor-kpi-value text-primary">
+                                            {{ $monitoringSummary['pending_review_total'] ?? 0 }}
+                                        </div>
+                                        <small class="text-muted">
+                                            {{ $monitoringSummary['pending_review_item_total'] ?? 0 }} item
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-4 col-md-6 col-6">
+                                <div class="card monitor-kpi-card">
+                                    <div class="card-body">
+                                        <div class="monitor-kpi-label">Rata-rata Skor</div>
+                                        <div class="monitor-kpi-value text-success">
+                                            {{ isset($monitoringSummary['average_score']) && $monitoringSummary['average_score'] !== null ? number_format((float) $monitoringSummary['average_score'], 2) : '-' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-2">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span>Tingkat penyelesaian</span>
+                                        <strong>{{ number_format((float) ($monitoringSummary['completion_rate'] ?? 0), 2) }}%</strong>
+                                    </div>
+                                    <div class="progress" data-height="12">
+                                        <div class="progress-bar bg-success" role="progressbar"
+                                            style="width: {{ min((float) ($monitoringSummary['completion_rate'] ?? 0), 100) }}%">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span>Tingkat partisipasi</span>
+                                        <strong>{{ number_format((float) ($monitoringSummary['participation_rate'] ?? 0), 2) }}%</strong>
+                                    </div>
+                                    <div class="progress" data-height="12">
+                                        <div class="progress-bar bg-warning" role="progressbar"
+                                            style="width: {{ min((float) ($monitoringSummary['participation_rate'] ?? 0), 100) }}%">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Peserta Sudah Mengisi</h4>
+                                    </div>
+                                    <div class="card-body monitor-mini-list">
+                                        @forelse ($detailLists['submitted_participants'] ?? [] as $participant)
+                                            <div class="mb-3 pb-3 border-bottom">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
+                                                    <span class="badge badge-success">{{ $participant['status_label'] }}</span>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
+                                                </div>
+                                                <div class="small mt-1">
+                                                    Submit: {{ $participant['submitted_at'] ?: '-' }}
+                                                    @if ($participant['score_label'])
+                                                        • Skor {{ $participant['score_label'] }}
+                                                        @if ($participant['score_level'])
+                                                            ({{ $participant['score_level'] }})
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-muted">Belum ada peserta yang menyelesaikan assessment.</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Peserta Belum Mengisi</h4>
+                                    </div>
+                                    <div class="card-body monitor-mini-list">
+                                        @forelse ($detailLists['pending_participants'] ?? [] as $participant)
+                                            <div class="mb-3 pb-3 border-bottom">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
+                                                    <span class="badge badge-secondary">{{ $participant['status_label'] }}</span>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
+                                                </div>
+                                                <div class="small mt-1">
+                                                    Mulai: {{ $participant['started_at'] ?: 'Belum ada aktivitas' }}
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-muted">Semua peserta pada penugasan ini sudah mengisi assessment.</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Perlu Review Assessor</h4>
+                                    </div>
+                                    <div class="card-body monitor-mini-list">
+                                        @forelse ($detailLists['pending_review_participants'] ?? [] as $participant)
+                                            <div class="mb-3 pb-3 border-bottom">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
+                                                    <span class="badge badge-primary">
+                                                        {{ $participant['manual_pending_items'] }} item
+                                                    </span>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
+                                                </div>
+                                                <div class="small mt-1">
+                                                    <a href="{{ $participant['review_url'] }}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-clipboard-check mr-1"></i> Review Nilai
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-muted">Tidak ada jawaban yang menunggu review assessor.</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Skor Terendah</h4>
+                                    </div>
+                                    <div class="card-body monitor-mini-list">
+                                        @forelse ($detailLists['low_score_participants'] ?? [] as $participant)
+                                            <div class="mb-3 pb-3 border-bottom">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
+                                                    <span class="badge badge-warning">
+                                                        {{ $participant['score_label'] ?: '-' }}
+                                                    </span>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
+                                                </div>
+                                                <div class="small mt-1">
+                                                    Level: {{ $participant['score_level'] ?: 'Belum terpetakan' }}
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-muted">Belum ada skor akhir peserta yang dapat dibandingkan.</div>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Status Peserta</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="assignmentDetailStatusChart" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Progress Per Sesi</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="assignmentDetailSessionChart" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Progress Per Kabupaten</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="assignmentDetailKabupatenChart" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="card border">
+                                    <div class="card-header">
+                                        <h4>Distribusi Level Skor</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="assignmentDetailScoreLevelChart" height="250"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -501,7 +830,12 @@
                                                     ][$target->status] ?? 'secondary';
                                                 $attemptStatus = optional($target->attempt)->status;
                                                 $completionMode = optional($target->attempt)->completion_mode ?: $target->completion_mode;
-                                                $completionBadge = $completionMode === 'timeout' ? 'secondary' : 'success';
+                                                $isDisqualified = optional($target->attempt)->disqualified_at !== null;
+                                                $seriousViolationCount = (int) (optional($target->attempt)->serious_violation_count ?? 0);
+                                                $warningViolationCount = (int) (optional($target->attempt)->warning_violation_count ?? 0);
+                                                $completionBadge = $isDisqualified
+                                                    ? 'danger'
+                                                    : ($completionMode === 'timeout' ? 'secondary' : 'success');
                                             @endphp
                                             <tr>
                                                 <td class="text-center">{{ $loop->iteration }}</td>
@@ -551,12 +885,25 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    @if ($completionMode)
+                                                    @if ($isDisqualified)
+                                                        <span class="badge badge-{{ $completionBadge }}">
+                                                            Didiskualifikasi
+                                                        </span>
+                                                        <small class="text-muted d-block mt-2">
+                                                            {{ optional($target->attempt)->disqualification_reason ?: 'Guard ujian menghentikan sesi peserta.' }}
+                                                        </small>
+                                                    @elseif ($completionMode)
                                                         <span class="badge badge-{{ $completionBadge }}">
                                                             {{ $completionMode === 'timeout' ? 'Timeout' : 'Manual' }}
                                                         </span>
                                                     @else
                                                         <span class="text-muted">-</span>
+                                                    @endif
+                                                    @if ($seriousViolationCount > 0 || $warningViolationCount > 0)
+                                                        <small class="text-muted d-block mt-2">
+                                                            Pelanggaran: {{ $seriousViolationCount }} serius /
+                                                            {{ $warningViolationCount }} warning
+                                                        </small>
                                                     @endif
                                                 </td>
                                                 <td>
@@ -625,12 +972,20 @@
 @endsection
 
 @push('scripts')
+    <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
     <script src="{{ asset('library/datatables/media/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('library/datatables.net-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
     <script src="{{ asset('library/datatables.net-select-bs4/js/select.bootstrap4.min.js') }}"></script>
 
     <script>
         $(document).ready(function() {
+            const chartPayload = {
+                status: @json($detailCharts['participant_status'] ?? ['labels' => [], 'data' => []]),
+                session: @json($detailCharts['session_completion'] ?? ['labels' => [], 'submitted' => [], 'pending' => []]),
+                kabupaten: @json($detailCharts['kabupaten_completion'] ?? ['labels' => [], 'submitted' => [], 'pending' => []]),
+                scoreLevels: @json($detailCharts['score_levels'] ?? ['labels' => [], 'data' => []]),
+            };
+
             function initDataTable(selector, nonSortableColumns) {
                 const table = $(selector);
 
@@ -653,9 +1008,141 @@
                 });
             }
 
+            function initCharts() {
+                if (typeof Chart === 'undefined') {
+                    return;
+                }
+
+                const statusCtx = document.getElementById('assignmentDetailStatusChart');
+                if (statusCtx) {
+                    new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartPayload.status.labels,
+                            datasets: [{
+                                data: chartPayload.status.data,
+                                backgroundColor: ['#47c363', '#6777ef', '#ffa426', '#6c757d', '#fc544b'],
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                position: 'bottom',
+                            },
+                        },
+                    });
+                }
+
+                const sessionCtx = document.getElementById('assignmentDetailSessionChart');
+                if (sessionCtx) {
+                    new Chart(sessionCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartPayload.session.labels,
+                            datasets: [{
+                                    label: 'Sudah Isi',
+                                    data: chartPayload.session.submitted,
+                                    backgroundColor: '#47c363',
+                                },
+                                {
+                                    label: 'Belum Isi',
+                                    data: chartPayload.session.pending,
+                                    backgroundColor: '#fc544b',
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                xAxes: [{
+                                    stacked: true,
+                                }],
+                                yAxes: [{
+                                    stacked: true,
+                                    ticks: {
+                                        beginAtZero: true,
+                                        precision: 0,
+                                    },
+                                }],
+                            },
+                        },
+                    });
+                }
+
+                const kabupatenCtx = document.getElementById('assignmentDetailKabupatenChart');
+                if (kabupatenCtx) {
+                    new Chart(kabupatenCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartPayload.kabupaten.labels,
+                            datasets: [{
+                                    label: 'Sudah Isi',
+                                    data: chartPayload.kabupaten.submitted,
+                                    backgroundColor: '#47c363',
+                                },
+                                {
+                                    label: 'Belum Isi',
+                                    data: chartPayload.kabupaten.pending,
+                                    backgroundColor: '#6c757d',
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                xAxes: [{
+                                    stacked: true,
+                                }],
+                                yAxes: [{
+                                    stacked: true,
+                                    ticks: {
+                                        beginAtZero: true,
+                                        precision: 0,
+                                    },
+                                }],
+                            },
+                        },
+                    });
+                }
+
+                const scoreLevelCtx = document.getElementById('assignmentDetailScoreLevelChart');
+                if (scoreLevelCtx) {
+                    new Chart(scoreLevelCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartPayload.scoreLevels.labels,
+                            datasets: [{
+                                label: 'Jumlah Peserta',
+                                data: chartPayload.scoreLevels.data,
+                                backgroundColor: ['#6777ef', '#3abaf4', '#ffa426', '#47c363', '#fc544b'],
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                display: false,
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        precision: 0,
+                                    },
+                                }],
+                            },
+                        },
+                    });
+                }
+            }
+
             initDataTable('#table-assignment-assessment', [0]);
             initDataTable('#table-assignment-session', [0]);
             initDataTable('#table-assignment-target', [0, 11]);
+            initCharts();
         });
     </script>
 @endpush
