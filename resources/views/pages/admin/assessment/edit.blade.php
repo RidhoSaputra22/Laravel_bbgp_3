@@ -19,7 +19,7 @@
                     'formBuilderData' => $formBuilderData,
                     'formAction' => route('assessment.update', $assessment->id),
                     'httpMethod' => 'PUT',
-                    'submitLabel' => 'Update Assessment',
+                    'submitLabel' => 'Edit Assessment',
                     'pageTitle' => 'Edit Struktur Assessment',
                 ])
             </div>

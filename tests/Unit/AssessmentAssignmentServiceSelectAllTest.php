@@ -6,11 +6,13 @@ use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
+use App\Models\AssessmentAttempt;
 use App\Models\Guru;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -114,6 +116,14 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::connection('sqlite')->create('assessment_attempt_answers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_attempt_id');
+            $table->unsignedBigInteger('assessment_form_field_id')->nullable();
+            $table->string('answer_file_path')->nullable();
+            $table->timestamps();
+        });
+
         Schema::connection('sqlite')->create('jobs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('queue')->index();
@@ -139,6 +149,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
     {
         Schema::connection('sqlite')->dropIfExists('failed_jobs');
         Schema::connection('sqlite')->dropIfExists('jobs');
+        Schema::connection('sqlite')->dropIfExists('assessment_attempt_answers');
         Schema::connection('sqlite')->dropIfExists('assessment_attempts');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_targets');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_sessions');
@@ -399,8 +410,10 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertNotContains($gowaGuru->id, $assignedGuruIds);
     }
 
-    public function test_update_assignment_preserves_started_targets_and_cancels_removed_pending_targets(): void
+    public function test_update_assignment_resets_existing_history_and_forces_targets_to_restart_from_zero(): void
     {
+        Storage::fake('public');
+
         Assessment::query()->create([
             'kode_assessment' => 'ASM-030',
             'judul' => 'Assessment Update',
@@ -421,12 +434,6 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             'kabupaten' => 'Kota Makassar',
         ]);
 
-        $newGuru = $this->createGuru([
-            'nama_lengkap' => 'Guru Baru Gowa',
-            'email' => 'new@example.test',
-            'kabupaten' => 'Kabupaten Gowa',
-        ]);
-
         $assignment = app(AssessmentAssignmentService::class)->createAssignment([
             'judul_penugasan' => 'Penugasan Update',
             'target_ketenagaan' => 'tenaga_pendidik',
@@ -435,38 +442,177 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             'durasi_sesi_jam' => 3,
         ]);
 
-        AssessmentAssignmentTarget::query()
+        $startedTarget = AssessmentAssignmentTarget::query()
             ->where('assessment_assignment_id', $assignment->id)
             ->where('guru_id', $startedGuru->id)
-            ->update([
-                'status' => 'dikerjakan',
-                'started_at' => now(),
-            ]);
+            ->firstOrFail();
+        $startedTarget->forceFill([
+            'status' => 'selesai',
+            'started_at' => now()->subHour(),
+            'submitted_at' => now(),
+        ])->save();
+
+        $storedFile = 'assessment/attempts/attempt-update/jawaban.pdf';
+        Storage::disk('public')->put($storedFile, 'dummy');
+
+        $attempt = AssessmentAttempt::query()->create([
+            'assessment_assignment_target_id' => $startedTarget->id,
+            'status' => 'submitted',
+        ]);
+
+        DB::table('assessment_attempt_answers')->insert([
+            'assessment_attempt_id' => $attempt->id,
+            'assessment_form_field_id' => 1001,
+            'answer_file_path' => $storedFile,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $result = app(AssessmentAssignmentService::class)->updateAssignment($assignment->fresh(), [
             'judul_penugasan' => 'Penugasan Update Revisi',
             'target_ketenagaan' => 'tenaga_pendidik',
             'target_jabatan' => ['Guru'],
-            'target_kabupaten' => ['Kabupaten Gowa'],
+            'target_kabupaten' => ['Kota Makassar'],
             'durasi_sesi_jam' => 3,
         ]);
 
         /** @var \App\Models\AssessmentAssignment $updatedAssignment */
         $updatedAssignment = $result['assignment'];
-        $targetsByGuru = AssessmentAssignmentTarget::query()
+        $targets = AssessmentAssignmentTarget::query()
             ->where('assessment_assignment_id', $updatedAssignment->id)
+            ->orderBy('guru_id')
             ->get()
             ->keyBy('guru_id');
 
-        $this->assertSame(1, $result['preserved_locked_count']);
-        $this->assertSame(1, $result['cancelled_target_count']);
-        $this->assertSame(1, $result['new_target_count']);
+        $this->assertSame(2, $result['reset_target_count']);
+        $this->assertSame(1, $result['deleted_attempt_count']);
+        $this->assertSame(1, $result['deleted_answer_count']);
+        $this->assertSame(1, $result['deleted_file_count']);
+        $this->assertSame(2, $result['new_target_count']);
         $this->assertSame(2, $updatedAssignment->total_target);
         $this->assertSame(2, $updatedAssignment->total_ditugaskan);
         $this->assertSame('selesai', $updatedAssignment->status_distribusi);
-        $this->assertSame('dikerjakan', $targetsByGuru[$startedGuru->id]->status);
-        $this->assertSame('dibatalkan', $targetsByGuru[$pendingGuru->id]->status);
-        $this->assertSame('ditugaskan', $targetsByGuru[$newGuru->id]->status);
+        $this->assertSame('ditugaskan', $targets[$startedGuru->id]->status);
+        $this->assertSame('ditugaskan', $targets[$pendingGuru->id]->status);
+        $this->assertNull($targets[$startedGuru->id]->started_at);
+        $this->assertNull($targets[$startedGuru->id]->submitted_at);
+        $this->assertNull($targets[$pendingGuru->id]->started_at);
+        $this->assertNull($targets[$pendingGuru->id]->submitted_at);
+        $this->assertDatabaseCount('assessment_attempts', 0);
+        $this->assertDatabaseCount('assessment_attempt_answers', 0);
+        Storage::disk('public')->assertMissing($storedFile);
+    }
+
+    public function test_delete_assignment_removes_distribution_history_queue_artifacts_and_uploaded_files(): void
+    {
+        Storage::fake('public');
+
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => 'ASM-035',
+            'judul' => 'Assessment Delete',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $guru = $this->createGuru([
+            'nama_lengkap' => 'Guru Hapus',
+            'email' => 'hapus@example.test',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan Hapus',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $target = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->where('guru_id', $guru->id)
+            ->firstOrFail();
+
+        $storedFile = 'assessment/attempts/attempt-delete/jawaban.pdf';
+        Storage::disk('public')->put($storedFile, 'dummy');
+
+        $attempt = AssessmentAttempt::query()->create([
+            'assessment_assignment_target_id' => $target->id,
+            'status' => 'submitted',
+        ]);
+
+        DB::table('assessment_attempt_answers')->insert([
+            'assessment_attempt_id' => $attempt->id,
+            'assessment_form_field_id' => 2001,
+            'answer_file_path' => $storedFile,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $payloadRows = [
+            [
+                'assessment_assignment_id' => $assignment->id,
+                'assessment_assignment_session_id' => $target->assessment_assignment_session_id,
+                'guru_id' => $guru->id,
+                'status' => 'ditugaskan',
+                'assigned_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        $job = new ProcessAssessmentAssignmentTargetsJob($assignment->id, $payloadRows);
+
+        DB::table('jobs')->insert([
+            'queue' => 'assessment-assignment',
+            'payload' => json_encode([
+                'displayName' => ProcessAssessmentAssignmentTargetsJob::class,
+                'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',
+                'data' => [
+                    'commandName' => ProcessAssessmentAssignmentTargetsJob::class,
+                    'command' => serialize($job),
+                ],
+            ]),
+            'attempts' => 0,
+            'reserved_at' => null,
+            'available_at' => now()->timestamp,
+            'created_at' => now()->timestamp,
+        ]);
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => (string) Str::uuid(),
+            'connection' => 'database',
+            'queue' => 'assessment-assignment',
+            'payload' => json_encode([
+                'displayName' => ProcessAssessmentAssignmentTargetsJob::class,
+                'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',
+                'data' => [
+                    'commandName' => ProcessAssessmentAssignmentTargetsJob::class,
+                    'command' => serialize($job),
+                ],
+            ]),
+            'exception' => 'RuntimeException: Simulasi gagal',
+            'failed_at' => now(),
+        ]);
+
+        $result = app(AssessmentAssignmentService::class)->deleteAssignment($assignment->fresh());
+
+        $this->assertSame(1, $result['deleted_target_count']);
+        $this->assertSame(1, $result['deleted_attempt_count']);
+        $this->assertSame(1, $result['deleted_answer_count']);
+        $this->assertSame(1, $result['deleted_file_count']);
+        $this->assertDatabaseMissing('assessment_assignments', ['id' => $assignment->id]);
+        $this->assertDatabaseMissing('assessment_assignment_assessments', [
+            'assessment_assignment_id' => $assignment->id,
+            'assessment_id' => $assessment->id,
+        ]);
+        $this->assertDatabaseCount('assessment_assignment_sessions', 0);
+        $this->assertDatabaseCount('assessment_assignment_targets', 0);
+        $this->assertDatabaseCount('assessment_attempts', 0);
+        $this->assertDatabaseCount('assessment_attempt_answers', 0);
+        $this->assertDatabaseCount('jobs', 0);
+        $this->assertDatabaseCount('failed_jobs', 0);
+        Storage::disk('public')->assertMissing($storedFile);
     }
 
     public function test_retry_assignment_resumes_only_missing_targets_from_failed_job_payload(): void

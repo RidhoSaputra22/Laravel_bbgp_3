@@ -46,6 +46,8 @@
         'keyword_coverage' => 'Cek kata kunci penting',
         'repeater_completeness' => 'Cek kelengkapan tabel',
     ];
+    $isEditMode = $httpMethod !== 'POST';
+    $previewUrl = $isEditMode && $assessment->id ? route('assessment.show', $assessment->id) : null;
 @endphp
 
 @if ($errors->any())
@@ -259,9 +261,142 @@
             justify-content: space-between;
         }
 
+        .assessment-builder-layout {
+            align-items: flex-start;
+        }
+
+        .assessment-builder-sidebar {
+            margin-top: 1.5rem;
+        }
+
+        .assessment-builder-sidebar-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .assessment-summary-card {
+            border: 1px solid #dfe7f7;
+            overflow: hidden;
+        }
+
+        .assessment-summary-eyebrow {
+            color: #6777ef;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .assessment-summary-card h5 {
+            color: #23396b;
+        }
+
+        .assessment-summary-grid {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .assessment-summary-stat {
+            background: linear-gradient(180deg, #f8faff 0%, #eef3ff 100%);
+            border: 1px solid #dbe4fb;
+            border-radius: 0.2rem;
+            min-height: 92px;
+            padding: 0.9rem 0.95rem;
+        }
+
+        .assessment-summary-stat__label {
+            color: #64748b;
+            display: block;
+            font-size: 0.78rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .assessment-summary-stat__value {
+            color: #23396b;
+            display: block;
+            font-size: 1.55rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .assessment-summary-section-title {
+            color: #334155;
+            font-size: 0.83rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .assessment-summary-list {
+            border-top: 1px solid #edf1f7;
+        }
+
+        .assessment-summary-row {
+            align-items: center;
+            border-bottom: 1px solid #edf1f7;
+            display: flex;
+            font-size: 0.88rem;
+            gap: 1rem;
+            justify-content: space-between;
+            padding: 0.85rem 0;
+        }
+
+        .assessment-summary-row span {
+            color: #64748b;
+        }
+
+        .assessment-summary-row strong {
+            color: #1e293b;
+            font-size: 0.87rem;
+            font-weight: 700;
+            max-width: 55%;
+            text-align: right;
+        }
+
+        .assessment-summary-note {
+            background: #f8fbff;
+            border: 1px solid #dbe8fb;
+            border-radius: 0.2rem;
+            color: #34539d;
+            font-size: 0.86rem;
+            line-height: 1.55;
+            padding: 0.95rem 1rem;
+        }
+
+        .assessment-summary-actions .btn {
+            border-radius: 0.2rem;
+            padding-bottom: 0.75rem;
+            padding-top: 0.75rem;
+        }
+
         @media (max-width: 991.98px) {
             .assessment-ketenagaan-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .assessment-summary-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .assessment-summary-row strong {
+                max-width: 100%;
+                text-align: left;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .assessment-builder-sidebar {
+                margin-top: 0;
+            }
+
+            .assessment-builder-sidebar-inner {
+                position: sticky;
+                top: 100px;
             }
         }
     </style>
@@ -274,187 +409,289 @@
         @method($httpMethod)
     @endif
 
-    <div class="card">
-        <div class="card-header">
-            <h4>{{ $pageTitle }}</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>Kode Assessment</label>
-                        <input type="hidden" name="kode_assessment" value="{{ $assessmentCodeValue }}">
-                        <input type="text" class="form-control @error('kode_assessment') is-invalid @enderror"
-                            value="{{ $assessmentCodeDisplay }}" data-assessment-code-display readonly>
-                        <small class="form-text text-muted">
-                            Kode assessment dibuat otomatis saat data disimpan.
-                        </small>
-                        @error('kode_assessment')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+    <div class="row assessment-builder-layout">
+        <div class="col-xl-9 col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ $pageTitle }}</h4>
                 </div>
-                <div class="col-md-5">
-                    <div class="form-group">
-                        <label>Judul Assessment <span class="assessment-required">*</span></label>
-                        <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror"
-                            value="{{ old('judul', $assessment->judul) }}"
-                            placeholder="Masukkan judul assessment" required>
-                        @error('judul')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label>Status <span class="assessment-required">*</span></label>
-                        <select name="status" class="form-control @error('status') is-invalid @enderror" required>
-                            <option value="draft"
-                                @selected(old('status', $assessment->status ?: 'draft') == 'draft')>Draft</option>
-                            <option value="publish"
-                                @selected(old('status', $assessment->status) == 'publish')>Publish</option>
-                            <option value="nonaktif"
-                                @selected(old('status', $assessment->status) == 'nonaktif')>Nonaktif</option>
-                        </select>
-                        @error('status')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-12">
-                    <div class="form-group">
-                        <label>Ketenagaan Assessment <span class="assessment-required">*</span></label>
-                        <div class="assessment-ketenagaan-grid">
-                            @foreach ($ketenagaanCards as $value => $card)
-                                <div class="assessment-ketenagaan-option">
-                                    <input type="radio" class="assessment-ketenagaan-input"
-                                        id="assessment-ketenagaan-{{ $value }}" name="target_ketenagaan"
-                                        value="{{ $value }}" @checked($selectedTargetKetenagaan === $value) required>
-                                    <label for="assessment-ketenagaan-{{ $value }}"
-                                        class="assessment-ketenagaan-card assessment-ketenagaan-card--{{ $card['theme'] }}">
-                                        <span class="assessment-ketenagaan-card__icon">
-                                            <i class="{{ $card['icon'] }}"></i>
-                                        </span>
-                                        <span>
-                                            <span class="assessment-ketenagaan-card__title">{{ $card['label'] }}</span>
-                                            <span class="assessment-ketenagaan-card__hint">
-                                                Form ini akan masuk ke penugasan otomatis untuk {{ strtolower($card['label']) }}.
-                                            </span>
-                                        </span>
-                                    </label>
-                                </div>
-                            @endforeach
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Kode Assessment</label>
+                                <input type="hidden" name="kode_assessment" value="{{ $assessmentCodeValue }}">
+                                <input type="text" class="form-control @error('kode_assessment') is-invalid @enderror"
+                                    value="{{ $assessmentCodeDisplay }}" data-assessment-code-display readonly>
+                                <small class="form-text text-muted">
+                                    Kode assessment dibuat otomatis saat data disimpan.
+                                </small>
+                                @error('kode_assessment')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
-                        <small class="form-text text-muted">
-                            Pilih ketenagaan tujuan assessment. Menu penugasan akan memakai pilihan ini untuk
-                            menentukan form dan seluruh user yang otomatis ditugaskan.
-                        </small>
-                        @error('target_ketenagaan')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>Judul Assessment <span class="assessment-required">*</span></label>
+                                <input type="text" name="judul"
+                                    class="form-control @error('judul') is-invalid @enderror"
+                                    value="{{ old('judul', $assessment->judul) }}"
+                                    placeholder="Masukkan judul assessment" required>
+                                @error('judul')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Status <span class="assessment-required">*</span></label>
+                                <select name="status" class="form-control @error('status') is-invalid @enderror"
+                                    required>
+                                    <option value="draft"
+                                        @selected(old('status', $assessment->status ?: 'draft') == 'draft')>Draft</option>
+                                    <option value="publish"
+                                        @selected(old('status', $assessment->status) == 'publish')>Publish</option>
+                                    <option value="nonaktif"
+                                        @selected(old('status', $assessment->status) == 'nonaktif')>Nonaktif</option>
+                                </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Ketenagaan Assessment <span class="assessment-required">*</span></label>
+                                <div class="assessment-ketenagaan-grid">
+                                    @foreach ($ketenagaanCards as $value => $card)
+                                        <div class="assessment-ketenagaan-option">
+                                            <input type="radio" class="assessment-ketenagaan-input"
+                                                id="assessment-ketenagaan-{{ $value }}" name="target_ketenagaan"
+                                                value="{{ $value }}" @checked($selectedTargetKetenagaan === $value) required>
+                                            <label for="assessment-ketenagaan-{{ $value }}"
+                                                class="assessment-ketenagaan-card assessment-ketenagaan-card--{{ $card['theme'] }}">
+                                                <span class="assessment-ketenagaan-card__icon">
+                                                    <i class="{{ $card['icon'] }}"></i>
+                                                </span>
+                                                <span>
+                                                    <span
+                                                        class="assessment-ketenagaan-card__title">{{ $card['label'] }}</span>
+                                                    <span class="assessment-ketenagaan-card__hint">
+                                                        Form ini akan masuk ke penugasan otomatis untuk
+                                                        {{ strtolower($card['label']) }}.
+                                                    </span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <small class="form-text text-muted">
+                                    Pilih ketenagaan tujuan assessment. Menu penugasan akan memakai pilihan ini untuk
+                                    menentukan form dan seluruh user yang otomatis ditugaskan.
+                                </small>
+                                @error('target_ketenagaan')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label>Jenis Instrumen Penilaian</label>
+                                <select name="instrument_type"
+                                    class="form-control @error('instrument_type') is-invalid @enderror">
+                                    <option value="">Pilih jenis instrumen</option>
+                                    @foreach ($instrumentTypes as $value => $label)
+                                        <option value="{{ $value }}"
+                                            @selected(old('instrument_type', $assessment->instrument_type) === $value)>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('instrument_type')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Deskripsi</label>
+                                <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror" rows="6"
+                                    placeholder="Deskripsi singkat assessment">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
+                                @error('deskripsi')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Petunjuk Pengisian</label>
+                                <textarea name="petunjuk" class="form-control assessment-meta-textarea @error('petunjuk') is-invalid @enderror" rows="6"
+                                    placeholder="Petunjuk untuk pengguna form">{{ old('petunjuk', $assessment->petunjuk) }}</textarea>
+                                @error('petunjuk')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="custom-control custom-switch mt-2">
+                        <input type="checkbox" class="custom-control-input" id="assessment-active" name="is_active"
+                            value="1" @checked(old('is_active', $assessment->is_active))>
+                        <label class="custom-control-label" for="assessment-active">Aktifkan assessment</label>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-12">
-                    <div class="form-group">
-                        <label>Jenis Instrumen Penilaian</label>
-                        <select name="instrument_type"
-                            class="form-control @error('instrument_type') is-invalid @enderror">
-                            <option value="">Pilih jenis instrumen</option>
-                            @foreach ($instrumentTypes as $value => $label)
-                                <option value="{{ $value }}"
-                                    @selected(old('instrument_type', $assessment->instrument_type) === $value)>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('instrument_type')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h4>Form Builder</h4>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Deskripsi</label>
-                        <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror" rows="6"
-                            placeholder="Deskripsi singkat assessment">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
-                        @error('deskripsi')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                <div class="card-body">
+                    <div class="alert alert-light border">
+                        <div class="font-weight-bold mb-2">Petunjuk Penggunaan</div>
+                        <ul class="mb-0 pl-3">
+                            <li>Isi informasi assessment di bagian atas terlebih dahulu.</li>
+                            <li>Klik <strong>Tambah Form</strong> di bagian bawah untuk membuat bagian form, lalu
+                                tambahkan field di bawah form terkait.</li>
+                            <li>Pilih <strong>jenis instrumen</strong> di level assessment, lalu atur
+                                <strong>kompetensi</strong>, <strong>indikator</strong>, dan status
+                                <strong>masuk penilaian</strong> di setiap form.</li>
+                            <li>Untuk field <strong>Daftar Pilihan</strong> dan <strong>Kotak Centang</strong>,
+                                pisahkan opsi dengan koma atau baris baru.</li>
+                            <li>Untuk field <strong>Pilihan Ganda</strong>, isi <strong>kode jawaban</strong>,
+                                <strong>isi jawaban</strong>, dan <strong>level kompetensi</strong> pada setiap opsi.
+                            </li>
+                            <li>Pada panel <strong>Pengaturan Skor Otomatis</strong>, isi dulu bagian utama seperti
+                                <strong>pedoman penilaian</strong> atau <strong>target angka</strong>. Pengaturan
+                                lanjutan bisa dibiarkan otomatis jika tidak diperlukan.</li>
+                            <li>Untuk pertanyaan teks atau tabel, Anda bisa memakai tombol bantuan otomatis agar sistem
+                                menyiapkan <strong>kata kunci</strong>, <strong>padanan kata</strong>, dan
+                                <strong>saran panjang jawaban</strong> dari deskripsi yang sudah Anda tulis.</li>
+                            <li>Untuk field <strong>Tabel Berulang</strong>, isi konfigurasi JSON kolom tabel sesuai
+                                contoh yang tersedia.</li>
+                            <li>Nama field akan dibuat otomatis dari label yang Anda isi.</li>
+                            <li>Aktifkan hanya form dan field yang ingin ditampilkan ke pengguna.</li>
+                        </ul>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Petunjuk Pengisian</label>
-                        <textarea name="petunjuk" class="form-control assessment-meta-textarea @error('petunjuk') is-invalid @enderror" rows="6"
-                            placeholder="Petunjuk untuk pengguna form">{{ old('petunjuk', $assessment->petunjuk) }}</textarea>
-                        @error('petunjuk')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-            </div>
 
-            <div class="custom-control custom-switch mt-2">
-                <input type="checkbox" class="custom-control-input" id="assessment-active" name="is_active"
-                    value="1" @checked(old('is_active', $assessment->is_active))>
-                <label class="custom-control-label" for="assessment-active">Aktifkan assessment</label>
+                    <div id="form-builder-empty" class="empty-state d-none" data-height="220">
+                        <div class="empty-state-icon bg-primary">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h2>Belum ada form</h2>
+                        <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur assessment dinamis.</p>
+                    </div>
+
+                    <div id="form-builder-list"></div>
+                    @error('forms')
+                        <div class="invalid-feedback mt-2">{{ $message }}</div>
+                    @enderror
+
+                    <div class="text-right mt-3">
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-add-form">
+                            <i class="fas fa-plus"></i> Tambah Form
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h4>Form Builder</h4>
-        </div>
-        <div class="card-body">
-            <div class="alert alert-light border">
-                <div class="font-weight-bold mb-2">Petunjuk Penggunaan</div>
-                <ul class="mb-0 pl-3">
-                    <li>Isi informasi assessment di bagian atas terlebih dahulu.</li>
-                    <li>Klik <strong>Tambah Form</strong> di bagian bawah untuk membuat bagian form, lalu tambahkan field di bawah form terkait.</li>
-                    <li>Pilih <strong>jenis instrumen</strong> di level assessment, lalu atur <strong>kompetensi</strong>, <strong>indikator</strong>, dan status <strong>masuk penilaian</strong> di setiap form.</li>
-                    <li>Untuk field <strong>Daftar Pilihan</strong> dan <strong>Kotak Centang</strong>, pisahkan opsi dengan koma atau baris baru.</li>
-                    <li>Untuk field <strong>Pilihan Ganda</strong>, isi <strong>kode jawaban</strong>, <strong>isi jawaban</strong>, dan <strong>level kompetensi</strong> pada setiap opsi.</li>
-                    <li>Pada panel <strong>Pengaturan Skor Otomatis</strong>, isi dulu bagian utama seperti <strong>pedoman penilaian</strong> atau <strong>target angka</strong>. Pengaturan lanjutan bisa dibiarkan otomatis jika tidak diperlukan.</li>
-                    <li>Untuk pertanyaan teks atau tabel, Anda bisa memakai tombol bantuan otomatis agar sistem menyiapkan <strong>kata kunci</strong>, <strong>padanan kata</strong>, dan <strong>saran panjang jawaban</strong> dari deskripsi yang sudah Anda tulis.</li>
-                    <li>Untuk field <strong>Tabel Berulang</strong>, isi konfigurasi JSON kolom tabel sesuai contoh yang tersedia.</li>
-                    <li>Nama field akan dibuat otomatis dari label yang Anda isi.</li>
-                    <li>Aktifkan hanya form dan field yang ingin ditampilkan ke pengguna.</li>
-                </ul>
-            </div>
+        <div class="col-xl-3 col-lg-4">
+            <aside class="assessment-builder-sidebar">
+                <div class="assessment-builder-sidebar-inner">
+                    <div class="card assessment-summary-card" id="assessment-builder-summary">
+                        <div class="card-body">
+                            <div class="assessment-summary-eyebrow">Rekapan Assessment</div>
+                            <h5 class="mb-2" id="summary-assessment-title">
+                                {{ old('judul', $assessment->judul) ?: 'Judul assessment belum diisi' }}
+                            </h5>
+                            <p class="text-muted mb-4">
+                                {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur assessment.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun assessment baru.' }}
+                            </p>
 
-            <div id="form-builder-empty" class="empty-state d-none" data-height="220">
-                <div class="empty-state-icon bg-primary">
-                    <i class="fas fa-layer-group"></i>
+                            <div class="assessment-summary-grid mb-4">
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Total Form</span>
+                                    <span class="assessment-summary-stat__value" id="summary-total-forms">0</span>
+                                </div>
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Total Soal</span>
+                                    <span class="assessment-summary-stat__value" id="summary-total-questions">0</span>
+                                </div>
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Form Aktif</span>
+                                    <span class="assessment-summary-stat__value" id="summary-active-forms">0</span>
+                                </div>
+                                <div class="assessment-summary-stat">
+                                    <span class="assessment-summary-stat__label">Auto Scoring</span>
+                                    <span class="assessment-summary-stat__value"
+                                        id="summary-auto-scoring-questions">0</span>
+                                </div>
+                            </div>
+
+                            <div class="assessment-summary-section">
+                                <div class="assessment-summary-section-title">Detail Cepat</div>
+                                <div class="assessment-summary-list">
+                                    <div class="assessment-summary-row">
+                                        <span>Status</span>
+                                        <strong id="summary-status-label">Draft</strong>
+                                    </div>
+                                    <div class="assessment-summary-row">
+                                        <span>Aktivasi</span>
+                                        <strong id="summary-activation-label">Nonaktif</strong>
+                                    </div>
+                                    <div class="assessment-summary-row">
+                                        <span>Target</span>
+                                        <strong id="summary-target-label">Belum dipilih</strong>
+                                    </div>
+                                    <div class="assessment-summary-row">
+                                        <span>Instrumen</span>
+                                        <strong id="summary-instrument-label">Belum dipilih</strong>
+                                    </div>
+                                    <div class="assessment-summary-row">
+                                        <span>Masuk Penilaian</span>
+                                        <strong id="summary-scoreable-label">0 form</strong>
+                                    </div>
+                                    <div class="assessment-summary-row">
+                                        <span>Siap Tampil</span>
+                                        <strong id="summary-display-label">Belum ada form aktif</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="assessment-summary-note mt-4" id="summary-builder-note">
+                                Tambahkan form dan pertanyaan untuk mulai menyusun assessment.
+                            </div>
+
+                            <div class="assessment-summary-actions mt-4">
+                                <button type="button" class="btn btn-outline-primary btn-block mb-2"
+                                    id="btn-sidebar-add-form">
+                                    <i class="fas fa-plus"></i> Tambah Form
+                                </button>
+                                @if ($previewUrl)
+                                    <a href="{{ $previewUrl }}" class="btn btn-info btn-block mb-2">
+                                        <i class="fas fa-eye"></i> Lihat Preview
+                                    </a>
+                                @endif
+                                <a href="{{ route('assessment.index') }}" class="btn btn-light btn-block mb-2">
+                                    Kembali
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-block" id="assessment-summary-submit">
+                                    <i class="fas fa-save"></i> {{ $submitLabel }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2>Belum ada form</h2>
-                <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur assessment dinamis.</p>
-            </div>
-
-            <div id="form-builder-list"></div>
-            @error('forms')
-                <div class="invalid-feedback mt-2">{{ $message }}</div>
-            @enderror
-
-            <div class="text-right mt-3">
-                <button type="button" class="btn btn-primary btn-sm" id="btn-add-form">
-                    <i class="fas fa-plus"></i> Tambah Form
-                </button>
-            </div>
+            </aside>
         </div>
-    </div>
-
-    <div class="text-right">
-        <a href="{{ route('assessment.index') }}" class="btn btn-light mr-2">Kembali</a>
-        <button type="submit" class="btn btn-primary">
-            <i class="fas fa-save"></i> {{ $submitLabel }}
-        </button>
     </div>
 </form>
 
@@ -466,6 +703,7 @@
             const teacherCompetencies = @json($teacherCompetencies);
             const formScoringProfiles = @json($formScoringProfiles);
             const fieldScoringMethods = @json($fieldScoringMethods);
+            const ketenagaanLabels = @json($ketenagaanOptions);
             const scoringGuidancePreset = @json($scoringGuidancePreset);
             const initialForms = @json($builderSeed);
             const validationErrors = @json($validationErrors);
@@ -1896,6 +2134,7 @@
                 toggleOptionWrapper($fieldCard);
                 toggleScoringWrapper($fieldCard);
                 updateAutoFieldNameHint($fieldCard);
+                renderBuilderSummary();
             };
 
             const appendForm = (formData = {}) => {
@@ -1907,6 +2146,7 @@
 
                 fields.forEach((field) => appendField($formCard, field));
                 toggleEmptyState();
+                renderBuilderSummary();
             };
 
             const appendRadioOption = ($fieldCard, optionData = {}) => {
@@ -2196,6 +2436,111 @@
                 }
 
                 return status.charAt(0).toUpperCase() + status.slice(1);
+            };
+
+            const resolveSelectedKetenagaanLabel = () => {
+                const value = $('input[name="target_ketenagaan"]:checked').val() || '';
+                return ketenagaanLabels[value] || 'Belum dipilih';
+            };
+
+            const resolveSelectedInstrumentLabel = () => {
+                const value = $('select[name="instrument_type"]').val() || '';
+                return instrumentTypes[value] || 'Belum dipilih';
+            };
+
+            const buildBuilderSummarySnapshot = () => {
+                const forms = collectBuilderPayload();
+                const getMeaningfulFields = (form) => {
+                    return (form.fields || []).filter((field) => {
+                        return Boolean(String(field.label || '').trim());
+                    });
+                };
+                const totalForms = forms.length;
+                const totalQuestions = forms.reduce((total, form) => total + getMeaningfulFields(form).length, 0);
+                const activeForms = forms.filter((form) => normalizeChecked(form.is_active)).length;
+                const scoreableForms = forms.filter((form) => {
+                    return normalizeChecked(form.is_scoreable) && getMeaningfulFields(form).length > 0;
+                }).length;
+                const autoScoringQuestions = forms.reduce((total, form) => {
+                    return total + getMeaningfulFields(form).filter((field) => normalizeChecked(field.scoring?.enabled)).length;
+                }, 0);
+                const visibleQuestions = forms.reduce((total, form) => {
+                    if (!normalizeChecked(form.is_active)) {
+                        return total;
+                    }
+
+                    return total + getMeaningfulFields(form).filter((field) => normalizeChecked(field.is_active)).length;
+                }, 0);
+                const previewForms = forms.filter((form) => {
+                    return normalizeChecked(form.is_active)
+                        && getMeaningfulFields(form).some((field) => normalizeChecked(field.is_active));
+                }).length;
+
+                return {
+                    title: $('input[name="judul"]').val()?.trim() || '',
+                    status: $('select[name="status"]').val() || 'draft',
+                    isActive: $('#assessment-active').is(':checked'),
+                    targetLabel: resolveSelectedKetenagaanLabel(),
+                    instrumentLabel: resolveSelectedInstrumentLabel(),
+                    totalForms: totalForms,
+                    totalQuestions: totalQuestions,
+                    activeForms: activeForms,
+                    scoreableForms: scoreableForms,
+                    autoScoringQuestions: autoScoringQuestions,
+                    visibleQuestions: visibleQuestions,
+                    previewForms: previewForms,
+                };
+            };
+
+            const buildBuilderSummaryNote = (summary) => {
+                if (!summary.title) {
+                    return 'Isi judul assessment terlebih dahulu agar struktur yang Anda susun mudah dikenali.';
+                }
+
+                if (!summary.totalQuestions) {
+                    return 'Tambahkan minimal satu pertanyaan agar assessment siap dipakai pada penugasan.';
+                }
+
+                if (!summary.previewForms) {
+                    return 'Aktifkan minimal satu form agar pertanyaan bisa tampil pada sisi peserta.';
+                }
+
+                if (!summary.isActive) {
+                    return 'Struktur assessment sudah terisi, tetapi assessment utama masih nonaktif.';
+                }
+
+                if (summary.status !== 'publish') {
+                    return `Struktur sudah siap, namun status assessment masih ${formatStatusLabel(summary.status).toLowerCase()}.`;
+                }
+
+                return `${summary.previewForms} form aktif dengan ${summary.visibleQuestions} pertanyaan siap ditampilkan ke peserta. ${summary.scoreableForms} form masuk penilaian.`;
+            };
+
+            const renderBuilderSummary = () => {
+                const $summaryCard = $('#assessment-builder-summary');
+
+                if (!$summaryCard.length) {
+                    return;
+                }
+
+                const summary = buildBuilderSummarySnapshot();
+
+                $('#summary-assessment-title').text(summary.title || 'Judul assessment belum diisi');
+                $('#summary-total-forms').text(summary.totalForms);
+                $('#summary-total-questions').text(summary.totalQuestions);
+                $('#summary-active-forms').text(summary.activeForms);
+                $('#summary-auto-scoring-questions').text(summary.autoScoringQuestions);
+                $('#summary-status-label').text(formatStatusLabel(summary.status));
+                $('#summary-activation-label').text(summary.isActive ? 'Aktif' : 'Nonaktif');
+                $('#summary-target-label').text(summary.targetLabel);
+                $('#summary-instrument-label').text(summary.instrumentLabel);
+                $('#summary-scoreable-label').text(`${summary.scoreableForms} form`);
+                $('#summary-display-label').text(
+                    summary.previewForms
+                    ? `${summary.previewForms} form / ${summary.visibleQuestions} soal`
+                    : 'Belum ada form aktif'
+                );
+                $('#summary-builder-note').text(buildBuilderSummaryNote(summary));
             };
 
             const sanitizePreviewKey = (value) => {
@@ -2561,6 +2906,11 @@
                 schedulePreviewRender();
             });
 
+            $('#btn-sidebar-add-form').on('click', function() {
+                appendForm();
+                schedulePreviewRender();
+            });
+
             $(document).on('click', '.btn-add-field', function() {
                 appendField($(this).closest('.assessment-form-card'));
                 schedulePreviewRender();
@@ -2575,11 +2925,13 @@
             $(document).on('click', '.btn-remove-form', function() {
                 $(this).closest('.assessment-form-card').remove();
                 toggleEmptyState();
+                renderBuilderSummary();
                 schedulePreviewRender();
             });
 
             $(document).on('click', '.btn-remove-field', function() {
                 $(this).closest('.assessment-field-card').remove();
+                renderBuilderSummary();
                 schedulePreviewRender();
             });
 
@@ -2663,6 +3015,7 @@
             });
 
             $('#assessment-builder-form').on('input change', 'input, textarea, select', function() {
+                renderBuilderSummary();
                 schedulePreviewRender();
             });
 
@@ -2680,6 +3033,7 @@
                 appendForm();
             }
 
+            renderBuilderSummary();
             updatePreviewToggleButton();
         });
     </script>

@@ -247,13 +247,14 @@
                 @endif
 
                 @if ($isEditMode)
-                    <div class="alert alert-info">
-                        Perubahan filter akan membatalkan target yang masih pending di luar filter baru. Peserta yang
-                        sudah mulai atau selesai tetap dipertahankan agar histori assessment tidak rusak.
+                    <div class="alert alert-warning">
+                        Mode edit akan menyusun ulang penugasan dari nol. Saat perubahan disimpan, sistem menghapus
+                        pembagian sesi lama, riwayat pengerjaan, jawaban peserta, penilaian terkait, serta file
+                        unggahan pada penugasan ini. Semua peserta target harus memulai assessment kembali dari awal.
                     </div>
                 @endif
 
-                <form action="{{ $formAction }}" method="POST">
+                <form action="{{ $formAction }}" method="POST" id="assignment-form">
                     @csrf
                     @if ($isEditMode)
                         @method($formMethod)
@@ -269,8 +270,8 @@
                                     <div class="alert alert-light border mb-4">
                                         @if ($isEditMode)
                                             Perbarui judul, target peserta, dan jadwal penugasan sesuai kebutuhan.
-                                            Sistem akan menyesuaikan target pending berdasarkan filter terbaru dan
-                                            menjaga peserta yang sudah berjalan tetap aman.
+                                            Setelah disimpan, penugasan lama akan direset total agar seluruh peserta
+                                            memulai assessment dari awal dengan konfigurasi terbaru.
                                         @else
                                             Kode penugasan dibuat otomatis. Admin cukup menentukan judul, ketenagaan target,
                                             jabatan target, kabupaten target, dan jadwal. Sistem akan mengambil semua form
@@ -590,7 +591,8 @@
                                         <h4>Aksi</h4>
                                     </div>
                                     <div class="card-body">
-                                        <button type="submit" class="btn btn-primary btn-block" id="assignment-submit-button">
+                                        <button type="{{ $isEditMode ? 'button' : 'submit' }}"
+                                            class="btn btn-primary btn-block" id="assignment-submit-button">
                                             <i class="fas fa-paper-plane"></i> {{ $submitLabel }}
                                         </button>
                                         <a href="{{ route('assessment.assignment.index') }}" class="btn btn-light btn-block">
@@ -602,6 +604,44 @@
                         </div>
                     </div>
                 </form>
+
+                @if ($isEditMode)
+                    <div class="modal fade" id="assignmentEditWarningModal" tabindex="-1" role="dialog"
+                        aria-labelledby="assignmentEditWarningModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header bg-warning">
+                                    <h5 class="modal-title text-dark" id="assignmentEditWarningModalLabel">
+                                        Reset Penugasan Saat Edit
+                                    </h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="mb-3">
+                                        Menyimpan perubahan untuk <strong>{{ $assignment?->judul_penugasan }}</strong>
+                                        akan mereset penugasan ini dari nol.
+                                    </p>
+                                    <ul class="pl-3 mb-3">
+                                        <li>Pembagian target dan sesi lama akan dibentuk ulang.</li>
+                                        <li>Riwayat mulai/submit, jawaban, penilaian, dan file unggahan peserta akan dihapus.</li>
+                                        <li>Seluruh peserta target harus mengerjakan assessment kembali dari awal.</li>
+                                    </ul>
+                                    <div class="alert alert-warning mb-0">
+                                        Lanjutkan hanya jika Anda yakin data lama pada penugasan ini memang harus dibersihkan.
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                                    <button type="button" class="btn btn-warning" id="assignment-edit-confirm-button">
+                                        Ya, Reset dan Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </section>
     </div>
@@ -626,6 +666,7 @@
             ]);
             let activeJabatanTarget = @json($selectedTargetKetenagaan);
             let activeKabupatenStateKey = JSON.stringify(initialKabupatenState);
+            const assignmentForm = document.getElementById('assignment-form');
 
             function escapeHtml(value) {
                 const node = document.createElement('div');
@@ -1144,6 +1185,34 @@
                 }
 
                 refreshSummaries();
+
+                @if ($isEditMode)
+                    const submitButton = document.getElementById('assignment-submit-button');
+                    const confirmEditButton = document.getElementById('assignment-edit-confirm-button');
+                    const editWarningModal = $('#assignmentEditWarningModal');
+
+                    if (submitButton && assignmentForm) {
+                        submitButton.addEventListener('click', function() {
+                            if (submitButton.disabled) {
+                                return;
+                            }
+
+                            editWarningModal.modal('show');
+                        });
+                    }
+
+                    if (confirmEditButton && assignmentForm) {
+                        confirmEditButton.addEventListener('click', function() {
+                            confirmEditButton.disabled = true;
+
+                            if (submitButton) {
+                                submitButton.disabled = true;
+                            }
+
+                            assignmentForm.submit();
+                        });
+                    }
+                @endif
             });
         })();
     </script>

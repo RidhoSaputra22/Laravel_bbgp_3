@@ -24,6 +24,18 @@
             </div>
 
             <div class="section-body">
+                @if (session('assignment_notice'))
+                    <div class="alert alert-info">
+                        {{ session('assignment_notice') }}
+                    </div>
+                @endif
+
+                @if ($errors->has('assignment'))
+                    <div class="alert alert-danger">
+                        {{ $errors->first('assignment') }}
+                    </div>
+                @endif
+
                 <div class="row">
                     <div class="col-lg-3 col-md-6 col-12">
                         <div class="card card-statistic-1">
@@ -232,6 +244,14 @@
                                                         class="btn btn-warning btn-sm my-1">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
+                                                    <button type="button" class="btn btn-danger btn-sm my-1 js-assignment-delete-trigger"
+                                                        data-toggle="modal" data-target="#assignmentDeleteModal"
+                                                        data-route="{{ route('assessment.assignment.hapus', $data->id) }}"
+                                                        data-code="{{ $data->kode_penugasan }}"
+                                                        data-title="{{ $data->judul_penugasan }}"
+                                                        data-target-total="{{ $data->total_target }}">
+                                                        <i class="fas fa-trash mr-1"></i> Hapus
+                                                    </button>
                                                     @if ($monitoring['retry_available'] ?? false)
                                                         <form action="{{ route('assessment.assignment.retry', $data->id) }}" method="POST"
                                                             class="d-inline-block my-1">
@@ -252,6 +272,45 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <div class="modal fade" id="assignmentDeleteModal" tabindex="-1" role="dialog"
+        aria-labelledby="assignmentDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title text-white" id="assignmentDeleteModalLabel">Hapus Penugasan Assessment</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">
+                        Penugasan <strong id="assignment-delete-title">-</strong> akan dihapus permanen.
+                    </p>
+                    <p class="text-muted mb-3">
+                        Kode penugasan: <span id="assignment-delete-code">-</span>
+                    </p>
+                    <ul class="pl-3 mb-3">
+                        <li>Seluruh pembagian peserta dan sesi assessment akan dihapus.</li>
+                        <li>Riwayat mulai/submit, jawaban, penilaian, dan file unggahan peserta ikut dibersihkan.</li>
+                        <li>Antrean distribusi yang masih tersisa untuk penugasan ini juga tidak bisa dipakai lagi.</li>
+                    </ul>
+                    <div class="alert alert-warning mb-0">
+                        Total peserta yang terdampak: <strong id="assignment-delete-target-total">0</strong> user.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                    <form method="POST" id="assignment-delete-form" class="d-inline-block">
+                        @csrf
+                        <button type="submit" class="btn btn-danger">
+                            Ya, Hapus Permanen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 
@@ -281,6 +340,15 @@
                 language: {
                     url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
                 },
+            });
+
+            $('.js-assignment-delete-trigger').on('click', function() {
+                const trigger = $(this);
+
+                $('#assignment-delete-form').attr('action', trigger.data('route'));
+                $('#assignment-delete-title').text(trigger.data('title') || '-');
+                $('#assignment-delete-code').text(trigger.data('code') || '-');
+                $('#assignment-delete-target-total').text(trigger.data('target-total') || 0);
             });
         });
     </script>

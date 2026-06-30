@@ -14,7 +14,7 @@
                     'formBuilderData' => $formBuilderData,
                     'formAction' => route('assessment.store'),
                     'httpMethod' => 'POST',
-                    'submitLabel' => 'Simpan Assessment',
+                    'submitLabel' => 'Buat Assessment',
                     'pageTitle' => 'Form Builder Assessment',
                 ])
             </div>

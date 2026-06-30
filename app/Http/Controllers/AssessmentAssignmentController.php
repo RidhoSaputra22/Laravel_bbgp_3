@@ -257,6 +257,29 @@ class AssessmentAssignmentController extends Controller
         }
     }
 
+    public function destroy(string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+
+        try {
+            $result = $this->assignmentService->deleteAssignment($assignment);
+
+            return redirect()
+                ->route('assessment.assignment.index')
+                ->with('assignment_notice', $this->buildDeleteNotice($result));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('assessment.assignment.show', $assignment->id)
+                ->withErrors([
+                    'assignment' => 'Terjadi kesalahan saat menghapus penugasan assessment.',
+                ]);
+        }
+    }
+
     private function authorizeAccess(): void
     {
         abort_unless(
@@ -292,16 +315,51 @@ class AssessmentAssignmentController extends Controller
     {
         $parts = ['Penugasan assessment berhasil diperbarui.'];
 
+        if (($result['reset_target_count'] ?? 0) > 0) {
+            $parts[] = $result['reset_target_count'].' target lama direset.';
+        }
+
+        if (($result['deleted_attempt_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_attempt_count'].' riwayat pengerjaan dihapus.';
+        }
+
+        if (($result['deleted_answer_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_answer_count'].' jawaban lama dibersihkan.';
+        }
+
+        if (($result['deleted_file_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_file_count'].' file unggahan ikut dihapus.';
+        }
+
         if (($result['new_target_count'] ?? 0) > 0) {
-            $parts[] = $result['new_target_count'].' target baru ditambahkan.';
+            $parts[] = $result['new_target_count'].' peserta sekarang harus memulai assessment dari nol.';
         }
 
-        if (($result['cancelled_target_count'] ?? 0) > 0) {
-            $parts[] = $result['cancelled_target_count'].' target pending di luar filter dibatalkan.';
+        if ($result['queued'] ?? false) {
+            $parts[] = 'Distribusi ulang dijalankan melalui batch job.';
         }
 
-        if (($result['preserved_locked_count'] ?? 0) > 0) {
-            $parts[] = $result['preserved_locked_count'].' peserta yang sudah berjalan tetap dipertahankan.';
+        return implode(' ', $parts);
+    }
+
+    private function buildDeleteNotice(array $result): string
+    {
+        $parts = ['Penugasan assessment berhasil dihapus permanen.'];
+
+        if (($result['deleted_target_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_target_count'].' target penugasan dibersihkan.';
+        }
+
+        if (($result['deleted_attempt_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_attempt_count'].' riwayat pengerjaan dihapus.';
+        }
+
+        if (($result['deleted_answer_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_answer_count'].' jawaban peserta dihapus.';
+        }
+
+        if (($result['deleted_file_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_file_count'].' file unggahan ikut dihapus.';
         }
 
         return implode(' ', $parts);

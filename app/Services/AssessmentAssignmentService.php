@@ -7,15 +7,16 @@ use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
+use App\Models\AssessmentAttempt;
+use App\Models\AssessmentAttemptAnswer;
 use App\Models\Guru;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class AssessmentAssignmentService
@@ -98,69 +99,23 @@ class AssessmentAssignmentService
         ?int $assignedBy = null
     ): array {
         $context = $this->prepareAssignmentContext($payload);
-        $existingTargets = $assignment->targets()
-            ->with('attempt')
-            ->orderBy('id')
-            ->get();
-        $lockedTargets = $existingTargets
-            ->filter(fn (AssessmentAssignmentTarget $target) => $this->isLockedTarget($target))
-            ->values();
-        $lockedTargetCount = $lockedTargets->count();
-        $lockedGuruIdsOutsideFilter = $lockedTargets
-            ->pluck('guru_id')
-            ->map(fn ($guruId) => (int) $guruId)
-            ->filter(fn (int $guruId) => ! in_array($guruId, $context['guru_ids'], true))
-            ->values()
-            ->all();
+        $shouldBatch = count($context['guru_ids']) > self::BATCH_THRESHOLD;
+        $cleanupSummary = $this->collectAssignmentCleanupSummary($assignment->id);
 
-        if (
-            $lockedTargetCount > 0 &&
-            $assignment->target_ketenagaan !== ($context['target_ketenagaan']?->value)
-        ) {
-            throw ValidationException::withMessages([
-                'target_ketenagaan' => 'Ketenagaan target tidak dapat diubah karena ada peserta yang sudah mulai atau menyelesaikan assessment.',
-            ]);
-        }
-
-        $assessmentIds = $this->resolveAssessmentIdsForUpdate(
-            $assignment,
-            $context['assessment_ids'],
-            $lockedTargetCount > 0
-        );
-
-        $finalGuruIds = array_values(array_unique([
-            ...$context['guru_ids'],
-            ...$lockedGuruIdsOutsideFilter,
-        ]));
-        $totalSessions = $this->calculateTotalSessions(count($finalGuruIds));
-        $cancelledTargetIds = $existingTargets
-            ->filter(function (AssessmentAssignmentTarget $target) use ($finalGuruIds) {
-                return ! in_array((int) $target->guru_id, $finalGuruIds, true)
-                    && ! $this->isLockedTarget($target);
-            })
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->values()
-            ->all();
-        $existingActiveGuruIds = $existingTargets
-            ->filter(fn (AssessmentAssignmentTarget $target) => $target->status !== 'dibatalkan')
-            ->pluck('guru_id')
-            ->map(fn ($guruId) => (int) $guruId)
-            ->values()
-            ->all();
-        $newTargetCount = count(array_diff($finalGuruIds, $existingActiveGuruIds));
-
-        DB::transaction(function () use (
+        $assignmentData = DB::transaction(function () use (
             $assignment,
             $payload,
             $context,
             $assignedBy,
-            $assessmentIds,
-            $finalGuruIds,
-            $totalSessions,
-            $existingTargets,
-            $cancelledTargetIds
+            $shouldBatch
         ) {
+            $assessmentSyncData = $this->buildAssessmentSyncData($context['assessment_ids']);
+            $totalSessions = $this->calculateTotalSessions(count($context['guru_ids']));
+
+            $this->cancelAssignmentBatch($assignment->job_batch_id);
+            $this->purgeAssignmentQueueArtifacts($assignment->id);
+            $this->purgeAssignmentHistory($assignment->id);
+
             $assignment->forceFill([
                 'judul_penugasan' => $payload['judul_penugasan'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
@@ -173,51 +128,82 @@ class AssessmentAssignmentService
                 'kapasitas_per_sesi' => self::TARGETS_PER_SESSION,
                 'durasi_sesi_jam' => $context['session_duration_hours'],
                 'total_sesi' => $totalSessions,
-                'status_distribusi' => 'draft',
-                'total_target' => count($finalGuruIds),
+                'status_distribusi' => $shouldBatch ? 'diproses' : 'draft',
+                'total_target' => count($context['guru_ids']),
+                'total_ditugaskan' => 0,
                 'assigned_by' => $assignedBy ?: $assignment->assigned_by,
                 'job_batch_id' => null,
                 'processed_at' => null,
             ])->save();
 
-            $assignment->assessments()->sync($this->buildAssessmentSyncData($assessmentIds));
-
-            $assignment->sessions()->delete();
+            $assignment->assessments()->sync($assessmentSyncData);
 
             $sessions = $this->createSessions(
                 $assignment,
-                count($finalGuruIds),
+                count($context['guru_ids']),
                 $context['session_duration_hours'],
                 $context['first_session_start_at']
             );
 
-            if ($cancelledTargetIds !== []) {
-                AssessmentAssignmentTarget::query()
-                    ->whereIn('id', $cancelledTargetIds)
-                    ->update([
-                        'assessment_assignment_session_id' => null,
-                        'status' => 'dibatalkan',
-                        'updated_at' => now(),
-                    ]);
-            }
-
-            $targetRows = $this->buildTargetRowsForUpdate(
+            $targetRows = $this->buildTargetRows(
                 $assignment->id,
-                $finalGuruIds,
-                $sessions,
-                $existingTargets
+                $context['guru_ids'],
+                $sessions
             );
 
-            $this->storeTargetRows($targetRows);
-            $this->refreshAssignmentSummary($assignment->id);
+            if (! $shouldBatch) {
+                $this->storeTargetRows($targetRows);
+                $this->refreshAssignmentSummary($assignment->id);
+            }
+
+            return [
+                'target_rows' => $targetRows,
+            ];
         });
 
+        $this->deleteStoredAnswerFiles($cleanupSummary['file_paths']);
+
+        if ($shouldBatch) {
+            $freshAssignment = $assignment->fresh();
+            $this->dispatchBatch($freshAssignment, $assignmentData['target_rows']);
+            $freshAssignment = $freshAssignment->fresh();
+        } else {
+            $freshAssignment = $assignment->fresh();
+        }
+
         return [
-            'assignment' => $assignment->fresh(['assessments', 'creator', 'sessions'])->loadCount('targets'),
-            'locked_target_count' => $lockedTargetCount,
-            'preserved_locked_count' => count($lockedGuruIdsOutsideFilter),
-            'cancelled_target_count' => count($cancelledTargetIds),
-            'new_target_count' => $newTargetCount,
+            'assignment' => $freshAssignment->load(['assessments', 'creator', 'sessions'])->loadCount('targets'),
+            'reset_target_count' => $cleanupSummary['target_count'],
+            'deleted_attempt_count' => $cleanupSummary['attempt_count'],
+            'deleted_answer_count' => $cleanupSummary['answer_count'],
+            'deleted_file_count' => $cleanupSummary['file_count'],
+            'new_target_count' => count($context['guru_ids']),
+            'queued' => $shouldBatch,
+        ];
+    }
+
+    public function deleteAssignment(AssessmentAssignment $assignment): array
+    {
+        $cleanupSummary = $this->collectAssignmentCleanupSummary($assignment->id);
+
+        DB::transaction(function () use ($assignment) {
+            $this->cancelAssignmentBatch($assignment->job_batch_id);
+            $this->purgeAssignmentQueueArtifacts($assignment->id);
+            $this->purgeAssignmentHistory($assignment->id);
+            $this->purgeAssignmentAssessmentLinks($assignment->id);
+
+            AssessmentAssignment::query()
+                ->whereKey($assignment->id)
+                ->delete();
+        });
+
+        $this->deleteStoredAnswerFiles($cleanupSummary['file_paths']);
+
+        return [
+            'deleted_target_count' => $cleanupSummary['target_count'],
+            'deleted_attempt_count' => $cleanupSummary['attempt_count'],
+            'deleted_answer_count' => $cleanupSummary['answer_count'],
+            'deleted_file_count' => $cleanupSummary['file_count'],
         ];
     }
 
@@ -360,22 +346,6 @@ class AssessmentAssignmentService
             'start_time' => $startTime,
             'first_session_start_at' => $this->resolveFirstSessionStartAt($payload, $startTime),
         ];
-    }
-
-    private function resolveAssessmentIdsForUpdate(
-        AssessmentAssignment $assignment,
-        array $resolvedAssessmentIds,
-        bool $preserveExistingAssessments
-    ): array {
-        if (! $preserveExistingAssessments) {
-            return $resolvedAssessmentIds;
-        }
-
-        return $assignment->assessments()
-            ->orderBy('assessment_assignment_assessments.urutan')
-            ->pluck('assessments.id')
-            ->map(fn ($assessmentId) => (int) $assessmentId)
-            ->all();
     }
 
     private function buildBatchMonitoring(AssessmentAssignment $assignment): ?array
@@ -658,69 +628,6 @@ class AssessmentAssignmentService
         );
     }
 
-    private function buildTargetRowsForUpdate(
-        int $assignmentId,
-        array $guruIds,
-        array $sessions,
-        Collection $existingTargets
-    ): array {
-        if ($guruIds === []) {
-            return [];
-        }
-
-        $now = now();
-        $existingByGuruId = $existingTargets->keyBy(fn (AssessmentAssignmentTarget $target) => (int) $target->guru_id);
-
-        return collect($guruIds)
-            ->values()
-            ->map(function (int $guruId, int $index) use ($assignmentId, $sessions, $existingByGuruId, $now) {
-                /** @var \App\Models\AssessmentAssignmentTarget|null $existing */
-                $existing = $existingByGuruId->get($guruId);
-                $sessionIndex = intdiv($index, self::TARGETS_PER_SESSION);
-
-                return [
-                    'assessment_assignment_id' => $assignmentId,
-                    'assessment_assignment_session_id' => $sessions[$sessionIndex]->id ?? null,
-                    'guru_id' => $guruId,
-                    'status' => $this->resolveUpdatedTargetStatus($existing),
-                    'assigned_at' => $existing?->assigned_at ?: $now,
-                    'created_at' => $existing?->created_at ?: $now,
-                    'updated_at' => $now,
-                ];
-            })
-            ->all();
-    }
-
-    private function resolveUpdatedTargetStatus(?AssessmentAssignmentTarget $target): string
-    {
-        if (! $target) {
-            return 'ditugaskan';
-        }
-
-        if ($this->isLockedTarget($target)) {
-            return $target->status;
-        }
-
-        return $target->status === 'dibatalkan' ? 'ditugaskan' : ($target->status ?: 'ditugaskan');
-    }
-
-    private function isLockedTarget(AssessmentAssignmentTarget $target): bool
-    {
-        if ($target->status === 'dibatalkan') {
-            return false;
-        }
-
-        if (in_array($target->status, ['dikerjakan', 'selesai'], true)) {
-            return true;
-        }
-
-        if ($target->started_at || $target->submitted_at) {
-            return true;
-        }
-
-        return $target->attempt !== null;
-    }
-
     private function resetDistributionState(int $assignmentId): void
     {
         AssessmentAssignment::whereKey($assignmentId)->update([
@@ -774,6 +681,213 @@ class AssessmentAssignmentService
                 'updated_at',
             ]
         );
+    }
+
+    private function collectAssignmentCleanupSummary(int $assignmentId): array
+    {
+        if (! Schema::hasTable('assessment_assignment_targets')) {
+            return [
+                'target_count' => 0,
+                'attempt_count' => 0,
+                'answer_count' => 0,
+                'file_count' => 0,
+                'file_paths' => [],
+            ];
+        }
+
+        $targetIds = DB::table('assessment_assignment_targets')
+            ->where('assessment_assignment_id', $assignmentId)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if ($targetIds === []) {
+            return [
+                'target_count' => 0,
+                'attempt_count' => 0,
+                'answer_count' => 0,
+                'file_count' => 0,
+                'file_paths' => [],
+            ];
+        }
+
+        $attemptIds = [];
+        $answerCount = 0;
+        $filePaths = [];
+
+        if (Schema::hasTable('assessment_attempts')) {
+            $attemptIds = DB::table('assessment_attempts')
+                ->whereIn('assessment_assignment_target_id', $targetIds)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+        }
+
+        if ($attemptIds !== [] && Schema::hasTable('assessment_attempt_answers')) {
+            $answerCount = (int) DB::table('assessment_attempt_answers')
+                ->whereIn('assessment_attempt_id', $attemptIds)
+                ->count();
+
+            $filePaths = DB::table('assessment_attempt_answers')
+                ->whereIn('assessment_attempt_id', $attemptIds)
+                ->whereNotNull('answer_file_path')
+                ->pluck('answer_file_path')
+                ->filter(fn ($path) => filled($path))
+                ->map(fn ($path) => (string) $path)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return [
+            'target_count' => count($targetIds),
+            'attempt_count' => count($attemptIds),
+            'answer_count' => $answerCount,
+            'file_count' => count($filePaths),
+            'file_paths' => $filePaths,
+        ];
+    }
+
+    private function purgeAssignmentHistory(int $assignmentId): void
+    {
+        if (! Schema::hasTable('assessment_assignment_targets')) {
+            return;
+        }
+
+        $targetIds = DB::table('assessment_assignment_targets')
+            ->where('assessment_assignment_id', $assignmentId)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if ($targetIds !== [] && Schema::hasTable('assessment_attempts')) {
+            $attemptIds = DB::table('assessment_attempts')
+                ->whereIn('assessment_assignment_target_id', $targetIds)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            if ($attemptIds !== [] && Schema::hasTable('assessment_attempt_answers')) {
+                AssessmentAttemptAnswer::query()
+                    ->whereIn('assessment_attempt_id', $attemptIds)
+                    ->delete();
+            }
+
+            AssessmentAttempt::query()
+                ->whereIn('assessment_assignment_target_id', $targetIds)
+                ->delete();
+        }
+
+        AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignmentId)
+            ->delete();
+
+        if (Schema::hasTable('assessment_assignment_sessions')) {
+            DB::table('assessment_assignment_sessions')
+                ->where('assessment_assignment_id', $assignmentId)
+                ->delete();
+        }
+    }
+
+    private function purgeAssignmentAssessmentLinks(int $assignmentId): void
+    {
+        if (! Schema::hasTable('assessment_assignment_assessments')) {
+            return;
+        }
+
+        DB::table('assessment_assignment_assessments')
+            ->where('assessment_assignment_id', $assignmentId)
+            ->delete();
+    }
+
+    private function cancelAssignmentBatch(?string $batchId): void
+    {
+        if (! $batchId || ! Schema::hasTable('job_batches')) {
+            return;
+        }
+
+        $batch = Bus::findBatch($batchId);
+
+        if ($batch && ! $batch->cancelled()) {
+            $batch->cancel();
+        }
+    }
+
+    private function purgeAssignmentQueueArtifacts(int $assignmentId): void
+    {
+        $this->purgeAssignmentQueueTable('jobs', $assignmentId);
+        $this->purgeAssignmentQueueTable('failed_jobs', $assignmentId);
+    }
+
+    private function purgeAssignmentQueueTable(string $table, int $assignmentId): void
+    {
+        if (! Schema::hasTable($table) || ! Schema::hasColumn($table, 'payload')) {
+            return;
+        }
+
+        $columns = ['payload'];
+
+        if (Schema::hasColumn($table, 'id')) {
+            $columns[] = 'id';
+        }
+
+        if (Schema::hasColumn($table, 'uuid')) {
+            $columns[] = 'uuid';
+        }
+
+        $rows = DB::table($table)->get($columns);
+        $idsToDelete = [];
+        $uuidsToDelete = [];
+
+        foreach ($rows as $row) {
+            $payload = $this->extractAssignmentQueuePayload((string) ($row->payload ?? ''));
+
+            if (! $payload || $payload['assignment_id'] !== $assignmentId) {
+                continue;
+            }
+
+            if (isset($row->id)) {
+                $idsToDelete[] = $row->id;
+
+                continue;
+            }
+
+            if (isset($row->uuid)) {
+                $uuidsToDelete[] = (string) $row->uuid;
+            }
+        }
+
+        if ($idsToDelete !== [] && Schema::hasColumn($table, 'id')) {
+            DB::table($table)
+                ->whereIn('id', $idsToDelete)
+                ->delete();
+        }
+
+        if ($uuidsToDelete !== [] && Schema::hasColumn($table, 'uuid')) {
+            DB::table($table)
+                ->whereIn('uuid', $uuidsToDelete)
+                ->delete();
+        }
+    }
+
+    private function deleteStoredAnswerFiles(array $filePaths): void
+    {
+        $normalizedPaths = collect($filePaths)
+            ->filter(fn ($path) => filled($path))
+            ->map(fn ($path) => (string) $path)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($normalizedPaths === []) {
+            return;
+        }
+
+        try {
+            Storage::disk('public')->delete($normalizedPaths);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 
     private function resolveTargetKetenagaan(array $payload): ?AssessmentKetenagaanType

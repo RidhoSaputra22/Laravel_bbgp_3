@@ -34,6 +34,10 @@
                     <a href="{{ route('assessment.assignment.edit', $assignment->id) }}" class="btn btn-warning mr-2">
                         <i class="fas fa-edit"></i> Edit
                     </a>
+                    <button type="button" class="btn btn-danger mr-2" data-toggle="modal"
+                        data-target="#assignmentDeleteModal">
+                        <i class="fas fa-trash"></i> Hapus
+                    </button>
                     @if ($monitoring['retry_available'] ?? false)
                         <form action="{{ route('assessment.assignment.retry', $assignment->id) }}" method="POST"
                             class="d-inline-block mr-2">
@@ -534,6 +538,46 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <div class="modal fade" id="assignmentDeleteModal" tabindex="-1" role="dialog"
+        aria-labelledby="assignmentDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-danger">
+                    <h5 class="modal-title text-white" id="assignmentDeleteModalLabel">Hapus Penugasan Assessment</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">
+                        Penugasan <strong>{{ $assignment->judul_penugasan }}</strong> akan dihapus permanen.
+                    </p>
+                    <p class="text-muted mb-3">
+                        Kode penugasan: {{ $assignment->kode_penugasan }}
+                    </p>
+                    <ul class="pl-3 mb-3">
+                        <li>Seluruh pembagian peserta dan sesi assessment akan dihapus.</li>
+                        <li>Riwayat mulai/submit, jawaban, penilaian, dan file unggahan peserta ikut dibersihkan.</li>
+                        <li>Antrean distribusi yang masih tersisa untuk penugasan ini juga tidak dapat dipakai lagi.</li>
+                    </ul>
+                    <div class="alert alert-warning mb-0">
+                        Total peserta yang terdampak: <strong>{{ $assignment->total_target }}</strong> user.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                    <form action="{{ route('assessment.assignment.hapus', $assignment->id) }}" method="POST"
+                        class="d-inline-block">
+                        @csrf
+                        <button type="submit" class="btn btn-danger">
+                            Ya, Hapus Permanen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 

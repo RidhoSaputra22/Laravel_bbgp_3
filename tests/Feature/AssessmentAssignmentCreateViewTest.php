@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AssessmentAssignment;
 use Tests\TestCase;
 
 class AssessmentAssignmentCreateViewTest extends TestCase
@@ -195,5 +196,124 @@ class AssessmentAssignmentCreateViewTest extends TestCase
         $response->assertSee('Kota Makassar');
         $response->assertDontSee('data-table-id="guru-selector"', false);
         $response->assertDontSee('data-table-id="assessment-selector"', false);
+    }
+
+    public function test_assignment_edit_view_shows_reset_warning_modal_for_admin(): void
+    {
+        $assignment = new AssessmentAssignment([
+            'id' => 99,
+            'judul_penugasan' => 'Penugasan Ulang Assessment',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'durasi_sesi_jam' => 3,
+            'total_target' => 12,
+        ]);
+
+        $response = $this
+            ->withSession([
+                'role' => 'admin',
+                'user_id' => 1,
+                'name' => 'Admin Test',
+            ])
+            ->withViewErrors([])
+            ->view('pages.admin.assessment.assignment.create', [
+                'menu' => 'assessment-penugasan',
+                'assignment' => $assignment,
+                'isEditMode' => true,
+                'pageTitle' => 'Edit Penugasan Assessment',
+                'formAction' => route('assessment.assignment.update', 99),
+                'formMethod' => 'PUT',
+                'submitLabel' => 'Simpan Perubahan',
+                'ketenagaanOptions' => [
+                    'tenaga_pendidik' => 'Tenaga Pendidik',
+                    'tenaga_kependidikan' => 'Tenaga Kependidikan',
+                    'stakeholder' => 'Stakeholder',
+                ],
+                'ketenagaanSummaries' => [
+                    'tenaga_pendidik' => [
+                        'value' => 'tenaga_pendidik',
+                        'label' => 'Tenaga Pendidik',
+                        'badge_class' => 'primary',
+                        'icon_class' => 'fas fa-chalkboard-teacher',
+                        'assessment_count' => 2,
+                        'form_count' => 5,
+                        'field_count' => 17,
+                        'user_count' => 42,
+                        'assessment_items' => [],
+                    ],
+                    'tenaga_kependidikan' => [
+                        'value' => 'tenaga_kependidikan',
+                        'label' => 'Tenaga Kependidikan',
+                        'badge_class' => 'info',
+                        'icon_class' => 'fas fa-school',
+                        'assessment_count' => 0,
+                        'form_count' => 0,
+                        'field_count' => 0,
+                        'user_count' => 0,
+                        'assessment_items' => [],
+                    ],
+                    'stakeholder' => [
+                        'value' => 'stakeholder',
+                        'label' => 'Stakeholder',
+                        'badge_class' => 'warning',
+                        'icon_class' => 'fas fa-layer-group',
+                        'assessment_count' => 1,
+                        'form_count' => 2,
+                        'field_count' => 6,
+                        'user_count' => 12,
+                        'assessment_items' => [],
+                    ],
+                ],
+                'jabatanOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => 'Guru',
+                            'label' => 'Guru',
+                            'description' => '30 user pada Tenaga Pendidik',
+                            'cells' => ['Guru', '30 user'],
+                            'payload' => [
+                                'jenis_jabatan' => 'Guru',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 30,
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [],
+                ],
+                'kabupatenOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => 'Kota Makassar',
+                            'label' => 'Kota Makassar',
+                            'description' => '22 user lintas jabatan pada Tenaga Pendidik',
+                            'cells' => ['Kota Makassar', '22 user'],
+                            'payload' => [
+                                'kabupaten' => 'Kota Makassar',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 22,
+                                'counts_by_jabatan' => [
+                                    'Guru' => 22,
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [],
+                ],
+                'batchThreshold' => 25,
+                'sessionCapacity' => 41,
+                'defaultSessionDurationHours' => 3,
+                'sessionDurationOptions' => [1, 2, 3, 4],
+            ]);
+
+        $response->assertSee('Mode edit akan menyusun ulang penugasan dari nol.');
+        $response->assertSee('id="assignmentEditWarningModal"', false);
+        $response->assertSee('Reset Penugasan Saat Edit');
+        $response->assertSee('Ya, Reset dan Simpan');
+        $response->assertSee('assignment-edit-confirm-button');
     }
 }
