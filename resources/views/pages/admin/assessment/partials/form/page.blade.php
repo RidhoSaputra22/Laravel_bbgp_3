@@ -1130,7 +1130,7 @@
                     synonym_map_text: String(config?.synonym_map_text || '').trim(),
                     min_words: config?.min_words ?? '',
                     confidence_threshold: config?.confidence_threshold ?? '',
-                    manual_review_below_confidence: normalizeChecked(config?.manual_review_below_confidence),
+                    manual_review_below_confidence: false,
                     numeric_direction: String(config?.numeric_direction || 'greater_is_better').trim(),
                     min_threshold: config?.min_threshold ?? '',
                     target_threshold: config?.target_threshold ?? '',
@@ -1519,9 +1519,6 @@
                 const scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '5';
                 const minWords = $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() || resolveDefaultMinWords(fieldType);
                 const confidence = $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()?.trim() || '0.55';
-                const manualReview = $fieldCard.find('input[name$="[scoring][manual_review_below_confidence]"]').is(':checked')
-                    ? 'review manual aktif'
-                    : 'review manual mati';
                 const summaryPills = [
                     `Cara nilai: ${fieldScoringMethods[method] || method}`,
                     `Skala: ${formatScoringNumber(scaleMin)}-${formatScoringNumber(scaleMax)}`,
@@ -1539,8 +1536,6 @@
                 if (fieldType === 'number' && method !== 'presence') {
                     summaryPills.push('Nilai mengikuti target angka');
                 }
-
-                summaryPills.push(manualReview);
 
                 return summaryPills.map((pill) => `<span class="scoring-summary-pill">${escapeHtml(pill)}</span>`).join('');
             };
@@ -2691,7 +2686,7 @@
                         synonym_map_text: $fieldCard.find('textarea[name$="[scoring][synonym_map_text]"]').val()?.trim() || '',
                         min_words: $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() || '',
                         confidence_threshold: $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()?.trim() || '',
-                        manual_review_below_confidence: $fieldCard.find('input[name$="[scoring][manual_review_below_confidence]"]').is(':checked'),
+                        manual_review_below_confidence: false,
                         numeric_direction: $fieldCard.find('select[name$="[scoring][numeric_direction]"]').val()?.trim() || '',
                         min_threshold: $fieldCard.find('input[name$="[scoring][min_threshold]"]').val()?.trim() || '',
                         target_threshold: $fieldCard.find('input[name$="[scoring][target_threshold]"]').val()?.trim() || '',

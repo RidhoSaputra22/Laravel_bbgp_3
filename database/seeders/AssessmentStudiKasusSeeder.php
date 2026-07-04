@@ -445,9 +445,10 @@ class AssessmentStudiKasusSeeder extends Seeder
             'synonyms' => $reference['synonyms'] ?? [],
             'min_words' => 18,
             'confidence_threshold' => 0.55,
-            'manual_review_below_confidence' => true,
+            'manual_review_below_confidence' => false,
             'advanced_rules' => [
                 'min_words' => 18,
+                'semantic_zero_threshold' => 0.10,
                 'signal_keywords' => $reference['signal_keywords'] ?? [],
                 'structure_markers' => [
                     'analysis' => ['masalah', 'penyebab', 'dampak', 'konteks'],

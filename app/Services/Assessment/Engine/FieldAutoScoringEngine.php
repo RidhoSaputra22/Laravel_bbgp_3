@@ -271,26 +271,42 @@ class FieldAutoScoringEngine
         $fuzzyScaleScore = $this->scaleFromRatio(min(max(($blendedStrength * 0.65) + ($fuzzyStrength * 0.35), 0), 1), $config);
         $finalScore = (($fuzzyScaleScore * 0.55) + ($treeScore * 0.45));
         $confidence = min(max((0.4 * $keywordCoverage) + (0.3 * $cosine) + (0.15 * $structureScore) + (0.15 * $lengthScore), 0.05), 0.98);
-        $requiresManualReview = (bool) ($config['manual_review_below_confidence'] ?? false)
-            && $confidence < (float) ($config['confidence_threshold'] ?? 0.55);
+        $semanticZeroThreshold = $this->semanticZeroThreshold($config);
+        $zeroScoreApplied = $semanticZeroThreshold !== null && $cosine < $semanticZeroThreshold;
+
+        if ($zeroScoreApplied) {
+            $finalScore = 0.0;
+        }
+
+        $reason = $zeroScoreApplied
+            ? sprintf(
+                'Kemiripan semantik %.0f%% berada di bawah ambang %.0f%% sehingga skor otomatis menjadi 0. Cakupan kata kunci %.0f%% dan struktur jawaban %.0f%%.',
+                $cosine * 100,
+                $semanticZeroThreshold * 100,
+                $keywordCoverage * 100,
+                $structureScore * 100
+            )
+            : sprintf(
+                'Kemiripan semantik %.0f%%, cakupan kata kunci %.0f%%, dan struktur jawaban %.0f%%.',
+                $cosine * 100,
+                $keywordCoverage * 100,
+                $structureScore * 100
+            );
 
         return $this->finalizeResult(
             $config,
             $finalScore,
             $confidence,
-            sprintf(
-                'Kemiripan semantik %.0f%%, cakupan kata kunci %.0f%%, dan struktur jawaban %.0f%%.',
-                $cosine * 100,
-                $keywordCoverage * 100,
-                $structureScore * 100
-            ),
+            $reason,
             array_merge($analysis, [
                 'method' => 'semantic_similarity',
                 'blended_strength' => round($blendedStrength, 4),
                 'fuzzy_strength' => round($fuzzyStrength, 4),
                 'tree_score' => round($treeScore, 2),
+                'semantic_zero_threshold' => $semanticZeroThreshold,
+                'semantic_zero_applied' => $zeroScoreApplied,
             ]),
-            $requiresManualReview,
+            false,
             'auto_semantic_similarity'
         );
     }
@@ -505,7 +521,10 @@ class FieldAutoScoringEngine
         $scaleMin = (float) data_get($config, 'scale.min', 1);
         $scaleMax = (float) data_get($config, 'scale.max', 5);
         $precision = (int) data_get($config, 'scale.precision', 2);
-        $normalizedScore = round(min(max((float) $score, $scaleMin), $scaleMax), $precision);
+        $numericScore = (float) $score;
+        $normalizedScore = $numericScore <= 0
+            ? 0.0
+            : round(min(max($numericScore, $scaleMin), $scaleMax), $precision);
 
         return [
             'score' => $normalizedScore,
@@ -515,6 +534,19 @@ class FieldAutoScoringEngine
             'metadata' => $metadata,
             'requires_manual_review' => $requiresManualReview,
         ];
+    }
+
+    private function semanticZeroThreshold(array $config): ?float
+    {
+        $configuredThreshold = data_get($config, 'advanced_rules.semantic_zero_threshold');
+
+        if (is_numeric($configuredThreshold)) {
+            return min(max((float) $configuredThreshold, 0), 1);
+        }
+
+        return in_array((string) ($config['profile'] ?? ''), ['studi_kasus', 'study_case_default', 'study_case_kepala_sekolah'], true)
+            ? 0.10
+            : null;
     }
 
     private function emptyResult(

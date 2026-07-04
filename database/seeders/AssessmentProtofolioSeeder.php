@@ -911,7 +911,7 @@ class AssessmentProtofolioSeeder extends Seeder
                 ],
                 'min_words' => 30,
                 'confidence_threshold' => 0.55,
-                'manual_review_below_confidence' => true,
+                'manual_review_below_confidence' => false,
                 'advanced_rules' => [
                     'min_words' => 30,
                     'signal_keywords' => ['integritas', 'refleksi', 'pengembangan', 'rencana tindakan'],

@@ -710,7 +710,7 @@ class AssessmentController extends Controller
             'synonym_map_text' => trim((string) ($rawConfig['synonym_map_text'] ?? '')) ?: null,
             'min_words' => is_numeric($rawConfig['min_words'] ?? null) ? (int) $rawConfig['min_words'] : null,
             'confidence_threshold' => is_numeric($rawConfig['confidence_threshold'] ?? null) ? (float) $rawConfig['confidence_threshold'] : null,
-            'manual_review_below_confidence' => (bool) ($rawConfig['manual_review_below_confidence'] ?? false),
+            'manual_review_below_confidence' => false,
             'numeric_direction' => trim((string) ($rawConfig['numeric_direction'] ?? '')) ?: null,
             'min_threshold' => is_numeric($rawConfig['min_threshold'] ?? null) ? (float) $rawConfig['min_threshold'] : null,
             'target_threshold' => is_numeric($rawConfig['target_threshold'] ?? null) ? (float) $rawConfig['target_threshold'] : null,
@@ -741,7 +741,7 @@ class AssessmentController extends Controller
 
         $config = array_filter($config, function ($value, $key) {
             return match ($key) {
-                'enabled', 'manual_review_below_confidence' => true,
+                'enabled', 'manual_review_below_confidence' => $key === 'enabled',
                 default => $value !== null && $value !== '',
             };
         }, ARRAY_FILTER_USE_BOTH);

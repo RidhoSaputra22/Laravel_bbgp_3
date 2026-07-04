@@ -16,6 +16,8 @@ use Illuminate\Support\Collection;
 
 class AssessmentScoringService
 {
+    private const SUMMARY_VERSION = 2;
+
     public function __construct(
         private readonly AssessmentStructureMetadataResolver $metadataResolver,
         private readonly ScoringConfigNormalizer $configNormalizer,
@@ -23,6 +25,11 @@ class AssessmentScoringService
         private readonly PortofolioScoringEngine $portofolioScoringEngine,
         private readonly StudiKasusScoringEngine $studiKasusScoringEngine
     ) {}
+
+    public function summaryVersion(): int
+    {
+        return self::SUMMARY_VERSION;
+    }
 
     public function buildSummary(AssessmentAttempt $attempt): array
     {
@@ -67,7 +74,11 @@ class AssessmentScoringService
                     ->filter(fn (array $item) => $item['score'] !== null && ! ($item['manual_pending'] ?? false))
                     ->count();
                 $manualPendingCount = (int) collect($items)
-                    ->filter(fn (array $item) => $item['answered'] && ($item['manual_pending'] ?? false))
+                    ->filter(function (array $item) {
+                        $expectsSystemScore = (bool) data_get($item, 'scoring_config.enabled', false);
+
+                        return $item['answered'] && (($item['manual_pending'] ?? false) || ($expectsSystemScore && $item['score'] === null));
+                    })
                     ->count();
 
                 $totalAnsweredScoreableItems += max($availableItemsCount, $answeredItems);
@@ -116,6 +127,7 @@ class AssessmentScoringService
         $verificationAlerts = $this->buildVerificationAlerts($competencySummaries);
 
         return [
+            'summary_version' => self::SUMMARY_VERSION,
             'status' => $this->resolveScoringStatus($totalAnsweredScoreableItems, $pendingManualItems),
             'status_label' => $this->resolveScoringStatusLabel($totalAnsweredScoreableItems, $pendingManualItems),
             'status_description' => $this->resolveScoringStatusDescription(
@@ -124,6 +136,12 @@ class AssessmentScoringService
                 $verificationAlerts
             ),
             'manual_review' => [
+                'total_items' => $totalAnsweredScoreableItems,
+                'scored_items' => $scoredItems,
+                'pending_items' => $pendingManualItems,
+                'completed_items' => max($totalAnsweredScoreableItems - $pendingManualItems, 0),
+            ],
+            'system_scoring' => [
                 'total_items' => $totalAnsweredScoreableItems,
                 'scored_items' => $scoredItems,
                 'pending_items' => $pendingManualItems,
@@ -373,7 +391,7 @@ class AssessmentScoringService
         }
 
         if ($pendingManualItems > 0) {
-            $parts[] = 'Masih ada jawaban yang membutuhkan verifikasi manual assessor sebelum seluruh skor dianggap final.';
+            $parts[] = "Masih ada {$pendingManualItems} jawaban yang belum berhasil dihitung otomatis oleh sistem.";
         }
 
         if ($verificationAlerts !== []) {
@@ -502,8 +520,8 @@ class AssessmentScoringService
     private function resolveScoringStatusLabel(int $totalAnsweredItems, int $pendingManualItems): string
     {
         return match ($this->resolveScoringStatus($totalAnsweredItems, $pendingManualItems)) {
-            'complete' => 'Penilaian Otomatis Selesai',
-            'partial' => 'Sebagian Perlu Review Assessor',
+            'complete' => 'Penilaian Sistem Selesai',
+            'partial' => 'Sebagian Belum Terskor Sistem',
             default => 'Belum Ada Skor',
         };
     }
@@ -517,7 +535,7 @@ class AssessmentScoringService
             'complete' => $verificationAlerts === []
                 ? 'Semua komponen skor yang tersedia sudah dihitung otomatis sesuai konfigurasi builder.'
                 : 'Semua komponen skor sudah dihitung, tetapi beberapa kompetensi masih ditandai perlu verifikasi karena selisih antarinstrumen atau respons kosong.',
-            'partial' => "Masih ada {$pendingManualItems} jawaban yang menunggu verifikasi atau penilaian manual assessor.",
+            'partial' => "Masih ada {$pendingManualItems} jawaban yang belum berhasil dikonversi menjadi skor otomatis.",
             default => 'Instrumen yang ada belum menghasilkan komponen skor yang bisa dihitung.',
         };
     }

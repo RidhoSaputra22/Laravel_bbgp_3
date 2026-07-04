@@ -39,13 +39,22 @@ abstract class BaseInstrumentScoringEngine
                 $answeredScorableCount++;
             }
 
-            if ($itemSummary['manual_pending']) {
+            $expectsSystemScore = (bool) data_get($itemSummary, 'scoring_config.enabled', false);
+
+            if ($itemSummary['answered'] && ($itemSummary['manual_pending'] || ($expectsSystemScore && $itemSummary['score'] === null))) {
                 $pendingManualItems++;
             }
         }
 
         $syntheticItems = $this->buildSyntheticItems($assessment, $form, $formAnswers, $fieldItems);
         $allItems = array_merge($fieldItems, $syntheticItems);
+        $pendingSyntheticItems = (int) collect($syntheticItems)
+            ->filter(function (array $item) {
+                $expectsSystemScore = (bool) data_get($item, 'scoring_config.enabled', false);
+
+                return ($item['answered'] ?? false) && (($item['manual_pending'] ?? false) || ($expectsSystemScore && $item['score'] === null));
+            })
+            ->count();
         $weightedScores = collect($allItems)
             ->filter(fn (array $item) => $item['score'] !== null && ! $item['manual_pending'])
             ->map(fn (array $item) => [
@@ -68,9 +77,9 @@ abstract class BaseInstrumentScoringEngine
             'answered_items' => $answeredScorableCount,
             'total_items' => $totalScoreableItems + count($syntheticItems),
             'scored_items' => $weightedScores->count(),
-            'pending_manual_items' => $pendingManualItems + collect($syntheticItems)->sum('manual_pending'),
+            'pending_manual_items' => $pendingManualItems + $pendingSyntheticItems,
             'is_complete' => ($answeredScorableCount + count($syntheticItems)) > 0
-                && ($pendingManualItems + collect($syntheticItems)->sum('manual_pending')) === 0,
+                && ($pendingManualItems + $pendingSyntheticItems) === 0,
             'form_config' => $formConfig,
         ];
     }
@@ -86,7 +95,6 @@ abstract class BaseInstrumentScoringEngine
         $autoResult = $answered
             ? $this->resolveAutoScoreResult($assessment, $form, $field, $answer)
             : null;
-        $assessorScore = is_numeric($answer?->assessor_score) ? (float) $answer->assessor_score : null;
         $autoScore = is_numeric($answer?->auto_score) ? (float) $answer->auto_score : ($autoResult['score'] ?? null);
         $forcedZeroForUnanswered = ! $answered
             && is_numeric($answer?->auto_score)
@@ -96,19 +104,12 @@ abstract class BaseInstrumentScoringEngine
         $scoreSource = null;
         $confidence = $autoResult['confidence'] ?? null;
 
-        if ($answered && $assessorScore !== null) {
-            $score = $assessorScore;
-            $scoreSource = 'manual_assessor_override';
-        } elseif (($answered || $forcedZeroForUnanswered) && $autoScore !== null) {
+        if (($answered || $forcedZeroForUnanswered) && $autoScore !== null) {
             $score = $autoScore;
             $scoreSource = $forcedZeroForUnanswered
                 ? (string) data_get($answer?->auto_score_metadata ?? [], 'source', 'deadline_auto_zero')
                 : ($autoResult['source'] ?? 'auto_score');
-            $manualPending = $forcedZeroForUnanswered
-                ? false
-                : (bool) ($autoResult['requires_manual_review'] ?? false);
         } elseif ($answered && ($fieldConfig['enabled'] ?? false)) {
-            $manualPending = true;
             $scoreSource = 'auto_unavailable';
         }
 
@@ -125,7 +126,7 @@ abstract class BaseInstrumentScoringEngine
             'score_source' => $scoreSource,
             'manual_pending' => $manualPending,
             'forced_zero_for_unanswered' => $forcedZeroForUnanswered,
-            'assessor_score' => $assessorScore,
+            'assessor_score' => is_numeric($answer?->assessor_score) ? (float) $answer->assessor_score : null,
             'auto_score' => $autoScore !== null ? round((float) $autoScore, 2) : null,
             'auto_confidence' => $confidence,
             'auto_reason' => $autoResult['reason'] ?? null,
@@ -147,7 +148,7 @@ abstract class BaseInstrumentScoringEngine
                 'reason' => $answer->auto_score_reason,
                 'metadata' => $answer->auto_score_metadata ?? [],
                 'source' => (string) data_get($answer->auto_score_metadata ?? [], 'source', 'auto_score'),
-                'requires_manual_review' => (bool) data_get($answer->auto_score_metadata ?? [], 'requires_manual_review', false),
+                'requires_manual_review' => false,
             ];
         }
 

@@ -3,7 +3,7 @@
     $overallLevel = data_get($scoringSummary, 'overall.level.short_label', 'Belum ada level');
     $statusLabel = data_get($scoringSummary, 'status_label', 'Belum Ada Skor');
     $statusDescription = data_get($scoringSummary, 'status_description', '-');
-    $pendingManualItems = (int) data_get($scoringSummary, 'manual_review.pending_items', 0);
+    $systemScoredItems = (int) data_get($scoringSummary, 'system_scoring.completed_items', 0);
     $competencies = collect($scoringSummary['competencies'] ?? [])->values();
     $recommendations = collect($scoringSummary['development_recommendations'] ?? [])->take(4);
     $careerRecommendations = collect($scoringSummary['career_recommendations'] ?? [])->take(3);
@@ -92,10 +92,10 @@
 
         <x-assessment::ui.card>
             <div class="text-sm font-medium text-slate-500">
-                Pending Review Manual
+                Dinilai Sistem
             </div>
             <div class="mt-2 text-[30px] font-bold leading-none text-[#0d3557]">
-                {{ $pendingManualItems }}
+                {{ $systemScoredItems }}
             </div>
         </x-assessment::ui.card>
     </div>

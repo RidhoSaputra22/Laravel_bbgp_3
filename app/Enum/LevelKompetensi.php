@@ -95,6 +95,10 @@ enum LevelKompetensi: int
 
         $numericScore = round((float) $score, 2);
 
+        if ($numericScore < 1.00) {
+            return null;
+        }
+
         return match (true) {
             $numericScore >= 1.00 && $numericScore < 1.80 => self::LEVEL_1,
             $numericScore < 2.60 => self::LEVEL_2,

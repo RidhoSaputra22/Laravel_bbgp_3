@@ -469,8 +469,9 @@ class AssessmentStudiKasusKepalaSekolahSeeder extends Seeder
             'keyword_groups' => $reference['keyword_groups'] ?? [],
             'min_words' => 20,
             'confidence_threshold' => 0.55,
-            'manual_review_below_confidence' => true,
+            'manual_review_below_confidence' => false,
             'advanced_rules' => [
+                'semantic_zero_threshold' => 0.10,
                 'signal_keywords' => $reference['signal_keywords'] ?? [],
                 'structure_markers' => [
                     'analysis' => ['analisis', 'masalah', 'penyebab', 'konteks'],

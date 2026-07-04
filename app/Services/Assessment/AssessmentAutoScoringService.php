@@ -49,7 +49,7 @@ class AssessmentAutoScoringService
                 'auto_score_metadata' => array_merge((array) ($result['metadata'] ?? []), [
                     'confidence' => $result['confidence'] ?? null,
                     'source' => $result['source'] ?? 'auto_score',
-                    'requires_manual_review' => (bool) ($result['requires_manual_review'] ?? false),
+                    'requires_manual_review' => false,
                 ]),
                 'auto_scored_at' => is_numeric($result['score'] ?? null) ? now() : null,
             ])->save();

@@ -146,7 +146,9 @@ class AssessmentAttemptService
 
     public function buildScoringSummary(AssessmentAttempt $attempt): array
     {
-        if ($attempt->scoring_summary) {
+        $currentVersion = (int) data_get($attempt->scoring_summary ?? [], 'summary_version', 0);
+
+        if ($attempt->scoring_summary && $currentVersion === $this->scoringService->summaryVersion()) {
             return $attempt->scoring_summary;
         }
 
@@ -195,10 +197,8 @@ class AssessmentAttemptService
                         'assessor_score_label' => $answer->assessor_score
                             ? \App\Enum\LevelKompetensi::tryFrom((int) $answer->assessor_score)?->label()
                             : null,
-                        'final_score' => is_numeric($answer->assessor_score) ? (float) $answer->assessor_score : $answer->auto_score,
-                        'final_score_label' => is_numeric($answer->assessor_score)
-                            ? \App\Enum\LevelKompetensi::fromScore((float) $answer->assessor_score)?->label()
-                            : \App\Enum\LevelKompetensi::fromScore((float) $answer->auto_score)?->label(),
+                        'final_score' => $answer->auto_score,
+                        'final_score_label' => \App\Enum\LevelKompetensi::fromScore((float) $answer->auto_score)?->label(),
                         'answered_at' => $answer->answered_at?->format('d M Y H:i'),
                     ],
                 ];

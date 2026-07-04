@@ -397,7 +397,7 @@
                         <div class="alert alert-light border">
                             Panel ini membaca progres peserta langsung dari database saat halaman dibuka. Cocok untuk
                             memantau siapa yang sudah mengisi, belum mengisi, timeout, dan hasil yang masih butuh
-                            review assessor tanpa polling otomatis.
+                            diproses auto scoring tanpa polling otomatis.
                         </div>
 
                         <div class="row">
@@ -575,7 +575,7 @@
                             <div class="col-lg-6">
                                 <div class="card border">
                                     <div class="card-header">
-                                        <h4>Perlu Review Assessor</h4>
+                                        <h4>Auto Scoring Belum Lengkap</h4>
                                     </div>
                                     <div class="card-body monitor-mini-list">
                                         @forelse ($detailLists['pending_review_participants'] ?? [] as $participant)
@@ -591,12 +591,12 @@
                                                 </div>
                                                 <div class="small mt-1">
                                                     <a href="{{ $participant['review_url'] }}" class="btn btn-sm btn-primary">
-                                                        <i class="fas fa-clipboard-check mr-1"></i> Review Nilai
+                                                        <i class="fas fa-clipboard-check mr-1"></i> Lihat Hasil
                                                     </a>
                                                 </div>
                                             </div>
                                         @empty
-                                            <div class="text-muted">Tidak ada jawaban yang menunggu review assessor.</div>
+                                            <div class="text-muted">Semua jawaban yang masuk sudah dinilai otomatis oleh sistem.</div>
                                         @endforelse
                                     </div>
                                 </div>
@@ -910,7 +910,7 @@
                                                     @if ($attemptStatus === 'submitted')
                                                         <a href="{{ route('assessment.assignment.review.show', $target->id) }}"
                                                             class="btn btn-sm btn-primary">
-                                                            <i class="fas fa-clipboard-check"></i> Review Nilai
+                                                            <i class="fas fa-clipboard-check"></i> Lihat Hasil
                                                         </a>
                                                     @elseif ($attemptStatus === 'in_progress')
                                                         <span class="badge badge-warning">Sedang dikerjakan</span>

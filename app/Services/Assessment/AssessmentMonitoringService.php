@@ -12,6 +12,15 @@ use Illuminate\Support\Collection;
 
 class AssessmentMonitoringService
 {
+    /**
+     * @var array<int, array<string, mixed>>
+     */
+    private array $summaryCache = [];
+
+    public function __construct(
+        private readonly AssessmentAttemptService $attemptService
+    ) {}
+
     public function buildGlobalDashboard(?Collection $assignments = null): array
     {
         $assignments = $assignments instanceof Collection
@@ -54,7 +63,7 @@ class AssessmentMonitoringService
             ->values();
         $scoredTargets = $submittedTargets
             ->filter(fn (AssessmentAssignmentTarget $target) => $this->overallScore($target) !== null)
-            ->sortBy('attempt.scoring_summary.overall.score')
+            ->sortBy(fn (AssessmentAssignmentTarget $target) => $this->overallScore($target))
             ->values();
 
         return [
@@ -98,7 +107,7 @@ class AssessmentMonitoringService
         return AssessmentAssignment::query()
             ->with([
                 'targets.guru',
-                'targets.attempt',
+                'targets.attempt.answers',
                 'sessions',
             ])
             ->withCount(['targets', 'sessions'])
@@ -111,7 +120,7 @@ class AssessmentMonitoringService
         if ($assignments instanceof EloquentCollection) {
             $assignments->loadMissing([
                 'targets.guru',
-                'targets.attempt',
+                'targets.attempt.answers',
                 'sessions',
             ]);
 
@@ -127,7 +136,7 @@ class AssessmentMonitoringService
     {
         $assignment->loadMissing([
             'targets.guru',
-            'targets.attempt',
+            'targets.attempt.answers',
             'sessions',
         ]);
 
@@ -512,16 +521,38 @@ class AssessmentMonitoringService
 
     private function manualPendingItems(AssessmentAssignmentTarget $target): int
     {
-        return (int) data_get($target->attempt?->scoring_summary ?? [], 'manual_review.pending_items', 0);
+        return (int) data_get($this->scoringSummary($target), 'manual_review.pending_items', 0);
     }
 
     private function overallScore(AssessmentAssignmentTarget $target): ?float
     {
-        $score = data_get($target->attempt?->scoring_summary ?? [], 'overall.score');
+        $score = data_get($this->scoringSummary($target), 'overall.score');
 
         return is_numeric($score)
             ? round((float) $score, 2)
             : null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function scoringSummary(AssessmentAssignmentTarget $target): array
+    {
+        $attempt = $target->attempt;
+
+        if (! $attempt) {
+            return [];
+        }
+
+        $cacheKey = $attempt->id ?: spl_object_id($attempt);
+
+        if (array_key_exists($cacheKey, $this->summaryCache)) {
+            return $this->summaryCache[$cacheKey];
+        }
+
+        return $this->summaryCache[$cacheKey] = $this->attemptService->buildScoringSummary(
+            $attempt->loadMissing('answers')
+        );
     }
 
     private function averageScore(array $targets): ?float

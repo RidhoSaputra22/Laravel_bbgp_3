@@ -275,7 +275,7 @@ class PesertaKegiatanController extends Controller
     {
         // dd('gas user');
         $peserta = PesertaKegiatan::find($id);
-        dd($peserta);
+        // dd($peserta);
 
         $namaKegiatan = $peserta->kegiatan->nama_kegiatan;
 

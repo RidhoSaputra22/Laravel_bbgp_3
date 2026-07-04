@@ -43,7 +43,7 @@
                 <div class="alert alert-light border">
                     Monitoring ini dibaca langsung dari database saat halaman dibuka. Tidak ada polling otomatis:
                     admin cukup refresh browser untuk melihat progres penugasan, peserta yang sudah mengisi,
-                    peserta yang belum, review assessor pending, dan distribusi score terbaru.
+                    peserta yang belum, status auto scoring, dan distribusi skor terbaru.
                 </div>
 
                 <div class="row">
