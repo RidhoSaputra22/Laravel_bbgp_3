@@ -38,7 +38,7 @@
                   @foreach ($kegiatan as $v)
                      <?php
                      setlocale(LC_TIME, 'id_ID.UTF-8');
-                     
+
                      $tgl_kegiatan = strftime('%d %B', strtotime($v->tgl_kegiatan));
                      $tgl_selesai = strftime('%d %B %Y', strtotime($v->tgl_selesai));
                      ?>
@@ -557,15 +557,15 @@
                                     <strong>Status Keikutpesertaan:</strong> ${response.status_keikutpesertaan ?? ''}
                                 </p>
                                 <p>
-                                    <strong>Nomor Surat:</strong> ${response.no_surat_tugas ?? ''} 
+                                    <strong>Nomor Surat:</strong> ${response.no_surat_tugas ?? ''}
                                 </p>
                                 <p>
                                     <strong>Tanggal Surat:</strong> ${formattedDate}
                                 </p>
                                 <p><strong>Kabupaten:</strong> ${response.kabupaten ?? ''}</p>
-        
-                                
-                            </div>    
+
+
+                            </div>
                             <div class="col-md-6">
                                 <p><strong>Jenis Kelamin:</strong> ${response.jkl ?? ''}</p>
                                 ${kelengkapanPesertaBiodata}
@@ -575,10 +575,10 @@
                                 <p><strong>Instansi:</strong> ${response.instansi ?? ''}</p>
                                 <p><strong>Jenis Golongan:</strong> ${response.jenis_gol ?? ''}</p>
                                 <p><strong>Golongan:</strong> ${response.golongan ?? ''}</p>
-                            </div>    
+                            </div>
                         </div>
                         <div class="text-right mt-3">
-                            <a href="/peserta/cetakByUser/${response.id}" class="btn btn-primary" target="_blank">
+                            <a href="/dashboard/peserta/cetakByUser/${response.id}" class="btn btn-primary" target="_blank">
                                 <i class="fas fa-print"></i> Cetak Biodata / Pakta / Surat Sehat
                             </a>
                         </div>
