@@ -348,6 +348,103 @@ class AssessmentShowViewTest extends TestCase
         $response->assertDontSee('Deskripsi form kedua');
     }
 
+    public function test_assessment_show_view_renders_question_navigation_and_flag_controls(): void
+    {
+        $guru = new Guru([
+            'nama_lengkap' => 'Guru Assessment',
+            'satuan_pendidikan' => 'SMK Contoh',
+        ]);
+
+        $assignment = new AssessmentAssignment([
+            'tanggal_mulai' => '2026-06-28',
+            'tanggal_selesai' => '2026-06-29',
+        ]);
+
+        $target = new AssessmentAssignmentTarget([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+        ]);
+        $target->id = 10;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('session', new AssessmentAssignmentSession([
+            'label_sesi' => 'Sesi 4',
+        ]));
+
+        $attempt = new AssessmentAttempt([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+            'structure_snapshot' => [
+                'meta' => [
+                    'total_questions' => 2,
+                    'required_questions' => 1,
+                    'flagged_field_ids' => [602],
+                ],
+                'assessments' => [
+                    [
+                        'id' => 401,
+                        'kode_assessment' => 'ASM-FLAG',
+                        'judul' => 'Assessment Navigasi',
+                        'deskripsi' => 'Deskripsi navigasi',
+                        'petunjuk' => null,
+                        'forms' => [
+                            [
+                                'id' => 501,
+                                'judul_form' => 'Form Navigasi',
+                                'deskripsi' => 'Cek status soal',
+                                'fields' => [
+                                    [
+                                        'id' => 601,
+                                        'assessment_id' => 401,
+                                        'assessment_form_id' => 501,
+                                        'label' => 'Pertanyaan pertama',
+                                        'deskripsi' => null,
+                                        'placeholder' => 'Isi jawaban',
+                                        'tipe_field' => 'text',
+                                        'opsi_field' => [],
+                                        'is_required' => true,
+                                    ],
+                                    [
+                                        'id' => 602,
+                                        'assessment_id' => 401,
+                                        'assessment_form_id' => 501,
+                                        'label' => 'Pertanyaan kedua',
+                                        'deskripsi' => null,
+                                        'placeholder' => 'Isi jawaban',
+                                        'tipe_field' => 'textarea',
+                                        'opsi_field' => [],
+                                        'is_required' => false,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this
+            ->withViewErrors([])
+            ->view('assessment.show.show', [
+                'menu' => 'assessment-portal',
+                'guru' => $guru,
+                'target' => $target,
+                'attempt' => $attempt,
+                'meta' => [
+                    'session_label' => 'Sesi 4',
+                    'session_schedule_text' => 'Jadwal sesi belum ditentukan',
+                    'label' => 'Sedang Dikerjakan',
+                    'date_text' => '28 Jun 2026 - 29 Jun 2026',
+                ],
+            ]);
+
+        $response->assertSee('Navigasi Soal');
+        $response->assertSee('data-question-nav-field="601"', false);
+        $response->assertSee('data-question-nav-field="602"', false);
+        $response->assertSee('toggleFlag(601)', false);
+        $response->assertSee('toggleFlag(602)', false);
+        $response->assertSee('name="flagged_field_ids[]"', false);
+        $response->assertSee("initialFlaggedFieldIds: JSON.parse('[602]')", false);
+        $response->assertSee('questionItems:', false);
+    }
+
     public function test_radio_group_displays_sequential_labels_while_preserving_randomized_option_values(): void
     {
         $html = Blade::render(

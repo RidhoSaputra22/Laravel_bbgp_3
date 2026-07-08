@@ -4,6 +4,29 @@
     @php
         $snapshot = $attempt->structure_snapshot ?? [];
         $answerLookup = $answerLookup ?? [];
+        $buildDisplayFieldLabel = static function (
+            array $field,
+            ?int $displayQuestionNumber = null,
+            ?string $displayQuestionPrefix = null
+        ): string {
+            $fieldLabel = trim((string) ($field['label'] ?? ''));
+
+            if (! $displayQuestionNumber || $fieldLabel === '') {
+                return $fieldLabel;
+            }
+
+            $normalizedLabel = preg_replace(
+                '/^\s*(?:soal\s*)?\d+\s*[\.\)\-:]?\s*/iu',
+                '',
+                $fieldLabel,
+                1
+            ) ?? $fieldLabel;
+            $displayLead = filled($displayQuestionPrefix)
+                ? trim($displayQuestionPrefix).' '.$displayQuestionNumber
+                : (string) $displayQuestionNumber;
+
+            return trim($displayLead.($normalizedLabel !== '' ? '. '.trim($normalizedLabel) : ''));
+        };
         $assessmentItems = collect($snapshot['assessments'] ?? [])
             ->values()
             ->map(function ($assessment, $index) {
@@ -23,6 +46,13 @@
                     'field_ids' => $fieldIds,
                 ];
             })
+            ->all();
+        $rawFlaggedFieldIds = old('flagged_field_ids', data_get($snapshot, 'meta.flagged_field_ids', []));
+        $initialFlaggedFieldIds = collect(\Illuminate\Support\Arr::wrap($rawFlaggedFieldIds))
+            ->map(fn($fieldId) => (int) $fieldId)
+            ->filter(fn($fieldId) => $fieldId > 0)
+            ->unique()
+            ->values()
             ->all();
         $assessmentCount = count($assessmentItems);
         $totalQuestions = (int) data_get($snapshot, 'meta.total_questions', 0);
@@ -88,6 +118,59 @@
             }
         }
 
+        $questionNavigationGroups = collect($assessmentItems)
+            ->map(function ($assessmentItem) use ($answerLookup, $buildDisplayFieldLabel) {
+                $assessment = $assessmentItem['data'];
+                $isMultipleChoiceAssessment =
+                    ($assessment['instrument_type'] ?? null) ===
+                    \App\Enum\AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value;
+                $questionNumber = 1;
+                $questions = [];
+
+                foreach ($assessment['forms'] ?? [] as $form) {
+                    foreach ($form['fields'] ?? [] as $field) {
+                        $fieldId = (int) ($field['id'] ?? 0);
+
+                        if ($fieldId <= 0) {
+                            continue;
+                        }
+
+                        $questions[] = [
+                            'field_id' => $fieldId,
+                            'assessment_index' => $assessmentItem['index'],
+                            'number' => $questionNumber,
+                            'label' => $buildDisplayFieldLabel(
+                                $field,
+                                $questionNumber,
+                                $isMultipleChoiceAssessment ? 'Soal' : null
+                            ),
+                            'is_required' => (bool) ($field['is_required'] ?? false),
+                            'initially_answered' => \App\Support\Assessment\AssessmentAnswerViewHelper::hasAnswer(
+                                $field,
+                                $answerLookup[$fieldId] ?? null
+                            ),
+                        ];
+
+                        $questionNumber++;
+                    }
+                }
+
+                return [
+                    'assessment_index' => $assessmentItem['index'],
+                    'heading' => 'Tahap '.($assessmentItem['index'] + 1),
+                    'title' => trim((string) ($assessment['judul'] ?? '')) ?: 'Assessment '.($assessmentItem['index'] + 1),
+                    'question_count' => count($questions),
+                    'questions' => $questions,
+                ];
+            })
+            ->filter(fn($group) => $group['question_count'] > 0)
+            ->values()
+            ->all();
+        $questionNavigationItems = collect($questionNavigationGroups)
+            ->flatMap(fn($group) => $group['questions'] ?? [])
+            ->values()
+            ->all();
+
         $assessmentNavigationItems = collect($assessmentItems)
             ->map(fn($assessmentItem) => [
                 'index' => $assessmentItem['index'],
@@ -123,6 +206,18 @@
                     ),
                 )
                 : 0;
+        $initialQuestionFieldId = $errorFieldId;
+
+        if (! $initialQuestionFieldId) {
+            $initialQuestionItem = collect($questionNavigationItems)
+                ->firstWhere('assessment_index', $initialAssessmentIndex);
+
+            $initialQuestionFieldId = (int) ($initialQuestionItem['field_id'] ?? 0);
+        }
+
+        if ($initialQuestionFieldId <= 0) {
+            $initialQuestionFieldId = (int) (collect($questionNavigationItems)->first()['field_id'] ?? 0);
+        }
         $securityPayload = array_merge($securityPayload ?? [], [
             'enabled' => (bool) data_get($securityPayload ?? [], 'enabled', false),
             'violationUrl' => route('assessment.portal.security.violation', $target->id),
@@ -139,6 +234,9 @@
         initialIndex: {{ $initialAssessmentIndex }},
         totalAssessments: {{ $assessmentCount }},
         assessmentItems: @js($assessmentNavigationItems),
+        questionItems: @js($questionNavigationItems),
+        initialFlaggedFieldIds: @js($initialFlaggedFieldIds),
+        initialQuestionFieldId: {{ $initialQuestionFieldId }},
         autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
         resultUrl: @js(route('assessment.portal.result', $target->id)),
         deadlineAt: @js(optional($countdownTargetAt)->toIso8601String()),
@@ -161,11 +259,11 @@
                             @include('assessment.show.partials.empty-state')
                         @endif
 
-                        @foreach ($assessmentItems as $assessmentItem)
-                            @include('assessment.show.partials.assessment-item', [
-                                'assessmentItem' => $assessmentItem,
-                                'assessment' => $assessmentItem['data'],
-                            ])
+                    @foreach ($assessmentItems as $assessmentItem)
+                        @include('assessment.show.partials.assessment-item', [
+                            'assessmentItem' => $assessmentItem,
+                            'assessment' => $assessmentItem['data'],
+                        ])
                         @endforeach
 
                         @if ($assessmentCount > 0)
@@ -180,6 +278,7 @@
 
                     @include('assessment.show.partials.session-sidebar', [
                         'assessmentCount' => $assessmentCount,
+                        'questionNavigationGroups' => $questionNavigationGroups,
                         'meta' => $meta,
                         'countdownTitle' => $countdownTitle,
                         'countdownTargetAt' => $countdownTargetAt,
@@ -192,6 +291,7 @@
 
             @include('assessment.show.partials.session-bottom-nav', [
                 'assessmentCount' => $assessmentCount,
+                'questionNavigationGroups' => $questionNavigationGroups,
                 'meta' => $meta,
                 'countdownTitle' => $countdownTitle,
                 'countdownTargetAt' => $countdownTargetAt,

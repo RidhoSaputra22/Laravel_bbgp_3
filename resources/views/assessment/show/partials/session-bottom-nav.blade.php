@@ -22,6 +22,20 @@
                     'securityPayload' => $securityPayload ?? [],
                 ])
 
+                @if (!empty($questionNavigationGroups))
+                    <details class="overflow-hidden rounded-sm border border-[#dce8f1] bg-[#f8fbfe]">
+                        <summary class="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-slate-800">
+                            Navigasi Soal
+                        </summary>
+                        <div class="border-t border-[#dce8f1] px-4 py-4">
+                            @include('assessment.show.partials.question-navigation', [
+                                'questionNavigationGroups' => $questionNavigationGroups,
+                                'showTitle' => false,
+                            ])
+                        </div>
+                    </details>
+                @endif
+
                 <div class="flex flex-col gap-3 sm:flex-row justify-end">
                     <x-assessment::ui.button type="button" variant="outline" icon="fas fa-arrow-left"
                         x-show="!isFirstAssessment()" x-bind:disabled="isBusy()"

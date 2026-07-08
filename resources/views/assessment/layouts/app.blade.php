@@ -10,6 +10,12 @@
 
     <title>Portal Assessment BBGTK</title>
 
+    <style>
+        button {
+            cursor: pointer;
+        }
+    </style>
+
 
 </head>
 

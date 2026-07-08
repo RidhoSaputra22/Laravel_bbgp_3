@@ -221,7 +221,8 @@ class PortalController extends Controller
             $attempt,
             $request->input('answers', []),
             $request->file('answers', []),
-            $request->input('field_ids', [])
+            $request->input('field_ids', []),
+            $request->input('flagged_field_ids', [])
         );
 
         return response()->json([
@@ -299,7 +300,8 @@ class PortalController extends Controller
             $this->attemptService->submitExpired(
                 $attempt,
                 $request->input('answers', []),
-                $request->file('answers', [])
+                $request->file('answers', []),
+                $request->input('flagged_field_ids', [])
             );
 
             if ($request->expectsJson()) {
@@ -334,7 +336,8 @@ class PortalController extends Controller
         $this->attemptService->submit(
             $attempt,
             $request->input('answers', []),
-            $request->file('answers', [])
+            $request->file('answers', []),
+            $request->input('flagged_field_ids', [])
         );
 
         return redirect()
@@ -438,7 +441,8 @@ class PortalController extends Controller
             $this->attemptService->submitExpired(
                 $attempt,
                 $request->input('answers', []),
-                $request->file('answers', [])
+                $request->file('answers', []),
+                $request->input('flagged_field_ids', [])
             );
 
             return response()->json([

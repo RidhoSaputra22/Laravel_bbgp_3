@@ -19,6 +19,7 @@
     @foreach ($form['fields'] ?? [] as $fieldIndex => $field)
         @include('assessment.show.partials.assessment-field', [
             'field' => $field,
+            'assessmentIndex' => $assessmentIndex ?? 0,
             'displayQuestionNumber' => $questionNumberStart + $fieldIndex,
             'displayQuestionPrefix' => $displayQuestionPrefix ?? null,
         ])

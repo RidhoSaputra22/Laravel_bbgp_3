@@ -2,6 +2,7 @@
     $savedAnswer = $answerLookup[(int) $field['id']] ?? [];
     $savedPayload = is_array($savedAnswer['payload'] ?? null) ? $savedAnswer['payload'] : [];
     $fieldError = $errors->first('answers.' . $field['id']);
+    $assessmentIndex = isset($assessmentIndex) ? max((int) $assessmentIndex, 0) : 0;
     $displayQuestionNumber = isset($displayQuestionNumber) ? max((int) $displayQuestionNumber, 0) : null;
     $displayQuestionPrefix = isset($displayQuestionPrefix) ? trim((string) $displayQuestionPrefix) : '';
     $fieldLabel = trim((string) ($field['label'] ?? ''));
@@ -40,6 +41,12 @@
     $existingFileUrl = $savedAnswer['file_url'] ?? null;
     $existingFileName = $savedPayload['original_name'] ?? ($savedAnswer['text'] ?? null);
     $hasExistingFile = filled($existingFileUrl) || filled($savedAnswer['file_path'] ?? null);
+    $isInitiallyFlagged = collect(\Illuminate\Support\Arr::wrap(
+        old('flagged_field_ids', data_get($attempt->structure_snapshot ?? [], 'meta.flagged_field_ids', []))
+    ))
+        ->map(fn($flaggedFieldId) => (int) $flaggedFieldId)
+        ->contains((int) $field['id']);
+    $inputId = 'assessment-field-' . $field['id'];
     $inputType = match ($field['tipe_field']) {
         'number' => 'number',
         'date' => 'date',
@@ -48,20 +55,53 @@
     };
 @endphp
 
-<div class="mb-8 rounded-sm " data-assessment-field
+<div class="mb-8 rounded-sm scroll-mt-32" data-assessment-field
     data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
-    data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}">
+    data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}"
+    data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
+    <div class="mb-3 flex items-start justify-between gap-4">
+        <div class="min-w-0">
+            <label @if (!in_array($fieldType, ['radio', 'checkbox', 'repeater'], true)) for="{{ $inputId }}" @endif
+                class="block text-sm font-semibold text-slate-700">
+                {{ $displayLabel }}
+                @if ($isRequired)
+                    <span class="text-red-600">*</span>
+                @endif
+            </label>
+
+            @if (!empty($field['deskripsi']))
+                <p class="mt-1 text-sm text-slate-600">
+                    {{ $field['deskripsi'] }}
+                </p>
+            @endif
+        </div>
+
+        <button type="button"
+            class="inline-flex shrink-0 items-center gap-2 rounded-sm border px-3 py-1 text-xs font-semibold transition"
+            x-bind:class="isFieldFlagged({{ (int) $field['id'] }})
+                ? 'border-amber-300 bg-amber-50 text-amber-700'
+                : 'border-[#d7e3ee] bg-white text-slate-500 hover:border-amber-300 hover:text-amber-700'"
+            x-bind:aria-pressed="isFieldFlagged({{ (int) $field['id'] }}) ? 'true' : 'false'"
+            @click="toggleFlag({{ (int) $field['id'] }})">
+            <i class="fas fa-flag text-[11px]"></i>
+            <span x-text="isFieldFlagged({{ (int) $field['id'] }}) ? 'Ditandai' : 'Flag'"></span>
+        </button>
+    </div>
+
+    <input type="hidden" name="flagged_field_ids[]" value="{{ (int) $field['id'] }}" @disabled(! $isInitiallyFlagged)
+        x-bind:disabled="!isFieldFlagged({{ (int) $field['id'] }})">
+
     @switch($fieldType)
         @case('textarea')
-            <x-assessment::form.textarea :label="$displayLabel" :description="$field['deskripsi']"
-                :name="$answerName" :value="$oldValue"
+            <x-assessment::form.textarea :id="$inputId" :label="null" :description="null" :name="$answerName"
+                :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Tuliskan jawaban Anda'" :required="$isRequired"
                 :error="$fieldError" />
         @break
 
         @case('select')
-            <x-assessment::form.select :label="$displayLabel" :description="$field['deskripsi']"
-                :name="$answerName" placeholder="Pilih jawaban"
+            <x-assessment::form.select :id="$inputId" :label="null" :description="null" :name="$answerName"
+                placeholder="Pilih jawaban"
                 :required="$isRequired" :error="$fieldError">
                 @foreach ($field['opsi_field'] ?? [] as $option)
                     <option value="{{ $option['value'] }}" @selected((string) $oldValue === (string) $option['value'])>
@@ -72,7 +112,7 @@
         @break
 
         @case('radio')
-            <x-assessment::form.radio-group :label="$displayLabel" :description="$field['deskripsi']" :name="$answerName" :options="$field['opsi_field'] ?? []"
+            <x-assessment::form.radio-group :label="null" :description="null" :name="$answerName" :options="$field['opsi_field'] ?? []"
                 :selected="\Illuminate\Support\Arr::wrap($oldValue)" :id-prefix="'field-' . $field['id']"
                 :required="$isRequired" />
 
@@ -80,7 +120,7 @@
         @break
 
         @case('checkbox')
-            <x-assessment::form.checkbox-group :label="$displayLabel" :description="$field['deskripsi']" :name="$answerName" :options="$field['opsi_field'] ?? []"
+            <x-assessment::form.checkbox-group :label="null" :description="null" :name="$answerName" :options="$field['opsi_field'] ?? []"
                 :selected="$checkboxValues" :id-prefix="'field-' . $field['id']"
                 :required="$isRequired" />
 
@@ -88,8 +128,8 @@
         @break
 
         @case('file')
-            <x-assessment::form.file-input :label="$displayLabel" :description="$field['deskripsi']"
-                :name="$answerName" :required="$isRequired" :error="$fieldError" />
+            <x-assessment::form.file-input :id="$inputId" :label="null" :description="null" :name="$answerName"
+                :required="$isRequired" :error="$fieldError" />
 
             @if ($hasExistingFile)
                 <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-3 text-sm text-slate-600">
@@ -121,21 +161,6 @@
                 })"
                 class="space-y-3"
             >
-                <div>
-                    <label class="mb-2 block text-sm font-semibold text-slate-900">
-                        {{ $displayLabel }}
-                        @if ($isRequired)
-                            <span class="text-red-500">*</span>
-                        @endif
-                    </label>
-
-                    @if (!empty($field['deskripsi']))
-                        <p class="mb-2 text-sm text-slate-500">
-                            {{ $field['deskripsi'] }}
-                        </p>
-                    @endif
-                </div>
-
                 <template x-for="(row, rowIndex) in rows" :key="row._key">
                     <div class="overflow-hidden rounded-sm border border-[#dce8f1] bg-[#f8fbfe]">
                         <div class="flex items-center justify-between border-b border-[#dce8f1] px-4 py-3">
@@ -223,8 +248,8 @@
         @break
 
         @default
-            <x-assessment::form.input :label="$displayLabel" :description="$field['deskripsi']"
-                :type="$inputType" :name="$answerName" :value="$oldValue"
+            <x-assessment::form.input :id="$inputId" :label="null" :description="null" :type="$inputType"
+                :name="$answerName" :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Masukkan jawaban Anda'"
                 :required="$isRequired" :error="$fieldError" />
     @endswitch

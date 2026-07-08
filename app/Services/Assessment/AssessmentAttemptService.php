@@ -23,7 +23,8 @@ class AssessmentAttemptService
         AssessmentAttempt $attempt,
         array $answers,
         array $files,
-        array $fieldIds
+        array $fieldIds,
+        array $flaggedFieldIds = []
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
@@ -31,11 +32,13 @@ class AssessmentAttemptService
 
         $snapshot = $attempt->structure_snapshot ?? [];
         $allFields = $this->flattenFields($snapshot);
+        $availableFieldIds = $this->extractFieldIds($allFields);
+        $this->syncFlaggedFieldIds($attempt, $availableFieldIds, $flaggedFieldIds);
         $processedFieldIds = $this->normalizeFieldIds($fieldIds);
         $fields = $this->filterFieldsByIds($allFields, $processedFieldIds);
 
         if ($fields === []) {
-            return $this->loadAttemptRelations($attempt);
+            return $this->loadAttemptRelations($attempt->fresh());
         }
 
         $existingAnswers = $attempt->answers()
@@ -47,7 +50,7 @@ class AssessmentAttemptService
             $answers,
             $files,
             $existingAnswers,
-            true
+            false
         );
         $savedAt = now();
 
@@ -80,19 +83,27 @@ class AssessmentAttemptService
         return $this->loadAttemptRelations($attempt->fresh());
     }
 
-    public function submit(AssessmentAttempt $attempt, array $answers, array $files): AssessmentAttempt
+    public function submit(
+        AssessmentAttempt $attempt,
+        array $answers,
+        array $files,
+        array $flaggedFieldIds = []
+    ): AssessmentAttempt
     {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
         }
 
-        return $this->finalizeAttempt($attempt, $answers, $files);
+        return $this->finalizeAttempt($attempt, $answers, $files, [
+            'flagged_field_ids' => $flaggedFieldIds,
+        ]);
     }
 
     public function submitExpired(
         AssessmentAttempt $attempt,
         array $answers = [],
-        array $files = []
+        array $files = [],
+        array $flaggedFieldIds = []
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
@@ -100,6 +111,7 @@ class AssessmentAttemptService
 
         return $this->finalizeAttempt($attempt, $answers, $files, [
             'force_zero_for_unanswered' => true,
+            'flagged_field_ids' => $flaggedFieldIds,
         ]);
     }
 
@@ -107,7 +119,8 @@ class AssessmentAttemptService
         AssessmentAttempt $attempt,
         array $answers = [],
         array $files = [],
-        ?string $reason = null
+        ?string $reason = null,
+        array $flaggedFieldIds = []
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
@@ -127,6 +140,7 @@ class AssessmentAttemptService
             'disqualification_reason' => $reason !== ''
                 ? $reason
                 : 'Assessment dihentikan oleh sistem guard karena terdeteksi pelanggaran aturan ujian.',
+            'flagged_field_ids' => $flaggedFieldIds,
         ]);
     }
 
@@ -215,12 +229,12 @@ class AssessmentAttemptService
         $forceZeroForUnanswered = (bool) ($options['force_zero_for_unanswered'] ?? false);
         $snapshot = $attempt->structure_snapshot ?? [];
         $fields = $this->flattenFields($snapshot);
-        $processedFieldIds = collect($fields)
-            ->pluck('id')
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
-            ->values()
-            ->all();
+        $processedFieldIds = $this->extractFieldIds($fields);
+        $flaggedFieldIds = $this->syncFlaggedFieldIds(
+            $attempt,
+            $processedFieldIds,
+            $options['flagged_field_ids'] ?? []
+        );
         $existingAnswers = $attempt->answers()
             ->whereIn('assessment_form_field_id', $processedFieldIds)
             ->get()
@@ -230,6 +244,8 @@ class AssessmentAttemptService
             $answers,
             $files,
             $existingAnswers,
+            ! $forceZeroForUnanswered,
+            $flaggedFieldIds,
             ! $forceZeroForUnanswered
         );
         $submittedAt = now();
@@ -336,11 +352,14 @@ class AssessmentAttemptService
         array $answers,
         array $files,
         Collection $existingAnswers,
-        bool $requireRequiredFields
+        bool $requireRequiredFields,
+        array $flaggedFieldIds = [],
+        bool $enforceFlaggedAnswers = false
     ): array {
         $messages = [];
         $normalized = [];
         $preserveExistingAnswerFieldIds = [];
+        $normalizedFlaggedFieldIds = $this->normalizeFieldIds($flaggedFieldIds);
 
         foreach ($fields as $field) {
             $fieldId = (string) $field['id'];
@@ -348,11 +367,14 @@ class AssessmentAttemptService
             $fieldType = $field['tipe_field'];
             $fieldLabel = $field['label'];
             $isRequired = $requireRequiredFields && (bool) ($field['is_required'] ?? false);
+            $requiresFlagAnswer = $enforceFlaggedAnswers
+                && in_array((int) $field['id'], $normalizedFlaggedFieldIds, true);
+            $mustBeAnswered = $isRequired || $requiresFlagAnswer;
             $uploadedFile = $files[$fieldId] ?? null;
             $existingAnswer = $existingAnswers->get((int) $fieldId);
 
             if ($fieldType === 'file') {
-                if ($isRequired && ! $uploadedFile && ! filled($existingAnswer?->answer_file_path)) {
+                if ($mustBeAnswered && ! $uploadedFile && ! filled($existingAnswer?->answer_file_path)) {
                     $messages[$fieldKey] = "File untuk pertanyaan {$fieldLabel} wajib diunggah.";
 
                     continue;
@@ -400,7 +422,7 @@ class AssessmentAttemptService
                     ->values()
                     ->all();
 
-                if ($isRequired && $selectedValues === []) {
+                if ($mustBeAnswered && $selectedValues === []) {
                     $messages[$fieldKey] = "Minimal pilih satu jawaban untuk pertanyaan {$fieldLabel}.";
 
                     continue;
@@ -454,7 +476,8 @@ class AssessmentAttemptService
                 $normalizedRepeater = $this->normalizeRepeaterAnswer(
                     $field,
                     $answers[$fieldId] ?? null,
-                    $requireRequiredFields
+                    $requireRequiredFields,
+                    $requiresFlagAnswer
                 );
 
                 if ($normalizedRepeater['message']) {
@@ -487,7 +510,7 @@ class AssessmentAttemptService
             $textValue = is_array($value) ? '' : trim((string) ($value ?? ''));
             $matchedOption = null;
 
-            if ($isRequired && $textValue === '') {
+            if ($mustBeAnswered && $textValue === '') {
                 $messages[$fieldKey] = "Jawaban untuk pertanyaan {$fieldLabel} wajib diisi.";
 
                 continue;
@@ -604,7 +627,8 @@ class AssessmentAttemptService
     private function normalizeRepeaterAnswer(
         array $field,
         mixed $value,
-        bool $requireRequiredFields
+        bool $requireRequiredFields,
+        bool $mustHaveAnyRow = false
     ): array {
         $config = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
         $columns = collect($config['columns'] ?? [])
@@ -638,7 +662,8 @@ class AssessmentAttemptService
             ->filter(fn ($row) => is_array($row))
             ->values();
         $normalizedRows = [];
-        $minRows = $requireRequiredFields ? max((int) ($config['min_rows'] ?? 0), 0) : 0;
+        $enforceCompleteness = $requireRequiredFields || $mustHaveAnyRow;
+        $minRows = $enforceCompleteness ? max((int) ($config['min_rows'] ?? 0), 0) : 0;
         $maxRows = max((int) ($config['max_rows'] ?? 0), 0);
 
         foreach ($rows as $rowIndex => $row) {
@@ -712,7 +737,7 @@ class AssessmentAttemptService
 
             foreach ($columns as $column) {
                 if (
-                    $requireRequiredFields &&
+                    $enforceCompleteness &&
                     $column['is_required'] &&
                     ($normalizedRow[$column['nama_field']] ?? '') === ''
                 ) {
@@ -727,7 +752,7 @@ class AssessmentAttemptService
             $normalizedRows[] = $normalizedRow;
         }
 
-        if ($requireRequiredFields && (bool) ($field['is_required'] ?? false) && $normalizedRows === []) {
+        if (($mustHaveAnyRow || ($requireRequiredFields && (bool) ($field['is_required'] ?? false))) && $normalizedRows === []) {
             return [
                 'rows' => [],
                 'columns' => $columns,
@@ -1004,6 +1029,47 @@ class AssessmentAttemptService
 
         return collect($fields)
             ->filter(fn ($field) => in_array((int) ($field['id'] ?? 0), $fieldIds, true))
+            ->values()
+            ->all();
+    }
+
+    private function syncFlaggedFieldIds(
+        AssessmentAttempt $attempt,
+        array $availableFieldIds,
+        array $flaggedFieldIds
+    ): array {
+        $normalizedRequestedFlaggedIds = $this->normalizeFieldIds($flaggedFieldIds);
+        $normalizedFlaggedIds = collect($availableFieldIds)
+            ->filter(function (int $fieldId) use ($normalizedRequestedFlaggedIds) {
+                return in_array($fieldId, $normalizedRequestedFlaggedIds, true);
+            })
+            ->values()
+            ->all();
+
+        $snapshot = $attempt->structure_snapshot ?? [];
+        $currentFlaggedIds = $this->normalizeFieldIds(data_get($snapshot, 'meta.flagged_field_ids', []));
+
+        if ($currentFlaggedIds === $normalizedFlaggedIds) {
+            return $normalizedFlaggedIds;
+        }
+
+        data_set($snapshot, 'meta.flagged_field_ids', $normalizedFlaggedIds);
+
+        $attempt->forceFill([
+            'structure_snapshot' => $snapshot,
+        ])->save();
+
+        $attempt->structure_snapshot = $snapshot;
+
+        return $normalizedFlaggedIds;
+    }
+
+    private function extractFieldIds(array $fields): array
+    {
+        return collect($fields)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
             ->values()
             ->all();
     }

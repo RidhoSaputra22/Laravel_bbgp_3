@@ -992,6 +992,10 @@
                 currentAssessmentIndex: Number(config.initialIndex ?? 0),
                 totalAssessments: Number(config.totalAssessments ?? 0),
                 assessmentItems: Array.isArray(config.assessmentItems) ? config.assessmentItems : [],
+                questionItems: Array.isArray(config.questionItems) ? config.questionItems : [],
+                flaggedFieldIds: [],
+                currentQuestionFieldId: Number(config.initialQuestionFieldId ?? 0),
+                questionStateByFieldId: {},
                 autosaveUrl: typeof config.autosaveUrl === 'string' ? config.autosaveUrl : '',
                 resultUrl: typeof config.resultUrl === 'string' ? config.resultUrl : '',
                 deadlineAt: typeof config.deadlineAt === 'string' ? config.deadlineAt : null,
@@ -1004,6 +1008,8 @@
                 deadlineSubmissionTriggered: false,
 
                 init() {
+                    this.flaggedFieldIds = this.normalizeFieldIdList(config.initialFlaggedFieldIds ?? []);
+
                     this.$nextTick(() => {
                         const form = this.formElement();
 
@@ -1020,8 +1026,26 @@
                                 }
 
                                 this.clearFieldError(fieldWrapper);
+                                this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
+                                this.syncQuestionState(fieldWrapper.dataset.fieldId);
                             });
                         });
+
+                        form.addEventListener('focusin', (event) => {
+                            const fieldWrapper = event.target?.closest('[data-assessment-field]');
+
+                            if (!fieldWrapper) {
+                                return;
+                            }
+
+                            this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
+                        });
+
+                        this.refreshAllQuestionStates();
+
+                        if (!this.currentQuestionFieldId) {
+                            this.currentQuestionFieldId = this.firstQuestionFieldId(this.currentAssessmentIndex);
+                        }
 
                         this.startDeadlineWatcher();
                         this.securityGuard = window.createAssessmentSecurityGuard(this, this.securityConfig);
@@ -1047,6 +1071,132 @@
 
                     return form.querySelector(`[data-assessment-panel="${index}"]`);
                 },
+                getFieldWrapper(fieldId) {
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return null;
+                    }
+
+                    return form.querySelector(`[data-field-id="${Number(fieldId)}"]`);
+                },
+                normalizeFieldIdList(values) {
+                    return Array.from(new Set((Array.isArray(values) ? values : [values])
+                        .map((value) => Number(value))
+                        .filter((value) => Number.isInteger(value) && value > 0)));
+                },
+                questionItemByFieldId(fieldId) {
+                    return this.questionItems.find((item) => Number(item.field_id) === Number(fieldId)) ?? null;
+                },
+                firstQuestionFieldId(assessmentIndex) {
+                    const assessmentMeta = this.assessmentItems.find((item) => Number(item.index) === Number(assessmentIndex));
+                    const fieldIds = Array.isArray(assessmentMeta?.field_ids) ? assessmentMeta.field_ids : [];
+
+                    return Number(fieldIds[0] ?? 0);
+                },
+                setCurrentQuestion(fieldId) {
+                    const normalizedFieldId = Number(fieldId);
+
+                    if (!normalizedFieldId) {
+                        return;
+                    }
+
+                    this.currentQuestionFieldId = normalizedFieldId;
+                },
+                isFieldFlagged(fieldId) {
+                    return this.flaggedFieldIds.includes(Number(fieldId));
+                },
+                toggleFlag(fieldId) {
+                    if (this.isBusy()) {
+                        return;
+                    }
+
+                    const normalizedFieldId = Number(fieldId);
+
+                    if (!normalizedFieldId) {
+                        return;
+                    }
+
+                    if (this.isFieldFlagged(normalizedFieldId)) {
+                        this.flaggedFieldIds = this.flaggedFieldIds.filter((item) => item !== normalizedFieldId);
+                    } else {
+                        this.flaggedFieldIds = [...this.flaggedFieldIds, normalizedFieldId];
+                    }
+
+                    this.setCurrentQuestion(normalizedFieldId);
+                    this.syncQuestionState(normalizedFieldId);
+
+                    const fieldWrapper = this.getFieldWrapper(normalizedFieldId);
+
+                    if (fieldWrapper) {
+                        this.clearFieldError(fieldWrapper);
+                    }
+                },
+                questionState(fieldId) {
+                    return this.questionStateByFieldId[String(Number(fieldId))] ?? {
+                        answered: false,
+                        flagged: this.isFieldFlagged(fieldId),
+                    };
+                },
+                answeredQuestionCount() {
+                    return this.questionItems.filter((item) => this.questionState(item.field_id).answered).length;
+                },
+                unansweredQuestionCount() {
+                    return Math.max(this.questionItems.length - this.answeredQuestionCount(), 0);
+                },
+                flaggedQuestionCount() {
+                    return this.flaggedFieldIds.length;
+                },
+                flaggedUnansweredQuestionCount() {
+                    return this.questionItems.filter((item) => {
+                        return this.isFieldFlagged(item.field_id) && !this.questionState(item.field_id).answered;
+                    }).length;
+                },
+                questionButtonClass(fieldId, assessmentIndex) {
+                    const isAnswered = Boolean(this.questionState(fieldId).answered);
+                    const isFlagged = this.isFieldFlagged(fieldId);
+                    const isCurrentQuestion = Number(this.currentQuestionFieldId) === Number(fieldId);
+                    const isCurrentAssessment = Number(this.currentAssessmentIndex) === Number(assessmentIndex);
+                    const classes = [];
+
+                    if (isFlagged) {
+                        if (isAnswered) {
+                            classes.push('border-amber-500 bg-amber-500 text-white hover:bg-amber-600');
+                        } else {
+                            classes.push('border-amber-300 bg-amber-200 text-amber-900 hover:bg-amber-300');
+                        }
+                    } else if (isAnswered) {
+                        classes.push('border-[#1376bd] bg-[#1376bd] text-white hover:bg-[#0d5f98]');
+                    } else {
+                        classes.push('border-[#d7e3ee] bg-white text-slate-700 hover:border-[#1376bd] hover:text-[#1376bd]');
+                    }
+
+                    if (isCurrentAssessment) {
+                        classes.push('shadow-sm');
+                    }
+
+                    if (isCurrentQuestion) {
+                        classes.push('ring-2 ring-[#0d5f98] ring-offset-2');
+                    }
+
+                    return classes.join(' ');
+                },
+                questionButtonTitle(fieldId) {
+                    const item = this.questionItemByFieldId(fieldId);
+                    const parts = [];
+
+                    if (item?.label) {
+                        parts.push(item.label);
+                    }
+
+                    parts.push(this.questionState(fieldId).answered ? 'Sudah dijawab' : 'Belum dijawab');
+
+                    if (this.isFieldFlagged(fieldId)) {
+                        parts.push('Ditandai');
+                    }
+
+                    return parts.join(' | ');
+                },
                 isBusy() {
                     return this.isSubmitting || this.isAutosaving || this.deadlineSubmissionTriggered;
                 },
@@ -1055,10 +1205,7 @@
                         return;
                     }
 
-                    if (!this.validateCurrentAssessment()) {
-                        return;
-                    }
-
+                    this.refreshAllQuestionStates();
                     this.showFinishModal = true;
                 },
                 submitConfirmedForm() {
@@ -1137,11 +1284,27 @@
                         return;
                     }
 
-                    if (boundedIndex > this.currentAssessmentIndex) {
-                        if (!this.validateCurrentAssessment()) {
-                            return;
-                        }
+                    const snapshotStatus = await this.saveCurrentAssessmentSnapshot();
 
+                    if (snapshotStatus !== 'saved') {
+                        return;
+                    }
+
+                    this.switchToAssessment(boundedIndex);
+                },
+                async goToQuestion(fieldId, assessmentIndex) {
+                    if (this.isBusy()) {
+                        return;
+                    }
+
+                    const normalizedFieldId = Number(fieldId);
+                    const boundedAssessmentIndex = Math.max(0, Math.min(Number(assessmentIndex), this.totalAssessments - 1));
+
+                    if (!normalizedFieldId) {
+                        return;
+                    }
+
+                    if (boundedAssessmentIndex !== this.currentAssessmentIndex) {
                         const snapshotStatus = await this.saveCurrentAssessmentSnapshot();
 
                         if (snapshotStatus !== 'saved') {
@@ -1149,10 +1312,19 @@
                         }
                     }
 
-                    this.currentAssessmentIndex = boundedIndex;
+                    this.switchToAssessment(boundedAssessmentIndex, normalizedFieldId);
+                },
+                switchToAssessment(index, questionFieldId = null) {
+                    this.currentAssessmentIndex = index;
                     this.showFinishModal = false;
+                    this.currentQuestionFieldId = Number(questionFieldId) || this.firstQuestionFieldId(index);
 
                     this.$nextTick(() => {
+                        if (this.currentQuestionFieldId) {
+                            this.focusFieldById(this.currentQuestionFieldId);
+                            return;
+                        }
+
                         this.scrollToTop();
                     });
                 },
@@ -1357,59 +1529,44 @@
                 validateField(fieldWrapper) {
                     this.clearFieldError(fieldWrapper);
 
-                    const fieldId = fieldWrapper.dataset.fieldId ?? null;
+                    const fieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
                     const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
                     const fieldLabel = fieldWrapper.dataset.fieldLabel ?? 'field ini';
                     const isRequired = fieldWrapper.dataset.required === '1';
                     const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
+                    const requiresAnswer = isRequired || this.isFieldFlagged(fieldId);
                     let message = null;
 
                     if (fieldType === 'radio') {
                         const inputs = Array.from(fieldWrapper.querySelectorAll('input[type="radio"]'));
                         const hasSelection = inputs.some((input) => input.checked);
 
-                        if (isRequired && !hasSelection) {
+                        if (requiresAnswer && !hasSelection) {
                             message = `Pilih satu jawaban untuk pertanyaan ${fieldLabel}.`;
                         }
                     } else if (fieldType === 'checkbox') {
                         const inputs = Array.from(fieldWrapper.querySelectorAll('input[type="checkbox"]'));
                         const hasSelection = inputs.some((input) => input.checked);
 
-                        if (isRequired && !hasSelection) {
+                        if (requiresAnswer && !hasSelection) {
                             message = `Minimal pilih satu jawaban untuk pertanyaan ${fieldLabel}.`;
                         }
                     } else if (fieldType === 'file') {
                         const input = fieldWrapper.querySelector('input[type="file"]');
                         const uploadedFile = input?.files?.[0] ?? null;
 
-                        if (isRequired && !uploadedFile && !hasExistingFile) {
+                        if (requiresAnswer && !uploadedFile && !hasExistingFile) {
                             message = `File untuk pertanyaan ${fieldLabel} wajib diunggah.`;
                         } else if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) {
                             message = `File untuk pertanyaan ${fieldLabel} maksimal 5 MB.`;
                         }
                     } else if (fieldType === 'repeater') {
-                        const repeaterInputs = Array.from(fieldWrapper.querySelectorAll('input, select, textarea'));
-                        const rows = new Map();
-
-                        repeaterInputs.forEach((input) => {
-                            const name = input.getAttribute('name') || '';
-                            const match = name.match(/\[(\d+)\]\[([^\]]+)\]$/);
-
-                            if (!match) {
-                                return;
-                            }
-
-                            const rowIndex = match[1];
-                            const items = rows.get(rowIndex) || [];
-                            items.push(input);
-                            rows.set(rowIndex, items);
-                        });
-
+                        const rows = this.extractRepeaterRows(fieldWrapper);
                         const filledRows = Array.from(rows.values()).filter((inputs) => {
                             return inputs.some((input) => String(input.value || '').trim() !== '');
                         });
 
-                        if (isRequired && filledRows.length === 0) {
+                        if (requiresAnswer && filledRows.length === 0) {
                             message = `Minimal isi satu baris pada pertanyaan ${fieldLabel}.`;
                         } else {
                             for (const [index, inputs] of Array.from(rows.entries())) {
@@ -1448,7 +1605,7 @@
                         const rawValue = typeof input.value === 'string' ? input.value : '';
                         const value = rawValue.trim();
 
-                        if (isRequired && value === '') {
+                        if (requiresAnswer && value === '') {
                             message = `Jawaban untuk pertanyaan ${fieldLabel} wajib diisi.`;
                         } else if (fieldType === 'email' && value !== '' && !this.isValidEmail(value)) {
                             message = `Format email pada pertanyaan ${fieldLabel} tidak valid.`;
@@ -1483,9 +1640,8 @@
                             return;
                         }
 
-                        const fieldId = match[1];
-                        const form = this.formElement();
-                        const fieldWrapper = form?.querySelector(`[data-field-id="${fieldId}"]`);
+                        const fieldId = Number(match[1]);
+                        const fieldWrapper = this.getFieldWrapper(fieldId);
 
                         if (!fieldWrapper) {
                             return;
@@ -1507,7 +1663,7 @@
                         return;
                     }
 
-                    this.focusFieldById(match[1]);
+                    this.focusFieldById(Number(match[1]));
                 },
                 clearAllFieldErrors() {
                     const form = this.formElement();
@@ -1551,6 +1707,87 @@
                     errorElement.textContent = '';
                     errorElement.classList.add('hidden');
                 },
+                refreshAllQuestionStates() {
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return;
+                    }
+
+                    form.querySelectorAll('[data-assessment-field]').forEach((fieldWrapper) => {
+                        this.syncQuestionState(fieldWrapper.dataset.fieldId);
+                    });
+                },
+                syncQuestionState(fieldId) {
+                    const normalizedFieldId = Number(fieldId);
+                    const fieldWrapper = this.getFieldWrapper(normalizedFieldId);
+
+                    if (!normalizedFieldId || !fieldWrapper) {
+                        return;
+                    }
+
+                    this.questionStateByFieldId[String(normalizedFieldId)] = {
+                        answered: this.fieldHasAnswer(fieldWrapper),
+                        flagged: this.isFieldFlagged(normalizedFieldId),
+                        assessmentIndex: Number(fieldWrapper.dataset.assessmentIndex ?? 0),
+                    };
+                },
+                fieldHasAnswer(fieldWrapper) {
+                    const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
+                    const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
+
+                    if (fieldType === 'radio') {
+                        return Array.from(fieldWrapper.querySelectorAll('input[type="radio"]')).some((input) => input.checked);
+                    }
+
+                    if (fieldType === 'checkbox') {
+                        return Array.from(fieldWrapper.querySelectorAll('input[type="checkbox"]')).some((input) => input.checked);
+                    }
+
+                    if (fieldType === 'file') {
+                        const input = fieldWrapper.querySelector('input[type="file"]');
+
+                        return Boolean(input?.files?.length) || hasExistingFile;
+                    }
+
+                    if (fieldType === 'repeater') {
+                        return Array.from(this.extractRepeaterRows(fieldWrapper).values()).some((inputs) => {
+                            return inputs.some((input) => String(input.value || '').trim() !== '');
+                        });
+                    }
+
+                    const input = fieldType === 'textarea'
+                        ? fieldWrapper.querySelector('textarea')
+                        : (fieldType === 'select'
+                            ? fieldWrapper.querySelector('select')
+                            : fieldWrapper.querySelector('input:not([type="radio"]):not([type="checkbox"]):not([type="file"])'));
+
+                    if (!input) {
+                        return false;
+                    }
+
+                    return String(input.value || '').trim() !== '';
+                },
+                extractRepeaterRows(fieldWrapper) {
+                    const repeaterInputs = Array.from(fieldWrapper.querySelectorAll('input, select, textarea'));
+                    const rows = new Map();
+
+                    repeaterInputs.forEach((input) => {
+                        const name = input.getAttribute('name') || '';
+                        const match = name.match(/\[(\d+)\]\[([^\]]+)\]$/);
+
+                        if (!match) {
+                            return;
+                        }
+
+                        const rowIndex = match[1];
+                        const items = rows.get(rowIndex) || [];
+                        items.push(input);
+                        rows.set(rowIndex, items);
+                    });
+
+                    return rows;
+                },
                 focusFieldById(fieldId) {
                     if (!fieldId) {
                         this.scrollToTop();
@@ -1558,13 +1795,7 @@
                         return;
                     }
 
-                    const form = this.formElement();
-
-                    if (!form) {
-                        return;
-                    }
-
-                    const fieldWrapper = form.querySelector(`[data-field-id="${fieldId}"]`);
+                    const fieldWrapper = this.getFieldWrapper(fieldId);
 
                     if (!fieldWrapper) {
                         this.scrollToTop();
@@ -1572,6 +1803,30 @@
                         return;
                     }
 
+                    const targetAssessmentIndex = Number(fieldWrapper.dataset.assessmentIndex ?? this.currentAssessmentIndex);
+                    this.currentQuestionFieldId = Number(fieldId);
+
+                    if (targetAssessmentIndex !== this.currentAssessmentIndex) {
+                        this.currentAssessmentIndex = targetAssessmentIndex;
+                        this.showFinishModal = false;
+
+                        this.$nextTick(() => {
+                            const nextWrapper = this.getFieldWrapper(fieldId);
+
+                            if (nextWrapper) {
+                                this.scrollAndFocusField(nextWrapper);
+                            }
+                        });
+
+                        return;
+                    }
+
+                    this.scrollAndFocusField(fieldWrapper);
+                },
+                resolveFocusTarget(fieldWrapper) {
+                    return fieldWrapper.querySelector('input:not([type="hidden"]), select, textarea, button');
+                },
+                scrollAndFocusField(fieldWrapper) {
                     this.scrollToElement(fieldWrapper);
 
                     const focusTarget = this.resolveFocusTarget(fieldWrapper);
@@ -1585,9 +1840,6 @@
                             preventScroll: true,
                         });
                     }, 180);
-                },
-                resolveFocusTarget(fieldWrapper) {
-                    return fieldWrapper.querySelector('input:not([type="hidden"]), select, textarea, button');
                 },
                 scrollToTop() {
                     const topAnchor = this.$refs.assessmentFlowTop;
