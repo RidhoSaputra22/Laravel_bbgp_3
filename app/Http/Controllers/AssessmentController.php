@@ -7,6 +7,8 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Enum\LevelKompetensi;
 use App\Models\Assessment;
+use App\Models\AssessmentForm;
+use App\Services\Assessment\AssessmentCombinationService;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\ScoringGuidanceAssistant;
 use Illuminate\Http\Request;
@@ -18,6 +20,10 @@ use Illuminate\Validation\Rule;
 class AssessmentController extends Controller
 {
     private string $menu = 'assessment';
+
+    public function __construct(
+        private readonly AssessmentCombinationService $combinationService
+    ) {}
 
     /**
      * Display a listing of the resource.
@@ -168,8 +174,9 @@ class AssessmentController extends Controller
                 'is_active' => (bool) ($validated['is_active'] ?? false),
             ]);
 
-            $assessment->forms()->delete();
             $this->syncForms($assessment, $validated['forms']);
+            $assessment->load(['forms.fields']);
+            $this->combinationService->syncCombinationsForAssessment($assessment);
 
             DB::commit();
 
@@ -252,6 +259,7 @@ class AssessmentController extends Controller
                 'status' => 'required|in:draft,publish,nonaktif',
                 'is_active' => 'nullable|boolean',
                 'forms' => 'required|array|min:1',
+                'forms.*.id' => 'nullable|integer',
                 'forms.*.judul_form' => 'required|string|max:255',
                 'forms.*.kode_form' => 'nullable|string|max:100',
                 'forms.*.deskripsi' => 'nullable|string',
@@ -271,6 +279,7 @@ class AssessmentController extends Controller
                 'forms.*.scoring.exclude_from_competency' => 'nullable|boolean',
                 'forms.*.scoring.advanced_rules_text' => 'nullable|string',
                 'forms.*.fields' => 'required|array|min:1',
+                'forms.*.fields.*.id' => 'nullable|integer',
                 'forms.*.fields.*.label' => 'required|string|max:255',
                 'forms.*.fields.*.deskripsi' => 'nullable|string',
                 'forms.*.fields.*.tipe_field' => [
@@ -350,7 +359,7 @@ class AssessmentController extends Controller
             ]
         );
 
-        $validator->after(function ($validator) use ($request) {
+        $validator->after(function ($validator) use ($request, $assessmentId) {
             $forms = $request->input('forms', []);
             $fieldTypesWithTextOptions = ['select', 'checkbox'];
 
@@ -466,6 +475,52 @@ class AssessmentController extends Controller
                     }
                 }
             }
+
+            if (! $assessmentId) {
+                return;
+            }
+
+            $existingForms = AssessmentForm::query()
+                ->with('fields:id,assessment_form_id')
+                ->where('assessment_id', $assessmentId)
+                ->get()
+                ->keyBy('id');
+
+            foreach ($forms as $formIndex => $form) {
+                $submittedFormId = (int) ($form['id'] ?? 0);
+
+                if ($submittedFormId > 0 && ! $existingForms->has($submittedFormId)) {
+                    $validator->errors()->add(
+                        "forms.$formIndex.id",
+                        'Form assessment yang dipilih tidak valid.'
+                    );
+
+                    continue;
+                }
+
+                $existingFieldIds = $submittedFormId > 0
+                    ? $existingForms
+                        ->get($submittedFormId)
+                        ?->fields
+                        ->pluck('assessment_form_id', 'id')
+                        ->all() ?? []
+                    : [];
+
+                foreach (($form['fields'] ?? []) as $fieldIndex => $field) {
+                    $submittedFieldId = (int) ($field['id'] ?? 0);
+
+                    if ($submittedFieldId < 1) {
+                        continue;
+                    }
+
+                    if ($submittedFormId < 1 || ! array_key_exists($submittedFieldId, $existingFieldIds)) {
+                        $validator->errors()->add(
+                            "forms.$formIndex.fields.$fieldIndex.id",
+                            'Field assessment yang dipilih tidak valid.'
+                        );
+                    }
+                }
+            }
         });
 
         return $validator->validate();
@@ -473,8 +528,14 @@ class AssessmentController extends Controller
 
     private function syncForms(Assessment $assessment, array $forms): void
     {
+        $existingForms = $assessment->forms()
+            ->with('fields')
+            ->get()
+            ->keyBy('id');
+        $retainedFormIds = [];
+
         foreach (array_values($forms) as $formIndex => $formData) {
-            $form = $assessment->forms()->create([
+            $formAttributes = [
                 'judul_form' => $formData['judul_form'],
                 'kode_form' => $formData['kode_form'] ?: 'FORM-'.str_pad((string) ($formIndex + 1), 2, '0', STR_PAD_LEFT),
                 'deskripsi' => $formData['deskripsi'] ?? null,
@@ -485,31 +546,78 @@ class AssessmentController extends Controller
                 'scoring_config' => $this->parseFormScoringConfig($formData, $assessment->instrument_type),
                 'urutan' => (int) ($formData['urutan'] ?? ($formIndex + 1)),
                 'is_active' => (bool) ($formData['is_active'] ?? false),
-            ]);
+            ];
+            $submittedFormId = (int) ($formData['id'] ?? 0);
 
-            foreach (array_values($formData['fields']) as $fieldIndex => $fieldData) {
-                $fieldName = $this->generateFieldNameFromLabel($fieldData['label']);
-
-                $form->fields()->create([
-                    'label' => $fieldData['label'],
-                    'deskripsi' => $fieldData['deskripsi'] ?? null,
-                    'nama_field' => $fieldName,
-                    'tipe_field' => $fieldData['tipe_field'],
-                    'placeholder' => $fieldData['placeholder'] ?? null,
-                    'bantuan' => $fieldData['bantuan'] ?? null,
-                    'opsi_field' => $this->parseFieldOptions($fieldData),
-                    'nilai_default' => null,
-                    'validasi' => [
-                        'required' => (bool) ($fieldData['is_required'] ?? false),
-                        'tipe_field' => $fieldData['tipe_field'],
-                    ],
-                    'scoring_config' => $this->parseFieldScoringConfig($fieldData, $assessment->instrument_type),
-                    'lebar_kolom' => $fieldData['lebar_kolom'] ?? 'col-md-12',
-                    'urutan' => (int) ($fieldData['urutan'] ?? ($fieldIndex + 1)),
-                    'is_required' => (bool) ($fieldData['is_required'] ?? false),
-                    'is_active' => (bool) ($fieldData['is_active'] ?? false),
-                ]);
+            if ($submittedFormId > 0 && $existingForms->has($submittedFormId)) {
+                $form = $existingForms->get($submittedFormId);
+                $form->update($formAttributes);
+            } else {
+                $form = $assessment->forms()->create($formAttributes);
             }
+
+            $retainedFormIds[] = (int) $form->id;
+            $this->syncFormFields($form, $formData['fields'] ?? [], $assessment->instrument_type);
+        }
+
+        $formIdsToDelete = $existingForms
+            ->keys()
+            ->reject(fn ($formId) => in_array((int) $formId, $retainedFormIds, true))
+            ->values()
+            ->all();
+
+        if ($formIdsToDelete !== []) {
+            $assessment->forms()->whereIn('id', $formIdsToDelete)->delete();
+        }
+    }
+
+    private function syncFormFields(AssessmentForm $form, array $fields, ?string $instrumentType = null): void
+    {
+        $existingFields = $form->fields()
+            ->get()
+            ->keyBy('id');
+        $retainedFieldIds = [];
+
+        foreach (array_values($fields) as $fieldIndex => $fieldData) {
+            $fieldAttributes = [
+                'label' => $fieldData['label'],
+                'deskripsi' => $fieldData['deskripsi'] ?? null,
+                'nama_field' => $this->generateFieldNameFromLabel($fieldData['label']),
+                'tipe_field' => $fieldData['tipe_field'],
+                'placeholder' => $fieldData['placeholder'] ?? null,
+                'bantuan' => $fieldData['bantuan'] ?? null,
+                'opsi_field' => $this->parseFieldOptions($fieldData),
+                'nilai_default' => null,
+                'validasi' => [
+                    'required' => (bool) ($fieldData['is_required'] ?? false),
+                    'tipe_field' => $fieldData['tipe_field'],
+                ],
+                'scoring_config' => $this->parseFieldScoringConfig($fieldData, $instrumentType),
+                'lebar_kolom' => $fieldData['lebar_kolom'] ?? 'col-md-12',
+                'urutan' => (int) ($fieldData['urutan'] ?? ($fieldIndex + 1)),
+                'is_required' => (bool) ($fieldData['is_required'] ?? false),
+                'is_active' => (bool) ($fieldData['is_active'] ?? false),
+            ];
+            $submittedFieldId = (int) ($fieldData['id'] ?? 0);
+
+            if ($submittedFieldId > 0 && $existingFields->has($submittedFieldId)) {
+                $field = $existingFields->get($submittedFieldId);
+                $field->update($fieldAttributes);
+            } else {
+                $field = $form->fields()->create($fieldAttributes);
+            }
+
+            $retainedFieldIds[] = (int) $field->id;
+        }
+
+        $fieldIdsToDelete = $existingFields
+            ->keys()
+            ->reject(fn ($fieldId) => in_array((int) $fieldId, $retainedFieldIds, true))
+            ->values()
+            ->all();
+
+        if ($fieldIdsToDelete !== []) {
+            $form->fields()->whereIn('id', $fieldIdsToDelete)->delete();
         }
     }
 
@@ -921,6 +1029,7 @@ class AssessmentController extends Controller
     {
         return $assessment->forms->map(function ($form) {
             return [
+                'id' => $form->id,
                 'judul_form' => $form->judul_form,
                 'kode_form' => $form->kode_form,
                 'deskripsi' => $form->deskripsi,
@@ -962,6 +1071,7 @@ class AssessmentController extends Controller
                     }
 
                     return [
+                        'id' => $field->id,
                         'label' => $field->label,
                         'deskripsi' => $field->deskripsi,
                         'tipe_field' => $field->tipe_field,

@@ -1775,6 +1775,7 @@
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
                 const fieldPrefix = `forms[${formIndex}][fields][${fieldIndex}]`;
+                const fieldIdName = `${fieldPrefix}[id]`;
                 const labelName = `${fieldPrefix}[label]`;
                 const deskripsiName = `${fieldPrefix}[deskripsi]`;
                 const tipeFieldName = `${fieldPrefix}[tipe_field]`;
@@ -1834,6 +1835,9 @@
                 return `
                     <div class="${fieldCardClass}" data-field-index="${fieldIndex}" data-radio-option-counter="${radioOptions.length}">
                         <div class="card-body">
+                            <input type="hidden" class="assessment-field-id-input"
+                                name="${fieldIdName}"
+                                value="${escapeHtml(fieldData.id || '')}">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Pertanyaan ${fieldIndex + 1}</h6>
                                 <div class="assessment-builder-actions">
@@ -2268,6 +2272,7 @@
             const buildFormCard = (formIndex, formData = {}) => {
                 const formScoring = normalizeFormScoringConfig(formData.scoring || {});
                 const formPrefix = `forms[${formIndex}]`;
+                const formIdName = `${formPrefix}[id]`;
                 const judulFormName = `${formPrefix}[judul_form]`;
                 const kodeFormName = `${formPrefix}[kode_form]`;
                 const urutanName = `${formPrefix}[urutan]`;
@@ -2290,6 +2295,9 @@
 
                 return `
                     <div class="${formCardClass}" data-form-index="${formIndex}" data-field-counter="0">
+                        <input type="hidden" class="assessment-form-id-input"
+                            name="${formIdName}"
+                            value="${escapeHtml(formData.id || '')}">
                         <div class="card-header">
                             <h4>Form ${formIndex + 1}</h4>
                             <div class="assessment-builder-actions">
@@ -2658,8 +2666,11 @@
             const collectFieldPayload = ($fieldCard, fieldIndex) => {
                 const fieldType = $fieldCard.find('select[name$="[tipe_field]"]').val() || 'text';
                 const scoringMethod = $fieldCard.find('select[name$="[scoring][method]"]').val() || resolveDefaultScoringMethod(fieldType);
+                const rawFieldId = $fieldCard.find('.assessment-field-id-input').val();
+                const fieldId = Number(rawFieldId || 0);
 
                 return {
+                    id: fieldId > 0 ? fieldId : null,
                     label: $fieldCard.find('input[name$="[label]"]').val()?.trim() || '',
                     deskripsi: $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '',
                     tipe_field: fieldType,
@@ -2706,11 +2717,14 @@
             const collectBuilderPayload = () => {
                 return $('.assessment-form-card').map(function(formIndex) {
                     const $formCard = $(this);
+                    const rawFormId = $formCard.find('.assessment-form-id-input').val();
+                    const formId = Number(rawFormId || 0);
                     const fields = $formCard.find('.assessment-field-card').map(function(fieldIndex) {
                         return collectFieldPayload($(this), fieldIndex);
                     }).get();
 
                     return {
+                        id: formId > 0 ? formId : null,
                         judul_form: $formCard.find('input[name$="[judul_form]"]').val()?.trim() || '',
                         kode_form: $formCard.find('input[name$="[kode_form]"]').val()?.trim() || '',
                         deskripsi: $formCard.find('.form-description-input').first().val()?.trim() || '',

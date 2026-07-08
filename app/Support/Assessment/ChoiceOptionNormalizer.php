@@ -10,7 +10,7 @@ class ChoiceOptionNormalizer
     {
         $normalizedOptions = [];
 
-        foreach ($options ?? [] as $index => $option) {
+        foreach (static::prepareOptionList($options ?? []) as $index => $option) {
             $normalizedOption = static::normalize($option, $index);
 
             if ($normalizedOption['label'] === '' && $normalizedOption['value'] === '') {
@@ -21,6 +21,38 @@ class ChoiceOptionNormalizer
         }
 
         return array_values($normalizedOptions);
+    }
+
+    private static function prepareOptionList(array $options): array
+    {
+        if ($options === []) {
+            return [];
+        }
+
+        if (array_is_list($options)) {
+            return array_values($options);
+        }
+
+        if (array_key_exists('label', $options) || array_key_exists('value', $options)) {
+            return [$options];
+        }
+
+        return collect($options)
+            ->map(function ($label, $value) {
+                if (is_array($label)) {
+                    return $label;
+                }
+
+                $normalizedLabel = trim((string) $label);
+                $normalizedValue = is_scalar($value) ? trim((string) $value) : '';
+
+                return [
+                    'label' => $normalizedLabel,
+                    'value' => $normalizedValue !== '' ? $normalizedValue : $normalizedLabel,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public static function normalize(mixed $option, ?int $index = null): array

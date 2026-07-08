@@ -6,11 +6,13 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
+use App\Models\AssessmentCombinationItem;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Support\Assessment\AssessmentStructureMetadataResolver;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -36,6 +38,70 @@ class AssessmentCombinationService
     public function buildFormCatalogByKetenagaan(): array
     {
         return $this->buildAssessmentCatalogByKetenagaan();
+    }
+
+    public function syncCombinationsForAssessment(Assessment $assessment): array
+    {
+        if (
+            ! Schema::hasTable('assessment_combinations')
+            || ! Schema::hasTable('assessment_combination_items')
+        ) {
+            return [
+                'updated' => 0,
+                'combination_ids' => [],
+            ];
+        }
+
+        $assessment->loadMissing([
+            'forms' => function ($query) {
+                $query->orderBy('urutan')
+                    ->with([
+                        'fields' => function ($fieldQuery) {
+                            $fieldQuery->orderBy('urutan');
+                        },
+                    ]);
+            },
+        ]);
+
+        $combinationIds = AssessmentCombinationItem::query()
+            ->where('assessment_id', $assessment->id)
+            ->pluck('assessment_combination_id')
+            ->map(fn ($combinationId) => (int) $combinationId)
+            ->filter(fn (int $combinationId) => $combinationId > 0)
+            ->unique()
+            ->values();
+
+        if ($combinationIds->isEmpty()) {
+            return [
+                'updated' => 0,
+                'combination_ids' => [],
+            ];
+        }
+
+        $context = $this->buildAssessmentSyncContext($assessment);
+        $updatedIds = [];
+
+        AssessmentCombination::query()
+            ->with([
+                'items' => function ($query) {
+                    $query->orderBy('assessment_order')
+                        ->orderBy('form_order')
+                        ->orderBy('field_order')
+                        ->orderBy('id');
+                },
+            ])
+            ->whereIn('id', $combinationIds->all())
+            ->get()
+            ->each(function (AssessmentCombination $combination) use ($assessment, $context, &$updatedIds) {
+                if ($this->syncSingleCombinationForAssessment($combination, $assessment, $context)) {
+                    $updatedIds[] = (int) $combination->id;
+                }
+            });
+
+        return [
+            'updated' => count($updatedIds),
+            'combination_ids' => $updatedIds,
+        ];
     }
 
     public function createCombination(array $payload, ?int $generatedBy = null): AssessmentCombination
@@ -159,6 +225,83 @@ class AssessmentCombinationService
                     ->isNotEmpty();
             })
             ->values();
+    }
+
+    private function syncSingleCombinationForAssessment(
+        AssessmentCombination $combination,
+        Assessment $assessment,
+        array $context
+    ): bool {
+        $affectedItems = $combination->items
+            ->where('assessment_id', $assessment->id)
+            ->values();
+
+        if ($affectedItems->isEmpty()) {
+            return false;
+        }
+
+        $refreshedRows = $affectedItems
+            ->map(fn (AssessmentCombinationItem $item) => $this->resolveRefreshedRowForAssessmentItem($item, $context))
+            ->filter(fn ($row) => is_array($row))
+            ->values();
+
+        $combination->items()->where('assessment_id', $assessment->id)->delete();
+
+        if ($refreshedRows->isNotEmpty()) {
+            $combination->items()->createMany($refreshedRows->all());
+        }
+
+        $combination->load([
+            'items' => function ($query) {
+                $query->orderBy('assessment_order')
+                    ->orderBy('form_order')
+                    ->orderBy('field_order')
+                    ->orderBy('id');
+            },
+        ]);
+
+        $selectionConfig = $this->refreshSelectionConfigForAssessment(
+            (array) ($combination->selection_config ?? []),
+            $assessment,
+            $refreshedRows,
+            $context
+        );
+        $allRows = $combination->items
+            ->map(fn (AssessmentCombinationItem $item) => $item->toArray())
+            ->all();
+        $assessmentIds = $combination->items
+            ->pluck('assessment_id')
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->unique()
+            ->values();
+        $sourceAssessments = Assessment::query()
+            ->whereIn('id', $assessmentIds->all())
+            ->get()
+            ->keyBy('id');
+        $hasEligibleSources = $assessmentIds->isNotEmpty()
+            && $assessmentIds->every(function (int $assessmentId) use ($sourceAssessments, $combination) {
+                $sourceAssessment = $sourceAssessments->get($assessmentId);
+
+                return $sourceAssessment
+                    && $this->isAssessmentEligibleForCombination($sourceAssessment, $combination->target_ketenagaan);
+            });
+
+        $combination->forceFill([
+            'selection_config' => $selectionConfig,
+            'structure_snapshot' => $this->buildStructureSnapshot(
+                $combination,
+                $allRows,
+                $combination->generated_at ?: $combination->created_at ?: now()
+            ),
+            'total_assessments' => (int) $combination->items->pluck('assessment_id')->filter()->unique()->count(),
+            'total_forms' => (int) $combination->items->pluck('assessment_form_id')->filter()->unique()->count(),
+            'total_questions' => (int) $combination->items->count(),
+            'signature_hash' => $this->buildSignatureHash($allRows),
+            'is_active' => $hasEligibleSources,
+        ])->save();
+
+        return true;
     }
 
     private function mapAssessmentCatalogItems(Collection $assessments): Collection
@@ -722,6 +865,296 @@ class AssessmentCombinationService
                 ],
             ],
         ];
+    }
+
+    private function buildAssessmentSyncContext(Assessment $assessment): array
+    {
+        $assessmentMeta = $this->metadataResolver->decorateAssessment([
+            'id' => $assessment->id,
+            'kode_assessment' => $assessment->kode_assessment,
+            'judul' => $assessment->judul,
+            'deskripsi' => $assessment->deskripsi,
+            'petunjuk' => $assessment->petunjuk,
+            'instrument_type' => $assessment->instrument_type,
+            'scoring_config' => $assessment->scoring_config,
+        ]);
+        $activeForms = $assessment->forms
+            ->filter(fn (AssessmentForm $form) => (bool) $form->is_active)
+            ->sortBy('urutan')
+            ->values();
+        $fieldsById = [];
+        $fieldsByFormIdAndName = [];
+        $fieldsByFormIdAndOrder = [];
+        $fieldsByFormCodeAndName = [];
+        $fieldsByFormCodeAndOrder = [];
+        $fieldsByFormOrderAndOrder = [];
+        $competencyPools = collect(KompetensiGuru::cases())
+            ->mapWithKeys(function (KompetensiGuru $kompetensi) {
+                return [
+                    $kompetensi->value => [
+                        'kompetensi' => $kompetensi->value,
+                        'kompetensi_label' => $kompetensi->label(),
+                        'forms' => [],
+                        'pool' => [],
+                    ],
+                ];
+            })
+            ->all();
+        $autoIncludedForms = [];
+
+        foreach ($activeForms as $formIndex => $form) {
+            $activeFields = $form->fields
+                ->filter(fn (AssessmentFormField $field) => (bool) $field->is_active)
+                ->sortBy('urutan')
+                ->values();
+
+            if ($activeFields->isEmpty()) {
+                continue;
+            }
+
+            $resolvedFormOrder = (int) ($form->urutan ?: ($formIndex + 1));
+            $formMeta = $this->buildFormMeta($assessmentMeta, $form, $activeFields);
+            $formEntry = [
+                'form' => $form,
+                'form_meta' => $formMeta,
+                'form_order' => $resolvedFormOrder,
+                'available_fields' => $activeFields,
+                'available_question_count' => $activeFields->count(),
+            ];
+
+            foreach ($activeFields as $fieldIndex => $field) {
+                $resolvedFieldOrder = (int) ($field->urutan ?: ($fieldIndex + 1));
+                $poolEntry = [
+                    'assessment' => $assessment,
+                    'assessment_meta' => $assessmentMeta,
+                    'assessment_order' => 1,
+                    'form' => $form,
+                    'form_meta' => $formMeta,
+                    'form_order' => $resolvedFormOrder,
+                    'field' => $field,
+                    'field_source_order' => $resolvedFieldOrder,
+                ];
+                $formCode = trim((string) ($form->kode_form ?? ''));
+                $fieldName = trim((string) ($field->nama_field ?? ''));
+
+                $fieldsById[(int) $field->id] = $poolEntry;
+
+                if ($fieldName !== '') {
+                    $fieldsByFormIdAndName[$form->id.'|'.$fieldName] = $poolEntry;
+
+                    if ($formCode !== '') {
+                        $fieldsByFormCodeAndName[$formCode.'|'.$fieldName] = $poolEntry;
+                    }
+                }
+
+                $fieldsByFormIdAndOrder[$form->id.'|'.$resolvedFieldOrder] = $poolEntry;
+                $fieldsByFormOrderAndOrder[$resolvedFormOrder.'|'.$resolvedFieldOrder] = $poolEntry;
+
+                if ($formCode !== '') {
+                    $fieldsByFormCodeAndOrder[$formCode.'|'.$resolvedFieldOrder] = $poolEntry;
+                }
+
+                if (filled($formMeta['kompetensi'] ?? null)) {
+                    $kompetensiKey = (string) $formMeta['kompetensi'];
+
+                    if (! isset($competencyPools[$kompetensiKey])) {
+                        $competencyPools[$kompetensiKey] = [
+                            'kompetensi' => $kompetensiKey,
+                            'kompetensi_label' => $formMeta['kompetensi_label'] ?? ucfirst($kompetensiKey),
+                            'forms' => [],
+                            'pool' => [],
+                        ];
+                    }
+
+                    $competencyPools[$kompetensiKey]['pool'][] = $poolEntry;
+                }
+            }
+
+            if (filled($formMeta['kompetensi'] ?? null)) {
+                $kompetensiKey = (string) $formMeta['kompetensi'];
+                $competencyPools[$kompetensiKey]['forms'][] = [
+                    'form_id' => (int) $form->id,
+                    'form_code' => $form->kode_form,
+                    'form_title' => $form->judul_form,
+                    'indikator_kode' => $formMeta['indikator_kode'] ?? null,
+                    'indikator_label' => $formMeta['indikator_label'] ?? null,
+                    'available_question_count' => $activeFields->count(),
+                ];
+
+                continue;
+            }
+
+            $autoIncludedForms[] = $formEntry;
+        }
+
+        return [
+            'assessment' => $assessment,
+            'assessment_meta' => $assessmentMeta,
+            'competency_pools' => $competencyPools,
+            'auto_included_forms' => $autoIncludedForms,
+            'fields_by_id' => $fieldsById,
+            'fields_by_form_id_and_name' => $fieldsByFormIdAndName,
+            'fields_by_form_id_and_order' => $fieldsByFormIdAndOrder,
+            'fields_by_form_code_and_name' => $fieldsByFormCodeAndName,
+            'fields_by_form_code_and_order' => $fieldsByFormCodeAndOrder,
+            'fields_by_form_order_and_order' => $fieldsByFormOrderAndOrder,
+        ];
+    }
+
+    private function resolveRefreshedRowForAssessmentItem(
+        AssessmentCombinationItem $item,
+        array $context
+    ): ?array {
+        $poolEntry = $this->resolveContextEntryForCombinationItem($item, $context);
+
+        if (! $poolEntry) {
+            return null;
+        }
+
+        return $this->buildSelectionRow(
+            $poolEntry,
+            (int) ($item->assessment_order ?: ($poolEntry['assessment_order'] ?? 1))
+        );
+    }
+
+    private function resolveContextEntryForCombinationItem(
+        AssessmentCombinationItem $item,
+        array $context
+    ): ?array {
+        $fieldId = (int) ($item->assessment_form_field_id ?? 0);
+
+        if ($fieldId > 0 && isset($context['fields_by_id'][$fieldId])) {
+            return $context['fields_by_id'][$fieldId];
+        }
+
+        $formId = (int) ($item->assessment_form_id ?? 0);
+        $fieldName = trim((string) ($item->field_name ?? ''));
+        $formCode = trim((string) ($item->form_code ?? ''));
+        $fieldOrder = (int) ($item->field_order ?? 0);
+        $formOrder = (int) ($item->form_order ?? 0);
+        $lookupCandidates = [
+            $formId > 0 && $fieldName !== ''
+                ? $context['fields_by_form_id_and_name'][$formId.'|'.$fieldName] ?? null
+                : null,
+            $formCode !== '' && $fieldName !== ''
+                ? $context['fields_by_form_code_and_name'][$formCode.'|'.$fieldName] ?? null
+                : null,
+            $formId > 0 && $fieldOrder > 0
+                ? $context['fields_by_form_id_and_order'][$formId.'|'.$fieldOrder] ?? null
+                : null,
+            $formCode !== '' && $fieldOrder > 0
+                ? $context['fields_by_form_code_and_order'][$formCode.'|'.$fieldOrder] ?? null
+                : null,
+            $formOrder > 0 && $fieldOrder > 0
+                ? $context['fields_by_form_order_and_order'][$formOrder.'|'.$fieldOrder] ?? null
+                : null,
+        ];
+
+        foreach ($lookupCandidates as $candidate) {
+            if (is_array($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    private function refreshSelectionConfigForAssessment(
+        array $selectionConfig,
+        Assessment $assessment,
+        Collection $refreshedRows,
+        array $context
+    ): array {
+        $assessmentEntries = collect($selectionConfig['assessments'] ?? [])
+            ->values();
+        $existingEntry = $assessmentEntries
+            ->firstWhere('assessment_id', $assessment->id) ?? [];
+        $existingCompetencyMap = collect($existingEntry['competencies'] ?? [])
+            ->mapWithKeys(fn ($entry) => [(string) ($entry['kompetensi'] ?? '') => $entry]);
+        $selectionAssessment = [
+            'assessment_id' => (int) $assessment->id,
+            'assessment_code' => $assessment->kode_assessment,
+            'assessment_title' => $assessment->judul,
+            'instrument_type' => $context['assessment_meta']['instrument_type'] ?? null,
+            'instrument_label' => $context['assessment_meta']['instrument_label'] ?? null,
+            'competencies' => collect(KompetensiGuru::cases())
+                ->map(function (KompetensiGuru $kompetensi) use ($context, $existingCompetencyMap, $refreshedRows) {
+                    $group = $context['competency_pools'][$kompetensi->value] ?? [
+                        'forms' => [],
+                        'pool' => [],
+                    ];
+                    $availableCount = count($group['pool'] ?? []);
+                    $existingConfig = $existingCompetencyMap->get($kompetensi->value, []);
+                    $selectedCount = (int) $refreshedRows
+                        ->where('kompetensi', $kompetensi->value)
+                        ->count();
+                    $selectionMode = $availableCount < 1
+                        ? 'unavailable'
+                        : (($existingConfig['selection_mode'] ?? 'count') === 'all' ? 'all' : 'count');
+
+                    return [
+                        'kompetensi' => $kompetensi->value,
+                        'kompetensi_label' => $kompetensi->label(),
+                        'selection_mode' => $selectionMode,
+                        'available_form_count' => count($group['forms'] ?? []),
+                        'available_question_count' => $availableCount,
+                        'requested_question_count' => $availableCount < 1
+                            ? 0
+                            : max((int) ($existingConfig['requested_question_count'] ?? $selectedCount), 0),
+                        'selected_question_count' => $selectedCount,
+                        'forms' => collect($group['forms'] ?? [])
+                            ->values()
+                            ->all(),
+                    ];
+                })
+                ->values()
+                ->all(),
+            'auto_included_forms' => collect($context['auto_included_forms'] ?? [])
+                ->map(function (array $formEntry) use ($refreshedRows) {
+                    $formId = (int) ($formEntry['form']->id ?? 0);
+                    $selectedCount = (int) $refreshedRows
+                        ->where('assessment_form_id', $formId)
+                        ->count();
+
+                    return [
+                        'form_id' => $formId,
+                        'form_code' => $formEntry['form']->kode_form,
+                        'form_title' => $formEntry['form']->judul_form,
+                        'form_description' => $formEntry['form']->deskripsi,
+                        'indikator_kode' => $formEntry['form_meta']['indikator_kode'] ?? null,
+                        'indikator_label' => $formEntry['form_meta']['indikator_label'] ?? null,
+                        'available_question_count' => (int) ($formEntry['available_question_count'] ?? 0),
+                        'selected_question_count' => $selectedCount,
+                        'selection_mode' => 'fixed_all',
+                    ];
+                })
+                ->values()
+                ->all(),
+            'auto_included_form_count' => count($context['auto_included_forms'] ?? []),
+            'auto_included_question_count' => (int) $refreshedRows->whereNull('kompetensi')->count(),
+            'selected_question_count' => (int) $refreshedRows->count(),
+        ];
+
+        $selectionConfig['assessments'] = $assessmentEntries
+            ->reject(fn ($entry) => (int) ($entry['assessment_id'] ?? 0) === (int) $assessment->id)
+            ->push($selectionAssessment)
+            ->values()
+            ->all();
+
+        if (blank($selectionConfig['target_ketenagaan'] ?? null)) {
+            $selectionConfig['target_ketenagaan'] = $assessment->target_ketenagaan;
+        }
+
+        return $selectionConfig;
+    }
+
+    private function isAssessmentEligibleForCombination(
+        Assessment $assessment,
+        ?string $targetKetenagaan
+    ): bool {
+        return (bool) $assessment->is_active
+            && $assessment->status === 'publish'
+            && ($targetKetenagaan === null || $assessment->target_ketenagaan === $targetKetenagaan);
     }
 
     private function resolveSelectionSeed(string $randomSeed, int $assessmentId, string|int $selector): int

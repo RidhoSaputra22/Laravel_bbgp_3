@@ -33,6 +33,12 @@
         return $label;
     };
 
+    $normalizeChoiceOptions = function ($options): array {
+        return \App\Support\Assessment\ChoiceOptionNormalizer::normalizeMany(
+            is_array($options) ? $options : [],
+        );
+    };
+
 @endphp
 
 @push('styles')
@@ -162,6 +168,9 @@
                                     @php
                                         $fieldWidth = $field->lebar_kolom ?: 'col-md-12';
                                         $fieldLabelId = 'preview-field-' . $form->id . '-' . $field->id;
+                                        $normalizedOptions = in_array($field->tipe_field, ['select', 'radio', 'checkbox'], true)
+                                            ? $normalizeChoiceOptions($field->opsi_field)
+                                            : [];
                                     @endphp
                                     <div class="{{ $fieldWidth }}">
                                         <div class="form-group">
@@ -180,34 +189,30 @@
                                             @switch($field->tipe_field)
                                                 @case('textarea')
                                                     <textarea id="{{ $fieldLabelId }}" class="form-control" rows="3" placeholder="{{ $field->placeholder }}"
-                                                        readonly></textarea>
+                                                    ></textarea>
                                                 @break
 
                                                 @case('select')
-                                                    <select id="{{ $fieldLabelId }}" class="form-control" disabled>
+                                                    <select id="{{ $fieldLabelId }}" class="form-control">
                                                         <option value="" selected>
                                                             {{ $field->placeholder ?: '-- Pilih salah satu --' }}
                                                         </option>
-                                                        @foreach ($field->opsi_field ?? [] as $option)
-                                                            <option value="{{ $option }}">
-                                                                {{ $option }}
+                                                        @foreach ($normalizedOptions as $option)
+                                                            <option value="{{ $option['value'] }}">
+                                                                {{ $option['label'] }}
                                                             </option>
                                                         @endforeach
                                                     </select>
                                                 @break
 
                                                 @case('radio')
-                                                    @forelse ($field->opsi_field ?? [] as $option)
+                                                    @forelse ($normalizedOptions as $option)
                                                         @php
-                                                            $normalizedOption = \App\Support\Assessment\ChoiceOptionNormalizer::normalize(
-                                                                $option,
-                                                                $loop->index,
-                                                            );
                                                             $optionCode =
-                                                                trim((string) ($normalizedOption['value'] ?? '')) ?:
+                                                                trim((string) ($option['value'] ?? '')) ?:
                                                                 $generateChoiceLabel($loop->index);
                                                             $optionText =
-                                                                trim((string) ($normalizedOption['label'] ?? '')) ?:
+                                                                trim((string) ($option['label'] ?? '')) ?:
                                                                 'Belum ada isi jawaban';
                                                             $optionId = $fieldLabelId . '-' . $loop->index;
                                                         @endphp
@@ -215,8 +220,7 @@
                                                             class="d-block rounded border bg-white px-3 py-3 mb-2">
                                                             <div class="d-flex align-items-start">
                                                                 <input type="radio" class="mt-1 mr-3"
-                                                                    id="{{ $optionId }}" name="{{ $field->nama_field }}"
-                                                                    disabled>
+                                                                    id="{{ $optionId }}" name="{{ $field->nama_field }}">
                                                                 <div class="flex-grow-1">
                                                                     <div class="space-x-2">
                                                                         {{ $optionCode }}.
@@ -232,16 +236,15 @@
                                                 @break
 
                                                 @case('checkbox')
-                                                    @forelse ($field->opsi_field ?? [] as $option)
+                                                    @forelse ($normalizedOptions as $option)
                                                         @php
                                                             $optionId = $fieldLabelId . '-' . $loop->index;
                                                         @endphp
                                                         <div class="custom-control custom-checkbox mb-2">
                                                             <input type="checkbox" class="custom-control-input"
-                                                                id="{{ $optionId }}" name="{{ $field->nama_field }}[]"
-                                                                disabled>
+                                                                id="{{ $optionId }}" name="{{ $field->nama_field }}[]">
                                                             <label class="custom-control-label" for="{{ $optionId }}">
-                                                                {{ $option }}
+                                                                {{ $option['label'] }}
                                                             </label>
                                                         </div>
                                                     @empty
@@ -252,7 +255,7 @@
                                                 @case('file')
                                                     <div class="custom-file">
                                                         <input type="file" class="custom-file-input"
-                                                            id="{{ $fieldLabelId }}" disabled>
+                                                            id="{{ $fieldLabelId }}">
                                                         <label class="custom-file-label" for="{{ $fieldLabelId }}">
                                                             Pilih file
                                                         </label>
@@ -284,19 +287,26 @@
                                                                         @foreach ($columns as $column)
                                                                             <td>
                                                                                 @if (($column['tipe_field'] ?? 'text') === 'select')
-                                                                                    <select class="form-control" disabled>
+                                                                                    @php
+                                                                                        $normalizedColumnOptions = $normalizeChoiceOptions(
+                                                                                            $column['opsi_field'] ?? [],
+                                                                                        );
+                                                                                    @endphp
+                                                                                    <select class="form-control">
                                                                                         <option value="">Pilih</option>
-                                                                                        @foreach (($column['opsi_field'] ?? []) as $option)
-                                                                                            <option value="{{ $option }}">{{ $option }}</option>
+                                                                                        @foreach ($normalizedColumnOptions as $option)
+                                                                                            <option value="{{ $option['value'] }}">
+                                                                                                {{ $option['label'] }}
+                                                                                            </option>
                                                                                         @endforeach
                                                                                     </select>
                                                                                 @elseif (($column['tipe_field'] ?? 'text') === 'textarea')
-                                                                                    <textarea class="form-control" rows="2" disabled></textarea>
+                                                                                    <textarea class="form-control" rows="2"></textarea>
                                                                                 @else
                                                                                     <input
                                                                                         type="{{ in_array(($column['tipe_field'] ?? 'text'), ['text', 'email', 'number', 'date'], true) ? ($column['tipe_field'] ?? 'text') : 'text' }}"
                                                                                         class="form-control" value=""
-                                                                                        placeholder="{{ $column['placeholder'] ?? '' }}" readonly>
+                                                                                        placeholder="{{ $column['placeholder'] ?? '' }}">
                                                                                 @endif
                                                                             </td>
                                                                         @endforeach
@@ -311,7 +321,7 @@
                                                     <input
                                                         type="{{ in_array($field->tipe_field, ['text', 'email', 'number', 'date'], true) ? $field->tipe_field : 'text' }}"
                                                         id="{{ $fieldLabelId }}" class="form-control" value=""
-                                                        placeholder="{{ $field->placeholder }}" readonly>
+                                                        placeholder="{{ $field->placeholder }}">
                                             @endswitch
 
                                             @if ($field->bantuan)
