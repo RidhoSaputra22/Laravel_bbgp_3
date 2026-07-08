@@ -6,6 +6,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
+use App\Models\AssessmentAttemptAnswer;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentAttemptService;
@@ -367,15 +368,145 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
+    public function test_submit_expired_with_empty_partial_field_ids_preserves_existing_answers(): void
+    {
+        ['attempt' => $attempt, 'fields' => [$firstField, $secondField]] = $this->createAttemptScenarioWithFields([
+            [
+                'label' => 'Pertanyaan Utama',
+                'is_required' => true,
+            ],
+            [
+                'label' => 'Pertanyaan Cadangan',
+                'is_required' => false,
+            ],
+        ]);
+
+        AssessmentAttemptAnswer::query()->create([
+            'assessment_attempt_id' => $attempt->id,
+            'assessment_id' => 1,
+            'assessment_form_id' => 1,
+            'assessment_form_field_id' => $firstField->id,
+            'answer_text' => 'Jawaban tersimpan sebelumnya',
+            'answer_payload' => [
+                'type' => 'text',
+                'value' => 'Jawaban tersimpan sebelumnya',
+            ],
+            'answered_at' => now(),
+        ]);
+
+        $savedAttempt = $this->makeService()->submitExpired($attempt, [], [], [], []);
+        $answersByFieldId = $savedAttempt->answers->keyBy('assessment_form_field_id');
+
+        $this->assertSame('submitted', $savedAttempt->status);
+        $this->assertSame('Jawaban tersimpan sebelumnya', $answersByFieldId[$firstField->id]->answer_text);
+        $this->assertNull($answersByFieldId[$secondField->id]->answer_text);
+        $this->assertSame(0.0, (float) $answersByFieldId[$secondField->id]->auto_score);
+        $this->assertTrue((bool) data_get(
+            $answersByFieldId[$secondField->id]->answer_payload,
+            'forced_zero_for_unanswered'
+        ));
+    }
+
+    public function test_submit_disqualified_with_partial_field_ids_preserves_existing_answers_and_flags(): void
+    {
+        ['attempt' => $attempt, 'fields' => [$firstField, $secondField, $thirdField]] = $this->createAttemptScenarioWithFields([
+            [
+                'label' => 'Pertanyaan Awal',
+                'is_required' => true,
+            ],
+            [
+                'label' => 'Pertanyaan Perubahan',
+                'is_required' => false,
+            ],
+            [
+                'label' => 'Pertanyaan Kosong',
+                'is_required' => false,
+            ],
+        ]);
+
+        AssessmentAttemptAnswer::query()->create([
+            'assessment_attempt_id' => $attempt->id,
+            'assessment_id' => 1,
+            'assessment_form_id' => 1,
+            'assessment_form_field_id' => $firstField->id,
+            'answer_text' => 'Jawaban awal peserta',
+            'answer_payload' => [
+                'type' => 'text',
+                'value' => 'Jawaban awal peserta',
+            ],
+            'answered_at' => now(),
+        ]);
+
+        $snapshot = $attempt->structure_snapshot ?? [];
+        data_set($snapshot, 'meta.flagged_field_ids', [$firstField->id]);
+        $attempt->forceFill([
+            'structure_snapshot' => $snapshot,
+        ])->save();
+
+        $savedAttempt = $this->makeService()->submitDisqualified(
+            $attempt,
+            [$secondField->id => 'Jawaban terakhir sebelum diskualifikasi'],
+            [],
+            'Pelanggaran guard',
+            null,
+            [$secondField->id]
+        );
+        $answersByFieldId = $savedAttempt->answers->keyBy('assessment_form_field_id');
+
+        $this->assertSame('submitted', $savedAttempt->status);
+        $this->assertNotNull($savedAttempt->disqualified_at);
+        $this->assertSame('Pelanggaran guard', $savedAttempt->disqualification_reason);
+        $this->assertSame('Jawaban awal peserta', $answersByFieldId[$firstField->id]->answer_text);
+        $this->assertSame(
+            'Jawaban terakhir sebelum diskualifikasi',
+            $answersByFieldId[$secondField->id]->answer_text
+        );
+        $this->assertSame(0.0, (float) $answersByFieldId[$thirdField->id]->auto_score);
+        $this->assertTrue((bool) data_get(
+            $answersByFieldId[$thirdField->id]->answer_payload,
+            'forced_zero_for_unanswered'
+        ));
+        $this->assertSame([$firstField->id], data_get($savedAttempt->structure_snapshot, 'meta.flagged_field_ids'));
+    }
+
     private function makeService(): AssessmentAttemptService
     {
+        $scoringService = Mockery::mock(AssessmentScoringService::class);
+        $scoringService->shouldIgnoreMissing();
+        $scoringService->shouldReceive('buildSummary')
+            ->zeroOrMoreTimes()
+            ->andReturn([]);
+
+        $autoScoringService = Mockery::mock(AssessmentAutoScoringService::class);
+        $autoScoringService->shouldIgnoreMissing();
+        $autoScoringService->shouldReceive('scoreAttempt')
+            ->zeroOrMoreTimes()
+            ->andReturnNull();
+
         return new AssessmentAttemptService(
-            Mockery::mock(AssessmentScoringService::class),
-            Mockery::mock(AssessmentAutoScoringService::class)
+            $scoringService,
+            $autoScoringService
         );
     }
 
     private function createAttemptScenario(array $fieldOverrides = []): array
+    {
+        ['attempt' => $attempt, 'fields' => [$field]] = $this->createAttemptScenarioWithFields([
+            [
+                'label' => 'Pertanyaan Reflektif',
+                'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
+                'opsi_field' => [],
+                'is_required' => true,
+            ],
+        ]);
+
+        return [
+            'attempt' => $attempt,
+            'field' => $field,
+        ];
+    }
+
+    private function createAttemptScenarioWithFields(array $fieldDefinitions): array
     {
         $assignment = AssessmentAssignment::query()->create();
         $assessment = Assessment::query()->create([
@@ -389,14 +520,20 @@ class AssessmentAttemptServiceTest extends TestCase
             'kode_form' => 'FORM-1',
             'is_active' => true,
         ]);
-        $field = AssessmentFormField::query()->create([
-            'assessment_form_id' => $form->id,
-            'label' => 'Pertanyaan Reflektif',
-            'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
-            'opsi_field' => [],
-            'is_required' => true,
-            'is_active' => true,
-        ]);
+        $fields = collect($fieldDefinitions)
+            ->values()
+            ->map(function (array $fieldDefinition, int $index) use ($form) {
+                return AssessmentFormField::query()->create([
+                    'assessment_form_id' => $form->id,
+                    'label' => $fieldDefinition['label'] ?? 'Pertanyaan '.($index + 1),
+                    'tipe_field' => $fieldDefinition['tipe_field'] ?? 'text',
+                    'opsi_field' => $fieldDefinition['opsi_field'] ?? [],
+                    'urutan' => $index + 1,
+                    'is_required' => (bool) ($fieldDefinition['is_required'] ?? false),
+                    'is_active' => true,
+                ]);
+            })
+            ->values();
 
         DB::table('assessment_assignment_assessments')->insert([
             'assessment_assignment_id' => $assignment->id,
@@ -412,16 +549,31 @@ class AssessmentAttemptServiceTest extends TestCase
             'started_at' => now(),
         ]);
 
+        $requiredQuestions = $fields->filter(fn (AssessmentFormField $field) => (bool) $field->is_required)->count();
+        $snapshotFields = $fields
+            ->map(function (AssessmentFormField $field) use ($assessment, $form) {
+                return [
+                    'id' => $field->id,
+                    'assessment_id' => $assessment->id,
+                    'assessment_form_id' => $form->id,
+                    'label' => $field->label,
+                    'tipe_field' => $field->tipe_field,
+                    'opsi_field' => $field->opsi_field ?? [],
+                    'is_required' => (bool) $field->is_required,
+                ];
+            })
+            ->all();
+
         $attempt = AssessmentAttempt::query()->create([
             'assessment_assignment_target_id' => $target->id,
             'status' => 'in_progress',
             'started_at' => now(),
-            'total_questions' => 1,
-            'required_questions' => 1,
+            'total_questions' => $fields->count(),
+            'required_questions' => $requiredQuestions,
             'structure_snapshot' => [
                 'meta' => [
-                    'total_questions' => 1,
-                    'required_questions' => 1,
+                    'total_questions' => $fields->count(),
+                    'required_questions' => $requiredQuestions,
                     'flagged_field_ids' => [],
                 ],
                 'assessments' => [
@@ -434,17 +586,7 @@ class AssessmentAttemptServiceTest extends TestCase
                                 'id' => $form->id,
                                 'judul_form' => 'Form Reflektif',
                                 'kode_form' => 'FORM-1',
-                                'fields' => [
-                                    [
-                                        'id' => $field->id,
-                                        'assessment_id' => $assessment->id,
-                                        'assessment_form_id' => $form->id,
-                                        'label' => 'Pertanyaan Reflektif',
-                                        'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
-                                        'opsi_field' => [],
-                                        'is_required' => true,
-                                    ],
-                                ],
+                                'fields' => $snapshotFields,
                             ],
                         ],
                     ],
@@ -454,7 +596,7 @@ class AssessmentAttemptServiceTest extends TestCase
 
         return [
             'attempt' => $attempt,
-            'field' => $field,
+            'fields' => $fields->all(),
         ];
     }
 }

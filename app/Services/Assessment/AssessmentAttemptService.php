@@ -131,16 +131,24 @@ class AssessmentAttemptService
         AssessmentAttempt $attempt,
         array $answers = [],
         array $files = [],
-        array $flaggedFieldIds = []
+        ?array $flaggedFieldIds = null,
+        ?array $fieldIds = null
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
         }
 
-        return $this->finalizeAttempt($attempt, $answers, $files, [
+        $options = [
             'force_zero_for_unanswered' => true,
-            'flagged_field_ids' => $flaggedFieldIds,
-        ]);
+            'process_partial_payload' => $fieldIds !== null,
+            'submitted_field_ids' => $fieldIds ?? [],
+        ];
+
+        if ($flaggedFieldIds !== null) {
+            $options['flagged_field_ids'] = $flaggedFieldIds;
+        }
+
+        return $this->finalizeAttempt($attempt, $answers, $files, $options);
     }
 
     public function submitDisqualified(
@@ -148,7 +156,8 @@ class AssessmentAttemptService
         array $answers = [],
         array $files = [],
         ?string $reason = null,
-        array $flaggedFieldIds = []
+        ?array $flaggedFieldIds = null,
+        ?array $fieldIds = null
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
@@ -156,7 +165,7 @@ class AssessmentAttemptService
 
         $reason = trim((string) ($reason ?? ''));
 
-        return $this->finalizeAttempt($attempt, $answers, $files, [
+        $options = [
             'force_zero_for_unanswered' => true,
             'submission_mode' => 'security_disqualified',
             'submission_note' => $reason !== ''
@@ -168,8 +177,15 @@ class AssessmentAttemptService
             'disqualification_reason' => $reason !== ''
                 ? $reason
                 : 'Assessment dihentikan oleh sistem guard karena terdeteksi pelanggaran aturan ujian.',
-            'flagged_field_ids' => $flaggedFieldIds,
-        ]);
+            'process_partial_payload' => $fieldIds !== null,
+            'submitted_field_ids' => $fieldIds ?? [],
+        ];
+
+        if ($flaggedFieldIds !== null) {
+            $options['flagged_field_ids'] = $flaggedFieldIds;
+        }
+
+        return $this->finalizeAttempt($attempt, $answers, $files, $options);
     }
 
     public function buildResultSummary(AssessmentAttempt $attempt): array
@@ -257,18 +273,30 @@ class AssessmentAttemptService
         $forceZeroForUnanswered = (bool) ($options['force_zero_for_unanswered'] ?? false);
         $snapshot = $attempt->structure_snapshot ?? [];
         $fields = $this->flattenFields($snapshot);
-        $processedFieldIds = $this->extractFieldIds($fields);
-        $flaggedFieldIds = $this->syncFlaggedFieldIds(
-            $attempt,
-            $processedFieldIds,
-            $options['flagged_field_ids'] ?? []
-        );
+        $availableFieldIds = $this->extractFieldIds($fields);
+        $flaggedFieldIds = is_array($options['flagged_field_ids'] ?? null)
+            ? $this->syncFlaggedFieldIds(
+                $attempt,
+                $availableFieldIds,
+                $options['flagged_field_ids']
+            )
+            : $this->normalizeFieldIds(data_get($snapshot, 'meta.flagged_field_ids', []));
+        $processPartialPayload = (bool) ($options['process_partial_payload'] ?? false);
+        $submittedFieldIds = $processPartialPayload
+            ? $this->normalizeFieldIds($options['submitted_field_ids'] ?? [])
+            : [];
+        $fieldsToProcess = $processPartialPayload
+            ? $this->filterFieldsByIds($fields, $submittedFieldIds)
+            : $fields;
+        $processedFieldIds = $processPartialPayload
+            ? $this->extractFieldIds($fieldsToProcess)
+            : $availableFieldIds;
         $existingAnswers = $attempt->answers()
             ->whereIn('assessment_form_field_id', $processedFieldIds)
             ->get()
             ->keyBy('assessment_form_field_id');
         $normalizedAnswers = $this->validateAndNormalizeAnswers(
-            $fields,
+            $fieldsToProcess,
             $answers,
             $files,
             $existingAnswers,

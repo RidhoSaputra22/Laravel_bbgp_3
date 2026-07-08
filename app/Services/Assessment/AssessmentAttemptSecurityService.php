@@ -115,7 +115,9 @@ class AssessmentAttemptSecurityService
         AssessmentAttempt $attempt,
         array $payload,
         array $answers = [],
-        array $files = []
+        array $files = [],
+        ?array $flaggedFieldIds = null,
+        ?array $fieldIds = null
     ): AssessmentAttempt {
         $reason = trim((string) ($payload['reason'] ?? ''));
         $reason = $reason !== ''
@@ -124,7 +126,16 @@ class AssessmentAttemptSecurityService
         $recordTrigger = (bool) ($payload['record_trigger'] ?? false);
         $triggerEvent = $payload['trigger_event'] ?? null;
 
-        return DB::transaction(function () use ($attempt, $reason, $recordTrigger, $triggerEvent, $answers, $files) {
+        return DB::transaction(function () use (
+            $attempt,
+            $reason,
+            $recordTrigger,
+            $triggerEvent,
+            $answers,
+            $files,
+            $flaggedFieldIds,
+            $fieldIds
+        ) {
             /** @var \App\Models\AssessmentAttempt $lockedAttempt */
             $lockedAttempt = AssessmentAttempt::query()
                 ->with('target.assignment')
@@ -141,7 +152,9 @@ class AssessmentAttemptSecurityService
                     $lockedAttempt,
                     $answers,
                     $files,
-                    $reason
+                    $reason,
+                    $flaggedFieldIds,
+                    $fieldIds
                 );
             } elseif (! $lockedAttempt->disqualified_at) {
                 $lockedAttempt->forceFill([
