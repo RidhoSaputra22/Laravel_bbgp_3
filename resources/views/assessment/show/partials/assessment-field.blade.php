@@ -236,6 +236,7 @@
                                     @else
                                         <input
                                             type="{{ in_array($columnType, ['number', 'email', 'date'], true) ? $columnType : 'text' }}"
+                                            @if ($columnType === 'number') inputmode="decimal" @endif
                                             class="w-full rounded-sm border border-[#d0dbe5] px-3 py-2 text-sm text-slate-700 focus:border-[#1376bd] focus:outline-none focus:ring-2 focus:ring-[#1376bd]/20"
                                             :name="fieldName(rowIndex, '{{ $columnName }}')"
                                             x-model="row['{{ $columnName }}']"

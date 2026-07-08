@@ -61,7 +61,7 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-6 gap-2 sm:grid-cols-12 2xl:grid-cols-10">
+                <div class="grid grid-cols-5 gap-2 sm:grid-cols-12 2xl:grid-cols-10">
                     @foreach ($group['questions'] as $question)
                         <button type="button"
                             class="relative flex h-10 w-full items-center justify-center rounded-sm border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#0d5f98]/30"
@@ -69,7 +69,7 @@
                             x-bind:class="questionButtonClass({{ $question['field_id'] }},
                                 {{ $group['assessment_index'] }})"
                             x-bind:title="questionButtonTitle({{ $question['field_id'] }})"
-                            @click="goToQuestion({{ $question['field_id'] }}, {{ $group['assessment_index'] }})">
+                            @click="goToQuestion({{ $question['field_id'] }}, {{ $group['assessment_index'] }}, $event)">
                             <span>{{ $question['number'] }}</span>
 
                         </button>

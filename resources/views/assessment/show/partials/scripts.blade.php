@@ -1022,6 +1022,12 @@
 
                         ['input', 'change'].forEach((eventName) => {
                             form.addEventListener(eventName, (event) => {
+                                this.normalizeNumberInput(event.target);
+                            }, true);
+                        });
+
+                        ['input', 'change'].forEach((eventName) => {
+                            form.addEventListener(eventName, (event) => {
                                 const fieldWrapper = event.target?.closest('[data-assessment-field]');
 
                                 if (!fieldWrapper) {
@@ -1066,6 +1072,46 @@
                 },
                 formElement() {
                     return this.$refs.assessmentExamForm ?? null;
+                },
+                isNumberInput(target) {
+                    return target instanceof HTMLInputElement && target.type === 'number';
+                },
+                sanitizeNumberInputValue(value) {
+                    const normalizedValue = String(value ?? '').replace(/,/g, '.');
+                    let sanitizedValue = '';
+                    let hasDecimalSeparator = false;
+                    let hasSign = false;
+
+                    for (const character of normalizedValue) {
+                        if (/\d/.test(character)) {
+                            sanitizedValue += character;
+                            continue;
+                        }
+
+                        if (character === '-' && !hasSign && sanitizedValue === '') {
+                            sanitizedValue += character;
+                            hasSign = true;
+                            continue;
+                        }
+
+                        if (character === '.' && !hasDecimalSeparator) {
+                            sanitizedValue += character;
+                            hasDecimalSeparator = true;
+                        }
+                    }
+
+                    return sanitizedValue;
+                },
+                normalizeNumberInput(target) {
+                    if (!this.isNumberInput(target)) {
+                        return;
+                    }
+
+                    const sanitizedValue = this.sanitizeNumberInputValue(target.value);
+
+                    if (target.value !== sanitizedValue) {
+                        target.value = sanitizedValue;
+                    }
                 },
                 getAssessmentPanel(index) {
                     const form = this.formElement();
@@ -1416,13 +1462,29 @@
 
                     this.switchToAssessment(boundedIndex);
                 },
-                async goToQuestion(fieldId, assessmentIndex) {
+                closeQuestionNavigationPanel(trigger) {
+                    const detailsElement = trigger?.closest?.('details');
+
+                    if (!(detailsElement instanceof HTMLDetailsElement) || !detailsElement.open) {
+                        return Promise.resolve();
+                    }
+
+                    detailsElement.open = false;
+
+                    return new Promise((resolve) => {
+                        window.requestAnimationFrame(() => {
+                            window.requestAnimationFrame(resolve);
+                        });
+                    });
+                },
+                async goToQuestion(fieldId, assessmentIndex, event = null) {
                     if (this.isBusy()) {
                         return;
                     }
 
                     const normalizedFieldId = Number(fieldId);
                     const boundedAssessmentIndex = Math.max(0, Math.min(Number(assessmentIndex), this.totalAssessments - 1));
+                    const triggerElement = event?.currentTarget ?? event?.target ?? null;
 
                     if (!normalizedFieldId) {
                         return;
@@ -1436,6 +1498,7 @@
                         }
                     }
 
+                    await this.closeQuestionNavigationPanel(triggerElement);
                     this.switchToAssessment(boundedAssessmentIndex, normalizedFieldId);
                 },
                 switchToAssessment(index, questionFieldId = null) {
@@ -1740,7 +1803,7 @@
                             ? fieldWrapper.querySelector('textarea')
                             : (fieldType === 'select'
                                 ? fieldWrapper.querySelector('select')
-                                : fieldWrapper.querySelector('input:not([type="radio"]):not([type="checkbox"]):not([type="file"])'));
+                                : fieldWrapper.querySelector('input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"])'));
 
                         if (!input) {
                             return {
@@ -1923,7 +1986,7 @@
                         ? fieldWrapper.querySelector('textarea')
                         : (fieldType === 'select'
                             ? fieldWrapper.querySelector('select')
-                            : fieldWrapper.querySelector('input:not([type="radio"]):not([type="checkbox"]):not([type="file"])'));
+                            : fieldWrapper.querySelector('input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"])'));
 
                     if (!input) {
                         return false;
