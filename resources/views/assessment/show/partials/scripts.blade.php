@@ -1409,6 +1409,76 @@
 
                     return formData;
                 },
+                filterAutosaveTraceEntries(trace, allowedFieldIds, includeFieldlessEntries = false) {
+                    const allowedFieldIdSet = new Set(this.normalizeFieldIdList(allowedFieldIds));
+
+                    return (Array.isArray(trace) ? trace : []).filter((entry) => {
+                        const traceFieldId = Number(entry?.field_id ?? 0);
+
+                        if (traceFieldId > 0) {
+                            return allowedFieldIdSet.has(traceFieldId);
+                        }
+
+                        return includeFieldlessEntries;
+                    });
+                },
+                validateFieldForAutosave(fieldWrapper) {
+                    return this.validateField(fieldWrapper, {
+                        enforceRequired: false,
+                        enforceFlagged: false,
+                        enforceRepeaterCompleteness: false,
+                    });
+                },
+                splitAutosaveBucket(bucket) {
+                    const normalizedBucket = this.normalizeAutosaveBucket(bucket);
+                    const savableFieldIds = [];
+                    const deferredFieldIds = [];
+
+                    normalizedBucket.dirtyFieldIds.forEach((fieldId) => {
+                        const fieldWrapper = this.getFieldWrapper(fieldId);
+
+                        if (!fieldWrapper) {
+                            savableFieldIds.push(fieldId);
+                            return;
+                        }
+
+                        const validation = this.validateFieldForAutosave(fieldWrapper);
+
+                        if (validation.valid) {
+                            savableFieldIds.push(fieldId);
+                        } else {
+                            deferredFieldIds.push(fieldId);
+                        }
+
+                        this.syncQuestionState(fieldId);
+                    });
+
+                    const hasSavablePayload = normalizedBucket.flaggedDirty || savableFieldIds.length > 0;
+                    const commonTrace = this.filterAutosaveTraceEntries(normalizedBucket.trace, [], true);
+
+                    return {
+                        savableBucket: {
+                            dirtyFieldIds: savableFieldIds,
+                            flaggedDirty: normalizedBucket.flaggedDirty,
+                            hasMutations: hasSavablePayload,
+                            startedAt: normalizedBucket.startedAt,
+                            trace: [
+                                ...(hasSavablePayload ? commonTrace : []),
+                                ...this.filterAutosaveTraceEntries(normalizedBucket.trace, savableFieldIds),
+                            ].slice(-30),
+                        },
+                        deferredBucket: {
+                            dirtyFieldIds: deferredFieldIds,
+                            flaggedDirty: false,
+                            hasMutations: deferredFieldIds.length > 0,
+                            startedAt: normalizedBucket.startedAt,
+                            trace: [
+                                ...(!hasSavablePayload ? commonTrace : []),
+                                ...this.filterAutosaveTraceEntries(normalizedBucket.trace, deferredFieldIds),
+                            ].slice(-30),
+                        },
+                    };
+                },
                 isNumberInput(target) {
                     return target instanceof HTMLInputElement && target.type === 'number';
                 },
@@ -1594,7 +1664,7 @@
                     return this.flaggedFieldIds.includes(Number(fieldId));
                 },
                 async toggleFlag(fieldId) {
-                    if (this.isBusy()) {
+                    if (this.isInteractionLocked()) {
                         return;
                     }
 
@@ -1716,6 +1786,9 @@
                 isBusy() {
                     return this.isSubmitting || this.isAutosaving || this.deadlineSubmissionTriggered;
                 },
+                isInteractionLocked() {
+                    return this.isSubmitting || this.deadlineSubmissionTriggered;
+                },
                 openFinishModal() {
                     if (this.isBusy()) {
                         return;
@@ -1791,7 +1864,7 @@
                     return Math.round(((this.currentAssessmentIndex + 1) / this.totalAssessments) * 100);
                 },
                 async goToAssessment(index) {
-                    if (this.isBusy() || this.totalAssessments <= 0) {
+                    if (this.isInteractionLocked() || this.totalAssessments <= 0) {
                         return;
                     }
 
@@ -1801,16 +1874,13 @@
                         return;
                     }
 
-                    const snapshotStatus = await this.registerAutosaveAction('navigate_assessment', {
-                        fromAssessmentIndex: this.currentAssessmentIndex,
-                        toAssessmentIndex: boundedIndex,
-                    });
-
-                    if (snapshotStatus === 'failed') {
-                        return;
-                    }
+                    const previousAssessmentIndex = this.currentAssessmentIndex;
 
                     this.switchToAssessment(boundedIndex);
+                    void this.registerAutosaveAction('navigate_assessment', {
+                        fromAssessmentIndex: previousAssessmentIndex,
+                        toAssessmentIndex: boundedIndex,
+                    });
                 },
                 closeQuestionNavigationPanel(trigger) {
                     const detailsElement = trigger?.closest?.('details');
@@ -1828,7 +1898,7 @@
                     });
                 },
                 async goToQuestion(fieldId, assessmentIndex, event = null) {
-                    if (this.isBusy()) {
+                    if (this.isInteractionLocked()) {
                         return;
                     }
 
@@ -1840,19 +1910,24 @@
                         return;
                     }
 
-                    const snapshotStatus = await this.registerAutosaveAction('navigate_question', {
-                        fieldId: normalizedFieldId,
-                        fromAssessmentIndex: this.currentAssessmentIndex,
-                        toAssessmentIndex: boundedAssessmentIndex,
-                        assessmentIndex: boundedAssessmentIndex,
-                    });
-
-                    if (snapshotStatus === 'failed') {
+                    if (
+                        boundedAssessmentIndex === this.currentAssessmentIndex
+                        && normalizedFieldId === Number(this.currentQuestionFieldId)
+                    ) {
+                        void this.closeQuestionNavigationPanel(triggerElement);
                         return;
                     }
 
-                    await this.closeQuestionNavigationPanel(triggerElement);
+                    const previousAssessmentIndex = this.currentAssessmentIndex;
+
+                    void this.closeQuestionNavigationPanel(triggerElement);
                     this.switchToAssessment(boundedAssessmentIndex, normalizedFieldId);
+                    void this.registerAutosaveAction('navigate_question', {
+                        fieldId: normalizedFieldId,
+                        fromAssessmentIndex: previousAssessmentIndex,
+                        toAssessmentIndex: boundedAssessmentIndex,
+                        assessmentIndex: boundedAssessmentIndex,
+                    });
                 },
                 switchToAssessment(index, questionFieldId = null) {
                     this.currentAssessmentIndex = index;
@@ -1874,20 +1949,27 @@
                     }
 
                     const reason = String(options.reason || 'autosave_threshold_reached');
-                    const bucketToFlush = this.consumeAutosaveBucket();
+                    const consumedBucket = this.consumeAutosaveBucket();
+                    const {
+                        savableBucket,
+                        deferredBucket
+                    } = this.splitAutosaveBucket(consumedBucket);
 
-                    if (!bucketToFlush.hasMutations && !bucketToFlush.flaggedDirty && bucketToFlush.dirtyFieldIds.length === 0) {
-                        return 'saved';
+                    if (deferredBucket.hasMutations) {
+                        this.mergeAutosaveBucket(deferredBucket);
                     }
 
-                    const formData = this.buildAutosavePayload(bucketToFlush, reason);
+                    if (!savableBucket.hasMutations && !savableBucket.flaggedDirty && savableBucket.dirtyFieldIds.length === 0) {
+                        return deferredBucket.hasMutations ? 'deferred_invalid' : 'saved';
+                    }
+
+                    const formData = this.buildAutosavePayload(savableBucket, reason);
 
                     if (!formData) {
-                        this.mergeAutosaveBucket(bucketToFlush);
+                        this.mergeAutosaveBucket(savableBucket);
                         return 'saved';
                     }
 
-                    this.clearAllFieldErrors();
                     this.isAutosaving = true;
 
                     try {
@@ -1910,7 +1992,7 @@
                                 window.alert('Snapshot jawaban belum berhasil disimpan.');
                             }
 
-                            this.mergeAutosaveBucket(bucketToFlush);
+                            this.mergeAutosaveBucket(savableBucket);
 
                             return 'failed';
                         }
@@ -1923,7 +2005,7 @@
 
                         return 'saved';
                     } catch (error) {
-                        this.mergeAutosaveBucket(bucketToFlush);
+                        this.mergeAutosaveBucket(savableBucket);
                         window.alert('Terjadi kendala saat menyimpan snapshot jawaban. Silakan coba lagi.');
 
                         return 'failed';
@@ -2085,9 +2167,9 @@
                         fieldId: null,
                     };
                 },
-                validateField(fieldWrapper) {
+                validateField(fieldWrapper, options = {}) {
                     this.clearFieldError(fieldWrapper);
-                    const validation = this.resolveFieldValidation(fieldWrapper);
+                    const validation = this.resolveFieldValidation(fieldWrapper, options);
 
                     if (validation.valid) {
                         return validation;
@@ -2097,14 +2179,19 @@
 
                     return validation;
                 },
-                resolveFieldValidation(fieldWrapper) {
+                resolveFieldValidation(fieldWrapper, options = {}) {
 
                     const fieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
                     const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
                     const fieldLabel = fieldWrapper.dataset.fieldLabel ?? 'field ini';
                     const isRequired = fieldWrapper.dataset.required === '1';
                     const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
-                    const requiresAnswer = isRequired || this.isFieldFlagged(fieldId);
+                    const enforceRequired = options.enforceRequired !== false;
+                    const enforceFlagged = options.enforceFlagged !== false;
+                    const enforceRepeaterCompleteness = options.enforceRepeaterCompleteness !== false;
+                    const requiresAnswer =
+                        (enforceRequired && isRequired)
+                        || (enforceFlagged && this.isFieldFlagged(fieldId));
                     let message = null;
 
                     if (fieldType === 'radio') {
@@ -2146,15 +2233,17 @@
                                     continue;
                                 }
 
-                                const missingRequiredInput = inputs.find((input) => {
-                                    return input.dataset.repeaterRequired === '1'
-                                        && String(input.value || '').trim() === '';
-                                });
+                                if (enforceRepeaterCompleteness) {
+                                    const missingRequiredInput = inputs.find((input) => {
+                                        return input.dataset.repeaterRequired === '1'
+                                            && String(input.value || '').trim() === '';
+                                    });
 
-                                if (missingRequiredInput) {
-                                    const columnLabel = missingRequiredInput.dataset.repeaterLabel || 'Kolom';
-                                    message = `${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} wajib diisi.`;
-                                    break;
+                                    if (missingRequiredInput) {
+                                        const columnLabel = missingRequiredInput.dataset.repeaterLabel || 'Kolom';
+                                        message = `${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} wajib diisi.`;
+                                        break;
+                                    }
                                 }
 
                                 const invalidTextareaInput = inputs.find((input) => {
