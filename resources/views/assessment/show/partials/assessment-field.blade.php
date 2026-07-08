@@ -2,6 +2,7 @@
     $savedAnswer = $answerLookup[(int) $field['id']] ?? [];
     $savedPayload = is_array($savedAnswer['payload'] ?? null) ? $savedAnswer['payload'] : [];
     $fieldError = $errors->first('answers.' . $field['id']);
+    $hasFieldError = filled($fieldError);
     $assessmentIndex = isset($assessmentIndex) ? max((int) $assessmentIndex, 0) : 0;
     $displayQuestionNumber = isset($displayQuestionNumber) ? max((int) $displayQuestionNumber, 0) : null;
     $displayQuestionPrefix = isset($displayQuestionPrefix) ? trim((string) $displayQuestionPrefix) : '';
@@ -55,7 +56,13 @@
     };
 @endphp
 
-<div class="mb-8 rounded-sm scroll-mt-32" data-assessment-field
+<div
+    @class([
+        'mb-8 scroll-mt-32 transition-all duration-200',
+        'rounded-sm border border-red-200 bg-red-50/70 p-1' => $hasFieldError,
+    ])
+    x-bind:class="fieldWrapperClass({{ (int) $field['id'] }}, {{ $assessmentIndex }})"
+    data-assessment-field
     data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
     data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}"
     data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
@@ -255,10 +262,12 @@
     @endswitch
 
     @if ($fieldError)
-        <div class="mt-2 text-sm text-red-600" data-field-error role="alert">
+        <div class="mt-3 rounded-lg border border-red-200 bg-white/80 px-4 py-3 text-sm leading-6 text-red-700"
+            data-field-error role="alert">
             {{ $fieldError }}
         </div>
     @else
-        <div class="mt-2 hidden text-sm text-red-600" data-field-error role="alert"></div>
+        <div class="mt-3 hidden rounded-lg border border-red-200 bg-white/80 px-4 py-3 text-sm leading-6 text-red-700"
+            data-field-error role="alert"></div>
     @endif
 </div>

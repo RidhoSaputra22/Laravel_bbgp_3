@@ -24,7 +24,7 @@
 
     <div class="relative w-full {{ $maxWidth }}" x-transition>
         <x-assessment::ui.card class="overflow-hidden rounded-[28px] p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)]">
-            <div class="border-b border-slate-200 px-2 py-3 sm:px-6 sm:py-5">
+            <div class="border-b border-slate-200 ">
                 <div class="flex items-start justify-between gap-4">
                     <div>
                         @if ($title)
@@ -51,12 +51,12 @@
                 </div>
             </div>
 
-            <div class="sm:px-6 sm:py-5 px-2 py-3">
+            <div class="">
                 {{ $slot }}
             </div>
 
             @isset($footer)
-                <div class="border-t border-slate-200 px-2 py-3 sm:px-6 sm:py-5">
+                <div class="border-t border-slate-200 ">
                     {{ $footer }}
                 </div>
             @endisset

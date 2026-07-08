@@ -1181,6 +1181,24 @@
 
                     return classes.join(' ');
                 },
+                fieldWrapperClass(fieldId, assessmentIndex) {
+                    const isCurrentQuestion = Number(this.currentQuestionFieldId) === Number(fieldId);
+                    const isCurrentAssessment = Number(this.currentAssessmentIndex) === Number(assessmentIndex);
+
+                    if (!isCurrentQuestion || !isCurrentAssessment) {
+                        return '';
+                    }
+
+                    return [
+
+                        'ring-2',
+                        'ring-[#1376bd]',
+                        'ring-offset-8',
+                        'shadow-sm',
+                        'shadow-[#1376bd]/10',
+
+                    ].join(' ');
+                },
                 questionButtonTitle(fieldId) {
                     const item = this.questionItemByFieldId(fieldId);
                     const parts = [];
@@ -1684,7 +1702,14 @@
                     }
                 },
                 setFieldError(fieldWrapper, message) {
-                    fieldWrapper.classList.add('border-red-500/50', 'bg-red-50/50');
+                    fieldWrapper.classList.add(
+                        'rounded-sm',
+                        'border',
+                        'border-red-200',
+                        'bg-red-50/70',
+                        'px-3',
+                        'py-2',
+                    );
 
                     const errorElement = fieldWrapper.querySelector('[data-field-error]');
 
@@ -1696,7 +1721,14 @@
                     errorElement.classList.remove('hidden');
                 },
                 clearFieldError(fieldWrapper) {
-                    fieldWrapper.classList.remove('border-red-500/50', 'bg-red-50/50');
+                    fieldWrapper.classList.remove(
+                        'rounded-sm',
+                        'border',
+                        'border-red-200',
+                        'bg-red-50/70',
+                        'px-3',
+                        'py-2',
+                    );
 
                     const errorElement = fieldWrapper.querySelector('[data-field-error]');
 
