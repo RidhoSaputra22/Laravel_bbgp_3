@@ -222,7 +222,8 @@ class PortalController extends Controller
             $request->input('answers', []),
             $request->file('answers', []),
             $request->input('field_ids', []),
-            $request->input('flagged_field_ids', [])
+            $request->input('flagged_field_ids', []),
+            $this->decodeClientSnapshotBucket($request->input('client_snapshot_bucket'))
         );
 
         return response()->json([
@@ -526,5 +527,20 @@ class PortalController extends Controller
         abort_unless($guru, 403);
 
         return $guru;
+    }
+
+    private function decodeClientSnapshotBucket(mixed $rawBucket): array
+    {
+        if (is_array($rawBucket)) {
+            return $rawBucket;
+        }
+
+        if (! is_string($rawBucket) || trim($rawBucket) === '') {
+            return [];
+        }
+
+        $decodedBucket = json_decode($rawBucket, true);
+
+        return is_array($decodedBucket) ? $decodedBucket : [];
     }
 }

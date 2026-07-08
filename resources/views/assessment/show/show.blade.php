@@ -238,6 +238,7 @@
         initialFlaggedFieldIds: @js($initialFlaggedFieldIds),
         initialQuestionFieldId: {{ $initialQuestionFieldId }},
         autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
+        autosaveActionThreshold: 3,
         resultUrl: @js(route('assessment.portal.result', $target->id)),
         deadlineAt: @js(optional($countdownTargetAt)->toIso8601String()),
         textareaWordLimits: @js([

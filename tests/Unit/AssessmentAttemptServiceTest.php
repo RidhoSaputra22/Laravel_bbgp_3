@@ -254,6 +254,96 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
+    public function test_save_snapshot_stores_client_bucket_metadata_without_dirty_answers(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario();
+
+        $savedAttempt = $this->makeService()->saveSnapshot(
+            $attempt,
+            [],
+            [],
+            [],
+            [],
+            [
+                'flush_reason' => 'navigate_assessment',
+                'threshold' => 3,
+                'dirty_field_ids' => [],
+                'form_data_field_ids' => [],
+                'flagged_dirty' => true,
+                'started_at' => '2026-07-08T22:00:00+08:00',
+                'trace' => [
+                    [
+                        'sequence' => 1,
+                        'type' => 'flag_toggle',
+                        'changed' => true,
+                        'field_id' => $field->id,
+                        'assessment_index' => 0,
+                        'client_occurred_at' => '2026-07-08T22:00:05+08:00',
+                    ],
+                ],
+            ]
+        );
+
+        $autosaveMeta = data_get($savedAttempt->structure_snapshot, 'meta.autosave', []);
+
+        $this->assertSame('navigate_assessment', $autosaveMeta['last_flush_reason'] ?? null);
+        $this->assertSame(3, $autosaveMeta['last_threshold'] ?? null);
+        $this->assertTrue((bool) ($autosaveMeta['last_flagged_dirty'] ?? false));
+        $this->assertSame([], $autosaveMeta['last_dirty_field_ids'] ?? null);
+        $this->assertSame(1, $autosaveMeta['last_trace_count'] ?? null);
+        $this->assertSame('flag_toggle', data_get($autosaveMeta, 'last_trace.0.type'));
+        $this->assertDatabaseCount('assessment_attempt_answers', 0);
+    }
+
+    public function test_save_snapshot_stores_client_bucket_metadata_with_dirty_answer(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario();
+
+        $savedAttempt = $this->makeService()->saveSnapshot(
+            $attempt,
+            [$field->id => 'Jawaban snapshot peserta'],
+            [],
+            [$field->id],
+            [],
+            [
+                'flush_reason' => 'field_change',
+                'threshold' => 3,
+                'dirty_field_ids' => [$field->id],
+                'form_data_field_ids' => [$field->id],
+                'flagged_dirty' => false,
+                'started_at' => '2026-07-08T22:01:00+08:00',
+                'trace' => [
+                    [
+                        'sequence' => 1,
+                        'type' => 'field_change',
+                        'changed' => true,
+                        'field_id' => $field->id,
+                        'assessment_index' => 0,
+                        'client_occurred_at' => '2026-07-08T22:01:03+08:00',
+                    ],
+                    [
+                        'sequence' => 2,
+                        'type' => 'navigate_question',
+                        'changed' => false,
+                        'field_id' => $field->id,
+                        'from_assessment_index' => 0,
+                        'to_assessment_index' => 0,
+                        'client_occurred_at' => '2026-07-08T22:01:08+08:00',
+                    ],
+                ],
+            ]
+        );
+
+        $autosaveMeta = data_get($savedAttempt->structure_snapshot, 'meta.autosave', []);
+
+        $this->assertSame('field_change', $autosaveMeta['last_flush_reason'] ?? null);
+        $this->assertSame([$field->id], $autosaveMeta['last_dirty_field_ids'] ?? null);
+        $this->assertSame([$field->id], $autosaveMeta['last_form_data_field_ids'] ?? null);
+        $this->assertSame(2, $autosaveMeta['last_trace_count'] ?? null);
+        $this->assertSame('navigate_question', data_get($autosaveMeta, 'last_trace.1.type'));
+        $this->assertSame('Jawaban snapshot peserta', optional($savedAttempt->answers->first())->answer_text);
+    }
+
     public function test_submit_rejects_textarea_answer_above_maximum_word_count(): void
     {
         ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([

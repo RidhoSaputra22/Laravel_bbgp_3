@@ -53,12 +53,23 @@
                 canRemove() {
                     return this.rows.length > Math.max(this.minRows, 1);
                 },
+                notifyMutation(action) {
+                    this.$nextTick(() => {
+                        this.$root?.dispatchEvent(new CustomEvent('assessment:repeater-mutated', {
+                            bubbles: true,
+                            detail: {
+                                action,
+                            },
+                        }));
+                    });
+                },
                 addRow() {
                     if (!this.canAdd()) {
                         return;
                     }
 
                     this.rows.push(this.buildRow(this.rows.length));
+                    this.notifyMutation('add_row');
                 },
                 removeRow(index) {
                     if (!this.canRemove()) {
@@ -66,6 +77,7 @@
                     }
 
                     this.rows.splice(index, 1);
+                    this.notifyMutation('remove_row');
                 },
             };
         };
@@ -1007,11 +1019,18 @@
                 showFinishModal: false,
                 isSubmitting: false,
                 isAutosaving: false,
+                autosaveActionThreshold: Math.max(1, Number(config.autosaveActionThreshold ?? 3)),
+                autosaveActionCount: 0,
+                autosaveBucket: null,
+                autosaveTraceSequence: 0,
+                autosaveQueued: false,
+                autosaveQueuedReason: null,
                 deadlineWatcherId: null,
                 deadlineSubmissionTriggered: false,
 
                 init() {
                     this.flaggedFieldIds = this.normalizeFieldIdList(config.initialFlaggedFieldIds ?? []);
+                    this.autosaveBucket = this.createAutosaveBucket();
 
                     this.$nextTick(() => {
                         const form = this.formElement();
@@ -1038,6 +1057,40 @@
                                 this.clearFieldError(fieldWrapper);
                                 this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
                                 this.syncQuestionState(fieldWrapper.dataset.fieldId);
+
+                                if (eventName === 'input') {
+                                    this.trackFieldMutation(event.target, 'field_input');
+                                    return;
+                                }
+
+                                void this.handleFieldChangeAction(event.target);
+                            });
+                        });
+
+                        form.addEventListener('assessment:repeater-mutated', (event) => {
+                            const fieldWrapper = event.target?.closest?.('[data-assessment-field]');
+
+                            if (!fieldWrapper) {
+                                return;
+                            }
+
+                            const normalizedFieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
+
+                            if (!normalizedFieldId) {
+                                return;
+                            }
+
+                            const action = String(event.detail?.action ?? 'mutated');
+
+                            this.setCurrentQuestion(normalizedFieldId);
+                            this.markFieldAsDirty(normalizedFieldId, `repeater_${action}`, {
+                                assessmentIndex: Number(fieldWrapper.dataset.assessmentIndex ?? this.currentAssessmentIndex),
+                            });
+                            this.syncQuestionState(normalizedFieldId);
+
+                            void this.registerAutosaveAction(`repeater_${action}`, {
+                                fieldId: normalizedFieldId,
+                                assessmentIndex: Number(fieldWrapper.dataset.assessmentIndex ?? this.currentAssessmentIndex),
                             });
                         });
 
@@ -1072,6 +1125,289 @@
                 },
                 formElement() {
                     return this.$refs.assessmentExamForm ?? null;
+                },
+                createAutosaveBucket() {
+                    return {
+                        dirtyFieldIds: [],
+                        flaggedDirty: false,
+                        hasMutations: false,
+                        startedAt: null,
+                        trace: [],
+                    };
+                },
+                normalizeAutosaveBucket(bucket) {
+                    const normalizedBucket = bucket && typeof bucket === 'object'
+                        ? bucket
+                        : this.createAutosaveBucket();
+
+                    return {
+                        dirtyFieldIds: this.normalizeFieldIdList(normalizedBucket.dirtyFieldIds ?? []),
+                        flaggedDirty: Boolean(normalizedBucket.flaggedDirty),
+                        hasMutations: Boolean(normalizedBucket.hasMutations),
+                        startedAt: typeof normalizedBucket.startedAt === 'string' ? normalizedBucket.startedAt : null,
+                        trace: Array.isArray(normalizedBucket.trace) ? normalizedBucket.trace : [],
+                    };
+                },
+                ensureAutosaveBucket() {
+                    this.autosaveBucket = this.normalizeAutosaveBucket(this.autosaveBucket);
+
+                    return this.autosaveBucket;
+                },
+                hasPendingAutosaveMutations() {
+                    const bucket = this.ensureAutosaveBucket();
+
+                    return bucket.hasMutations || bucket.flaggedDirty || bucket.dirtyFieldIds.length > 0;
+                },
+                appendAutosaveTrace(type, details = {}) {
+                    const bucket = this.ensureAutosaveBucket();
+                    const normalizedFieldId = Number(details.fieldId ?? 0);
+                    const normalizedAssessmentIndex = Number(details.assessmentIndex ?? -1);
+                    const lastTraceEntry = bucket.trace[bucket.trace.length - 1] ?? null;
+
+                    if (
+                        type === 'field_input'
+                        && lastTraceEntry
+                        && lastTraceEntry.type === 'field_input'
+                        && Number(lastTraceEntry.field_id ?? 0) === normalizedFieldId
+                        && Number(lastTraceEntry.assessment_index ?? -1) === normalizedAssessmentIndex
+                    ) {
+                        lastTraceEntry.client_occurred_at = new Date().toISOString();
+                        lastTraceEntry.changed = lastTraceEntry.changed || Boolean(details.changed);
+
+                        return lastTraceEntry;
+                    }
+
+                    this.autosaveTraceSequence += 1;
+
+                    const traceEntry = {
+                        sequence: this.autosaveTraceSequence,
+                        type: String(type || 'unknown'),
+                        changed: Boolean(details.changed),
+                        client_occurred_at: new Date().toISOString(),
+                    };
+
+                    if (Number.isInteger(Number(details.fieldId)) && Number(details.fieldId) > 0) {
+                        traceEntry.field_id = Number(details.fieldId);
+                    }
+
+                    if (Number.isInteger(Number(details.assessmentIndex)) && Number(details.assessmentIndex) >= 0) {
+                        traceEntry.assessment_index = Number(details.assessmentIndex);
+                    }
+
+                    if (Number.isInteger(Number(details.fromAssessmentIndex)) && Number(details.fromAssessmentIndex) >= 0) {
+                        traceEntry.from_assessment_index = Number(details.fromAssessmentIndex);
+                    }
+
+                    if (Number.isInteger(Number(details.toAssessmentIndex)) && Number(details.toAssessmentIndex) >= 0) {
+                        traceEntry.to_assessment_index = Number(details.toAssessmentIndex);
+                    }
+
+                    bucket.trace = [...bucket.trace, traceEntry].slice(-30);
+
+                    return traceEntry;
+                },
+                mergeAutosaveBucket(bucket) {
+                    const currentBucket = this.ensureAutosaveBucket();
+                    const normalizedBucket = this.normalizeAutosaveBucket(bucket);
+
+                    if (!normalizedBucket.hasMutations && !normalizedBucket.flaggedDirty && normalizedBucket.dirtyFieldIds.length === 0) {
+                        return;
+                    }
+
+                    this.autosaveBucket = {
+                        dirtyFieldIds: this.normalizeFieldIdList([
+                            ...normalizedBucket.dirtyFieldIds,
+                            ...currentBucket.dirtyFieldIds,
+                        ]),
+                        flaggedDirty: normalizedBucket.flaggedDirty || currentBucket.flaggedDirty,
+                        hasMutations: normalizedBucket.hasMutations || currentBucket.hasMutations,
+                        startedAt: normalizedBucket.startedAt || currentBucket.startedAt,
+                        trace: [...normalizedBucket.trace, ...currentBucket.trace].slice(-30),
+                    };
+                },
+                consumeAutosaveBucket() {
+                    const bucketToFlush = this.normalizeAutosaveBucket(this.autosaveBucket);
+
+                    this.autosaveBucket = this.createAutosaveBucket();
+
+                    return bucketToFlush;
+                },
+                markFieldAsDirty(fieldId, traceType = 'field_mutated', details = {}) {
+                    const normalizedFieldId = Number(fieldId);
+
+                    if (!normalizedFieldId) {
+                        return;
+                    }
+
+                    const bucket = this.ensureAutosaveBucket();
+
+                    bucket.hasMutations = true;
+                    bucket.startedAt = bucket.startedAt || new Date().toISOString();
+                    bucket.dirtyFieldIds = this.normalizeFieldIdList([
+                        ...bucket.dirtyFieldIds,
+                        normalizedFieldId,
+                    ]);
+
+                    this.appendAutosaveTrace(traceType, {
+                        ...details,
+                        fieldId: normalizedFieldId,
+                        changed: true,
+                    });
+                },
+                markFlagMutation(fieldId) {
+                    const bucket = this.ensureAutosaveBucket();
+
+                    bucket.hasMutations = true;
+                    bucket.flaggedDirty = true;
+                    bucket.startedAt = bucket.startedAt || new Date().toISOString();
+
+                    this.appendAutosaveTrace('flag_toggled', {
+                        fieldId,
+                        assessmentIndex: this.currentAssessmentIndex,
+                        changed: true,
+                    });
+                },
+                isTrackableAnswerTarget(target) {
+                    return (
+                        target instanceof HTMLInputElement
+                        || target instanceof HTMLSelectElement
+                        || target instanceof HTMLTextAreaElement
+                    ) && typeof target.name === 'string'
+                        && /^answers\[\d+\]/.test(target.name);
+                },
+                extractFieldIdFromAnswerName(name) {
+                    const match = String(name ?? '').match(/^answers\[(\d+)\](?:\[|$)/);
+
+                    if (!match) {
+                        return 0;
+                    }
+
+                    return Number(match[1] ?? 0);
+                },
+                trackFieldMutation(target, traceType = 'field_mutated') {
+                    if (!this.isTrackableAnswerTarget(target)) {
+                        return;
+                    }
+
+                    const fieldId = this.extractFieldIdFromAnswerName(target.name);
+                    const fieldWrapper = target.closest?.('[data-assessment-field]');
+
+                    this.markFieldAsDirty(fieldId, traceType, {
+                        assessmentIndex: Number(fieldWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
+                    });
+                },
+                async handleFieldChangeAction(target) {
+                    if (!this.isTrackableAnswerTarget(target)) {
+                        return;
+                    }
+
+                    const fieldId = this.extractFieldIdFromAnswerName(target.name);
+                    const fieldWrapper = target.closest?.('[data-assessment-field]');
+
+                    this.trackFieldMutation(target, 'field_change');
+
+                    await this.registerAutosaveAction('field_change', {
+                        fieldId,
+                        assessmentIndex: Number(fieldWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
+                    });
+                },
+                async registerAutosaveAction(actionType, details = {}) {
+                    const hasPendingMutations = this.hasPendingAutosaveMutations();
+
+                    if (hasPendingMutations) {
+                        this.appendAutosaveTrace(actionType, {
+                            ...details,
+                            changed: false,
+                        });
+                    }
+
+                    this.autosaveActionCount += 1;
+
+                    if (this.autosaveActionCount < this.autosaveActionThreshold) {
+                        return 'skipped';
+                    }
+
+                    this.autosaveActionCount = 0;
+
+                    if (!this.hasPendingAutosaveMutations()) {
+                        return 'skipped';
+                    }
+
+                    if (this.isAutosaving) {
+                        this.autosaveQueued = true;
+                        this.autosaveQueuedReason = String(actionType || 'queued_autosave');
+
+                        return 'queued';
+                    }
+
+                    return await this.saveCurrentAssessmentSnapshot({
+                        reason: String(actionType || 'autosave_threshold_reached'),
+                    });
+                },
+                findDirtyFieldIdsFromFormData(sourceFormData, dirtyFieldIds) {
+                    const dirtyFieldIdSet = new Set(this.normalizeFieldIdList(dirtyFieldIds));
+                    const matchedFieldIds = new Set();
+
+                    for (const [key] of sourceFormData.entries()) {
+                        const fieldId = this.extractFieldIdFromAnswerName(key);
+
+                        if (!fieldId || !dirtyFieldIdSet.has(fieldId)) {
+                            continue;
+                        }
+
+                        matchedFieldIds.add(fieldId);
+                    }
+
+                    return Array.from(matchedFieldIds.values());
+                },
+                buildAutosavePayload(bucket, reason = 'autosave_threshold_reached') {
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return null;
+                    }
+
+                    const normalizedBucket = this.normalizeAutosaveBucket(bucket);
+                    const sourceFormData = new FormData(form);
+                    const formData = new FormData();
+                    const csrfToken = sourceFormData.get('_token');
+
+                    if (typeof csrfToken === 'string' && csrfToken !== '') {
+                        formData.append('_token', csrfToken);
+                    }
+
+                    formData.append('active_assessment_index', String(this.currentAssessmentIndex));
+                    this.flaggedFieldIds.forEach((fieldId) => {
+                        formData.append('flagged_field_ids[]', String(fieldId));
+                    });
+
+                    const dirtyFieldIds = this.normalizeFieldIdList(normalizedBucket.dirtyFieldIds);
+
+                    dirtyFieldIds.forEach((fieldId) => {
+                        formData.append('field_ids[]', String(fieldId));
+                    });
+
+                    for (const [key, value] of sourceFormData.entries()) {
+                        const fieldId = this.extractFieldIdFromAnswerName(key);
+
+                        if (!fieldId || !dirtyFieldIds.includes(fieldId)) {
+                            continue;
+                        }
+
+                        formData.append(key, value);
+                    }
+
+                    formData.append('client_snapshot_bucket', JSON.stringify({
+                        flush_reason: reason,
+                        threshold: this.autosaveActionThreshold,
+                        dirty_field_ids: dirtyFieldIds,
+                        form_data_field_ids: this.findDirtyFieldIdsFromFormData(sourceFormData, dirtyFieldIds),
+                        flagged_dirty: normalizedBucket.flaggedDirty,
+                        started_at: normalizedBucket.startedAt,
+                        trace: normalizedBucket.trace,
+                    }));
+
+                    return formData;
                 },
                 isNumberInput(target) {
                     return target instanceof HTMLInputElement && target.type === 'number';
@@ -1257,7 +1593,7 @@
                 isFieldFlagged(fieldId) {
                     return this.flaggedFieldIds.includes(Number(fieldId));
                 },
-                toggleFlag(fieldId) {
+                async toggleFlag(fieldId) {
                     if (this.isBusy()) {
                         return;
                     }
@@ -1282,6 +1618,12 @@
                     if (fieldWrapper) {
                         this.clearFieldError(fieldWrapper);
                     }
+
+                    this.markFlagMutation(normalizedFieldId);
+                    await this.registerAutosaveAction('flag_toggle', {
+                        fieldId: normalizedFieldId,
+                        assessmentIndex: Number(fieldWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
+                    });
                 },
                 questionState(fieldId) {
                     return this.questionStateByFieldId[String(Number(fieldId))] ?? {
@@ -1459,9 +1801,12 @@
                         return;
                     }
 
-                    const snapshotStatus = await this.saveCurrentAssessmentSnapshot();
+                    const snapshotStatus = await this.registerAutosaveAction('navigate_assessment', {
+                        fromAssessmentIndex: this.currentAssessmentIndex,
+                        toAssessmentIndex: boundedIndex,
+                    });
 
-                    if (snapshotStatus !== 'saved') {
+                    if (snapshotStatus === 'failed') {
                         return;
                     }
 
@@ -1495,12 +1840,15 @@
                         return;
                     }
 
-                    if (boundedAssessmentIndex !== this.currentAssessmentIndex) {
-                        const snapshotStatus = await this.saveCurrentAssessmentSnapshot();
+                    const snapshotStatus = await this.registerAutosaveAction('navigate_question', {
+                        fieldId: normalizedFieldId,
+                        fromAssessmentIndex: this.currentAssessmentIndex,
+                        toAssessmentIndex: boundedAssessmentIndex,
+                        assessmentIndex: boundedAssessmentIndex,
+                    });
 
-                        if (snapshotStatus !== 'saved') {
-                            return;
-                        }
+                    if (snapshotStatus === 'failed') {
+                        return;
                     }
 
                     await this.closeQuestionNavigationPanel(triggerElement);
@@ -1520,16 +1868,22 @@
                         this.scrollToTop();
                     });
                 },
-                async saveCurrentAssessmentSnapshot() {
+                async saveCurrentAssessmentSnapshot(options = {}) {
                     if (!this.autosaveUrl) {
                         return 'saved';
                     }
 
-                    const form = this.formElement();
-                    const currentMeta = this.currentAssessmentMeta();
-                    const fieldIds = Array.isArray(currentMeta.field_ids) ? currentMeta.field_ids : [];
+                    const reason = String(options.reason || 'autosave_threshold_reached');
+                    const bucketToFlush = this.consumeAutosaveBucket();
 
-                    if (!form || fieldIds.length === 0) {
+                    if (!bucketToFlush.hasMutations && !bucketToFlush.flaggedDirty && bucketToFlush.dirtyFieldIds.length === 0) {
+                        return 'saved';
+                    }
+
+                    const formData = this.buildAutosavePayload(bucketToFlush, reason);
+
+                    if (!formData) {
+                        this.mergeAutosaveBucket(bucketToFlush);
                         return 'saved';
                     }
 
@@ -1537,12 +1891,6 @@
                     this.isAutosaving = true;
 
                     try {
-                        const formData = new FormData(form);
-                        formData.append('active_assessment_index', String(this.currentAssessmentIndex));
-                        fieldIds.forEach((fieldId) => {
-                            formData.append('field_ids[]', String(fieldId));
-                        });
-
                         const response = await fetch(this.autosaveUrl, {
                             method: 'POST',
                             body: formData,
@@ -1562,6 +1910,8 @@
                                 window.alert('Snapshot jawaban belum berhasil disimpan.');
                             }
 
+                            this.mergeAutosaveBucket(bucketToFlush);
+
                             return 'failed';
                         }
 
@@ -1573,11 +1923,28 @@
 
                         return 'saved';
                     } catch (error) {
+                        this.mergeAutosaveBucket(bucketToFlush);
                         window.alert('Terjadi kendala saat menyimpan snapshot jawaban. Silakan coba lagi.');
 
                         return 'failed';
                     } finally {
                         this.isAutosaving = false;
+
+                        if (this.autosaveQueued && !this.isBusy() && this.hasPendingAutosaveMutations()) {
+                            const queuedReason = this.autosaveQueuedReason || 'queued_autosave';
+
+                            this.autosaveQueued = false;
+                            this.autosaveQueuedReason = null;
+
+                            window.setTimeout(() => {
+                                void this.saveCurrentAssessmentSnapshot({
+                                    reason: queuedReason,
+                                });
+                            }, 0);
+                        } else {
+                            this.autosaveQueued = false;
+                            this.autosaveQueuedReason = null;
+                        }
                     }
                 },
                 async submitExpiredBecauseDeadline() {

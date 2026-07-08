@@ -25,7 +25,8 @@ class AssessmentAttemptService
         array $answers,
         array $files,
         array $fieldIds,
-        array $flaggedFieldIds = []
+        array $flaggedFieldIds = [],
+        array $clientSnapshotBucket = []
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
@@ -37,8 +38,13 @@ class AssessmentAttemptService
         $this->syncFlaggedFieldIds($attempt, $availableFieldIds, $flaggedFieldIds);
         $processedFieldIds = $this->normalizeFieldIds($fieldIds);
         $fields = $this->filterFieldsByIds($allFields, $processedFieldIds);
+        $normalizedClientSnapshotBucket = $this->normalizeClientSnapshotBucket($clientSnapshotBucket);
 
         if ($fields === []) {
+            if ($normalizedClientSnapshotBucket !== []) {
+                $this->persistClientSnapshotBucket($attempt, $normalizedClientSnapshotBucket, now());
+            }
+
             return $this->loadAttemptRelations($attempt->fresh());
         }
 
@@ -55,7 +61,14 @@ class AssessmentAttemptService
         );
         $savedAt = now();
 
-        DB::transaction(function () use ($attempt, $normalizedAnswers, $processedFieldIds, $snapshot, $savedAt) {
+        DB::transaction(function () use (
+            $attempt,
+            $normalizedAnswers,
+            $processedFieldIds,
+            $snapshot,
+            $savedAt,
+            $normalizedClientSnapshotBucket
+        ) {
             $this->persistNormalizedAnswers(
                 $attempt,
                 $normalizedAnswers['answers'],
@@ -73,12 +86,27 @@ class AssessmentAttemptService
                 $savedAt
             );
 
-            $attempt->forceFill([
+            $updatedSnapshot = $this->mergeClientSnapshotBucket(
+                $attempt->structure_snapshot ?? $snapshot,
+                $normalizedClientSnapshotBucket,
+                $savedAt
+            );
+            $attributes = [
                 'status' => 'in_progress',
                 'answered_questions' => (int) $summary['answered_questions'],
                 'answered_required_questions' => (int) $summary['answered_required_questions'],
                 'last_answered_at' => $savedAt,
-            ])->save();
+            ];
+
+            if ($updatedSnapshot !== ($attempt->structure_snapshot ?? [])) {
+                $attributes['structure_snapshot'] = $updatedSnapshot;
+            }
+
+            $attempt->forceFill($attributes)->save();
+
+            if (array_key_exists('structure_snapshot', $attributes)) {
+                $attempt->structure_snapshot = $updatedSnapshot;
+            }
         });
 
         return $this->loadAttemptRelations($attempt->fresh());
@@ -1104,6 +1132,140 @@ class AssessmentAttemptService
         $attempt->structure_snapshot = $snapshot;
 
         return $normalizedFlaggedIds;
+    }
+
+    private function persistClientSnapshotBucket(
+        AssessmentAttempt $attempt,
+        array $clientSnapshotBucket,
+        Carbon $savedAt
+    ): void {
+        $currentSnapshot = $attempt->structure_snapshot ?? [];
+        $updatedSnapshot = $this->mergeClientSnapshotBucket($currentSnapshot, $clientSnapshotBucket, $savedAt);
+
+        if ($updatedSnapshot === $currentSnapshot) {
+            return;
+        }
+
+        $attempt->forceFill([
+            'structure_snapshot' => $updatedSnapshot,
+        ])->save();
+
+        $attempt->structure_snapshot = $updatedSnapshot;
+    }
+
+    private function mergeClientSnapshotBucket(
+        array $snapshot,
+        array $clientSnapshotBucket,
+        Carbon $savedAt
+    ): array {
+        if ($clientSnapshotBucket === []) {
+            return $snapshot;
+        }
+
+        $autosaveMeta = is_array(data_get($snapshot, 'meta.autosave', []))
+            ? data_get($snapshot, 'meta.autosave', [])
+            : [];
+        $existingTraceLog = collect($autosaveMeta['trace_log'] ?? [])
+            ->filter(fn ($entry) => is_array($entry))
+            ->values();
+        $trace = is_array($clientSnapshotBucket['trace'] ?? null) ? $clientSnapshotBucket['trace'] : [];
+        $mergedTraceLog = $existingTraceLog
+            ->concat($trace)
+            ->slice(-90)
+            ->values()
+            ->all();
+
+        $autosaveMeta = array_merge($autosaveMeta, [
+            'last_saved_at' => $savedAt->toIso8601String(),
+            'last_flush_reason' => $clientSnapshotBucket['flush_reason'] ?? 'autosave_threshold_reached',
+            'last_threshold' => (int) ($clientSnapshotBucket['threshold'] ?? 3),
+            'last_dirty_field_ids' => $clientSnapshotBucket['dirty_field_ids'] ?? [],
+            'last_dirty_field_count' => count($clientSnapshotBucket['dirty_field_ids'] ?? []),
+            'last_form_data_field_ids' => $clientSnapshotBucket['form_data_field_ids'] ?? [],
+            'last_form_data_field_count' => count($clientSnapshotBucket['form_data_field_ids'] ?? []),
+            'last_flagged_dirty' => (bool) ($clientSnapshotBucket['flagged_dirty'] ?? false),
+            'last_bucket_started_at' => $clientSnapshotBucket['started_at'] ?? null,
+            'last_trace' => $trace,
+            'last_trace_count' => count($trace),
+            'trace_log' => $mergedTraceLog,
+        ]);
+
+        data_set($snapshot, 'meta.autosave', $autosaveMeta);
+
+        return $snapshot;
+    }
+
+    private function normalizeClientSnapshotBucket(array $clientSnapshotBucket): array
+    {
+        $trace = collect($clientSnapshotBucket['trace'] ?? [])
+            ->filter(fn ($entry) => is_array($entry))
+            ->map(fn (array $entry) => $this->normalizeClientSnapshotTraceEntry($entry))
+            ->filter(fn (array $entry) => $entry !== [])
+            ->slice(-30)
+            ->values()
+            ->all();
+        $dirtyFieldIds = $this->normalizeFieldIds($clientSnapshotBucket['dirty_field_ids'] ?? []);
+        $formDataFieldIds = $this->normalizeFieldIds($clientSnapshotBucket['form_data_field_ids'] ?? []);
+        $flaggedDirty = (bool) ($clientSnapshotBucket['flagged_dirty'] ?? false);
+
+        if ($trace === [] && $dirtyFieldIds === [] && $formDataFieldIds === [] && ! $flaggedDirty) {
+            return [];
+        }
+
+        $flushReason = trim((string) ($clientSnapshotBucket['flush_reason'] ?? 'autosave_threshold_reached'));
+        $startedAt = trim((string) ($clientSnapshotBucket['started_at'] ?? ''));
+        $threshold = max(1, (int) ($clientSnapshotBucket['threshold'] ?? 3));
+
+        return [
+            'flush_reason' => mb_substr($flushReason !== '' ? $flushReason : 'autosave_threshold_reached', 0, 80),
+            'threshold' => $threshold,
+            'dirty_field_ids' => $dirtyFieldIds,
+            'form_data_field_ids' => $formDataFieldIds,
+            'flagged_dirty' => $flaggedDirty,
+            'started_at' => $startedAt !== '' ? mb_substr($startedAt, 0, 60) : null,
+            'trace' => $trace,
+        ];
+    }
+
+    private function normalizeClientSnapshotTraceEntry(array $entry): array
+    {
+        $type = trim((string) ($entry['type'] ?? ''));
+
+        if ($type === '') {
+            return [];
+        }
+
+        $normalizedEntry = [
+            'type' => mb_substr($type, 0, 80),
+            'changed' => (bool) ($entry['changed'] ?? false),
+        ];
+
+        $sequence = (int) ($entry['sequence'] ?? 0);
+
+        if ($sequence > 0) {
+            $normalizedEntry['sequence'] = $sequence;
+        }
+
+        foreach ([
+            'field_id',
+            'assessment_index',
+            'from_assessment_index',
+            'to_assessment_index',
+        ] as $key) {
+            $value = $entry[$key] ?? null;
+
+            if (is_numeric($value) && (int) $value >= 0) {
+                $normalizedEntry[$key] = (int) $value;
+            }
+        }
+
+        $clientOccurredAt = trim((string) ($entry['client_occurred_at'] ?? ''));
+
+        if ($clientOccurredAt !== '') {
+            $normalizedEntry['client_occurred_at'] = mb_substr($clientOccurredAt, 0, 60);
+        }
+
+        return $normalizedEntry;
     }
 
     private function extractFieldIds(array $fields): array
