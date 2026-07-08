@@ -2,6 +2,25 @@
     $savedAnswer = $answerLookup[(int) $field['id']] ?? [];
     $savedPayload = is_array($savedAnswer['payload'] ?? null) ? $savedAnswer['payload'] : [];
     $fieldError = $errors->first('answers.' . $field['id']);
+    $displayQuestionNumber = isset($displayQuestionNumber) ? max((int) $displayQuestionNumber, 0) : null;
+    $displayQuestionPrefix = isset($displayQuestionPrefix) ? trim((string) $displayQuestionPrefix) : '';
+    $fieldLabel = trim((string) ($field['label'] ?? ''));
+    $displayLabel = $fieldLabel;
+
+    if ($displayQuestionNumber && $fieldLabel !== '') {
+        $normalizedLabel = preg_replace(
+            '/^\s*(?:soal\s*)?\d+\s*[\.\)\-:]?\s*/iu',
+            '',
+            $fieldLabel,
+            1
+        ) ?? $fieldLabel;
+        $displayLead = $displayQuestionPrefix !== ''
+            ? $displayQuestionPrefix . ' ' . $displayQuestionNumber
+            : (string) $displayQuestionNumber;
+
+        $displayLabel = trim($displayLead . ($normalizedLabel !== '' ? '. ' . trim($normalizedLabel) : ''));
+    }
+
     $oldValue = old('answers.' . $field['id'], $savedPayload['value'] ?? $savedAnswer['text'] ?? null);
     $checkboxValues = collect(old('answers.' . $field['id'], $savedPayload['values'] ?? []))
         ->map(fn($value) => (string) $value)
@@ -30,18 +49,18 @@
 @endphp
 
 <div class="mb-8 rounded-sm " data-assessment-field
-    data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $field['label'] }}"
+    data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
     data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}">
     @switch($fieldType)
         @case('textarea')
-            <x-assessment::form.textarea :label="$field['label']" :description="$field['deskripsi']"
+            <x-assessment::form.textarea :label="$displayLabel" :description="$field['deskripsi']"
                 :name="$answerName" :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Tuliskan jawaban Anda'" :required="$isRequired"
                 :error="$fieldError" />
         @break
 
         @case('select')
-            <x-assessment::form.select :label="$field['label']" :description="$field['deskripsi']"
+            <x-assessment::form.select :label="$displayLabel" :description="$field['deskripsi']"
                 :name="$answerName" placeholder="Pilih jawaban"
                 :required="$isRequired" :error="$fieldError">
                 @foreach ($field['opsi_field'] ?? [] as $option)
@@ -53,7 +72,7 @@
         @break
 
         @case('radio')
-            <x-assessment::form.radio-group :label="$field['label']" :description="$field['deskripsi']" :name="$answerName" :options="$field['opsi_field'] ?? []"
+            <x-assessment::form.radio-group :label="$displayLabel" :description="$field['deskripsi']" :name="$answerName" :options="$field['opsi_field'] ?? []"
                 :selected="\Illuminate\Support\Arr::wrap($oldValue)" :id-prefix="'field-' . $field['id']"
                 :required="$isRequired" />
 
@@ -61,7 +80,7 @@
         @break
 
         @case('checkbox')
-            <x-assessment::form.checkbox-group :label="$field['label']" :description="$field['deskripsi']" :name="$answerName" :options="$field['opsi_field'] ?? []"
+            <x-assessment::form.checkbox-group :label="$displayLabel" :description="$field['deskripsi']" :name="$answerName" :options="$field['opsi_field'] ?? []"
                 :selected="$checkboxValues" :id-prefix="'field-' . $field['id']"
                 :required="$isRequired" />
 
@@ -69,7 +88,7 @@
         @break
 
         @case('file')
-            <x-assessment::form.file-input :label="$field['label']" :description="$field['deskripsi']"
+            <x-assessment::form.file-input :label="$displayLabel" :description="$field['deskripsi']"
                 :name="$answerName" :required="$isRequired" :error="$fieldError" />
 
             @if ($hasExistingFile)
@@ -104,7 +123,7 @@
             >
                 <div>
                     <label class="mb-2 block text-sm font-semibold text-slate-900">
-                        {{ $field['label'] }}
+                        {{ $displayLabel }}
                         @if ($isRequired)
                             <span class="text-red-500">*</span>
                         @endif
@@ -204,7 +223,7 @@
         @break
 
         @default
-            <x-assessment::form.input :label="$field['label']" :description="$field['deskripsi']"
+            <x-assessment::form.input :label="$displayLabel" :description="$field['deskripsi']"
                 :type="$inputType" :name="$answerName" :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Masukkan jawaban Anda'"
                 :required="$isRequired" :error="$fieldError" />
