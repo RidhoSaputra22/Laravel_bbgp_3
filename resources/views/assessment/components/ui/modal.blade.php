@@ -51,12 +51,12 @@
                 </div>
             </div>
 
-            <div class="">
+            <div class="py-3">
                 {{ $slot }}
             </div>
 
             @isset($footer)
-                <div class="border-t border-slate-200 ">
+                <div class="border-t border-slate-200 py-3">
                     {{ $footer }}
                 </div>
             @endisset

@@ -1222,16 +1222,7 @@
                     if (this.isBusy()) {
                         return;
                     }
-
-                    this.refreshAllQuestionStates();
-                    this.showFinishModal = true;
-                },
-                submitConfirmedForm() {
-                    if (this.isBusy()) {
-                        return;
-                    }
-
-                    const validation = this.validateAllAssessments();
+                     const validation = this.validateAllAssessments();
 
                     if (!validation.valid) {
                         this.showFinishModal = false;
@@ -1243,6 +1234,16 @@
 
                         return;
                     }
+
+                    this.refreshAllQuestionStates();
+                    this.showFinishModal = true;
+                },
+                submitConfirmedForm() {
+                    if (this.isBusy()) {
+                        return;
+                    }
+
+
 
                     const form = this.formElement();
 

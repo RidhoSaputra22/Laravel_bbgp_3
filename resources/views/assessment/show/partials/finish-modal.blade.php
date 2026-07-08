@@ -13,9 +13,8 @@
                         Pastikan semua jawaban sudah final
                     </h4>
                     <p class="mt-1 text-sm leading-relaxed text-slate-500">
-                        Sistem akan mengirim seluruh jawaban dari {{ $assessmentCount }} assessment sekaligus. Jika
-                        masih ada isian wajib yang kosong atau tidak valid, Anda akan dikembalikan ke assessment yang
-                        perlu diperbaiki.
+                        Sistem akan mengirim seluruh jawaban dari {{ $assessmentCount }} assessment sekaligus. Modal ini
+                        hanya ditampilkan setelah isian wajib yang perlu dijawab sudah lolos pengecekan.
                     </p>
                 </div>
             </div>
@@ -25,20 +24,7 @@
             Tekan tombol kirim jika Anda siap menyelesaikan seluruh assessment pada penugasan ini.
         </p>
 
-        <div class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-sm border border-[#dce9f4] bg-white p-3">
-                <div class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Terjawab</div>
-                <div class="mt-1 text-2xl font-bold text-[#0d5f98]" x-text="answeredQuestionCount()"></div>
-            </div>
-            <div class="rounded-sm border border-[#dce9f4] bg-white p-3">
-                <div class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Belum</div>
-                <div class="mt-1 text-2xl font-bold text-slate-700" x-text="unansweredQuestionCount()"></div>
-            </div>
-            <div class="rounded-sm border border-[#dce9f4] bg-white p-3">
-                <div class="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">Flag</div>
-                <div class="mt-1 text-2xl font-bold text-amber-600" x-text="flaggedQuestionCount()"></div>
-            </div>
-        </div>
+
 
         <div x-show="flaggedUnansweredQuestionCount() > 0"
             class="rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
