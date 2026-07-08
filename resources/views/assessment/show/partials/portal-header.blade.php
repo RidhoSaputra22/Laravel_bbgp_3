@@ -8,7 +8,7 @@
                 Baca soal dengan baik lalu isi sesuai keninginan anda
             </p>
         </div>
-        <div class="text-right text-sm">
+        <div class="text-right text-sm hidden sm:block">
             <div class="font-bold">{{ $guru->nama_lengkap }}</div>
             <div>
                 {{ $guru->satuan_pendidikan ?: '-' }}

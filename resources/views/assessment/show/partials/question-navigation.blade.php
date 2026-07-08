@@ -4,7 +4,7 @@
 
 <div class="space-y-4">
     <div class="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div class="hidden sm:block">
             <h3 class="text-base font-semibold text-slate-900">
                 Navigasi Soal
             </h3>
@@ -61,7 +61,7 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-5 gap-2 sm:grid-cols-12 2xl:grid-cols-10">
+                <div class="grid grid-cols-6 gap-2 sm:grid-cols-12 2xl:grid-cols-10">
                     @foreach ($group['questions'] as $question)
                         <button type="button"
                             class="relative flex h-10 w-full items-center justify-center rounded-sm border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#0d5f98]/30"

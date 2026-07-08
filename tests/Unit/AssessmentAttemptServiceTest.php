@@ -11,6 +11,7 @@ use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentAutoScoringService;
 use App\Services\Assessment\AssessmentScoringService;
+use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -229,6 +230,53 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
+    public function test_save_snapshot_rejects_textarea_answer_below_minimum_word_count(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'textarea',
+        ]);
+
+        $answer = implode(' ', array_fill(0, TextareaWordLimit::minWords() - 1, 'kata'));
+
+        try {
+            $this->makeService()->saveSnapshot(
+                $attempt,
+                [$field->id => $answer],
+                [],
+                [$field->id]
+            );
+            $this->fail('Snapshot should reject textarea answer below minimum word count.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Jawaban untuk pertanyaan Pertanyaan Reflektif minimal 25 kata. Saat ini 24 kata.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
+    }
+
+    public function test_submit_rejects_textarea_answer_above_maximum_word_count(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'textarea',
+        ]);
+
+        $answer = implode(' ', array_fill(0, TextareaWordLimit::maxWords() + 1, 'kata'));
+
+        try {
+            $this->makeService()->submit(
+                $attempt,
+                [$field->id => $answer],
+                []
+            );
+            $this->fail('Submit should reject textarea answer above maximum word count.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Jawaban untuk pertanyaan Pertanyaan Reflektif maksimal 100 kata. Saat ini 101 kata.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
+    }
+
     private function makeService(): AssessmentAttemptService
     {
         return new AssessmentAttemptService(
@@ -237,7 +285,7 @@ class AssessmentAttemptServiceTest extends TestCase
         );
     }
 
-    private function createAttemptScenario(): array
+    private function createAttemptScenario(array $fieldOverrides = []): array
     {
         $assignment = AssessmentAssignment::query()->create();
         $assessment = Assessment::query()->create([
@@ -254,7 +302,7 @@ class AssessmentAttemptServiceTest extends TestCase
         $field = AssessmentFormField::query()->create([
             'assessment_form_id' => $form->id,
             'label' => 'Pertanyaan Reflektif',
-            'tipe_field' => 'text',
+            'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
             'opsi_field' => [],
             'is_required' => true,
             'is_active' => true,
@@ -302,7 +350,7 @@ class AssessmentAttemptServiceTest extends TestCase
                                         'assessment_id' => $assessment->id,
                                         'assessment_form_id' => $form->id,
                                         'label' => 'Pertanyaan Reflektif',
-                                        'tipe_field' => 'text',
+                                        'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
                                         'opsi_field' => [],
                                         'is_required' => true,
                                     ],

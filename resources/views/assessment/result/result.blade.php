@@ -15,7 +15,6 @@
         $requiredQuestions = (int) ($summary['required_questions'] ?? 0);
         $answeredQuestions = (int) ($summary['answered_questions'] ?? 0);
         $answeredRequiredQuestions = (int) ($summary['answered_required_questions'] ?? 0);
-        $questionNumber = 0;
         $sessionLabel = $meta['session_label'] ?? '-';
         $sessionScheduleText = $meta['session_schedule_text'] ?? '-';
         $submissionStatusLabel = $meta['label'] ?? 'Dikirim';
@@ -39,6 +38,37 @@
         $formTotal = (int) ($meta['form_total'] ?? 0);
         $description = $meta['description'] ?? 'Hasil assessment ini tersimpan pada portal peserta.';
         $answerHelper = \App\Support\Assessment\AssessmentAnswerViewHelper::class;
+        $normalizeFieldLabel = static function (array $field): string {
+            $fieldLabel = trim((string) ($field['label'] ?? ''));
+
+            if ($fieldLabel === '') {
+                return $fieldLabel;
+            }
+
+            return preg_replace(
+                '/^\s*(?:soal\s*)?\d+\s*[\.\)\-:]?\s*/iu',
+                '',
+                $fieldLabel,
+                1
+            ) ?? $fieldLabel;
+        };
+        $buildDisplayFieldLabel = static function (
+            array $field,
+            ?int $displayQuestionNumber = null,
+            ?string $displayQuestionPrefix = null
+        ) use ($normalizeFieldLabel): string {
+            $normalizedLabel = $normalizeFieldLabel($field);
+
+            if (! $displayQuestionNumber || $normalizedLabel === '') {
+                return $normalizedLabel;
+            }
+
+            $displayLead = filled($displayQuestionPrefix)
+                ? trim($displayQuestionPrefix) . ' ' . $displayQuestionNumber
+                : (string) $displayQuestionNumber;
+
+            return trim($displayLead . '. ' . $normalizedLabel);
+        };
         $seriousViolationCount = (int) ($attempt->serious_violation_count ?? 0);
         $warningViolationCount = (int) ($attempt->warning_violation_count ?? 0);
         $sessionDetails = [
@@ -303,6 +333,11 @@
                     $assessmentQuestionTotal = $assessmentForms->sum(
                         fn ($form) => count($form['fields'] ?? []),
                     );
+                    $isMultipleChoiceAssessment =
+                        ($assessment['instrument_type'] ?? null) ===
+                        \App\Enum\AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value;
+                    $displayQuestionPrefix = $isMultipleChoiceAssessment ? 'Soal' : null;
+                    $questionNumber = 1;
                 @endphp
 
                 <div class="space-y-4">
@@ -349,18 +384,23 @@
                     </x-assessment::ui.card>
 
                     @foreach ($assessment['forms'] ?? [] as $form)
+                        @php
+                            $questionNumberStart = $questionNumber;
+                        @endphp
                         <x-assessment::ui.card>
-                            <h4 class="text-lg font-bold text-[#0d3557]">
-                                {{ $form['judul_form'] }}
-                            </h4>
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">
-                                {{ $form['deskripsi'] ?: 'Daftar jawaban yang Anda kirim untuk form ini.' }}
-                            </p>
+                            @unless($isMultipleChoiceAssessment)
+                                <h4 class="text-lg font-bold text-[#0d3557]">
+                                    {{ $form['judul_form'] }}
+                                </h4>
+                                <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                                    {{ $form['deskripsi'] ?: 'Daftar jawaban yang Anda kirim untuk form ini.' }}
+                                </p>
+                            @endunless
 
                             <div class="mt-5 space-y-4">
-                                @foreach ($form['fields'] ?? [] as $field)
+                                @foreach ($form['fields'] ?? [] as $fieldIndex => $field)
                                     @php
-                                        $questionNumber++;
+                                        $displayQuestionNumber = $questionNumberStart + $fieldIndex;
                                         $fieldId = (int) ($field['id'] ?? 0);
                                         $fieldType = $field['tipe_field'] ?? 'text';
                                         $answer = $answerLookup[$fieldId] ?? null;
@@ -376,13 +416,22 @@
                                             'email' => 'email',
                                             default => 'text',
                                         };
+                                        $normalizedFieldLabel = $normalizeFieldLabel($field);
+                                        $displayFieldLabel = $buildDisplayFieldLabel(
+                                            $field,
+                                            $displayQuestionNumber,
+                                            $displayQuestionPrefix,
+                                        );
+                                        $questionBadgeLabel = filled($displayQuestionPrefix)
+                                            ? trim($displayQuestionPrefix) . ' ' . $displayQuestionNumber
+                                            : 'No. ' . $displayQuestionNumber;
                                     @endphp
 
                                     <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] p-4 sm:p-5">
                                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                             <div class="flex flex-wrap items-center gap-2">
                                                 <span class="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#0d5f98]">
-                                                    Soal {{ $questionNumber }}
+                                                    {{ $questionBadgeLabel }}
                                                 </span>
 
                                                 <x-assessment::ui.status-badge
@@ -418,7 +467,7 @@
 
                                         <div class="mt-4">
                                             <h5 class="text-base font-semibold text-slate-900">
-                                                {{ $field['label'] }}
+                                                {{ $normalizedFieldLabel ?: $displayFieldLabel }}
                                             </h5>
 
                                             @if (!empty($field['deskripsi']))
@@ -427,12 +476,7 @@
                                                 </p>
                                             @endif
 
-                                            @if (!empty($field['bantuan']))
-                                                <p class="mt-2 text-sm leading-relaxed text-slate-500">
-                                                    <i class="far fa-lightbulb mr-1"></i>
-                                                    {{ $field['bantuan'] }}
-                                                </p>
-                                            @endif
+
                                         </div>
 
                                         <div class="mt-4">
@@ -574,6 +618,9 @@
                                 @endforeach
                             </div>
                         </x-assessment::ui.card>
+                        @php
+                            $questionNumber += count($form['fields'] ?? []);
+                        @endphp
                     @endforeach
                 </div>
             @empty

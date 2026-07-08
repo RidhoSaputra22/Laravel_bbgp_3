@@ -240,6 +240,10 @@
         autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
         resultUrl: @js(route('assessment.portal.result', $target->id)),
         deadlineAt: @js(optional($countdownTargetAt)->toIso8601String()),
+        textareaWordLimits: @js([
+            'min' => \App\Support\Assessment\TextareaWordLimit::minWords(),
+            'max' => \App\Support\Assessment\TextareaWordLimit::maxWords(),
+        ]),
         security: @js($securityPayload),
     })" class="space-y-6 **:text-xs sm:**:text-sm">
         @include('assessment.show.partials.security-overlay', [

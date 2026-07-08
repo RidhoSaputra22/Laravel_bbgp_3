@@ -5,6 +5,7 @@ namespace App\Services\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -88,8 +89,7 @@ class AssessmentAttemptService
         array $answers,
         array $files,
         array $flaggedFieldIds = []
-    ): AssessmentAttempt
-    {
+    ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
         }
@@ -520,6 +520,24 @@ class AssessmentAttemptService
                 continue;
             }
 
+            if ($fieldType === 'textarea') {
+                $wordCount = TextareaWordLimit::count($textValue);
+
+                if ($wordCount < TextareaWordLimit::minWords()) {
+                    $messages[$fieldKey] = "Jawaban untuk pertanyaan {$fieldLabel} minimal "
+                        .TextareaWordLimit::minWords()." kata. Saat ini {$wordCount} kata.";
+
+                    continue;
+                }
+
+                if ($wordCount > TextareaWordLimit::maxWords()) {
+                    $messages[$fieldKey] = "Jawaban untuk pertanyaan {$fieldLabel} maksimal "
+                        .TextareaWordLimit::maxWords()." kata. Saat ini {$wordCount} kata.";
+
+                    continue;
+                }
+            }
+
             if ($fieldType === 'email' && ! filter_var($textValue, FILTER_VALIDATE_EMAIL)) {
                 $messages[$fieldKey] = "Format email pada pertanyaan {$fieldLabel} tidak valid.";
 
@@ -681,6 +699,30 @@ class AssessmentAttemptService
                 }
 
                 if ($columnValue !== '') {
+                    if ($column['tipe_field'] === 'textarea') {
+                        $wordCount = TextareaWordLimit::count($columnValue);
+
+                        if ($wordCount < TextareaWordLimit::minWords()) {
+                            return [
+                                'rows' => [],
+                                'columns' => $columns,
+                                'message' => "Kolom {$column['label']} pada baris ".($rowIndex + 1)
+                                    ." untuk pertanyaan {$field['label']} minimal "
+                                    .TextareaWordLimit::minWords()." kata. Saat ini {$wordCount} kata.",
+                            ];
+                        }
+
+                        if ($wordCount > TextareaWordLimit::maxWords()) {
+                            return [
+                                'rows' => [],
+                                'columns' => $columns,
+                                'message' => "Kolom {$column['label']} pada baris ".($rowIndex + 1)
+                                    ." untuk pertanyaan {$field['label']} maksimal "
+                                    .TextareaWordLimit::maxWords()." kata. Saat ini {$wordCount} kata.",
+                            ];
+                        }
+                    }
+
                     if ($column['tipe_field'] === 'email' && ! filter_var($columnValue, FILTER_VALIDATE_EMAIL)) {
                         return [
                             'rows' => [],

@@ -14,7 +14,8 @@
                     </h4>
                     <p class="mt-1 text-sm leading-relaxed text-slate-500">
                         Sistem akan mengirim seluruh jawaban dari {{ $assessmentCount }} assessment sekaligus. Modal ini
-                        hanya ditampilkan setelah isian wajib yang perlu dijawab sudah lolos pengecekan.
+                        hanya ditampilkan setelah isian wajib yang perlu dijawab, termasuk batas 25-100 kata pada area
+                        teks, sudah lolos pengecekan.
                     </p>
                 </div>
             </div>

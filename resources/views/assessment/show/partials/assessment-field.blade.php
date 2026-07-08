@@ -42,6 +42,9 @@
     $existingFileUrl = $savedAnswer['file_url'] ?? null;
     $existingFileName = $savedPayload['original_name'] ?? ($savedAnswer['text'] ?? null);
     $hasExistingFile = filled($existingFileUrl) || filled($savedAnswer['file_path'] ?? null);
+    $textareaMinWords = \App\Support\Assessment\TextareaWordLimit::minWords();
+    $textareaMaxWords = \App\Support\Assessment\TextareaWordLimit::maxWords();
+    $textareaWordHelperText = \App\Support\Assessment\TextareaWordLimit::helperText();
     $isInitiallyFlagged = collect(\Illuminate\Support\Arr::wrap(
         old('flagged_field_ids', data_get($attempt->structure_snapshot ?? [], 'meta.flagged_field_ids', []))
     ))
@@ -103,7 +106,7 @@
             <x-assessment::form.textarea :id="$inputId" :label="null" :description="null" :name="$answerName"
                 :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Tuliskan jawaban Anda'" :required="$isRequired"
-                :error="$fieldError" />
+                :error="$fieldError" :min-words="$textareaMinWords" :max-words="$textareaMaxWords" />
         @break
 
         @case('select')
@@ -212,15 +215,24 @@
                                             @endforeach
                                         </select>
                                     @elseif ($columnType === 'textarea')
-                                        <textarea
-                                            rows="3"
-                                            class="w-full rounded-sm border border-[#d0dbe5] px-3 py-2 text-sm text-slate-700 focus:border-[#1376bd] focus:outline-none focus:ring-2 focus:ring-[#1376bd]/20"
-                                            :name="fieldName(rowIndex, '{{ $columnName }}')"
-                                            x-model="row['{{ $columnName }}']"
-                                            placeholder="{{ $column['placeholder'] ?? '' }}"
-                                            data-repeater-required="{{ !empty($column['is_required']) ? '1' : '0' }}"
-                                            data-repeater-label="{{ $column['label'] ?? $columnName }}"
-                                        ></textarea>
+                                        <div class="space-y-2">
+                                            <textarea
+                                                rows="3"
+                                                class="w-full rounded-sm border border-[#d0dbe5] px-3 py-2 text-sm text-slate-700 focus:border-[#1376bd] focus:outline-none focus:ring-2 focus:ring-[#1376bd]/20"
+                                                :name="fieldName(rowIndex, '{{ $columnName }}')"
+                                                x-model="row['{{ $columnName }}']"
+                                                placeholder="{{ $column['placeholder'] ?? '' }}"
+                                                data-textarea-word-limit="1"
+                                                data-min-words="{{ $textareaMinWords }}"
+                                                data-max-words="{{ $textareaMaxWords }}"
+                                                data-repeater-required="{{ !empty($column['is_required']) ? '1' : '0' }}"
+                                                data-repeater-label="{{ $column['label'] ?? $columnName }}"
+                                            ></textarea>
+                                            <div class="flex items-center justify-between gap-3 text-xs text-slate-500">
+                                                <p>{{ $textareaWordHelperText }}</p>
+                                                <p data-word-count-display>0 kata / Minimal {{ $textareaMinWords }} kata, maksimal {{ $textareaMaxWords }} kata</p>
+                                            </div>
+                                        </div>
                                     @else
                                         <input
                                             type="{{ in_array($columnType, ['number', 'email', 'date'], true) ? $columnType : 'text' }}"

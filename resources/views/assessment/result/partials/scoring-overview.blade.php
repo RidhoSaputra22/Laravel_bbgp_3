@@ -100,7 +100,7 @@
         </x-assessment::ui.card>
     </div>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+    <div class="space-y-6">
         <x-assessment::ui.card>
             <div class="flex flex-col gap-5 lg:flex-row lg:items-center">
                 <div class="mx-auto flex justify-center">

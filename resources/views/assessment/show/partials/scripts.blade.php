@@ -999,6 +999,9 @@
                 autosaveUrl: typeof config.autosaveUrl === 'string' ? config.autosaveUrl : '',
                 resultUrl: typeof config.resultUrl === 'string' ? config.resultUrl : '',
                 deadlineAt: typeof config.deadlineAt === 'string' ? config.deadlineAt : null,
+                textareaWordLimits: config.textareaWordLimits && typeof config.textareaWordLimits === 'object'
+                    ? config.textareaWordLimits
+                    : {},
                 securityConfig: config.security && typeof config.security === 'object' ? config.security : null,
                 securityGuard: null,
                 showFinishModal: false,
@@ -1025,6 +1028,7 @@
                                     return;
                                 }
 
+                                this.updateTextareaWordCounter(event.target);
                                 this.clearFieldError(fieldWrapper);
                                 this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
                                 this.syncQuestionState(fieldWrapper.dataset.fieldId);
@@ -1041,6 +1045,7 @@
                             this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
                         });
 
+                        this.refreshAllTextareaWordCounters();
                         this.refreshAllQuestionStates();
 
                         if (!this.currentQuestionFieldId) {
@@ -1079,6 +1084,106 @@
                     }
 
                     return form.querySelector(`[data-field-id="${Number(fieldId)}"]`);
+                },
+                countWords(value) {
+                    const normalizedValue = String(value ?? '').trim();
+
+                    if (normalizedValue === '') {
+                        return 0;
+                    }
+
+                    return normalizedValue.split(/\s+/u).filter(Boolean).length;
+                },
+                resolveTextareaWordLimits(input) {
+                    const fallbackMin = Number(this.textareaWordLimits?.min ?? 0);
+                    const fallbackMax = Number(this.textareaWordLimits?.max ?? 0);
+                    const min = Number(input?.dataset?.minWords ?? fallbackMin);
+                    const max = Number(input?.dataset?.maxWords ?? fallbackMax);
+
+                    return {
+                        min: Number.isFinite(min) && min > 0 ? min : 0,
+                        max: Number.isFinite(max) && max > 0 ? max : 0,
+                    };
+                },
+                formatTextareaWordCountText(input) {
+                    const wordCount = this.countWords(input?.value ?? '');
+                    const {
+                        min,
+                        max
+                    } = this.resolveTextareaWordLimits(input);
+                    const rules = [];
+
+                    if (min > 0) {
+                        rules.push(`Minimal ${min} kata`);
+                    }
+
+                    if (max > 0) {
+                        rules.push(`maksimal ${max} kata`);
+                    }
+
+                    return `${wordCount} kata${rules.length ? ` / ${rules.join(', ')}` : ''}`;
+                },
+                getTextareaWordValidationMessage(input, subjectLabel, prefix = 'Jawaban untuk pertanyaan') {
+                    const value = String(input?.value ?? '').trim();
+
+                    if (value === '') {
+                        return null;
+                    }
+
+                    const wordCount = this.countWords(value);
+                    const {
+                        min,
+                        max
+                    } = this.resolveTextareaWordLimits(input);
+
+                    if (min > 0 && wordCount < min) {
+                        return `${prefix} ${subjectLabel} minimal ${min} kata. Saat ini ${wordCount} kata.`;
+                    }
+
+                    if (max > 0 && wordCount > max) {
+                        return `${prefix} ${subjectLabel} maksimal ${max} kata. Saat ini ${wordCount} kata.`;
+                    }
+
+                    return null;
+                },
+                updateTextareaWordCounter(target) {
+                    const textarea = target instanceof HTMLTextAreaElement
+                        ? target
+                        : target?.closest?.('textarea[data-textarea-word-limit]');
+
+                    if (!textarea || textarea.dataset.textareaWordLimit !== '1') {
+                        return;
+                    }
+
+                    const container = textarea.parentElement;
+                    const counter = container?.querySelector?.('[data-word-count-display]');
+
+                    if (!counter) {
+                        return;
+                    }
+
+                    counter.textContent = this.formatTextareaWordCountText(textarea);
+
+                    const hasContent = String(textarea.value ?? '').trim() !== '';
+                    const isValid = this.getTextareaWordValidationMessage(
+                        textarea,
+                        textarea.dataset.repeaterLabel || textarea.name || 'field ini',
+                        'Jawaban untuk pertanyaan'
+                    ) === null;
+
+                    counter.classList.toggle('text-red-600', hasContent && !isValid);
+                    counter.classList.toggle('text-slate-500', !hasContent || isValid);
+                },
+                refreshAllTextareaWordCounters() {
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return;
+                    }
+
+                    form.querySelectorAll('textarea[data-textarea-word-limit="1"]').forEach((textarea) => {
+                        this.updateTextareaWordCounter(textarea);
+                    });
                 },
                 normalizeFieldIdList(values) {
                     return Array.from(new Set((Array.isArray(values) ? values : [values])
@@ -1605,6 +1710,29 @@
                                     message = `${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} wajib diisi.`;
                                     break;
                                 }
+
+                                const invalidTextareaInput = inputs.find((input) => {
+                                    return input instanceof HTMLTextAreaElement
+                                        && String(input.value || '').trim() !== ''
+                                        && this.getTextareaWordValidationMessage(input, fieldLabel) !== null;
+                                });
+
+                                if (invalidTextareaInput) {
+                                    const columnLabel = invalidTextareaInput.dataset.repeaterLabel || 'Kolom';
+                                    const wordCount = this.countWords(invalidTextareaInput.value || '');
+                                    const {
+                                        min,
+                                        max
+                                    } = this.resolveTextareaWordLimits(invalidTextareaInput);
+
+                                    if (min > 0 && wordCount < min) {
+                                        message = `Kolom ${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} minimal ${min} kata. Saat ini ${wordCount} kata.`;
+                                    } else if (max > 0 && wordCount > max) {
+                                        message = `Kolom ${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} maksimal ${max} kata. Saat ini ${wordCount} kata.`;
+                                    }
+
+                                    break;
+                                }
                             }
                         }
                     } else {
@@ -1626,6 +1754,8 @@
 
                         if (requiresAnswer && value === '') {
                             message = `Jawaban untuk pertanyaan ${fieldLabel} wajib diisi.`;
+                        } else if (fieldType === 'textarea' && value !== '') {
+                            message = this.getTextareaWordValidationMessage(input, fieldLabel);
                         } else if (fieldType === 'email' && value !== '' && !this.isValidEmail(value)) {
                             message = `Format email pada pertanyaan ${fieldLabel} tidak valid.`;
                         } else if (fieldType === 'number' && value !== '' && Number.isNaN(Number(value))) {
@@ -1799,7 +1929,20 @@
                         return false;
                     }
 
-                    return String(input.value || '').trim() !== '';
+                    const value = String(input.value || '').trim();
+
+                    if (value === '') {
+                        return false;
+                    }
+
+                    if (fieldType === 'textarea') {
+                        return this.getTextareaWordValidationMessage(
+                            input,
+                            fieldWrapper.dataset.fieldLabel || 'field ini'
+                        ) === null;
+                    }
+
+                    return true;
                 },
                 extractRepeaterRows(fieldWrapper) {
                     const repeaterInputs = Array.from(fieldWrapper.querySelectorAll('input, select, textarea'));

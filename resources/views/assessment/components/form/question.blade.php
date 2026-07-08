@@ -8,6 +8,8 @@
 
 @php
     $answerName = 'answers[' . $field['id'] . ']';
+    $textareaMinWords = \App\Support\Assessment\TextareaWordLimit::minWords();
+    $textareaMaxWords = \App\Support\Assessment\TextareaWordLimit::maxWords();
     $inputType = match ($field['tipe_field']) {
         'number' => 'number',
         'date' => 'date',
@@ -42,7 +44,7 @@
             <x-assessment::form.textarea :label="$field['label']" :description="$field['deskripsi']" :hint="$field['bantuan']"
                 :name="$answerName" :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Tuliskan jawaban Anda'" :required="(bool) $field['is_required']"
-                :error="$error" />
+                :error="$error" :min-words="$textareaMinWords" :max-words="$textareaMaxWords" />
         @break
 
         @case('select')

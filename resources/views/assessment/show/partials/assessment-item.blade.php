@@ -16,7 +16,9 @@
             'hideFormHeader' => $isMultipleChoiceAssessment,
             'displayQuestionPrefix' => $isMultipleChoiceAssessment ? 'Soal' : null,
         ])
-        @php($questionNumber += count($form['fields'] ?? []))
+        @php
+            $questionNumber += count($form['fields'] ?? []);
+        @endphp
     @endforeach
 
    
