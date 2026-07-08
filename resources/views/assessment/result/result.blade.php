@@ -430,7 +430,7 @@
                                     <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] p-4 sm:p-5">
                                         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                             <div class="flex flex-wrap items-center gap-2">
-                                                <span class="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#0d5f98]">
+                                                <span class="inline-flex items-center rounded-sm bg-[#eaf5fb] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#0d5f98]">
                                                     {{ $questionBadgeLabel }}
                                                 </span>
 

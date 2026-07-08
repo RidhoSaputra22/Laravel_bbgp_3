@@ -1286,6 +1286,8 @@
                 questionState(fieldId) {
                     return this.questionStateByFieldId[String(Number(fieldId))] ?? {
                         answered: false,
+                        hasAnswer: false,
+                        invalid: false,
                         flagged: this.isFieldFlagged(fieldId),
                     };
                 },
@@ -1341,24 +1343,27 @@
                     }
 
                     return [
-
                         'ring-2',
                         'ring-[#1376bd]',
                         'ring-offset-8',
                         'shadow-sm',
                         'shadow-[#1376bd]/10',
-
                     ].join(' ');
                 },
                 questionButtonTitle(fieldId) {
                     const item = this.questionItemByFieldId(fieldId);
+                    const state = this.questionState(fieldId);
                     const parts = [];
 
                     if (item?.label) {
                         parts.push(item.label);
                     }
 
-                    parts.push(this.questionState(fieldId).answered ? 'Sudah dijawab' : 'Belum dijawab');
+                    if (state.invalid) {
+                        parts.push('Jawaban belum valid');
+                    } else {
+                        parts.push(state.answered ? 'Sudah dijawab' : 'Belum dijawab');
+                    }
 
                     if (this.isFieldFlagged(fieldId)) {
                         parts.push('Ditandai');
@@ -1715,6 +1720,17 @@
                 },
                 validateField(fieldWrapper) {
                     this.clearFieldError(fieldWrapper);
+                    const validation = this.resolveFieldValidation(fieldWrapper);
+
+                    if (validation.valid) {
+                        return validation;
+                    }
+
+                    this.setFieldError(fieldWrapper, validation.message);
+
+                    return validation;
+                },
+                resolveFieldValidation(fieldWrapper) {
 
                     const fieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
                     const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
@@ -1835,11 +1851,10 @@
                         };
                     }
 
-                    this.setFieldError(fieldWrapper, message);
-
                     return {
                         valid: false,
                         fieldId,
+                        message,
                     };
                 },
                 applyServerErrors(errors) {
@@ -1862,6 +1877,8 @@
                         const message = Array.isArray(messages) ? messages[0] : messages;
                         this.setFieldError(fieldWrapper, String(message || 'Input tidak valid.'));
                     });
+
+                    this.refreshAllQuestionStates();
 
                     const firstKey = Object.keys(errors || {}).find((key) => /^answers\.\d+/.test(String(key)));
 
@@ -1933,6 +1950,16 @@
                     errorElement.textContent = '';
                     errorElement.classList.add('hidden');
                 },
+                fieldHasVisibleError(fieldWrapper) {
+                    const errorElement = fieldWrapper?.querySelector?.('[data-field-error]');
+
+                    if (!errorElement) {
+                        return false;
+                    }
+
+                    return !errorElement.classList.contains('hidden')
+                        && String(errorElement.textContent || '').trim() !== '';
+                },
                 refreshAllQuestionStates() {
                     const form = this.formElement();
 
@@ -1952,13 +1979,25 @@
                         return;
                     }
 
+                    const hasAnswer = this.fieldHasContent(fieldWrapper);
+                    const hasVisibleError = this.fieldHasVisibleError(fieldWrapper);
+                    const validation = hasAnswer
+                        ? this.resolveFieldValidation(fieldWrapper)
+                        : {
+                            valid: true,
+                            fieldId: normalizedFieldId,
+                            message: null,
+                        };
+
                     this.questionStateByFieldId[String(normalizedFieldId)] = {
-                        answered: this.fieldHasAnswer(fieldWrapper),
+                        answered: hasAnswer && validation.valid && !hasVisibleError,
+                        hasAnswer,
+                        invalid: hasVisibleError || (hasAnswer && !validation.valid),
                         flagged: this.isFieldFlagged(normalizedFieldId),
                         assessmentIndex: Number(fieldWrapper.dataset.assessmentIndex ?? 0),
                     };
                 },
-                fieldHasAnswer(fieldWrapper) {
+                fieldHasContent(fieldWrapper) {
                     const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
                     const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
 
@@ -1994,18 +2033,7 @@
 
                     const value = String(input.value || '').trim();
 
-                    if (value === '') {
-                        return false;
-                    }
-
-                    if (fieldType === 'textarea') {
-                        return this.getTextareaWordValidationMessage(
-                            input,
-                            fieldWrapper.dataset.fieldLabel || 'field ini'
-                        ) === null;
-                    }
-
-                    return true;
+                    return value !== '';
                 },
                 extractRepeaterRows(fieldWrapper) {
                     const repeaterInputs = Array.from(fieldWrapper.querySelectorAll('input, select, textarea'));

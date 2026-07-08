@@ -20,7 +20,7 @@
 @endphp
 
 <div class="mb-[18px] rounded-[20px] border p-[22px] last:mb-0 {{ $error ? 'border-red-500/50 bg-red-50/50' : 'border-[#e4edf4] bg-[#fbfdff]' }}">
-    <div class="mb-[14px] inline-flex items-center rounded-full bg-[#eaf5fb] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#0d5f98]">
+    <div class="mb-[14px] inline-flex items-center rounded-sm bg-[#eaf5fb] px-3 py-1 text-xs font-semibold tracking-[0.14em] text-[#0d5f98]">
         Soal {{ $number }}
     </div>
 
