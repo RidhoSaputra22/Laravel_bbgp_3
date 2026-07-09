@@ -10,8 +10,8 @@ use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
-use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
+use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 class AssessmentAssignmentController extends Controller
 {
     private const GURU_PAGE_SIZE = 10;
+    private const TARGET_PAGE_SIZE = 25;
 
     private string $menu = 'assessment-penugasan';
 
@@ -176,7 +177,7 @@ class AssessmentAssignmentController extends Controller
         }
     }
 
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
         $this->authorizeAccess();
 
@@ -184,30 +185,41 @@ class AssessmentAssignmentController extends Controller
             'assessments.forms.fields',
             'combination',
             'creator',
-            'sessions.targets',
-            'targets.guru',
-            'targets.combination',
-            'targets.session',
-            'targets.attempt',
+            'sessions',
         ])
             ->withCount(['targets', 'sessions'])
             ->findOrFail($id);
 
-        $this->attemptLifecycleService->syncExpiredTargets($assignment->targets);
-        $assignment->load([
-            'assessments.forms.fields',
-            'combination',
-            'creator',
-            'sessions.targets',
-            'targets.guru',
-            'targets.combination',
-            'targets.session',
-            'targets.attempt',
-        ]);
+        $perPage = max(10, min((int) $request->input('target_per_page', self::TARGET_PAGE_SIZE), 100));
+        $targets = $assignment->targets()
+            ->select([
+                'id',
+                'assessment_assignment_id',
+                'assessment_assignment_session_id',
+                'guru_id',
+                'status',
+                'assigned_at',
+                'started_at',
+                'deadline_at',
+                'submitted_at',
+                'completion_mode',
+                'timed_out_at',
+            ])
+            ->with([
+                'guru:id,nama_lengkap,email,eksternal_jabatan,jenis_jabatan,satuan_pendidikan,kabupaten',
+                'session:id,label_sesi,waktu_mulai,waktu_selesai',
+                'attempt:id,assessment_assignment_target_id,status,completion_mode,submitted_at,timed_out_at,disqualified_at,disqualification_reason,serious_violation_count,warning_violation_count',
+            ])
+            ->paginate($perPage, ['*'], 'target_page')
+            ->withQueryString();
+        $targets->setCollection(
+            $this->attemptLifecycleService->syncExpiredTargets($targets->getCollection())
+        );
 
         return view('pages.admin.assessment.assignment.show', [
             'menu' => $this->menu,
             'assignment' => $assignment,
+            'targets' => $targets,
             'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
             'monitoringPanel' => $this->assessmentMonitoringService->buildAssignmentDetail($assignment),
         ]);

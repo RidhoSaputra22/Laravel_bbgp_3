@@ -105,11 +105,7 @@ class AssessmentMonitoringService
     private function loadAssignments(): Collection
     {
         return AssessmentAssignment::query()
-            ->with([
-                'targets.guru',
-                'targets.attempt.answers',
-                'sessions',
-            ])
+            ->with($this->monitoringRelations())
             ->withCount(['targets', 'sessions'])
             ->orderByDesc('id')
             ->get();
@@ -118,11 +114,7 @@ class AssessmentMonitoringService
     private function prepareAssignments(Collection $assignments): Collection
     {
         if ($assignments instanceof EloquentCollection) {
-            $assignments->loadMissing([
-                'targets.guru',
-                'targets.attempt.answers',
-                'sessions',
-            ]);
+            $assignments->loadMissing($this->monitoringRelations());
 
             return $assignments->values();
         }
@@ -134,13 +126,35 @@ class AssessmentMonitoringService
 
     private function prepareAssignment(AssessmentAssignment $assignment): AssessmentAssignment
     {
-        $assignment->loadMissing([
-            'targets.guru',
-            'targets.attempt.answers',
-            'sessions',
-        ]);
+        $assignment->loadMissing($this->monitoringRelations());
 
         return $assignment;
+    }
+
+    private function monitoringRelations(): array
+    {
+        return [
+            'targets' => function ($query) {
+                $query->select([
+                    'id',
+                    'assessment_assignment_id',
+                    'assessment_assignment_session_id',
+                    'guru_id',
+                    'status',
+                    'assigned_at',
+                    'started_at',
+                    'submitted_at',
+                    'completion_mode',
+                    'timed_out_at',
+                ]);
+                $query->with([
+                    'guru:id,nama_lengkap,email,eksternal_jabatan,jenis_jabatan,satuan_pendidikan,kabupaten',
+                    'session:id,label_sesi,waktu_mulai,waktu_selesai',
+                    'attempt:id,assessment_assignment_target_id,status,scoring_summary,started_at,submitted_at,completion_mode,timed_out_at,disqualified_at,disqualification_reason',
+                ]);
+            },
+            'sessions',
+        ];
     }
 
     private function buildGlobalSummary(Collection $assignmentRows, Collection $targets): array
@@ -550,9 +564,7 @@ class AssessmentMonitoringService
             return $this->summaryCache[$cacheKey];
         }
 
-        return $this->summaryCache[$cacheKey] = $this->attemptService->buildScoringSummary(
-            $attempt->loadMissing('answers')
-        );
+        return $this->summaryCache[$cacheKey] = $this->attemptService->buildScoringSummary($attempt);
     }
 
     private function averageScore(array $targets): ?float

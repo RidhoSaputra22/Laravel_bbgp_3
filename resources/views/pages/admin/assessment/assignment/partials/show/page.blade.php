@@ -795,11 +795,21 @@
                         <h4>Daftar Peserta Yang Ditugasi</h4>
                     </div>
                     <div class="card-body">
-                        @if ($assignment->targets->isEmpty())
+                        @if ($targets->isEmpty())
                             <div class="alert alert-warning mb-0">
                                 Penugasan ini masih diproses atau belum memiliki target peserta tersimpan.
                             </div>
                         @else
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                <div class="text-muted small">
+                                    Menampilkan
+                                    {{ $targets->firstItem() ?? 0 }} - {{ $targets->lastItem() ?? 0 }}
+                                    dari {{ $targets->total() }} peserta.
+                                </div>
+                                <div class="text-muted small">
+                                    {{ $targets->perPage() }} peserta per halaman
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-striped" id="table-assignment-target">
                                     <thead>
@@ -819,7 +829,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach ($assignment->targets as $target)
+                                        @foreach ($targets as $target)
                                             @php
                                                 $targetBadge =
                                                     [
@@ -838,7 +848,7 @@
                                                     : ($completionMode === 'timeout' ? 'secondary' : 'success');
                                             @endphp
                                             <tr>
-                                                <td class="text-center">{{ $loop->iteration }}</td>
+                                                <td class="text-center">{{ ($targets->firstItem() ?? 0) + $loop->index }}</td>
                                                 <td>
                                                     <div class="font-weight-bold">
                                                         {{ optional($target->guru)->nama_lengkap ?: 'Peserta tidak ditemukan' }}
@@ -922,6 +932,9 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="mt-3">
+                                {{ $targets->links() }}
                             </div>
                         @endif
                     </div>
@@ -1141,7 +1154,6 @@
 
             initDataTable('#table-assignment-assessment', [0]);
             initDataTable('#table-assignment-session', [0]);
-            initDataTable('#table-assignment-target', [0, 11]);
             initCharts();
         });
     </script>
