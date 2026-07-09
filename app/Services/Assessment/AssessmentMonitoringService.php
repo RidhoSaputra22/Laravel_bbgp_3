@@ -9,6 +9,7 @@ use App\Models\AssessmentAssignmentTarget;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class AssessmentMonitoringService
 {
@@ -53,52 +54,20 @@ class AssessmentMonitoringService
 
     public function buildAssignmentDetail(AssessmentAssignment $assignment): array
     {
-        $assignment = $this->prepareAssignment($assignment);
-        $targets = $assignment->targets->values();
-        $submittedTargets = $targets->filter(fn (AssessmentAssignmentTarget $target) => $this->isSubmitted($target))->values();
-        $pendingTargets = $targets->reject(fn (AssessmentAssignmentTarget $target) => $this->isSubmitted($target))->values();
-        $pendingReviewTargets = $submittedTargets
-            ->filter(fn (AssessmentAssignmentTarget $target) => $this->manualPendingItems($target) > 0)
-            ->sortByDesc(fn (AssessmentAssignmentTarget $target) => $this->manualPendingItems($target))
-            ->values();
-        $scoredTargets = $submittedTargets
-            ->filter(fn (AssessmentAssignmentTarget $target) => $this->overallScore($target) !== null)
-            ->sortBy(fn (AssessmentAssignmentTarget $target) => $this->overallScore($target))
-            ->values();
+        $assignment->loadMissing('sessions');
+        $summary = $this->buildAssignmentDetailSummary($assignment);
 
         return [
-            'summary' => $this->buildAssignmentRow($assignment),
+            'summary' => $summary,
             'lists' => [
-                'submitted_participants' => $submittedTargets
-                    ->sortByDesc(function (AssessmentAssignmentTarget $target) {
-                        $submittedAt = $target->submitted_at ?: $target->attempt?->submitted_at;
-
-                        return $submittedAt?->timestamp ?? 0;
-                    })
-                    ->take(10)
-                    ->map(fn (AssessmentAssignmentTarget $target) => $this->serializeTargetRow($target))
-                    ->values()
-                    ->all(),
-                'pending_participants' => $pendingTargets
-                    ->sortBy(fn (AssessmentAssignmentTarget $target) => $target->assigned_at?->timestamp ?? PHP_INT_MAX)
-                    ->take(10)
-                    ->map(fn (AssessmentAssignmentTarget $target) => $this->serializeTargetRow($target))
-                    ->values()
-                    ->all(),
-                'pending_review_participants' => $pendingReviewTargets
-                    ->take(10)
-                    ->map(fn (AssessmentAssignmentTarget $target) => $this->serializeTargetRow($target))
-                    ->values()
-                    ->all(),
-                'low_score_participants' => $scoredTargets
-                    ->take(10)
-                    ->map(fn (AssessmentAssignmentTarget $target) => $this->serializeTargetRow($target))
-                    ->values()
-                    ->all(),
+                'submitted_participants' => $this->buildSubmittedParticipantRows($assignment),
+                'pending_participants' => $this->buildPendingParticipantRows($assignment),
+                'pending_review_participants' => $this->buildPendingReviewParticipantRows($assignment),
+                'low_score_participants' => $this->buildLowScoreParticipantRows($assignment),
             ],
-            'charts' => $this->buildAssignmentCharts($assignment),
-            'kabupaten_rows' => $this->buildKabupatenRows($targets)->all(),
-            'session_rows' => $this->buildSessionRows(collect([$assignment]), $assignment->sessions)->all(),
+            'charts' => $this->buildAssignmentDetailCharts($assignment, $summary),
+            'kabupaten_rows' => [],
+            'session_rows' => [],
         ];
     }
 
@@ -155,6 +124,414 @@ class AssessmentMonitoringService
             },
             'sessions',
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildAssignmentDetailSummary(AssessmentAssignment $assignment): array
+    {
+        $stats = $this->fetchAssignmentDetailStats($assignment->id);
+        $targetTotal = (int) $assignment->total_target;
+        $storedTargetTotal = (int) ($stats->stored_target_total ?? 0);
+        $submittedTotal = (int) ($stats->submitted_total ?? 0);
+        $timeoutTotal = (int) ($stats->timeout_total ?? 0);
+        $inProgressTotal = (int) ($stats->in_progress_total ?? 0);
+        $notStartedTotal = (int) ($stats->not_started_total ?? 0);
+        $pendingReviewTotal = (int) ($stats->pending_review_total ?? 0);
+        $pendingReviewItemTotal = (int) ($stats->pending_review_item_total ?? 0);
+        $averageScore = isset($stats->average_score) && $stats->average_score !== null
+            ? round((float) $stats->average_score, 2)
+            : null;
+
+        return [
+            'target_total' => $targetTotal,
+            'stored_target_total' => $storedTargetTotal,
+            'distribution_missing_total' => max($targetTotal - $storedTargetTotal, 0),
+            'submitted_total' => $submittedTotal,
+            'pending_total' => max($targetTotal - $submittedTotal, 0),
+            'in_progress_total' => $inProgressTotal,
+            'not_started_total' => $notStartedTotal,
+            'timeout_total' => $timeoutTotal,
+            'pending_review_total' => $pendingReviewTotal,
+            'pending_review_item_total' => $pendingReviewItemTotal,
+            'average_score' => $averageScore,
+            'completion_rate' => $targetTotal > 0
+                ? round(($submittedTotal / $targetTotal) * 100, 2)
+                : 0.0,
+            'participation_rate' => $storedTargetTotal > 0
+                ? round((($submittedTotal + $inProgressTotal) / $storedTargetTotal) * 100, 2)
+                : 0.0,
+        ];
+    }
+
+    private function buildAssignmentDetailCharts(AssessmentAssignment $assignment, array $summary): array
+    {
+        $kabupatenRows = $this->buildAssignmentKabupatenRows($assignment)->take(10)->values();
+        $sessionRows = $this->buildAssignmentSessionRows($assignment);
+        $scoreLevelRows = $this->buildAssignmentScoreLevels($assignment);
+        $timeoutTotal = (int) ($summary['timeout_total'] ?? 0);
+        $submittedTotal = (int) ($summary['submitted_total'] ?? 0);
+        $manualSubmittedTotal = max($submittedTotal - $timeoutTotal, 0);
+
+        return [
+            'participant_status' => [
+                'labels' => ['Selesai Manual', 'Selesai Timeout', 'Sedang Mengerjakan', 'Belum Mulai', 'Belum Tersimpan'],
+                'data' => [
+                    $manualSubmittedTotal,
+                    $timeoutTotal,
+                    (int) ($summary['in_progress_total'] ?? 0),
+                    (int) ($summary['not_started_total'] ?? 0),
+                    (int) ($summary['distribution_missing_total'] ?? 0),
+                ],
+            ],
+            'session_completion' => [
+                'labels' => $sessionRows->pluck('session_label')->all(),
+                'submitted' => $sessionRows->pluck('submitted_total')->all(),
+                'pending' => $sessionRows
+                    ->map(fn (array $row) => max((int) $row['assigned_total'] - (int) $row['submitted_total'], 0))
+                    ->all(),
+            ],
+            'kabupaten_completion' => [
+                'labels' => $kabupatenRows
+                    ->pluck('kabupaten')
+                    ->map(fn (string $label) => $this->shortLabel($label, 24))
+                    ->all(),
+                'submitted' => $kabupatenRows->pluck('submitted_total')->all(),
+                'pending' => $kabupatenRows
+                    ->map(fn (array $row) => max((int) $row['target_total'] - (int) $row['submitted_total'], 0))
+                    ->all(),
+            ],
+            'score_levels' => [
+                'labels' => $scoreLevelRows->pluck('label')->all(),
+                'data' => $scoreLevelRows->pluck('count')->all(),
+            ],
+        ];
+    }
+
+    private function buildSubmittedParticipantRows(AssessmentAssignment $assignment, int $limit = 10): array
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+
+        return $this->assignmentDetailListBaseQuery($assignment)
+            ->whereRaw($submittedExpr)
+            ->orderByRaw('coalesce(target.submitted_at, attempt.submitted_at) desc')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => $this->serializeAssignmentDetailRow($row))
+            ->all();
+    }
+
+    private function buildPendingParticipantRows(AssessmentAssignment $assignment, int $limit = 10): array
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+
+        return $this->assignmentDetailListBaseQuery($assignment)
+            ->whereRaw('not '.$submittedExpr)
+            ->orderByRaw('case when target.assigned_at is null then 1 else 0 end')
+            ->orderBy('target.assigned_at')
+            ->orderBy('target.id')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => $this->serializeAssignmentDetailRow($row))
+            ->all();
+    }
+
+    private function buildPendingReviewParticipantRows(AssessmentAssignment $assignment, int $limit = 10): array
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+
+        return $this->assignmentDetailListBaseQuery($assignment)
+            ->whereRaw($submittedExpr)
+            ->whereRaw($manualPendingExpr.' > 0')
+            ->orderByRaw($manualPendingExpr.' desc')
+            ->orderByRaw('coalesce(target.submitted_at, attempt.submitted_at) desc')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => $this->serializeAssignmentDetailRow($row))
+            ->all();
+    }
+
+    private function buildLowScoreParticipantRows(AssessmentAssignment $assignment, int $limit = 10): array
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        return $this->assignmentDetailListBaseQuery($assignment)
+            ->whereRaw($submittedExpr)
+            ->whereRaw($scoreExpr.' is not null')
+            ->orderByRaw($scoreExpr.' asc')
+            ->orderByRaw('coalesce(target.submitted_at, attempt.submitted_at) desc')
+            ->limit($limit)
+            ->get()
+            ->map(fn ($row) => $this->serializeAssignmentDetailRow($row))
+            ->all();
+    }
+
+    private function buildAssignmentKabupatenRows(AssessmentAssignment $assignment): Collection
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+        $kabupatenExpr = "coalesce(nullif(trim(guru.kabupaten), ''), 'Kabupaten belum diisi')";
+
+        return $this->assignmentTargetBaseQuery($assignment->id)
+            ->leftJoin('gurus as guru', 'guru.id', '=', 'target.guru_id')
+            ->selectRaw($kabupatenExpr.' as kabupaten')
+            ->selectRaw('count(*) as target_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->groupByRaw($kabupatenExpr)
+            ->get()
+            ->map(function ($row) {
+                $targetTotal = (int) ($row->target_total ?? 0);
+                $submittedTotal = (int) ($row->submitted_total ?? 0);
+                $averageScore = isset($row->average_score) && $row->average_score !== null
+                    ? round((float) $row->average_score, 2)
+                    : null;
+
+                return [
+                    'kabupaten' => (string) ($row->kabupaten ?: 'Kabupaten belum diisi'),
+                    'target_total' => $targetTotal,
+                    'submitted_total' => $submittedTotal,
+                    'in_progress_total' => (int) ($row->in_progress_total ?? 0),
+                    'not_started_total' => (int) ($row->not_started_total ?? 0),
+                    'timeout_total' => (int) ($row->timeout_total ?? 0),
+                    'pending_review_total' => (int) ($row->pending_review_total ?? 0),
+                    'average_score' => $averageScore,
+                    'knowledge_percent' => $averageScore !== null
+                        ? round(($averageScore / 5) * 100, 2)
+                        : null,
+                    'completion_rate' => $targetTotal > 0
+                        ? round(($submittedTotal / $targetTotal) * 100, 2)
+                        : 0.0,
+                ];
+            })
+            ->sortByDesc(fn (array $row) => ($row['submitted_total'] * 1000000) + ($row['target_total'] * 1000) + (int) round(($row['average_score'] ?? 0) * 100))
+            ->values();
+    }
+
+    private function buildAssignmentSessionRows(AssessmentAssignment $assignment): Collection
+    {
+        $assignment->loadMissing('sessions');
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $statsBySessionId = $this->assignmentTargetBaseQuery($assignment->id)
+            ->select('target.assessment_assignment_session_id')
+            ->selectRaw('count(*) as assigned_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->groupBy('target.assessment_assignment_session_id')
+            ->get()
+            ->keyBy('assessment_assignment_session_id');
+
+        return $assignment->sessions
+            ->map(function (AssessmentAssignmentSession $session) use ($assignment, $statsBySessionId) {
+                $stats = $statsBySessionId->get($session->id);
+                $assignedTotal = (int) data_get($stats, 'assigned_total', 0);
+                $submittedTotal = (int) data_get($stats, 'submitted_total', 0);
+                $capacityTotal = (int) ($session->kapasitas_peserta ?: 0);
+
+                return [
+                    'assignment_id' => (int) $assignment->id,
+                    'assignment_title' => (string) $assignment->judul_penugasan,
+                    'session_id' => (int) $session->id,
+                    'session_label' => (string) ($session->label_sesi ?: 'Sesi'),
+                    'label' => $assignment->judul_penugasan.' - '.($session->label_sesi ?: 'Sesi'),
+                    'assigned_total' => $assignedTotal,
+                    'submitted_total' => $submittedTotal,
+                    'capacity_total' => $capacityTotal,
+                    'occupancy_rate' => $capacityTotal > 0
+                        ? round(($assignedTotal / $capacityTotal) * 100, 2)
+                        : 0.0,
+                    'completion_rate' => $assignedTotal > 0
+                        ? round(($submittedTotal / $assignedTotal) * 100, 2)
+                        : 0.0,
+                    'schedule_label' => $session->jadwal_sesi_label ?: 'Jadwal belum diatur',
+                ];
+            })
+            ->sortByDesc(fn (array $row) => ((int) round($row['occupancy_rate'] * 100)) * 1000000 + ($row['assigned_total'] * 1000) + (int) round($row['completion_rate'] * 100))
+            ->take(8)
+            ->reverse()
+            ->values();
+    }
+
+    private function buildAssignmentScoreLevels(AssessmentAssignment $assignment): Collection
+    {
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+        $counts = $this->assignmentTargetBaseQuery($assignment->id)
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 1.00 and '.$scoreExpr.' < 1.80 then 1 else 0 end) as level_1')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 1.80 and '.$scoreExpr.' < 2.60 then 1 else 0 end) as level_2')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 2.60 and '.$scoreExpr.' < 3.40 then 1 else 0 end) as level_3')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 3.40 and '.$scoreExpr.' < 4.20 then 1 else 0 end) as level_4')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 4.20 and '.$scoreExpr.' <= 5.00 then 1 else 0 end) as level_5')
+            ->first();
+
+        return collect(LevelKompetensi::cases())
+            ->map(function (LevelKompetensi $level) use ($counts) {
+                return [
+                    'label' => $level->shortLabel(),
+                    'count' => (int) data_get($counts, 'level_'.$level->value, 0),
+                ];
+            })
+            ->values();
+    }
+
+    private function fetchAssignmentDetailStats(int $assignmentId): object
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        return $this->assignmentTargetBaseQuery($assignmentId)
+            ->selectRaw('count(*) as stored_target_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('sum('.$manualPendingExpr.') as pending_review_item_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->first();
+    }
+
+    private function assignmentDetailListBaseQuery(AssessmentAssignment $assignment)
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        return $this->assignmentTargetBaseQuery($assignment->id)
+            ->leftJoin('gurus as guru', 'guru.id', '=', 'target.guru_id')
+            ->leftJoin(
+                'assessment_assignment_sessions as assignment_session',
+                'assignment_session.id',
+                '=',
+                'target.assessment_assignment_session_id'
+            )
+            ->selectRaw('target.id as target_id')
+            ->selectRaw("coalesce(guru.nama_lengkap, 'Peserta tidak ditemukan') as participant_name")
+            ->selectRaw("coalesce(nullif(trim(guru.kabupaten), ''), '-') as kabupaten")
+            ->selectRaw("coalesce(nullif(trim(guru.satuan_pendidikan), ''), '-') as school")
+            ->selectRaw("coalesce(assignment_session.label_sesi, 'Belum dipetakan') as session_label")
+            ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
+            ->selectRaw('coalesce(target.started_at, attempt.started_at) as resolved_started_at')
+            ->selectRaw('case when '.$submittedExpr.' then 1 else 0 end as is_submitted')
+            ->selectRaw('case when '.$timeoutExpr.' then 1 else 0 end as is_timeout')
+            ->selectRaw('case when '.$inProgressExpr.' then 1 else 0 end as is_in_progress')
+            ->selectRaw($manualPendingExpr.' as manual_pending_items')
+            ->selectRaw($scoreExpr.' as score');
+    }
+
+    private function assignmentTargetBaseQuery(int $assignmentId)
+    {
+        return DB::table('assessment_assignment_targets as target')
+            ->leftJoin('assessment_attempts as attempt', 'attempt.assessment_assignment_target_id', '=', 'target.id')
+            ->where('target.assessment_assignment_id', $assignmentId);
+    }
+
+    private function assignmentTargetSubmittedSql(): string
+    {
+        return "(attempt.status = 'submitted' or target.status = 'selesai' or target.submitted_at is not null or attempt.submitted_at is not null)";
+    }
+
+    private function assignmentTargetActivitySql(): string
+    {
+        return "(target.status = 'dikerjakan' or attempt.status = 'in_progress' or target.started_at is not null or attempt.started_at is not null)";
+    }
+
+    private function assignmentTargetInProgressSql(): string
+    {
+        return '(not '.$this->assignmentTargetSubmittedSql().' and '.$this->assignmentTargetActivitySql().')';
+    }
+
+    private function assignmentTargetNotStartedSql(): string
+    {
+        return '(not '.$this->assignmentTargetSubmittedSql().' and not '.$this->assignmentTargetActivitySql().')';
+    }
+
+    private function assignmentTargetTimeoutSql(): string
+    {
+        return "(coalesce(attempt.completion_mode, target.completion_mode) = 'timeout' or target.timed_out_at is not null or attempt.timed_out_at is not null)";
+    }
+
+    private function assignmentTargetManualPendingItemsSql(): string
+    {
+        return "coalesce(cast(nullif(json_unquote(json_extract(attempt.scoring_summary, '$.manual_review.pending_items')), '') as unsigned), 0)";
+    }
+
+    private function assignmentTargetOverallScoreSql(): string
+    {
+        return "cast(nullif(json_unquote(json_extract(attempt.scoring_summary, '$.overall.score')), '') as decimal(8,2))";
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeAssignmentDetailRow(object $row): array
+    {
+        $score = isset($row->score) && $row->score !== null
+            ? round((float) $row->score, 2)
+            : null;
+
+        return [
+            'target_id' => (int) $row->target_id,
+            'name' => (string) ($row->participant_name ?: 'Peserta tidak ditemukan'),
+            'kabupaten' => (string) ($row->kabupaten ?: '-'),
+            'school' => (string) ($row->school ?: '-'),
+            'status_label' => $this->resolveAssignmentDetailStatusLabel($row),
+            'session_label' => (string) ($row->session_label ?: 'Belum dipetakan'),
+            'submitted_at' => $this->formatDateTimeLabel($row->resolved_submitted_at ?? null),
+            'started_at' => $this->formatDateTimeLabel($row->resolved_started_at ?? null),
+            'manual_pending_items' => (int) ($row->manual_pending_items ?? 0),
+            'score' => $score,
+            'score_label' => $score !== null ? number_format($score, 2) : null,
+            'score_level' => $score !== null ? LevelKompetensi::fromScore($score)?->shortLabel() : null,
+            'review_url' => ((int) ($row->is_submitted ?? 0)) === 1
+                ? route('assessment.assignment.review.show', (int) $row->target_id)
+                : null,
+        ];
+    }
+
+    private function resolveAssignmentDetailStatusLabel(object $row): string
+    {
+        if ((int) ($row->is_timeout ?? 0) === 1) {
+            return 'Selesai Timeout';
+        }
+
+        if ((int) ($row->is_submitted ?? 0) === 1) {
+            return 'Sudah Mengisi';
+        }
+
+        if ((int) ($row->is_in_progress ?? 0) === 1) {
+            return 'Sedang Mengerjakan';
+        }
+
+        return 'Belum Mengisi';
+    }
+
+    private function formatDateTimeLabel(Carbon|string|null $dateTime): ?string
+    {
+        if (! $dateTime) {
+            return null;
+        }
+
+        if (! $dateTime instanceof Carbon) {
+            $dateTime = Carbon::parse($dateTime);
+        }
+
+        return $dateTime->format('d M Y H:i');
     }
 
     private function buildGlobalSummary(Collection $assignmentRows, Collection $targets): array

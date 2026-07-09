@@ -15,7 +15,9 @@ use Throwable;
 
 class AssessmentCombinationGenerationService
 {
-    public const QUEUE_NAME = 'assessment-combination';
+    public const QUEUE_CONNECTION = 'database';
+
+    public const QUEUE_NAME = 'default';
 
     public function __construct(
         private readonly AssessmentCombinationService $combinationService
@@ -246,6 +248,8 @@ class AssessmentCombinationGenerationService
         try {
             $batch = Bus::batch($jobs)
                 ->name('Generate Kombinasi '.$generation->kode_generate)
+                ->onConnection(self::QUEUE_CONNECTION)
+                ->onQueue(self::QUEUE_NAME)
                 ->allowFailures()
                 ->dispatch();
 

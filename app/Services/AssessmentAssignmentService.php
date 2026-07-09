@@ -25,6 +25,10 @@ use Throwable;
 
 class AssessmentAssignmentService
 {
+    public const QUEUE_CONNECTION = 'database';
+
+    public const QUEUE_NAME = 'default';
+
     public const BATCH_THRESHOLD = 25;
 
     public const CHUNK_SIZE = 50;
@@ -506,7 +510,7 @@ class AssessmentAssignmentService
         if (Schema::hasTable('jobs')) {
             $pendingRows = DB::table('jobs')
                 ->select(['payload'])
-                ->where('queue', 'assessment-assignment')
+                ->where('queue', self::QUEUE_NAME)
                 ->orderBy('id')
                 ->get();
 
@@ -524,7 +528,7 @@ class AssessmentAssignmentService
         if (Schema::hasTable('failed_jobs')) {
             $failedRows = DB::table('failed_jobs')
                 ->select(['payload'])
-                ->where('queue', 'assessment-assignment')
+                ->where('queue', self::QUEUE_NAME)
                 ->orderBy('id')
                 ->get();
 
@@ -709,6 +713,8 @@ class AssessmentAssignmentService
         try {
             $batch = Bus::batch($jobs)
                 ->name('Penugasan Assessment '.$assignment->kode_penugasan)
+                ->onConnection(self::QUEUE_CONNECTION)
+                ->onQueue(self::QUEUE_NAME)
                 ->allowFailures()
                 ->dispatch();
 

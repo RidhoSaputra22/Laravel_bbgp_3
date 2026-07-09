@@ -40,11 +40,7 @@ class AssessmentAssignmentController extends Controller
             'assessments.forms.fields',
             'creator',
             'combination',
-            'targets.guru',
-            'targets.attempt',
-            'sessions',
         ])
-            ->withCount(['targets', 'sessions'])
             ->orderByDesc('id')
             ->get();
 
@@ -334,6 +330,8 @@ class AssessmentAssignmentController extends Controller
             'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
             'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
             'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
+            'batchQueueConnection' => AssessmentAssignmentService::QUEUE_CONNECTION,
+            'batchQueueName' => AssessmentAssignmentService::QUEUE_NAME,
             'sessionCapacity' => AssessmentAssignmentService::TARGETS_PER_SESSION,
             'defaultSessionDurationHours' => AssessmentAssignmentService::DEFAULT_SESSION_DURATION_HOURS,
             'sessionDurationOptions' => AssessmentAssignmentService::SESSION_DURATION_OPTIONS,

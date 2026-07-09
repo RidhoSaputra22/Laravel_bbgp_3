@@ -26,7 +26,7 @@ class ProcessAssessmentAssignmentTargetsJob implements ShouldQueue
         public int $assignmentId,
         public array $targetRows
     ) {
-        $this->onQueue('assessment-assignment');
+        $this->onQueue(AssessmentAssignmentService::QUEUE_NAME);
     }
 
     /**
