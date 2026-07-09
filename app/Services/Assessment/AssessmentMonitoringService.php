@@ -7,6 +7,7 @@ use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentSession;
 use App\Models\AssessmentAssignmentTarget;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,34 +23,452 @@ class AssessmentMonitoringService
         private readonly AssessmentAttemptService $attemptService
     ) {}
 
-    public function buildGlobalDashboard(?Collection $assignments = null): array
+    public function buildGlobalDashboard(int $perPage = 10, int $page = 1): array
     {
-        $assignments = $assignments instanceof Collection
-            ? $this->prepareAssignments($assignments)
-            : $this->loadAssignments();
+        $summary = $this->buildGlobalSummarySnapshot();
+        $assignmentPaginator = $this->paginateGlobalAssignmentRows($perPage, $page);
+        $assignmentChartRows = $this->buildGlobalAssignmentChartRows();
+        $kabupatenRows = $this->buildGlobalKabupatenRows();
+        $sessionRows = $this->buildGlobalSessionRows();
 
-        $assignmentRows = $assignments
-            ->map(fn (AssessmentAssignment $assignment) => $this->buildAssignmentRow($assignment))
+        return [
+            'summary' => $summary,
+            'assignment_rows' => $assignmentPaginator->items(),
+            'assignment_paginator' => $assignmentPaginator,
+            'attention_assignments' => $this->buildAttentionAssignmentRows(),
+            'kabupaten_rows' => $kabupatenRows->all(),
+            'session_rows' => $sessionRows->all(),
+            'charts' => $this->buildGlobalChartsSnapshot(
+                $summary,
+                $assignmentChartRows,
+                $kabupatenRows,
+                $sessionRows
+            ),
+        ];
+    }
+
+    private function buildGlobalSummarySnapshot(): array
+    {
+        $assignmentStats = DB::query()
+            ->fromSub($this->assignmentMonitoringBaseQuery(), 'assignment_stats')
+            ->selectRaw('count(*) as assignment_total')
+            ->selectRaw("sum(case when phase = 'berjalan' then 1 else 0 end) as assignment_running_total")
+            ->selectRaw("sum(case when phase = 'terjadwal' then 1 else 0 end) as assignment_upcoming_total")
+            ->selectRaw("sum(case when phase = 'tuntas' then 1 else 0 end) as assignment_completed_total")
+            ->selectRaw("sum(case when phase = 'jatuh_tempo' then 1 else 0 end) as assignment_overdue_total")
+            ->selectRaw("sum(case when distribution_status = 'gagal' and distribution_missing_total > 0 then 1 else 0 end) as assignment_retry_total")
+            ->selectRaw('sum(target_total) as expected_target_total')
+            ->selectRaw('sum(distribution_missing_total) as distribution_missing_total')
+            ->first() ?? (object) [];
+
+        $targetStats = $this->fetchGlobalTargetStats();
+        $expectedTargetTotal = (int) ($assignmentStats->expected_target_total ?? 0);
+        $storedTargetTotal = (int) ($targetStats->stored_target_total ?? 0);
+        $submittedTotal = (int) ($targetStats->submitted_total ?? 0);
+        $submittedTimeoutTotal = (int) ($targetStats->timeout_total ?? 0);
+        $submittedManualTotal = max($submittedTotal - $submittedTimeoutTotal, 0);
+        $inProgressTotal = (int) ($targetStats->in_progress_total ?? 0);
+        $averageScore = isset($targetStats->average_score) && $targetStats->average_score !== null
+            ? round((float) $targetStats->average_score, 2)
+            : null;
+
+        return [
+            'assignment_total' => (int) ($assignmentStats->assignment_total ?? 0),
+            'assignment_running_total' => (int) ($assignmentStats->assignment_running_total ?? 0),
+            'assignment_upcoming_total' => (int) ($assignmentStats->assignment_upcoming_total ?? 0),
+            'assignment_completed_total' => (int) ($assignmentStats->assignment_completed_total ?? 0),
+            'assignment_overdue_total' => (int) ($assignmentStats->assignment_overdue_total ?? 0),
+            'assignment_retry_total' => (int) ($assignmentStats->assignment_retry_total ?? 0),
+            'expected_target_total' => $expectedTargetTotal,
+            'stored_target_total' => $storedTargetTotal,
+            'distribution_missing_total' => (int) ($assignmentStats->distribution_missing_total ?? 0),
+            'submitted_total' => $submittedTotal,
+            'submitted_manual_total' => $submittedManualTotal,
+            'submitted_timeout_total' => $submittedTimeoutTotal,
+            'in_progress_total' => $inProgressTotal,
+            'not_started_total' => (int) ($targetStats->not_started_total ?? 0),
+            'pending_total' => max($expectedTargetTotal - $submittedTotal, 0),
+            'pending_review_participant_total' => (int) ($targetStats->pending_review_total ?? 0),
+            'pending_review_item_total' => (int) ($targetStats->pending_review_item_total ?? 0),
+            'average_score' => $averageScore,
+            'completion_rate' => $expectedTargetTotal > 0
+                ? round(($submittedTotal / $expectedTargetTotal) * 100, 2)
+                : 0.0,
+            'participation_rate' => $storedTargetTotal > 0
+                ? round((($submittedTotal + $inProgressTotal) / $storedTargetTotal) * 100, 2)
+                : 0.0,
+        ];
+    }
+
+    private function paginateGlobalAssignmentRows(int $perPage, int $page): LengthAwarePaginator
+    {
+        $paginator = $this->assignmentMonitoringBaseQuery()
+            ->orderByDesc('id')
+            ->paginate($perPage, ['*'], 'assignment_page', $page);
+
+        $paginator->setCollection(
+            $paginator->getCollection()
+                ->map(fn (object $row) => $this->serializeGlobalAssignmentRow($row))
+                ->values()
+        );
+
+        return $paginator;
+    }
+
+    private function buildAttentionAssignmentRows(): array
+    {
+        return $this->assignmentMonitoringBaseQuery()
+            ->orderByDesc('distribution_missing_total')
+            ->orderByDesc('pending_total')
+            ->orderByDesc('timeout_total')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get()
+            ->map(fn (object $row) => $this->serializeGlobalAssignmentRow($row))
+            ->values()
+            ->all();
+    }
+
+    private function buildGlobalAssignmentChartRows(): Collection
+    {
+        return $this->assignmentMonitoringBaseQuery()
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get()
+            ->map(fn (object $row) => $this->serializeGlobalAssignmentRow($row))
+            ->values()
+            ->reverse()
             ->values();
-        $targets = $assignments
-            ->flatMap(fn (AssessmentAssignment $assignment) => $assignment->targets)
+    }
+
+    private function buildGlobalKabupatenRows(): Collection
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+        $kabupatenExpr = "coalesce(nullif(trim(guru.kabupaten), ''), 'Kabupaten belum diisi')";
+
+        return $this->globalAssignmentTargetBaseQuery()
+            ->leftJoin('gurus as guru', 'guru.id', '=', 'target.guru_id')
+            ->selectRaw($kabupatenExpr.' as kabupaten')
+            ->selectRaw('count(*) as target_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->groupByRaw($kabupatenExpr)
+            ->get()
+            ->map(function (object $row) {
+                $targetTotal = (int) ($row->target_total ?? 0);
+                $submittedTotal = (int) ($row->submitted_total ?? 0);
+                $averageScore = isset($row->average_score) && $row->average_score !== null
+                    ? round((float) $row->average_score, 2)
+                    : null;
+
+                return [
+                    'kabupaten' => (string) ($row->kabupaten ?: 'Kabupaten belum diisi'),
+                    'target_total' => $targetTotal,
+                    'submitted_total' => $submittedTotal,
+                    'in_progress_total' => (int) ($row->in_progress_total ?? 0),
+                    'not_started_total' => (int) ($row->not_started_total ?? 0),
+                    'timeout_total' => (int) ($row->timeout_total ?? 0),
+                    'pending_review_total' => (int) ($row->pending_review_total ?? 0),
+                    'average_score' => $averageScore,
+                    'knowledge_percent' => $averageScore !== null
+                        ? round(($averageScore / 5) * 100, 2)
+                        : null,
+                    'completion_rate' => $targetTotal > 0
+                        ? round(($submittedTotal / $targetTotal) * 100, 2)
+                        : 0.0,
+                ];
+            })
+            ->sortByDesc(fn (array $row) => ($row['submitted_total'] * 1000000) + ($row['target_total'] * 1000) + (int) round(($row['average_score'] ?? 0) * 100))
+            ->take(10)
             ->values();
-        $sessions = $assignments
-            ->flatMap(fn (AssessmentAssignment $assignment) => $assignment->sessions)
+    }
+
+    private function buildGlobalSessionRows(): Collection
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $statsBySessionQuery = $this->globalAssignmentTargetBaseQuery()
+            ->select('target.assessment_assignment_session_id')
+            ->selectRaw('count(*) as assigned_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->groupBy('target.assessment_assignment_session_id');
+
+        return DB::table('assessment_assignment_sessions as assignment_session')
+            ->join(
+                'assessment_assignments as assignment',
+                'assignment.id',
+                '=',
+                'assignment_session.assessment_assignment_id'
+            )
+            ->leftJoinSub($statsBySessionQuery, 'session_stats', function ($join) {
+                $join->on(
+                    'session_stats.assessment_assignment_session_id',
+                    '=',
+                    'assignment_session.id'
+                );
+            })
+            ->selectRaw('assignment.id as assignment_id')
+            ->selectRaw("coalesce(assignment.judul_penugasan, 'Penugasan') as assignment_title")
+            ->selectRaw('assignment_session.id as session_id')
+            ->selectRaw("coalesce(assignment_session.label_sesi, 'Sesi') as session_label")
+            ->selectRaw('assignment_session.waktu_mulai as session_start_at')
+            ->selectRaw('assignment_session.waktu_selesai as session_end_at')
+            ->selectRaw('coalesce(assignment_session.kapasitas_peserta, 0) as capacity_total')
+            ->selectRaw('coalesce(session_stats.assigned_total, 0) as assigned_total')
+            ->selectRaw('coalesce(session_stats.submitted_total, 0) as submitted_total')
+            ->get()
+            ->map(function (object $row) {
+                $capacityTotal = (int) ($row->capacity_total ?? 0);
+                $assignedTotal = (int) ($row->assigned_total ?? 0);
+                $submittedTotal = (int) ($row->submitted_total ?? 0);
+
+                return [
+                    'assignment_id' => (int) ($row->assignment_id ?? 0),
+                    'assignment_title' => (string) ($row->assignment_title ?: 'Penugasan'),
+                    'session_id' => (int) ($row->session_id ?? 0),
+                    'session_label' => (string) ($row->session_label ?: 'Sesi'),
+                    'label' => (string) ($row->assignment_title ?: 'Penugasan').' - '.($row->session_label ?: 'Sesi'),
+                    'assigned_total' => $assignedTotal,
+                    'submitted_total' => $submittedTotal,
+                    'capacity_total' => $capacityTotal,
+                    'occupancy_rate' => $capacityTotal > 0
+                        ? round(($assignedTotal / $capacityTotal) * 100, 2)
+                        : 0.0,
+                    'completion_rate' => $assignedTotal > 0
+                        ? round(($submittedTotal / $assignedTotal) * 100, 2)
+                        : 0.0,
+                    'schedule_label' => $this->formatSessionScheduleLabel(
+                        $row->session_start_at ?? null,
+                        $row->session_end_at ?? null
+                    ),
+                ];
+            })
+            ->sortByDesc(fn (array $row) => ((int) round($row['occupancy_rate'] * 100)) * 1000000 + ($row['assigned_total'] * 1000) + (int) round($row['completion_rate'] * 100))
+            ->take(8)
+            ->reverse()
+            ->values();
+    }
+
+    private function buildGlobalChartsSnapshot(
+        array $summary,
+        Collection $assignmentRows,
+        Collection $kabupatenRows,
+        Collection $sessionRows
+    ): array {
+        $knowledgeRows = $kabupatenRows
+            ->filter(fn (array $row) => $row['average_score'] !== null)
+            ->sortByDesc('average_score')
             ->values();
 
         return [
-            'summary' => $this->buildGlobalSummary($assignmentRows, $targets),
-            'assignment_rows' => $assignmentRows->all(),
-            'attention_assignments' => $assignmentRows
-                ->sortByDesc(fn (array $row) => ($row['distribution_missing_total'] * 1000000) + ($row['pending_total'] * 1000) + $row['timeout_total'])
-                ->take(8)
-                ->values()
-                ->all(),
-            'kabupaten_rows' => $this->buildKabupatenRows($targets)->all(),
-            'session_rows' => $this->buildSessionRows($assignments, $sessions)->all(),
-            'charts' => $this->buildGlobalCharts($assignmentRows, $targets, $assignments, $sessions),
+            'participant_status' => [
+                'labels' => ['Selesai Manual', 'Selesai Timeout', 'Sedang Mengerjakan', 'Belum Mulai', 'Belum Tersimpan'],
+                'data' => [
+                    (int) ($summary['submitted_manual_total'] ?? 0),
+                    (int) ($summary['submitted_timeout_total'] ?? 0),
+                    (int) ($summary['in_progress_total'] ?? 0),
+                    (int) ($summary['not_started_total'] ?? 0),
+                    (int) ($summary['distribution_missing_total'] ?? 0),
+                ],
+            ],
+            'assignment_progress' => [
+                'labels' => $assignmentRows
+                    ->pluck('title')
+                    ->map(fn (string $title) => $this->shortLabel($title, 28))
+                    ->all(),
+                'submitted' => $assignmentRows->pluck('submitted_total')->all(),
+                'pending' => $assignmentRows->pluck('pending_total')->all(),
+                'in_progress' => $assignmentRows->pluck('in_progress_total')->all(),
+            ],
+            'kabupaten_completion' => [
+                'labels' => $kabupatenRows
+                    ->pluck('kabupaten')
+                    ->map(fn (string $label) => $this->shortLabel($label, 24))
+                    ->all(),
+                'submitted' => $kabupatenRows->pluck('submitted_total')->all(),
+                'pending' => $kabupatenRows
+                    ->map(fn (array $row) => max((int) $row['target_total'] - (int) $row['submitted_total'], 0))
+                    ->all(),
+            ],
+            'session_utilization' => [
+                'labels' => $sessionRows->pluck('session_label')->all(),
+                'occupancy' => $sessionRows->pluck('occupancy_rate')->all(),
+                'completion' => $sessionRows->pluck('completion_rate')->all(),
+            ],
+            'kabupaten_knowledge' => [
+                'labels' => $knowledgeRows
+                    ->pluck('kabupaten')
+                    ->map(fn (string $label) => $this->shortLabel($label, 24))
+                    ->all(),
+                'scores' => $knowledgeRows->pluck('average_score')->all(),
+                'participants' => $knowledgeRows->pluck('submitted_total')->all(),
+            ],
         ];
+    }
+
+    private function assignmentMonitoringBaseQuery()
+    {
+        $phaseSql = $this->globalAssignmentPhaseSql();
+
+        return DB::table('assessment_assignments as assignment')
+            ->leftJoinSub(
+                $this->globalAssignmentTargetAggregateQuery(),
+                'target_stats',
+                fn ($join) => $join->on('target_stats.assessment_assignment_id', '=', 'assignment.id')
+            )
+            ->leftJoinSub(
+                DB::table('assessment_assignment_sessions')
+                    ->select('assessment_assignment_id')
+                    ->selectRaw('count(*) as sessions_total')
+                    ->groupBy('assessment_assignment_id'),
+                'session_stats',
+                fn ($join) => $join->on('session_stats.assessment_assignment_id', '=', 'assignment.id')
+            )
+            ->selectRaw('assignment.id as id')
+            ->selectRaw("coalesce(assignment.kode_penugasan, '-') as code")
+            ->selectRaw("coalesce(assignment.judul_penugasan, 'Penugasan') as title")
+            ->selectRaw("coalesce(assignment.status_distribusi, 'draft') as distribution_status")
+            ->selectRaw('assignment.total_target as target_total')
+            ->selectRaw('assignment.tanggal_mulai as start_date')
+            ->selectRaw('assignment.tanggal_selesai as end_date')
+            ->selectRaw('coalesce(target_stats.stored_target_total, 0) as stored_target_total')
+            ->selectRaw('greatest(assignment.total_target - coalesce(target_stats.stored_target_total, 0), 0) as distribution_missing_total')
+            ->selectRaw('coalesce(target_stats.submitted_total, 0) as submitted_total')
+            ->selectRaw('greatest(coalesce(target_stats.submitted_total, 0) - coalesce(target_stats.timeout_total, 0), 0) as submitted_manual_total')
+            ->selectRaw('coalesce(target_stats.timeout_total, 0) as submitted_timeout_total')
+            ->selectRaw('coalesce(target_stats.in_progress_total, 0) as in_progress_total')
+            ->selectRaw('coalesce(target_stats.not_started_total, 0) as not_started_total')
+            ->selectRaw('coalesce(target_stats.started_total, 0) as started_total')
+            ->selectRaw('greatest(assignment.total_target - coalesce(target_stats.submitted_total, 0), 0) as pending_total')
+            ->selectRaw('coalesce(target_stats.timeout_total, 0) as timeout_total')
+            ->selectRaw('coalesce(target_stats.pending_review_total, 0) as pending_review_total')
+            ->selectRaw('coalesce(target_stats.pending_review_item_total, 0) as pending_review_item_total')
+            ->selectRaw('target_stats.average_score as average_score')
+            ->selectRaw('case when assignment.total_target > 0 then round((coalesce(target_stats.submitted_total, 0) / assignment.total_target) * 100, 2) else 0 end as completion_rate')
+            ->selectRaw('case when coalesce(target_stats.stored_target_total, 0) > 0 then round(((coalesce(target_stats.submitted_total, 0) + coalesce(target_stats.in_progress_total, 0)) / coalesce(target_stats.stored_target_total, 0)) * 100, 2) else 0 end as participation_rate')
+            ->selectRaw($phaseSql.' as phase')
+            ->selectRaw('coalesce(session_stats.sessions_total, 0) as sessions_total');
+    }
+
+    private function globalAssignmentTargetAggregateQuery()
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $activityExpr = $this->assignmentTargetActivitySql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        return $this->globalAssignmentTargetBaseQuery()
+            ->select('target.assessment_assignment_id')
+            ->selectRaw('count(*) as stored_target_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$activityExpr.' then 1 else 0 end) as started_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('sum('.$manualPendingExpr.') as pending_review_item_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->groupBy('target.assessment_assignment_id');
+    }
+
+    private function fetchGlobalTargetStats(): object
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        return $this->globalAssignmentTargetBaseQuery()
+            ->selectRaw('count(*) as stored_target_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('sum('.$manualPendingExpr.') as pending_review_item_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->first() ?? (object) [];
+    }
+
+    private function globalAssignmentTargetBaseQuery()
+    {
+        return DB::table('assessment_assignment_targets as target')
+            ->leftJoin(
+                'assessment_attempts as attempt',
+                'attempt.assessment_assignment_target_id',
+                '=',
+                'target.id'
+            );
+    }
+
+    private function serializeGlobalAssignmentRow(object $row): array
+    {
+        $targetTotal = (int) ($row->target_total ?? 0);
+        $storedTargetTotal = (int) ($row->stored_target_total ?? 0);
+        $averageScore = isset($row->average_score) && $row->average_score !== null
+            ? round((float) $row->average_score, 2)
+            : null;
+        $phase = (string) ($row->phase ?: 'disiapkan');
+
+        return [
+            'id' => (int) ($row->id ?? 0),
+            'code' => (string) ($row->code ?: '-'),
+            'title' => (string) ($row->title ?: 'Penugasan'),
+            'distribution_status' => (string) ($row->distribution_status ?: 'draft'),
+            'target_total' => $targetTotal,
+            'stored_target_total' => $storedTargetTotal,
+            'distribution_missing_total' => (int) ($row->distribution_missing_total ?? max($targetTotal - $storedTargetTotal, 0)),
+            'submitted_total' => (int) ($row->submitted_total ?? 0),
+            'submitted_manual_total' => (int) ($row->submitted_manual_total ?? 0),
+            'submitted_timeout_total' => (int) ($row->submitted_timeout_total ?? 0),
+            'in_progress_total' => (int) ($row->in_progress_total ?? 0),
+            'not_started_total' => (int) ($row->not_started_total ?? 0),
+            'started_total' => (int) ($row->started_total ?? 0),
+            'pending_total' => (int) ($row->pending_total ?? 0),
+            'timeout_total' => (int) ($row->timeout_total ?? 0),
+            'pending_review_total' => (int) ($row->pending_review_total ?? 0),
+            'pending_review_item_total' => (int) ($row->pending_review_item_total ?? 0),
+            'average_score' => $averageScore,
+            'completion_rate' => round((float) ($row->completion_rate ?? 0), 2),
+            'participation_rate' => round((float) ($row->participation_rate ?? 0), 2),
+            'phase' => $phase,
+            'phase_label' => $this->resolveAssignmentPhaseLabel($phase),
+            'retry_needed' => (string) ($row->distribution_status ?? '') === 'gagal'
+                && max($targetTotal - $storedTargetTotal, 0) > 0,
+            'sessions_total' => (int) ($row->sessions_total ?? 0),
+            'period_label' => $this->formatPeriodLabelFromRange(
+                $row->start_date ?? null,
+                $row->end_date ?? null
+            ),
+            'start_label' => $this->formatDateLabel($row->start_date ?? null),
+            'end_label' => $this->formatDateLabel($row->end_date ?? null),
+        ];
+    }
+
+    private function globalAssignmentPhaseSql(): string
+    {
+        $today = now()->toDateString();
+
+        return "case
+            when assignment.total_target > 0 and coalesce(target_stats.submitted_total, 0) >= assignment.total_target then 'tuntas'
+            when assignment.tanggal_selesai is not null and assignment.tanggal_selesai < '{$today}' and coalesce(target_stats.submitted_total, 0) < assignment.total_target then 'jatuh_tempo'
+            when assignment.tanggal_mulai is not null and assignment.tanggal_mulai > '{$today}' and coalesce(target_stats.started_total, 0) = 0 then 'terjadwal'
+            when coalesce(target_stats.started_total, 0) > 0 or coalesce(target_stats.stored_target_total, 0) > 0 then 'berjalan'
+            else 'disiapkan'
+        end";
     }
 
     public function buildAssignmentDetail(AssessmentAssignment $assignment): array
@@ -991,13 +1410,57 @@ class AssessmentMonitoringService
         return $date->format('d M Y');
     }
 
-    private function formatPeriodLabel(AssessmentAssignment $assignment): string
-    {
-        $startLabel = $this->formatDateLabel($assignment->tanggal_mulai);
-        $endLabel = $this->formatDateLabel($assignment->tanggal_selesai);
+    private function formatPeriodLabelFromRange(
+        Carbon|string|null $startDate,
+        Carbon|string|null $endDate
+    ): string {
+        $startLabel = $this->formatDateLabel($startDate);
+        $endLabel = $this->formatDateLabel($endDate);
 
         return $startLabel === '-' && $endLabel === '-'
             ? 'Periode belum diatur'
             : $startLabel.' s/d '.$endLabel;
+    }
+
+    private function formatSessionScheduleLabel(
+        Carbon|string|null $startDateTime,
+        Carbon|string|null $endDateTime
+    ): string {
+        if (! $startDateTime) {
+            return 'Jadwal belum diatur';
+        }
+
+        $startDateTime = $startDateTime instanceof Carbon
+            ? $startDateTime
+            : Carbon::parse($startDateTime);
+
+        if (! $endDateTime) {
+            return $startDateTime->format('d M Y H:i').' WITA';
+        }
+
+        $endDateTime = $endDateTime instanceof Carbon
+            ? $endDateTime
+            : Carbon::parse($endDateTime);
+
+        if ($startDateTime->isSameDay($endDateTime)) {
+            return $startDateTime->format('d M Y').', '
+                .$startDateTime->format('H:i')
+                .' - '
+                .$endDateTime->format('H:i')
+                .' WITA';
+        }
+
+        return $startDateTime->format('d M Y H:i')
+            .' - '
+            .$endDateTime->format('d M Y H:i')
+            .' WITA';
+    }
+
+    private function formatPeriodLabel(AssessmentAssignment $assignment): string
+    {
+        return $this->formatPeriodLabelFromRange(
+            $assignment->tanggal_mulai,
+            $assignment->tanggal_selesai
+        );
     }
 }

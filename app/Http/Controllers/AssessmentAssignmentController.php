@@ -486,8 +486,7 @@ class AssessmentAssignmentController extends Controller
     private function countAvailableCombinationsForKetenagaan(AssessmentKetenagaanType $case): int
     {
         return $this->assignmentService
-            ->getAvailableCombinationsForKetenagaan($case)
-            ->count();
+            ->countAvailableCombinationsForKetenagaan($case);
     }
 
     private function countAvailableParticipantsForKetenagaan(AssessmentKetenagaanType $case): int
@@ -559,7 +558,7 @@ class AssessmentAssignmentController extends Controller
         return collect(AssessmentKetenagaanType::cases())
             ->mapWithKeys(function (AssessmentKetenagaanType $case) {
                 $items = $this->assignmentService
-                    ->getAvailableCombinationsForKetenagaan($case)
+                    ->getAvailableCombinationOptionSummariesForKetenagaan($case)
                     ->values()
                     ->map(function (AssessmentCombination $combination) {
                         return [
@@ -574,20 +573,6 @@ class AssessmentAssignmentController extends Controller
                             'total_assessments' => (int) $combination->total_assessments,
                             'total_forms' => (int) $combination->total_forms,
                             'total_questions' => (int) $combination->total_questions,
-                            'updated_at_label' => \App\Helpers\Helper::dateIndo($combination->updated_at),
-                            'source_assessments' => collect(data_get($combination->structure_snapshot, 'assessments', []))
-                                ->map(function (array $assessment) {
-                                    return [
-                                        'id' => (int) ($assessment['id'] ?? 0),
-                                        'kode' => (string) ($assessment['kode_assessment'] ?? ''),
-                                        'judul' => (string) ($assessment['judul'] ?? ''),
-                                        'form_count' => count($assessment['forms'] ?? []),
-                                        'question_count' => collect($assessment['forms'] ?? [])
-                                            ->sum(fn ($form) => count($form['fields'] ?? [])),
-                                    ];
-                                })
-                                ->values()
-                                ->all(),
                         ];
                     })
                     ->all();

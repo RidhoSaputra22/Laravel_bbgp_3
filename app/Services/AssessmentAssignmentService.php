@@ -52,12 +52,7 @@ class AssessmentAssignmentService
             $generatedCombinations = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
                 ->where('assessment_combination_generation_id', $latestGenerationId)
                 ->reorder()
-                ->orderByRaw('case when generation_sequence is null then 1 else 0 end')
                 ->orderBy('generation_sequence')
-                ->when(
-                    Schema::hasColumn('assessment_combinations', 'generated_at'),
-                    fn ($query) => $query->orderByDesc('generated_at')
-                )
                 ->orderByDesc('id')
                 ->get();
 
@@ -67,6 +62,71 @@ class AssessmentAssignmentService
         }
 
         return $this->buildCombinationPoolBaseQuery($targetKetenagaan)->get()->values();
+    }
+
+    public function getAvailableCombinationOptionSummariesForKetenagaan(
+        AssessmentKetenagaanType $targetKetenagaan
+    ): Collection {
+        if (! Schema::hasTable('assessment_combinations')) {
+            return collect();
+        }
+
+        $selectColumns = [
+            'id',
+            'kode_kombinasi',
+            'total_assessments',
+            'total_forms',
+            'total_questions',
+            'assessment_combination_generation_id',
+            'generation_sequence',
+        ];
+        $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
+
+        if ($latestGenerationId) {
+            $generatedCombinations = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
+                ->select($selectColumns)
+                ->where('assessment_combination_generation_id', $latestGenerationId)
+                ->reorder()
+                ->orderBy('generation_sequence')
+                ->orderByDesc('id')
+                ->get();
+
+            if ($generatedCombinations->isNotEmpty()) {
+                return $generatedCombinations->values();
+            }
+        }
+
+        return $this->buildCombinationPoolBaseQuery($targetKetenagaan)
+            ->select($selectColumns)
+            ->reorder()
+            ->orderByDesc('id')
+            ->get()
+            ->values();
+    }
+
+    public function countAvailableCombinationsForKetenagaan(
+        AssessmentKetenagaanType $targetKetenagaan
+    ): int {
+        if (! Schema::hasTable('assessment_combinations')) {
+            return 0;
+        }
+
+        $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
+
+        if ($latestGenerationId) {
+            $latestGenerationCount = (clone $this->buildCombinationPoolBaseQuery($targetKetenagaan))
+                ->reorder()
+                ->where('assessment_combination_generation_id', $latestGenerationId)
+                ->count();
+
+            if ($latestGenerationCount > 0) {
+                return $latestGenerationCount;
+            }
+        }
+
+        return (clone $this->buildCombinationPoolBaseQuery($targetKetenagaan))
+            ->reorder()
+            ->count();
     }
 
     public function createAssignment(array $payload, ?int $assignedBy = null): AssessmentAssignment

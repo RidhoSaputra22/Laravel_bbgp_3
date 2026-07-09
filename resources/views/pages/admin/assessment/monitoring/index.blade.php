@@ -25,6 +25,7 @@
         $summary = $monitoringPanel['summary'] ?? [];
         $charts = $monitoringPanel['charts'] ?? [];
         $attentionAssignments = collect($monitoringPanel['attention_assignments'] ?? []);
+        $assignmentPaginator = $monitoringPanel['assignment_paginator'] ?? null;
     @endphp
 
     <div class="main-content">
@@ -303,6 +304,108 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                        <h4 class="mb-0">Daftar Monitoring Penugasan</h4>
+                        <form method="GET" class="form-inline">
+                            <label for="assignment_per_page" class="mr-2 mb-0 small text-muted">Tampilkan</label>
+                            <select name="assignment_per_page" id="assignment_per_page"
+                                class="form-control form-control-sm mr-2" onchange="this.form.submit()">
+                                @foreach ([5, 10, 15, 25, 50] as $perPageOption)
+                                    <option value="{{ $perPageOption }}"
+                                        @selected((int) request('assignment_per_page', 10) === $perPageOption)>
+                                        {{ $perPageOption }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <span class="small text-muted">baris per halaman</span>
+                        </form>
+                    </div>
+                    <div class="card-body">
+                        @if (!$assignmentPaginator || $assignmentPaginator->isEmpty())
+                            <div class="alert alert-light mb-0">
+                                Belum ada penugasan assessment yang bisa dimonitor.
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-striped mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Penugasan</th>
+                                            <th>Fase</th>
+                                            <th>Distribusi</th>
+                                            <th>Progres Isi</th>
+                                            <th>Review</th>
+                                            <th>Rata-rata</th>
+                                            <th>Sesi</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($assignmentPaginator as $item)
+                                            <tr>
+                                                <td>
+                                                    <div class="font-weight-bold">{{ $item['title'] }}</div>
+                                                    <small class="text-muted">
+                                                        {{ $item['code'] }} • {{ $item['period_label'] }}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <span
+                                                        class="badge badge-{{ $item['phase'] === 'jatuh_tempo' ? 'danger' : ($item['phase'] === 'tuntas' ? 'success' : ($item['phase'] === 'terjadwal' ? 'secondary' : 'info')) }}">
+                                                        {{ $item['phase_label'] }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div>{{ $item['stored_target_total'] }}/{{ $item['target_total'] }} tersimpan</div>
+                                                    <small
+                                                        class="text-{{ $item['distribution_missing_total'] > 0 ? 'danger' : 'muted' }}">
+                                                        {{ $item['distribution_missing_total'] }} belum tersimpan
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <div>{{ $item['submitted_total'] }} selesai / {{ $item['target_total'] }} target</div>
+                                                    <small class="text-muted">
+                                                        {{ $item['in_progress_total'] }} mengerjakan •
+                                                        {{ $item['pending_total'] }} belum selesai
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <div>{{ $item['pending_review_total'] }} peserta</div>
+                                                    <small class="text-muted">
+                                                        {{ $item['pending_review_item_total'] }} item
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    {{ $item['average_score'] !== null ? number_format((float) $item['average_score'], 2) : '-' }}
+                                                </td>
+                                                <td>{{ $item['sessions_total'] }} sesi</td>
+                                                <td>
+                                                    <a href="{{ route('assessment.assignment.show', $item['id']) }}"
+                                                        class="btn btn-info btn-sm">
+                                                        <i class="fas fa-eye mr-1"></i> Pantau
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mt-3">
+                                <div class="small text-muted">
+                                    Menampilkan {{ $assignmentPaginator->firstItem() ?? 0 }} -
+                                    {{ $assignmentPaginator->lastItem() ?? 0 }} dari
+                                    {{ $assignmentPaginator->total() }} penugasan
+                                </div>
+                                <div>
+                                    {{ $assignmentPaginator->appends(request()->except('assignment_page'))->links() }}
+                                </div>
                             </div>
                         @endif
                     </div>
