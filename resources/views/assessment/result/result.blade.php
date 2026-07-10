@@ -19,6 +19,7 @@
         $requiredQuestions = (int) ($summary['required_questions'] ?? 0);
         $answeredQuestions = (int) ($summary['answered_questions'] ?? 0);
         $answeredRequiredQuestions = (int) ($summary['answered_required_questions'] ?? 0);
+        $sessionEnabled = $target->assignment->usesSessionScheduling();
         $sessionLabel = $meta['session_label'] ?? '-';
         $sessionScheduleText = $meta['session_schedule_text'] ?? '-';
         $submissionStatusLabel = $meta['label'] ?? 'Dikirim';
@@ -118,11 +119,11 @@
                 'value' => $assignmentDateText,
             ],
             [
-                'label' => 'Label Sesi',
+                'label' => $sessionEnabled ? 'Label Sesi' : 'Mode Sesi',
                 'value' => $sessionLabel,
             ],
             [
-                'label' => 'Jadwal Sesi',
+                'label' => $sessionEnabled ? 'Jadwal Sesi' : 'Akses Peserta',
                 'value' => $sessionScheduleText,
             ],
         ];
@@ -169,7 +170,7 @@
         <div class="space-y-8">
             <x-assessment::ui.card>
                 <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div class="space-y-3">
+                    <div class="space-y-3 flex-1">
                         <div class="font-mono text-sm font-bold text-[#1376bd]">
                             {{ $target->assignment->kode_penugasan }}
                         </div>
@@ -194,7 +195,7 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2  justify-start lg:justify-end">
                         <x-assessment::ui.button
                             :href="$backUrl"
                             icon="fas fa-th-large"

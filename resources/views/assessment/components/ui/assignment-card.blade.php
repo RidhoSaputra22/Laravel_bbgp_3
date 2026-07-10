@@ -26,7 +26,7 @@
                 {{ $target->assignment->kode_penugasan }}
             </div>
 
-            <div class=" text-sm font-bold   lg:text-2xl">
+            <div class=" text-sm font-bold   lg:text-2xl py-2">
                 {{ $target->assignment->judul_penugasan }}
             </div>
 

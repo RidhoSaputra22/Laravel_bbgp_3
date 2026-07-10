@@ -139,6 +139,7 @@
         $totalFields = $combination?->total_questions ?: $assessments->sum(
             fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count()),
         );
+        $sessionEnabled = $assignment->usesSessionScheduling();
         $resolvedSecurityConfig = \App\Support\Assessment\AssessmentSecurityConfig::normalize($assignment->security_config ?? []);
         $monitoringSummary = $monitoringPanel['summary'] ?? [];
         $detailLists = $monitoringPanel['lists'] ?? [];
@@ -242,7 +243,7 @@
                                     <h4>Total Sesi</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $assignment->total_sesi }}
+                                    {{ $sessionEnabled ? $assignment->total_sesi : 'Tanpa sesi' }}
                                 </div>
                             </div>
                         </div>
@@ -254,7 +255,7 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Durasi Per Sesi</h4>
+                                    <h4>{{ $sessionEnabled ? 'Durasi Per Sesi' : 'Durasi Pengerjaan' }}</h4>
                                 </div>
                                 <div class="card-body">
                                     {{ $assignment->durasi_sesi_jam }} jam
@@ -284,6 +285,15 @@
                                     {{ ucfirst($assignment->status_distribusi) }}
                                 </span>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Mode Sesi</div>
+                            <div class="font-weight-bold">{{ $assignment->session_mode_label }}</div>
+                            <small class="text-muted d-block">
+                                {{ $sessionEnabled
+                                    ? 'Peserta dibagi otomatis ke sesi terjadwal.'
+                                    : 'Peserta tidak dibagi ke sesi dan dapat mengakses assessment secara fleksibel selama periode penugasan.' }}
+                            </small>
                         </div>
                         <div class="mb-3">
                             <div class="text-muted small">Ketenagaan Target</div>
@@ -347,7 +357,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <div class="text-muted small">Jam Sesi Awal</div>
+                            <div class="text-muted small">{{ $sessionEnabled ? 'Jam Sesi Awal' : 'Jam Buka Penugasan' }}</div>
                             <div>{{ $assignment->jam_mulai_label ? $assignment->jam_mulai_label . ' WITA' : 'Belum diatur' }}</div>
                         </div>
                         <div class="mb-3">
@@ -356,15 +366,23 @@
                         </div>
                         <div class="mb-3">
                             <div class="text-muted small">Pengaturan Sesi</div>
-                            <div>{{ $assignment->total_sesi }} sesi</div>
-                            <small class="text-muted">
-                                {{ $assignment->kapasitas_per_sesi }} peserta per sesi / {{ $assignment->durasi_sesi_jam }}
-                                jam per sesi
-                            </small>
-                            @if ($assignment->jam_mulai_label)
-                                <br>
+                            @if ($sessionEnabled)
+                                <div>{{ $assignment->total_sesi }} sesi</div>
                                 <small class="text-muted">
-                                    Patokan sesi 1 mulai {{ $assignment->jam_mulai_label }} WITA
+                                    {{ $assignment->kapasitas_per_sesi }} peserta per sesi /
+                                    {{ $assignment->durasi_sesi_jam }} jam per sesi
+                                </small>
+                                @if ($assignment->jam_mulai_label)
+                                    <br>
+                                    <small class="text-muted">
+                                        Patokan sesi 1 mulai {{ $assignment->jam_mulai_label }} WITA
+                                    </small>
+                                @endif
+                            @else
+                                <div>Tanpa sesi</div>
+                                <small class="text-muted">
+                                    Sistem tidak membuat data sesi dan target peserta tidak disimpan pada slot sesi mana
+                                    pun.
                                 </small>
                             @endif
                         </div>
@@ -981,168 +999,6 @@
                                 </div>
                             </div>
                         @endif
-
-                        <div class="alert alert-light border">
-                            Snapshot di bawah ini tetap menampilkan gambaran cepat seluruh penugasan tanpa filter.
-                        </div>
-
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Peserta Sudah Mengisi</h4>
-                                    </div>
-                                    <div class="card-body monitor-mini-list">
-                                        @forelse ($detailLists['submitted_participants'] ?? [] as $participant)
-                                            <div class="mb-3 pb-3 border-bottom">
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
-                                                    <span class="badge badge-success">{{ $participant['status_label'] }}</span>
-                                                </div>
-                                                <div class="text-muted small">
-                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
-                                                </div>
-                                                <div class="small mt-1">
-                                                    Submit: {{ $participant['submitted_at'] ?: '-' }}
-                                                    @if ($participant['score_label'])
-                                                        • Skor {{ $participant['score_label'] }}
-                                                        @if ($participant['score_level'])
-                                                            ({{ $participant['score_level'] }})
-                                                        @endif
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <div class="text-muted">Belum ada peserta yang menyelesaikan assessment.</div>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Peserta Belum Mengisi</h4>
-                                    </div>
-                                    <div class="card-body monitor-mini-list">
-                                        @forelse ($detailLists['pending_participants'] ?? [] as $participant)
-                                            <div class="mb-3 pb-3 border-bottom">
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
-                                                    <span class="badge badge-secondary">{{ $participant['status_label'] }}</span>
-                                                </div>
-                                                <div class="text-muted small">
-                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
-                                                </div>
-                                                <div class="small mt-1">
-                                                    Mulai: {{ $participant['started_at'] ?: 'Belum ada aktivitas' }}
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <div class="text-muted">Semua peserta pada penugasan ini sudah mengisi assessment.</div>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Auto Scoring Belum Lengkap</h4>
-                                    </div>
-                                    <div class="card-body monitor-mini-list">
-                                        @forelse ($detailLists['pending_review_participants'] ?? [] as $participant)
-                                            <div class="mb-3 pb-3 border-bottom">
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
-                                                    <span class="badge badge-primary">
-                                                        {{ $participant['manual_pending_items'] }} item
-                                                    </span>
-                                                </div>
-                                                <div class="text-muted small">
-                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
-                                                </div>
-                                                <div class="small mt-1">
-                                                    <a href="{{ $participant['review_url'] }}" class="btn btn-sm btn-primary">
-                                                        <i class="fas fa-clipboard-check mr-1"></i> Lihat Hasil
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <div class="text-muted">Semua jawaban yang masuk sudah dinilai otomatis oleh sistem.</div>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Skor Terendah</h4>
-                                    </div>
-                                    <div class="card-body monitor-mini-list">
-                                        @forelse ($detailLists['low_score_participants'] ?? [] as $participant)
-                                            <div class="mb-3 pb-3 border-bottom">
-                                                <div class="d-flex justify-content-between">
-                                                    <div class="font-weight-bold">{{ $participant['name'] }}</div>
-                                                    <span class="badge badge-warning">
-                                                        {{ $participant['score_label'] ?: '-' }}
-                                                    </span>
-                                                </div>
-                                                <div class="text-muted small">
-                                                    {{ $participant['kabupaten'] }} • {{ $participant['session_label'] }}
-                                                </div>
-                                                <div class="small mt-1">
-                                                    Level: {{ $participant['score_level'] ?: 'Belum terpetakan' }}
-                                                </div>
-                                            </div>
-                                        @empty
-                                            <div class="text-muted">Belum ada skor akhir peserta yang dapat dibandingkan.</div>
-                                        @endforelse
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Status Peserta</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="assignmentDetailStatusChart" height="250"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-8">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Progress Per Sesi</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="assignmentDetailSessionChart" height="250"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-8">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Progress Per Kabupaten</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="assignmentDetailKabupatenChart" height="250"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4">
-                                <div class="card border">
-                                    <div class="card-header">
-                                        <h4>Distribusi Level Skor</h4>
-                                    </div>
-                                    <div class="card-body">
-                                        <canvas id="assignmentDetailScoreLevelChart" height="250"></canvas>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -1223,10 +1079,15 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4>Pembagian Sesi Assessment</h4>
+                        <h4>{{ $sessionEnabled ? 'Pembagian Sesi Assessment' : 'Mode Akses Assessment' }}</h4>
                     </div>
                     <div class="card-body">
-                        @if ($assignment->sessions->isEmpty())
+                        @if (! $sessionEnabled)
+                            <div class="alert alert-info mb-0">
+                                Mode tanpa sesi aktif. Peserta tidak dipetakan ke sesi mana pun dan dapat memulai
+                                assessment secara fleksibel selama periode penugasan.
+                            </div>
+                        @elseif ($assignment->sessions->isEmpty())
                             <div class="alert alert-warning mb-0">
                                 Sesi assessment belum terbentuk pada penugasan ini.
                             </div>

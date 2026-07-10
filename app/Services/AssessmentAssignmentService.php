@@ -140,11 +140,14 @@ class AssessmentAssignmentService
                 $context['assessment_ids'],
                 ! $context['uses_combination']
             );
-            $totalSessions = $this->calculateTotalSessions(count($context['guru_ids']));
+            $totalSessions = $context['session_enabled']
+                ? $this->calculateTotalSessions(count($context['guru_ids']))
+                : 0;
 
             $assignment = AssessmentAssignment::create([
                 'kode_penugasan' => $this->generateUniqueCode(),
                 'judul_penugasan' => $payload['judul_penugasan'],
+                'session_enabled' => $context['session_enabled'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
                 'assessment_combination_id' => $context['primary_assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
@@ -154,7 +157,7 @@ class AssessmentAssignmentService
                 'tanggal_mulai' => $payload['tanggal_mulai'] ?? null,
                 'jam_mulai' => $context['start_time'],
                 'tanggal_selesai' => $payload['tanggal_selesai'] ?? null,
-                'kapasitas_per_sesi' => self::TARGETS_PER_SESSION,
+                'kapasitas_per_sesi' => $context['session_enabled'] ? self::TARGETS_PER_SESSION : 0,
                 'durasi_sesi_jam' => $context['session_duration_hours'],
                 'security_config' => AssessmentSecurityConfig::normalize($payload['security_config'] ?? []),
                 'total_sesi' => $totalSessions,
@@ -166,12 +169,14 @@ class AssessmentAssignmentService
 
             $assignment->assessments()->sync($assessmentSyncData);
 
-            $sessionRows = $this->createSessions(
-                $assignment,
-                count($context['guru_ids']),
-                $context['session_duration_hours'],
-                $context['first_session_start_at']
-            );
+            $sessionRows = $context['session_enabled']
+                ? $this->createSessions(
+                    $assignment,
+                    count($context['guru_ids']),
+                    $context['session_duration_hours'],
+                    $context['first_session_start_at']
+                )
+                : [];
 
             $targetRows = $this->buildTargetRows(
                 $assignment,
@@ -223,7 +228,9 @@ class AssessmentAssignmentService
                 $context['assessment_ids'],
                 ! $context['uses_combination']
             );
-            $totalSessions = $this->calculateTotalSessions(count($context['guru_ids']));
+            $totalSessions = $context['session_enabled']
+                ? $this->calculateTotalSessions(count($context['guru_ids']))
+                : 0;
 
             $this->cancelAssignmentBatch($assignment->job_batch_id);
             $this->purgeAssignmentQueueArtifacts($assignment->id);
@@ -231,6 +238,7 @@ class AssessmentAssignmentService
 
             $assignment->forceFill([
                 'judul_penugasan' => $payload['judul_penugasan'],
+                'session_enabled' => $context['session_enabled'],
                 'target_ketenagaan' => $context['target_ketenagaan']?->value,
                 'assessment_combination_id' => $context['primary_assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
@@ -240,7 +248,7 @@ class AssessmentAssignmentService
                 'tanggal_mulai' => $payload['tanggal_mulai'] ?? null,
                 'jam_mulai' => $context['start_time'],
                 'tanggal_selesai' => $payload['tanggal_selesai'] ?? null,
-                'kapasitas_per_sesi' => self::TARGETS_PER_SESSION,
+                'kapasitas_per_sesi' => $context['session_enabled'] ? self::TARGETS_PER_SESSION : 0,
                 'durasi_sesi_jam' => $context['session_duration_hours'],
                 'security_config' => AssessmentSecurityConfig::normalize($payload['security_config'] ?? []),
                 'total_sesi' => $totalSessions,
@@ -254,12 +262,14 @@ class AssessmentAssignmentService
 
             $assignment->assessments()->sync($assessmentSyncData);
 
-            $sessions = $this->createSessions(
-                $assignment,
-                count($context['guru_ids']),
-                $context['session_duration_hours'],
-                $context['first_session_start_at']
-            );
+            $sessions = $context['session_enabled']
+                ? $this->createSessions(
+                    $assignment,
+                    count($context['guru_ids']),
+                    $context['session_duration_hours'],
+                    $context['first_session_start_at']
+                )
+                : [];
 
             $targetRows = $this->buildTargetRows(
                 $assignment,
@@ -454,9 +464,11 @@ class AssessmentAssignmentService
     {
         $targetKetenagaan = $this->resolveTargetKetenagaan($payload);
         $assessmentCombinations = $this->resolveAssessmentCombinations($payload, $targetKetenagaan);
+        $sessionEnabled = $this->resolveSessionEnabled($payload);
         $startTime = $this->normalizeStartTime($payload['jam_mulai'] ?? null);
 
         return [
+            'session_enabled' => $sessionEnabled,
             'target_ketenagaan' => $targetKetenagaan,
             'assessment_combinations' => $assessmentCombinations,
             'primary_assessment_combination' => $assessmentCombinations->count() === 1
@@ -467,7 +479,9 @@ class AssessmentAssignmentService
             'guru_ids' => $this->resolveGuruIds($payload, $targetKetenagaan),
             'session_duration_hours' => (int) ($payload['durasi_sesi_jam'] ?? self::DEFAULT_SESSION_DURATION_HOURS),
             'start_time' => $startTime,
-            'first_session_start_at' => $this->resolveFirstSessionStartAt($payload, $startTime),
+            'first_session_start_at' => $sessionEnabled
+                ? $this->resolveFirstSessionStartAt($payload, $startTime)
+                : null,
         ];
     }
 
@@ -729,6 +743,10 @@ class AssessmentAssignmentService
 
     private function ensureSessionsForAssignment(AssessmentAssignment $assignment, int $totalTargets): array
     {
+        if (! $assignment->usesSessionScheduling()) {
+            return [];
+        }
+
         $assignment->loadMissing('sessions');
         $expectedSessionCount = $this->calculateTotalSessions($totalTargets);
 
@@ -1439,6 +1457,10 @@ class AssessmentAssignmentService
         int $sessionDurationHours,
         ?Carbon $firstSessionStartAt = null
     ): array {
+        if (! $assignment->usesSessionScheduling()) {
+            return [];
+        }
+
         $totalSessions = $this->calculateTotalSessions($totalTargets);
 
         if ($totalSessions === 0) {
@@ -1640,5 +1662,13 @@ class AssessmentAssignmentService
         }
 
         return Carbon::parse($startDate.' '.$startTime);
+    }
+
+    private function resolveSessionEnabled(array $payload): bool
+    {
+        return filter_var(
+            $payload['session_enabled'] ?? true,
+            FILTER_VALIDATE_BOOLEAN
+        );
     }
 }

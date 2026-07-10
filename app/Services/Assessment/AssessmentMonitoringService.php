@@ -408,7 +408,8 @@ class AssessmentMonitoringService
             ->selectRaw('case when assignment.total_target > 0 then round((coalesce(target_stats.submitted_total, 0) / assignment.total_target) * 100, 2) else 0 end as completion_rate')
             ->selectRaw('case when coalesce(target_stats.stored_target_total, 0) > 0 then round(((coalesce(target_stats.submitted_total, 0) + coalesce(target_stats.in_progress_total, 0)) / coalesce(target_stats.stored_target_total, 0)) * 100, 2) else 0 end as participation_rate')
             ->selectRaw($phaseSql.' as phase')
-            ->selectRaw('coalesce(session_stats.sessions_total, 0) as sessions_total');
+            ->selectRaw('coalesce(session_stats.sessions_total, 0) as sessions_total')
+            ->selectRaw('coalesce(assignment.session_enabled, 1) as session_enabled');
     }
 
     private function globalAssignmentTargetAggregateQuery()
@@ -713,7 +714,8 @@ class AssessmentMonitoringService
             ->selectRaw("coalesce(nullif(trim(guru.kabupaten), ''), '-') as kabupaten")
             ->selectRaw("coalesce(nullif(trim(guru.eksternal_jabatan), ''), nullif(trim(guru.jenis_jabatan), ''), '-') as jabatan")
             ->selectRaw("coalesce(nullif(trim(guru.satuan_pendidikan), ''), '-') as school")
-            ->selectRaw("coalesce(assignment_session.label_sesi, 'Belum dipetakan') as session_label")
+            ->selectRaw('coalesce(assignment.session_enabled, 1) as session_enabled')
+            ->selectRaw('assignment_session.label_sesi as session_label')
             ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
             ->selectRaw('coalesce(target.started_at, attempt.started_at) as resolved_started_at')
             ->selectRaw('case when '.$submittedExpr.' then 1 else 0 end as is_submitted')
@@ -748,6 +750,10 @@ class AssessmentMonitoringService
             'code' => (string) ($row->code ?: '-'),
             'title' => (string) ($row->title ?: 'Penugasan'),
             'distribution_status' => (string) ($row->distribution_status ?: 'draft'),
+            'session_enabled' => $this->normalizeSessionEnabled($row->session_enabled ?? true),
+            'session_mode_label' => $this->resolveSessionModeLabel(
+                $this->normalizeSessionEnabled($row->session_enabled ?? true)
+            ),
             'target_total' => $targetTotal,
             'stored_target_total' => $storedTargetTotal,
             'distribution_missing_total' => (int) ($row->distribution_missing_total ?? max($targetTotal - $storedTargetTotal, 0)),
@@ -1211,12 +1217,19 @@ class AssessmentMonitoringService
                 '=',
                 'target.assessment_assignment_session_id'
             )
+            ->leftJoin(
+                'assessment_assignments as assignment',
+                'assignment.id',
+                '=',
+                'target.assessment_assignment_id'
+            )
             ->selectRaw('target.id as target_id')
             ->selectRaw("coalesce(guru.nama_lengkap, 'Peserta tidak ditemukan') as participant_name")
             ->selectRaw("coalesce(nullif(trim(guru.kabupaten), ''), '-') as kabupaten")
             ->selectRaw("coalesce(nullif(trim(guru.eksternal_jabatan), ''), nullif(trim(guru.jenis_jabatan), ''), '-') as jabatan")
             ->selectRaw("coalesce(nullif(trim(guru.satuan_pendidikan), ''), '-') as school")
-            ->selectRaw("coalesce(assignment_session.label_sesi, 'Belum dipetakan') as session_label")
+            ->selectRaw('coalesce(assignment.session_enabled, 1) as session_enabled')
+            ->selectRaw('assignment_session.label_sesi as session_label')
             ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
             ->selectRaw('coalesce(target.started_at, attempt.started_at) as resolved_started_at')
             ->selectRaw('case when '.$submittedExpr.' then 1 else 0 end as is_submitted')
@@ -1592,7 +1605,10 @@ class AssessmentMonitoringService
             'jabatan' => (string) ($row->jabatan ?: '-'),
             'school' => (string) ($row->school ?: '-'),
             'status_label' => $this->resolveAssignmentDetailStatusLabel($row),
-            'session_label' => (string) ($row->session_label ?: 'Belum dipetakan'),
+            'session_label' => $this->resolveSessionLabel(
+                $this->normalizeSessionEnabled($row->session_enabled ?? true),
+                isset($row->session_label) ? (string) $row->session_label : null
+            ),
             'submitted_at' => $this->formatDateTimeLabel($row->resolved_submitted_at ?? null),
             'started_at' => $this->formatDateTimeLabel($row->resolved_started_at ?? null),
             'manual_pending_items' => (int) ($row->manual_pending_items ?? 0),
@@ -1704,6 +1720,8 @@ class AssessmentMonitoringService
             'code' => (string) ($assignment->kode_penugasan ?: '-'),
             'title' => (string) $assignment->judul_penugasan,
             'distribution_status' => (string) ($assignment->status_distribusi ?: 'draft'),
+            'session_enabled' => $assignment->usesSessionScheduling(),
+            'session_mode_label' => $assignment->session_mode_label,
             'target_total' => $targetTotal,
             'stored_target_total' => $storedTargetTotal,
             'distribution_missing_total' => $distributionMissingTotal,
@@ -1910,7 +1928,10 @@ class AssessmentMonitoringService
             'kabupaten' => (string) (optional($target->guru)->kabupaten ?: '-'),
             'school' => (string) (optional($target->guru)->satuan_pendidikan ?: '-'),
             'status_label' => $statusLabel,
-            'session_label' => (string) (optional($target->session)->label_sesi ?: 'Belum dipetakan'),
+            'session_label' => $this->resolveSessionLabel(
+                optional($target->assignment)->usesSessionScheduling() ?? true,
+                optional($target->session)->label_sesi
+            ),
             'submitted_at' => $submittedAt?->format('d M Y H:i'),
             'started_at' => ($target->started_at ?: $target->attempt?->started_at)?->format('d M Y H:i'),
             'manual_pending_items' => $this->manualPendingItems($target),
@@ -2144,5 +2165,38 @@ class AssessmentMonitoringService
             $assignment->tanggal_mulai,
             $assignment->tanggal_selesai
         );
+    }
+
+    private function normalizeSessionEnabled(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value === 1;
+        }
+
+        if (is_string($value)) {
+            return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return true;
+    }
+
+    private function resolveSessionModeLabel(bool $sessionEnabled): string
+    {
+        return $sessionEnabled ? 'Terjadwal per sesi' : 'Tanpa sesi';
+    }
+
+    private function resolveSessionLabel(bool $sessionEnabled, ?string $sessionLabel): string
+    {
+        $sessionLabel = trim((string) ($sessionLabel ?? ''));
+
+        if ($sessionLabel !== '') {
+            return $sessionLabel;
+        }
+
+        return $sessionEnabled ? 'Belum dipetakan' : 'Tanpa sesi';
     }
 }

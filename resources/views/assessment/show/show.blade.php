@@ -58,8 +58,10 @@
         $totalQuestions = (int) data_get($snapshot, 'meta.total_questions', 0);
         $requiredQuestions = (int) data_get($snapshot, 'meta.required_questions', 0);
         $session = $target->session;
+        $sessionEnabled = $target->assignment->usesSessionScheduling();
         $sessionStartAt = $session?->waktu_mulai;
         $sessionEndAt = $session?->waktu_selesai;
+        $assignmentStartAt = \App\Support\Assessment\AssessmentTargetTiming::resolveAssignmentStartAt($target->assignment);
         $attemptStartedAt = $attempt->started_at ?? $target->started_at;
         $countdownTargetAt = \App\Support\Assessment\AssessmentTargetTiming::resolveDeadlineAt($target);
         $durationMinutes = \App\Support\Assessment\AssessmentTargetTiming::resolveDurationMinutes($target);
@@ -74,16 +76,16 @@
         $formatDateTime = fn($value) => $value ? $value->format('d M Y H:i') . ' WITA' : '-';
         $sessionDetails = [
             [
-                'label' => 'Label Sesi',
+                'label' => $sessionEnabled ? 'Label Sesi' : 'Mode Sesi',
                 'value' => $meta['session_label'],
             ],
             [
-                'label' => 'Jadwal Sesi',
+                'label' => $sessionEnabled ? 'Jadwal Sesi' : 'Akses Peserta',
                 'value' => $meta['session_schedule_text'],
             ],
             [
-                'label' => 'Mulai Sesi',
-                'value' => $formatDateTime($sessionStartAt),
+                'label' => $sessionEnabled ? 'Mulai Sesi' : 'Mulai Penugasan',
+                'value' => $formatDateTime($sessionEnabled ? $sessionStartAt : $assignmentStartAt),
             ],
             [
                 'label' => 'Durasi Pengerjaan',

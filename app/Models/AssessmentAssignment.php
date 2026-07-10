@@ -14,6 +14,7 @@ class AssessmentAssignment extends Model
     protected $fillable = [
         'kode_penugasan',
         'judul_penugasan',
+        'session_enabled',
         'target_ketenagaan',
         'assessment_combination_id',
         'target_jabatan',
@@ -36,6 +37,7 @@ class AssessmentAssignment extends Model
     ];
 
     protected $casts = [
+        'session_enabled' => 'boolean',
         'target_jabatan' => 'array',
         'target_kabupaten' => 'array',
         'target_satuan_pendidikan' => 'array',
@@ -88,6 +90,18 @@ class AssessmentAssignment extends Model
         }
 
         return substr((string) $this->jam_mulai, 0, 5);
+    }
+
+    public function usesSessionScheduling(): bool
+    {
+        return (bool) ($this->session_enabled ?? true);
+    }
+
+    public function getSessionModeLabelAttribute(): string
+    {
+        return $this->usesSessionScheduling()
+            ? 'Terjadwal per sesi'
+            : 'Tanpa sesi';
     }
 
     public function getTargetKetenagaanLabelAttribute(): ?string

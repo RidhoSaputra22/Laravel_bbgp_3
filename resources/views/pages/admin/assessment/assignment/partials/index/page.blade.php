@@ -160,19 +160,31 @@
                                                 </td>
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->total_target }} user</div>
-                                                    <small class="text-muted">
-                                                        {{ $data->total_sesi }} sesi / {{ $data->kapasitas_per_sesi }}
-                                                        peserta per sesi
-                                                    </small>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        {{ $data->durasi_sesi_jam }} jam per sesi
-                                                    </small>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        Sesi awal
-                                                        {{ $data->jam_mulai_label ? $data->jam_mulai_label . ' WITA' : 'belum diatur' }}
-                                                    </small>
+                                                    @if ($data->usesSessionScheduling())
+                                                        <small class="text-muted">
+                                                            {{ $data->total_sesi }} sesi / {{ $data->kapasitas_per_sesi }}
+                                                            peserta per sesi
+                                                        </small>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            {{ $data->durasi_sesi_jam }} jam per sesi
+                                                        </small>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            Sesi awal
+                                                            {{ $data->jam_mulai_label ? $data->jam_mulai_label . ' WITA' : 'belum diatur' }}
+                                                        </small>
+                                                    @else
+                                                        <small class="text-muted">Tanpa sesi terjadwal</small>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            {{ $data->durasi_sesi_jam }} jam durasi pengerjaan
+                                                        </small>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            Akses fleksibel selama periode penugasan
+                                                        </small>
+                                                    @endif
                                                 </td>
                                                 <td class="text-center">
                                                     <a href="{{ route('assessment.assignment.show', $data->id) }}"

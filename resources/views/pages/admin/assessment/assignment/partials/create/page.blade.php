@@ -5,6 +5,12 @@
         'durasi_sesi_jam',
         $assignment?->durasi_sesi_jam ?? $defaultSessionDurationHours,
     );
+    $selectedSessionEnabled = filter_var(
+        old('session_enabled', ($assignment?->session_enabled ?? true) ? '1' : '0'),
+        FILTER_VALIDATE_BOOLEAN,
+        FILTER_NULL_ON_FAILURE,
+    );
+    $selectedSessionEnabled = $selectedSessionEnabled ?? ($assignment?->session_enabled ?? true);
     $resolvedSecurityConfig = \App\Support\Assessment\AssessmentSecurityConfig::normalize($assignment?->security_config ?? []);
     $selectedSecurityEnabled = filter_var(
         old('security_enabled', $resolvedSecurityConfig['enabled'] ? '1' : '0'),
@@ -359,7 +365,8 @@
                 @if ($isEditMode)
                     <div class="alert alert-warning">
                         Mode edit akan menyusun ulang penugasan dari nol. Saat perubahan disimpan, sistem menghapus
-                        pembagian sesi lama, riwayat pengerjaan, jawaban peserta, penilaian terkait, serta file
+                        pembagian peserta dan sesi lama bila ada, riwayat pengerjaan, jawaban peserta, penilaian
+                        terkait, serta file
                         unggahan pada penugasan ini. Semua peserta target harus memulai assessment kembali dari awal.
                     </div>
                 @endif
@@ -644,16 +651,37 @@
                                         </div>
                                     </div>
 
+                                    <div class="card border shadow-none mb-4">
+                                        <div class="card-body">
+                                            <div class="custom-control custom-switch mb-2">
+                                                <input type="hidden" name="session_enabled" value="0">
+                                                <input type="checkbox" class="custom-control-input" id="session_enabled"
+                                                    name="session_enabled" value="1" @checked($selectedSessionEnabled)>
+                                                <label class="custom-control-label" for="session_enabled">
+                                                    Aktifkan Pembagian Sesi
+                                                </label>
+                                            </div>
+                                            <small class="text-muted d-block" id="session-enabled-help">
+                                                {{ $selectedSessionEnabled
+                                                    ? 'Peserta dibagi otomatis ke beberapa sesi. Sistem membuat sesi baru berdasarkan kapasitas per sesi dan durasi yang dipilih.'
+                                                    : 'Peserta tidak dibagi ke sesi. Sistem tidak membuat data sesi dan peserta dapat memulai kapan saja selama periode penugasan.' }}
+                                            </small>
+                                        </div>
+                                    </div>
+
                                     <div class="row">
                                         <div class="col-md-4">
                                             <div class="form-group">
-                                                <label>Jam Mulai Sesi Awal</label>
+                                                <label id="schedule-start-time-label">
+                                                    {{ $selectedSessionEnabled ? 'Jam Mulai Sesi Awal' : 'Jam Mulai Penugasan' }}
+                                                </label>
                                                 <input type="time" name="jam_mulai" id="jam_mulai"
                                                     class="form-control @error('jam_mulai') is-invalid @enderror"
                                                     value="{{ $selectedStartTime }}">
-                                                <small class="text-muted">
-                                                    Sesi 1 dimulai pada jam ini. Sesi berikutnya otomatis berurutan
-                                                    mengikuti durasi per sesi.
+                                                <small class="text-muted d-block" id="schedule-start-time-help">
+                                                    {{ $selectedSessionEnabled
+                                                        ? 'Sesi 1 dimulai pada jam ini. Sesi berikutnya otomatis berurutan mengikuti durasi per sesi.'
+                                                        : 'Opsional. Jika diisi bersama tanggal mulai, jam ini menjadi waktu buka penugasan untuk semua peserta tanpa pembagian sesi.' }}
                                                 </small>
                                                 @error('jam_mulai')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -688,7 +716,10 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Durasi Sesi Assessment <span class="text-danger">*</span></label>
+                                                <label id="duration-hours-label">
+                                                    {{ $selectedSessionEnabled ? 'Durasi Sesi Assessment' : 'Durasi Pengerjaan Assessment' }}
+                                                    <span class="text-danger">*</span>
+                                                </label>
                                                 <select name="durasi_sesi_jam" id="durasi_sesi_jam"
                                                     class="form-control @error('durasi_sesi_jam') is-invalid @enderror">
                                                     @foreach ($sessionDurationOptions as $durationHour)
@@ -705,12 +736,16 @@
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label>Kapasitas Peserta Per Sesi</label>
-                                                <input type="text" class="form-control"
-                                                    value="{{ $sessionCapacity }} peserta" readonly>
-                                                <small class="text-muted">
-                                                    Sistem otomatis membagi {{ $sessionCapacity }} peserta untuk setiap
-                                                    sesi assessment.
+                                                <label id="session-capacity-label">
+                                                    {{ $selectedSessionEnabled ? 'Kapasitas Peserta Per Sesi' : 'Pembagian Sesi' }}
+                                                </label>
+                                                <input type="text" class="form-control" id="session-capacity-preview"
+                                                    value="{{ $selectedSessionEnabled ? $sessionCapacity . ' peserta' : 'Tidak dipakai' }}"
+                                                    readonly>
+                                                <small class="text-muted d-block" id="session-capacity-help">
+                                                    {{ $selectedSessionEnabled
+                                                        ? 'Sistem otomatis membagi ' . $sessionCapacity . ' peserta untuk setiap sesi assessment.'
+                                                        : 'Mode tanpa sesi tidak memakai kapasitas per sesi dan tidak membuat slot sesi apa pun.' }}
                                                 </small>
                                             </div>
                                         </div>
@@ -870,27 +905,37 @@
                                             <div class="summary-value" id="summary-user-count">0</div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="text-muted small">Kapasitas/Sesi</div>
+                                            <div class="text-muted small" id="summary-session-capacity-label">
+                                                {{ $selectedSessionEnabled ? 'Kapasitas/Sesi' : 'Mode Sesi' }}
+                                            </div>
                                             <div class="summary-value" id="summary-session-capacity">
-                                                {{ $sessionCapacity }} peserta
+                                                {{ $selectedSessionEnabled ? $sessionCapacity . ' peserta' : 'Tanpa sesi' }}
                                             </div>
                                         </div>
                                     </div>
                                     <div class="row mt-3">
                                         <div class="col-6">
-                                            <div class="text-muted small">Durasi/Sesi</div>
+                                            <div class="text-muted small" id="summary-session-duration-label">
+                                                {{ $selectedSessionEnabled ? 'Durasi/Sesi' : 'Durasi Ujian' }}
+                                            </div>
                                             <div class="summary-value" id="summary-session-duration">
                                                 {{ $selectedDurationHours }} jam
                                             </div>
                                         </div>
                                         <div class="col-6">
-                                            <div class="text-muted small">Estimasi Sesi</div>
-                                            <div class="summary-value" id="summary-total-sessions">0</div>
+                                            <div class="text-muted small" id="summary-total-sessions-label">
+                                                {{ $selectedSessionEnabled ? 'Estimasi Sesi' : 'Status Sesi' }}
+                                            </div>
+                                            <div class="summary-value" id="summary-total-sessions">
+                                                {{ $selectedSessionEnabled ? '0' : 'Tanpa sesi' }}
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row mt-3">
                                         <div class="col-6">
-                                            <div class="text-muted small">Jam Sesi Awal</div>
+                                            <div class="text-muted small" id="summary-session-start-time-label">
+                                                {{ $selectedSessionEnabled ? 'Jam Sesi Awal' : 'Jam Buka' }}
+                                            </div>
                                             <div class="summary-value" id="summary-session-start-time">
                                                 {{ $selectedStartTime ?: '-' }}
                                             </div>
@@ -1417,6 +1462,12 @@
                 return Number((durationSelect ? durationSelect.value : '') || defaultDurationHours);
             }
 
+            function isSessionEnabled() {
+                const sessionToggle = document.getElementById('session_enabled');
+
+                return sessionToggle ? sessionToggle.checked : true;
+            }
+
             function getAvailableCombinationOptions(target = getSelectedTargetKetenagaan()) {
                 return target && Array.isArray(combinationOptionsByKetenagaan[target]) ? combinationOptionsByKetenagaan[target] : [];
             }
@@ -1539,6 +1590,85 @@
                 const startTimeInput = document.getElementById('jam_mulai');
 
                 return (startTimeInput ? startTimeInput.value : '') || '-';
+            }
+
+            function updateSessionConfigurationState() {
+                const sessionEnabled = isSessionEnabled();
+                const sessionEnabledHelp = document.getElementById('session-enabled-help');
+                const scheduleStartLabel = document.getElementById('schedule-start-time-label');
+                const scheduleStartHelp = document.getElementById('schedule-start-time-help');
+                const durationHoursLabel = document.getElementById('duration-hours-label');
+                const sessionCapacityLabel = document.getElementById('session-capacity-label');
+                const sessionCapacityPreview = document.getElementById('session-capacity-preview');
+                const sessionCapacityHelp = document.getElementById('session-capacity-help');
+                const summarySessionCapacityLabel = document.getElementById('summary-session-capacity-label');
+                const summarySessionDurationLabel = document.getElementById('summary-session-duration-label');
+                const summaryTotalSessionsLabel = document.getElementById('summary-total-sessions-label');
+                const summarySessionStartTimeLabel = document.getElementById('summary-session-start-time-label');
+
+                if (sessionEnabledHelp) {
+                    sessionEnabledHelp.textContent = sessionEnabled
+                        ? 'Peserta dibagi otomatis ke beberapa sesi. Sistem membuat sesi baru berdasarkan kapasitas per sesi dan durasi yang dipilih.'
+                        : 'Peserta tidak dibagi ke sesi. Sistem tidak membuat data sesi dan peserta dapat memulai kapan saja selama periode penugasan.';
+                }
+
+                if (scheduleStartLabel) {
+                    scheduleStartLabel.textContent = sessionEnabled
+                        ? 'Jam Mulai Sesi Awal'
+                        : 'Jam Mulai Penugasan';
+                }
+
+                if (scheduleStartHelp) {
+                    scheduleStartHelp.textContent = sessionEnabled
+                        ? 'Sesi 1 dimulai pada jam ini. Sesi berikutnya otomatis berurutan mengikuti durasi per sesi.'
+                        : 'Opsional. Jika diisi bersama tanggal mulai, jam ini menjadi waktu buka penugasan untuk semua peserta tanpa pembagian sesi.';
+                }
+
+                if (durationHoursLabel) {
+                    durationHoursLabel.innerHTML = `${sessionEnabled ? 'Durasi Sesi Assessment' : 'Durasi Pengerjaan Assessment'} <span class="text-danger">*</span>`;
+                }
+
+                if (sessionCapacityLabel) {
+                    sessionCapacityLabel.textContent = sessionEnabled
+                        ? 'Kapasitas Peserta Per Sesi'
+                        : 'Pembagian Sesi';
+                }
+
+                if (sessionCapacityPreview) {
+                    sessionCapacityPreview.value = sessionEnabled
+                        ? `${sessionCapacity} peserta`
+                        : 'Tidak dipakai';
+                }
+
+                if (sessionCapacityHelp) {
+                    sessionCapacityHelp.textContent = sessionEnabled
+                        ? `Sistem otomatis membagi ${sessionCapacity} peserta untuk setiap sesi assessment.`
+                        : 'Mode tanpa sesi tidak memakai kapasitas per sesi dan tidak membuat slot sesi apa pun.';
+                }
+
+                if (summarySessionCapacityLabel) {
+                    summarySessionCapacityLabel.textContent = sessionEnabled
+                        ? 'Kapasitas/Sesi'
+                        : 'Mode Sesi';
+                }
+
+                if (summarySessionDurationLabel) {
+                    summarySessionDurationLabel.textContent = sessionEnabled
+                        ? 'Durasi/Sesi'
+                        : 'Durasi Ujian';
+                }
+
+                if (summaryTotalSessionsLabel) {
+                    summaryTotalSessionsLabel.textContent = sessionEnabled
+                        ? 'Estimasi Sesi'
+                        : 'Status Sesi';
+                }
+
+                if (summarySessionStartTimeLabel) {
+                    summarySessionStartTimeLabel.textContent = sessionEnabled
+                        ? 'Jam Sesi Awal'
+                        : 'Jam Buka';
+                }
             }
 
             function renderAssessmentList(summary) {
@@ -1821,6 +1951,7 @@
 
             function updateSidebarSummary() {
                 const summary = getSelectedSummary();
+                const sessionEnabled = isSessionEnabled();
                 const selectedJabatanItems = getSelectedJabatanItems();
                 const selectedKabupatenItems = getSelectedKabupatenItems();
                 const selectedSatuanPendidikanItems = getSelectedSatuanPendidikanItems();
@@ -1831,11 +1962,13 @@
                 const userCount = selectedSatuanPendidikanItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
-                const totalSessions = userCount > 0 ? Math.ceil(userCount / sessionCapacity) : 0;
+                const totalSessions = sessionEnabled && userCount > 0
+                    ? Math.ceil(userCount / sessionCapacity)
+                    : 0;
                 const durationHours = getSelectedDurationHours();
                 const distributionMethod = userCount === 0
                     ? '-'
-                    : ` ${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
+                    : `${userCount > batchThreshold ? 'Batch Job' : 'Langsung'}`;
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
                 const summaryJabatan = document.getElementById('summary-jabatan');
@@ -1891,7 +2024,9 @@
                 }
 
                 if (summarySessionCapacity) {
-                    summarySessionCapacity.textContent = sessionCapacity + ' peserta';
+                    summarySessionCapacity.textContent = sessionEnabled
+                        ? sessionCapacity + ' peserta'
+                        : 'Tanpa sesi';
                 }
 
                 if (summarySessionDuration) {
@@ -1899,7 +2034,7 @@
                 }
 
                 if (summaryTotalSessions) {
-                    summaryTotalSessions.textContent = totalSessions;
+                    summaryTotalSessions.textContent = sessionEnabled ? totalSessions : 'Tanpa sesi';
                 }
 
                 if (summarySessionStartTime) {
@@ -1912,6 +2047,7 @@
             }
 
             function refreshSummaries() {
+                updateSessionConfigurationState();
                 updateAutoSummaryPanel();
                 updateSidebarSummary();
             }
@@ -1952,17 +2088,22 @@
 
                 const durationSelect = document.getElementById('durasi_sesi_jam');
                 const startTimeInput = document.getElementById('jam_mulai');
+                const sessionToggle = document.getElementById('session_enabled');
 
                 if (titleInput) {
                     titleInput.addEventListener('input', refreshSummaries);
                 }
 
                 if (durationSelect) {
-                    durationSelect.addEventListener('change', updateSidebarSummary);
+                    durationSelect.addEventListener('change', refreshSummaries);
                 }
 
                 if (startTimeInput) {
-                    startTimeInput.addEventListener('change', updateSidebarSummary);
+                    startTimeInput.addEventListener('change', refreshSummaries);
+                }
+
+                if (sessionToggle) {
+                    sessionToggle.addEventListener('change', refreshSummaries);
                 }
 
                 refreshSummaries();

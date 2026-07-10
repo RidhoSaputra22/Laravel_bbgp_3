@@ -855,7 +855,13 @@
                                                 <td>
                                                     {{ $item['average_score'] !== null ? number_format((float) $item['average_score'], 2) : '-' }}
                                                 </td>
-                                                <td>{{ $item['sessions_total'] }} sesi</td>
+                                                <td>
+                                                    @if ($item['session_enabled'] ?? true)
+                                                        {{ $item['sessions_total'] }} sesi
+                                                    @else
+                                                        Tanpa sesi
+                                                    @endif
+                                                </td>
                                                 <td>
                                                     <a href="{{ route('assessment.assignment.show', $item['id']) }}"
                                                         class="btn btn-info btn-sm">

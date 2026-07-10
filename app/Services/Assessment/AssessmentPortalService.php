@@ -127,6 +127,7 @@ class AssessmentPortalService
         $formCount = $combination?->total_forms ?: $assignment->assessments->sum(
             fn ($assessment) => $assessment->forms->where('is_active', true)->count()
         );
+        $sessionEnabled = $assignment->usesSessionScheduling();
         $now = now();
         $startedAt = AssessmentTargetTiming::resolveStartedAt($target);
         $deadlineAt = AssessmentTargetTiming::resolveDeadlineAt($target);
@@ -137,7 +138,9 @@ class AssessmentPortalService
             'status' => 'ready',
             'label' => 'Siap Dikerjakan',
             'badge' => 'success',
-            'description' => 'Assessment siap dimulai. Waktu mulai pertama dan timer akan dicatat saat Anda menekan tombol Mulai Ujian.',
+            'description' => $sessionEnabled
+                ? 'Assessment siap dimulai. Waktu mulai pertama dan timer akan dicatat saat Anda menekan tombol Mulai Ujian.'
+                : 'Assessment siap dimulai. Anda dapat memulai kapan saja selama periode penugasan, lalu timer dicatat saat tombol Mulai Ujian ditekan.',
             'can_open' => true,
             'can_view_result' => false,
             'question_total' => $questionTotal,
@@ -145,8 +148,12 @@ class AssessmentPortalService
             'form_total' => $formCount,
             'combination_code' => $combination?->kode_kombinasi,
             'combination_title' => $combination?->judul,
-            'session_label' => optional($target->session)->label_sesi ?: 'Belum dibagi sesi',
-            'session_schedule_text' => optional($target->session)->jadwal_sesi_label ?: 'Jadwal sesi belum ditentukan',
+            'session_label' => $sessionEnabled
+                ? (optional($target->session)->label_sesi ?: 'Belum dipetakan')
+                : 'Tanpa sesi',
+            'session_schedule_text' => $sessionEnabled
+                ? (optional($target->session)->jadwal_sesi_label ?: 'Jadwal sesi belum ditentukan')
+                : $this->resolveOpenAccessScheduleText($assignment),
             'date_text' => $this->formatDateRange(
                 $assignment->tanggal_mulai,
                 $assignment->tanggal_selesai,
@@ -311,5 +318,14 @@ class AssessmentPortalService
     private function formatDateTime(\Illuminate\Support\Carbon $dateTime): string
     {
         return $dateTime->format('d M Y H:i').' WITA';
+    }
+
+    private function resolveOpenAccessScheduleText($assignment): string
+    {
+        if ($assignment->tanggal_mulai || $assignment->tanggal_selesai) {
+            return 'Akses fleksibel selama periode penugasan';
+        }
+
+        return 'Akses fleksibel kapan saja';
     }
 }

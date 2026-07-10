@@ -1035,6 +1035,7 @@ class AssessmentAssignmentController extends Controller
             $request->all(),
             [
                 'judul_penugasan' => 'required|string|max:255',
+                'session_enabled' => 'nullable|boolean',
                 'target_ketenagaan' => [
                     'required',
                     'string',
@@ -1080,8 +1081,8 @@ class AssessmentAssignmentController extends Controller
                 'tanggal_mulai.required_with' => 'Tanggal mulai wajib diisi jika jam mulai dipakai.',
                 'jam_mulai.required_with' => 'Jam mulai wajib diisi jika tanggal mulai dipakai.',
                 'jam_mulai.date_format' => 'Format jam mulai harus berupa HH:MM.',
-                'durasi_sesi_jam.required' => 'Durasi sesi assessment wajib dipilih.',
-                'durasi_sesi_jam.in' => 'Durasi sesi assessment harus sesuai pilihan yang tersedia.',
+                'durasi_sesi_jam.required' => 'Durasi pengerjaan assessment wajib dipilih.',
+                'durasi_sesi_jam.in' => 'Durasi pengerjaan assessment harus sesuai pilihan yang tersedia.',
                 'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus sama atau setelah tanggal mulai.',
                 'security_max_serious_violations.min' => 'Batas pelanggaran serius minimal 1.',
                 'security_max_serious_violations.max' => 'Batas pelanggaran serius maksimal 10.',
@@ -1245,6 +1246,10 @@ class AssessmentAssignmentController extends Controller
         });
 
         $validated = $validator->validate();
+        $validated['session_enabled'] = filter_var(
+            $request->input('session_enabled', true),
+            FILTER_VALIDATE_BOOLEAN
+        );
         $validated['security_config'] = AssessmentSecurityConfig::fromRequest($validated);
 
         return $validated;

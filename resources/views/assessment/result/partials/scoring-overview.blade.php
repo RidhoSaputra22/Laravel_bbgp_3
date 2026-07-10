@@ -232,30 +232,5 @@
         </x-assessment::ui.card>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        @foreach ($competencies as $competency)
-            <x-assessment::ui.card>
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="text-sm font-medium text-slate-500">
-                            {{ $competency['label'] }}
-                        </div>
-                        <div class="mt-2 text-[28px] font-bold leading-none text-[#0d3557]">
-                            {{ $competency['formatted_score'] ?: '-' }}
-                        </div>
-                    </div>
-                    <x-assessment::ui.status-badge
-                        :tone="$competency['score'] !== null && $competency['score'] >= 3.41 ? 'success' : 'warning'"
-                        class="rounded-sm px-2.5 py-1"
-                    >
-                        {{ data_get($competency, 'level.short_label', 'Belum dinilai') }}
-                    </x-assessment::ui.status-badge>
-                </div>
 
-                <div class="mt-3 text-sm leading-relaxed text-slate-500">
-                    {{ $competency['recommendation_description'] ?: 'Kompetensi ini belum memiliki data skor yang cukup untuk dirangkum.' }}
-                </div>
-            </x-assessment::ui.card>
-        @endforeach
-    </div>
 </div>
