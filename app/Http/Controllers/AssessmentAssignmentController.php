@@ -10,6 +10,7 @@ use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\AssessmentAssignmentService;
@@ -329,6 +330,7 @@ class AssessmentAssignmentController extends Controller
             'combinationOptionsByKetenagaan' => $this->buildCombinationOptionsByKetenagaan(),
             'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
             'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
+            'satuanPendidikanOptionsByKetenagaan' => $this->buildSatuanPendidikanOptionsByKetenagaan(),
             'batchThreshold' => AssessmentAssignmentService::BATCH_THRESHOLD,
             'batchQueueConnection' => AssessmentAssignmentService::QUEUE_CONNECTION,
             'batchQueueName' => AssessmentAssignmentService::QUEUE_NAME,
@@ -497,9 +499,15 @@ class AssessmentAssignmentController extends Controller
     private function countAvailableParticipantsForFilters(
         AssessmentKetenagaanType $case,
         array $selectedJabatan = [],
-        array $selectedKabupaten = []
+        array $selectedKabupaten = [],
+        array $selectedSatuanPendidikan = []
     ): int {
-        return (int) $this->buildParticipantTargetQuery($case, $selectedJabatan, $selectedKabupaten)->count();
+        return (int) $this->buildParticipantTargetQuery(
+            $case,
+            $selectedJabatan,
+            $selectedKabupaten,
+            $selectedSatuanPendidikan
+        )->count();
     }
 
     private function buildJabatanOptionsByKetenagaan(): array
@@ -644,6 +652,79 @@ class AssessmentAssignmentController extends Controller
             ->all();
     }
 
+    private function buildSatuanPendidikanOptionsByKetenagaan(): array
+    {
+        $countsByKetenagaan = Guru::query()
+            ->selectRaw('eksternal_jabatan, kabupaten, satuan_pendidikan, jenis_jabatan, count(*) as aggregate')
+            ->whereIn(
+                'eksternal_jabatan',
+                collect(AssessmentKetenagaanType::cases())
+                    ->map(fn (AssessmentKetenagaanType $case) => $case->guruValue())
+                    ->all()
+            )
+            ->whereNotNull('jenis_jabatan')
+            ->where('jenis_jabatan', '!=', '')
+            ->whereNotNull('kabupaten')
+            ->where('kabupaten', '!=', '')
+            ->whereNotNull('satuan_pendidikan')
+            ->where('satuan_pendidikan', '!=', '')
+            ->groupBy('eksternal_jabatan', 'kabupaten', 'satuan_pendidikan', 'jenis_jabatan')
+            ->orderBy('kabupaten')
+            ->orderBy('satuan_pendidikan')
+            ->orderBy('jenis_jabatan')
+            ->get()
+            ->groupBy('eksternal_jabatan');
+
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) use ($countsByKetenagaan) {
+                $items = $countsByKetenagaan
+                    ->get($case->guruValue(), collect())
+                    ->groupBy(function ($row) {
+                        return AssessmentSchoolTargetKey::encode(
+                            (string) $row->kabupaten,
+                            (string) $row->satuan_pendidikan
+                        );
+                    })
+                    ->map(function ($rows, $selectionKey) use ($case) {
+                        $firstRow = $rows->first();
+                        $kabupaten = (string) ($firstRow->kabupaten ?? '');
+                        $school = (string) ($firstRow->satuan_pendidikan ?? '');
+                        $countsByJabatan = $rows
+                            ->mapWithKeys(fn ($row) => [
+                                (string) $row->jenis_jabatan => (int) $row->aggregate,
+                            ])
+                            ->all();
+                        $userCount = array_sum($countsByJabatan);
+
+                        return [
+                            'id' => (string) $selectionKey,
+                            'label' => $school,
+                            'description' => $userCount.' user pada '.$school,
+                            'cells' => [
+                                $school,
+                                $kabupaten,
+                                $userCount.' user',
+                            ],
+                            'payload' => [
+                                'kabupaten' => $kabupaten,
+                                'satuan_pendidikan' => $school,
+                                'ketenagaan' => $case->value,
+                                'ketenagaan_label' => $case->label(),
+                                'user_count' => $userCount,
+                                'counts_by_jabatan' => $countsByJabatan,
+                            ],
+                        ];
+                    })
+                    ->values()
+                    ->all();
+
+                return [
+                    $case->value => $items,
+                ];
+            })
+            ->all();
+    }
+
     private function availableJabatanValuesForKetenagaan(AssessmentKetenagaanType $case): array
     {
         return Guru::query()
@@ -673,6 +754,30 @@ class AssessmentAssignmentController extends Controller
             ->all();
     }
 
+    private function availableSatuanPendidikanValuesForFilters(
+        AssessmentKetenagaanType $case,
+        array $selectedJabatan = [],
+        array $selectedKabupaten = []
+    ): array {
+        return $this->buildParticipantTargetQuery($case, $selectedJabatan, $selectedKabupaten)
+            ->whereNotNull('satuan_pendidikan')
+            ->where('satuan_pendidikan', '!=', '')
+            ->select(['kabupaten', 'satuan_pendidikan'])
+            ->orderBy('kabupaten')
+            ->orderBy('satuan_pendidikan')
+            ->get()
+            ->map(function ($guru) {
+                return AssessmentSchoolTargetKey::encode(
+                    $guru->kabupaten,
+                    $guru->satuan_pendidikan
+                );
+            })
+            ->filter(fn ($selectionKey) => $selectionKey !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function normalizeTargetJabatanList(mixed $targetJabatan): array
     {
         return collect(is_array($targetJabatan) ? $targetJabatan : [$targetJabatan])
@@ -695,10 +800,22 @@ class AssessmentAssignmentController extends Controller
             ->all();
     }
 
+    private function normalizeTargetSatuanPendidikanList(mixed $targetSatuanPendidikan): array
+    {
+        return collect(is_array($targetSatuanPendidikan) ? $targetSatuanPendidikan : [$targetSatuanPendidikan])
+            ->filter(fn ($selectionKey) => filled($selectionKey))
+            ->map(fn ($selectionKey) => trim((string) $selectionKey))
+            ->filter(fn (string $selectionKey) => $selectionKey !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function buildParticipantTargetQuery(
         AssessmentKetenagaanType $case,
         array $selectedJabatan = [],
-        array $selectedKabupaten = []
+        array $selectedKabupaten = [],
+        array $selectedSatuanPendidikan = []
     ) {
         $query = Guru::query()
             ->where('eksternal_jabatan', $case->guruValue());
@@ -711,7 +828,49 @@ class AssessmentAssignmentController extends Controller
             $query->whereIn('kabupaten', $selectedKabupaten);
         }
 
+        $this->applyTargetSatuanPendidikanFilter($query, $selectedSatuanPendidikan);
+
         return $query;
+    }
+
+    private function applyTargetSatuanPendidikanFilter($query, array $selectedSatuanPendidikan): void
+    {
+        $groups = $this->groupSatuanPendidikanSelectionsByKabupaten($selectedSatuanPendidikan);
+
+        if ($groups === []) {
+            return;
+        }
+
+        $query->where(function ($builder) use ($groups) {
+            foreach ($groups as $kabupaten => $schools) {
+                $builder->orWhere(function ($nestedQuery) use ($kabupaten, $schools) {
+                    if ($kabupaten !== '__ANY__') {
+                        $nestedQuery->where('kabupaten', $kabupaten);
+                    }
+
+                    $nestedQuery->whereIn('satuan_pendidikan', $schools);
+                });
+            }
+        });
+    }
+
+    private function groupSatuanPendidikanSelectionsByKabupaten(array $selectedSatuanPendidikan): array
+    {
+        return collect($selectedSatuanPendidikan)
+            ->map(fn ($selectionKey) => AssessmentSchoolTargetKey::decode($selectionKey))
+            ->filter(fn (array $selection) => $selection['satuan_pendidikan'] !== '')
+            ->groupBy(fn (array $selection) => $selection['kabupaten'] ?? '__ANY__')
+            ->map(function ($rows) {
+                return collect($rows)
+                    ->pluck('satuan_pendidikan')
+                    ->map(fn ($school) => trim((string) $school))
+                    ->filter(fn (string $school) => $school !== '')
+                    ->unique()
+                    ->values()
+                    ->all();
+            })
+            ->filter(fn (array $schools) => $schools !== [])
+            ->all();
     }
 
     private function guruSelectionQuery()
@@ -865,6 +1024,8 @@ class AssessmentAssignmentController extends Controller
                 'target_jabatan.*' => 'required|string|max:255',
                 'target_kabupaten' => 'required|array|min:1',
                 'target_kabupaten.*' => 'required|string|max:255',
+                'target_satuan_pendidikan' => 'required|array|min:1',
+                'target_satuan_pendidikan.*' => 'required|string|max:255',
                 'deskripsi' => 'nullable|string',
                 'tanggal_mulai' => 'nullable|date|required_with:jam_mulai',
                 'jam_mulai' => 'nullable|date_format:H:i|required_with:tanggal_mulai',
@@ -892,6 +1053,10 @@ class AssessmentAssignmentController extends Controller
                 'target_kabupaten.array' => 'Format kabupaten target tidak valid.',
                 'target_kabupaten.min' => 'Pilih minimal satu kabupaten target.',
                 'target_kabupaten.*.required' => 'Kabupaten target tidak boleh kosong.',
+                'target_satuan_pendidikan.required' => 'Pilih minimal satu satuan pendidikan target.',
+                'target_satuan_pendidikan.array' => 'Format satuan pendidikan target tidak valid.',
+                'target_satuan_pendidikan.min' => 'Pilih minimal satu satuan pendidikan target.',
+                'target_satuan_pendidikan.*.required' => 'Satuan pendidikan target tidak boleh kosong.',
                 'tanggal_mulai.required_with' => 'Tanggal mulai wajib diisi jika jam mulai dipakai.',
                 'jam_mulai.required_with' => 'Jam mulai wajib diisi jika tanggal mulai dipakai.',
                 'jam_mulai.date_format' => 'Format jam mulai harus berupa HH:MM.',
@@ -1008,6 +1173,53 @@ class AssessmentAssignmentController extends Controller
                 $validator->errors()->add(
                     'target_kabupaten',
                     'Belum ada user/peserta pada kabupaten yang dipilih.'
+                );
+            }
+
+            $selectedTargetSatuanPendidikan = $this->normalizeTargetSatuanPendidikanList(
+                (array) $request->input('target_satuan_pendidikan', [])
+            );
+            $availableSatuanPendidikan = $this->availableSatuanPendidikanValuesForFilters(
+                $targetKetenagaan,
+                $selectedTargetJabatan,
+                $selectedTargetKabupaten
+            );
+
+            if ($availableSatuanPendidikan === []) {
+                $validator->errors()->add(
+                    'target_satuan_pendidikan',
+                    'Belum ada data satuan pendidikan untuk kombinasi ketenagaan, jabatan, dan kabupaten yang dipilih.'
+                );
+
+                return;
+            }
+
+            if ($selectedTargetSatuanPendidikan === []) {
+                return;
+            }
+
+            $invalidTargetSatuanPendidikan = array_values(
+                array_diff($selectedTargetSatuanPendidikan, $availableSatuanPendidikan)
+            );
+
+            if ($invalidTargetSatuanPendidikan !== []) {
+                $validator->errors()->add(
+                    'target_satuan_pendidikan',
+                    'Satuan pendidikan target harus sesuai dengan ketenagaan, jabatan, dan kabupaten yang dipilih.'
+                );
+
+                return;
+            }
+
+            if ($this->countAvailableParticipantsForFilters(
+                $targetKetenagaan,
+                $selectedTargetJabatan,
+                $selectedTargetKabupaten,
+                $selectedTargetSatuanPendidikan
+            ) < 1) {
+                $validator->errors()->add(
+                    'target_satuan_pendidikan',
+                    'Belum ada user/peserta pada satuan pendidikan yang dipilih.'
                 );
             }
         });

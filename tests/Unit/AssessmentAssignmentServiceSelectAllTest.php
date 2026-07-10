@@ -8,6 +8,7 @@ use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\Guru;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -73,12 +74,14 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->unsignedBigInteger('assessment_combination_id')->nullable();
             $table->text('target_jabatan')->nullable();
             $table->text('target_kabupaten')->nullable();
+            $table->text('target_satuan_pendidikan')->nullable();
             $table->text('deskripsi')->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->time('jam_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();
             $table->unsignedInteger('kapasitas_per_sesi')->default(0);
             $table->unsignedInteger('durasi_sesi_jam')->default(0);
+            $table->text('security_config')->nullable();
             $table->unsignedInteger('total_sesi')->default(0);
             $table->string('status_distribusi')->default('draft');
             $table->unsignedInteger('total_target')->default(0);
@@ -425,6 +428,63 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertSame(1, $assignment->total_target);
         $this->assertSame([$makassarGuru->id], $assignedGuruIds);
         $this->assertNotContains($gowaGuru->id, $assignedGuruIds);
+    }
+
+    public function test_create_assignment_can_filter_target_users_by_selected_satuan_pendidikan(): void
+    {
+        Assessment::query()->create([
+            'kode_assessment' => 'ASM-021',
+            'judul' => 'Assessment Sekolah Pendidik',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $selectedGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru SD 1 Makassar',
+            'email' => 'guru.sd1@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+            'kabupaten' => 'Kota Makassar',
+            'satuan_pendidikan' => 'SD Negeri 1 Makassar',
+        ]);
+
+        $otherSchoolGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru SD 2 Makassar',
+            'email' => 'guru.sd2@example.test',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+            'kabupaten' => 'Kota Makassar',
+            'satuan_pendidikan' => 'SD Negeri 2 Makassar',
+        ]);
+
+        $assignment = app(AssessmentAssignmentService::class)->createAssignment([
+            'judul_penugasan' => 'Penugasan SD Negeri 1 Makassar',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'target_satuan_pendidikan' => [
+                AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+            ],
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $assignedGuruIds = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->orderBy('guru_id')
+            ->pluck('guru_id')
+            ->map(fn ($guruId) => (int) $guruId)
+            ->all();
+
+        $freshAssignment = $assignment->fresh();
+
+        $this->assertSame(
+            [AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar')],
+            $freshAssignment->target_satuan_pendidikan
+        );
+        $this->assertSame(1, $assignment->total_target);
+        $this->assertSame([$selectedGuru->id], $assignedGuruIds);
+        $this->assertNotContains($otherSchoolGuru->id, $assignedGuruIds);
     }
 
     public function test_create_assignment_assigns_one_combination_per_kabupaten_with_round_robin_distribution(): void

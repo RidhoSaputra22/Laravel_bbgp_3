@@ -210,6 +210,24 @@
                             </div>
                         </div>
                         <div class="mb-3">
+                            <div class="text-muted small">Satuan Pendidikan Target</div>
+                            <div>
+                                @php
+                                    $targetSchoolLabels = collect($assignment->target_satuan_pendidikan_labels);
+                                @endphp
+                                @forelse ($targetSchoolLabels->take(10) as $schoolLabel)
+                                    <span class="badge badge-light border mr-1 mb-1">{{ $schoolLabel }}</span>
+                                @empty
+                                    <span class="text-muted">Semua satuan pendidikan pada kabupaten target</span>
+                                @endforelse
+                                @if ($targetSchoolLabels->count() > 10)
+                                    <span class="badge badge-secondary mr-1 mb-1">
+                                        +{{ $targetSchoolLabels->count() - 10 }} lainnya
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="mb-3">
                             <div class="text-muted small">Periode</div>
                             <div>
                                 {{ $assignment->tanggal_mulai ? \App\Helpers\Helper::dateIndo($assignment->tanggal_mulai) : '-' }}

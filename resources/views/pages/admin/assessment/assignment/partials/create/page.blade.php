@@ -54,6 +54,12 @@
         ->filter(fn ($kabupaten) => $kabupaten !== '')
         ->values()
         ->all();
+    $selectedTargetSatuanPendidikan = collect((array) old('target_satuan_pendidikan', $assignment?->target_satuan_pendidikan ?? []))
+        ->filter(fn ($selectionKey) => filled($selectionKey))
+        ->map(fn ($selectionKey) => trim((string) $selectionKey))
+        ->filter(fn ($selectionKey) => $selectionKey !== '')
+        ->values()
+        ->all();
     $currentJabatanItems = collect($jabatanOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])->values()->all();
     $currentSelectedJabatanItems = collect($currentJabatanItems)
         ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetJabatan, true))
@@ -99,6 +105,82 @@
         ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetKabupaten, true))
         ->values()
         ->all();
+    $resolveSatuanPendidikanItems = function (array $items, array $selectedJabatan, array $selectedKabupaten) {
+        if ($selectedJabatan === [] || $selectedKabupaten === []) {
+            return [];
+        }
+
+        return collect($items)
+            ->map(function ($item) use ($selectedJabatan, $selectedKabupaten) {
+                $itemPayload = (array) data_get($item, 'payload', []);
+                $kabupaten = trim((string) data_get($itemPayload, 'kabupaten', ''));
+
+                if (! in_array($kabupaten, $selectedKabupaten, true)) {
+                    return null;
+                }
+
+                $countsByJabatan = collect((array) data_get($itemPayload, 'counts_by_jabatan', []));
+                $selectedUserCount = $countsByJabatan
+                    ->only($selectedJabatan)
+                    ->sum(fn ($count) => (int) $count);
+
+                if ($selectedUserCount < 1) {
+                    return null;
+                }
+
+                return array_merge($item, [
+                    'description' => $selectedUserCount.' user pada jabatan dan kabupaten terpilih',
+                    'cells' => [
+                        (string) data_get($item, 'label', data_get($item, 'id', '-')),
+                        $kabupaten ?: '-',
+                        $selectedUserCount.' user',
+                    ],
+                    'payload' => array_merge($itemPayload, [
+                        'user_count' => $selectedUserCount,
+                    ]),
+                ]);
+            })
+            ->filter()
+            ->values()
+            ->all();
+    };
+    $currentSatuanPendidikanItems = $resolveSatuanPendidikanItems(
+        collect($satuanPendidikanOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])->values()->all(),
+        $selectedTargetJabatan,
+        $selectedTargetKabupaten,
+    );
+    if ($assignment && ! session()->hasOldInput() && $selectedTargetSatuanPendidikan === []) {
+        $selectedTargetSatuanPendidikan = collect($currentSatuanPendidikanItems)
+            ->pluck('id')
+            ->map(fn ($selectionKey) => (string) $selectionKey)
+            ->values()
+            ->all();
+    }
+    $currentSelectedSatuanPendidikanItems = collect($currentSatuanPendidikanItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetSatuanPendidikan, true))
+        ->values()
+        ->all();
+    $initialKabupatenState = [
+        'target' => $selectedTargetKetenagaan,
+        'jabatan' => collect($selectedTargetJabatan)
+            ->map(fn ($jabatan) => (string) $jabatan)
+            ->sort()
+            ->values()
+            ->all(),
+    ];
+    $initialSatuanPendidikanState = [
+        'target' => $selectedTargetKetenagaan,
+        'jabatan' => collect($selectedTargetJabatan)
+            ->map(fn ($jabatan) => (string) $jabatan)
+            ->sort()
+            ->values()
+            ->all(),
+        'kabupaten' => collect($selectedTargetKabupaten)
+            ->map(fn ($kabupaten) => (string) $kabupaten)
+            ->sort()
+            ->values()
+            ->all(),
+    ];
     $ketenagaanCards = collect(\App\Enum\AssessmentKetenagaanType::cases())
         ->mapWithKeys(function ($case) {
             return [
@@ -302,9 +384,9 @@
                                             memulai assessment dari awal dengan konfigurasi terbaru.
                                         @else
                                             Kode penugasan dibuat otomatis. Admin cukup menentukan judul, ketenagaan target,
-                                            jabatan target, kabupaten target, dan jadwal. Sistem akan mengambil semua form
+                                            jabatan target, kabupaten target, satuan pendidikan target, dan jadwal. Sistem akan mengambil semua form
                                             assessment yang aktif dan berstatus publish beserta seluruh user yang sesuai dengan ketenagaan,
-                                            jabatan, dan kabupaten yang dipilih.
+                                            jabatan, kabupaten, dan satuan pendidikan yang dipilih.
                                         @endif
                                     </div>
 
@@ -336,7 +418,7 @@
                                                         <span>
                                                             <span class="assignment-ketenagaan-card__title">{{ $card['label'] }}</span>
                                                             <span class="assignment-ketenagaan-card__hint">
-                                                                Semua form + user pada jabatan dan kabupaten yang
+                                                                Semua form + user pada jabatan, kabupaten, dan satuan pendidikan yang
                                                                 dipilih di ketenagaan ini akan otomatis ditugaskan.
                                                             </span>
                                                         </span>
@@ -392,6 +474,29 @@
                                         @endif
                                     </div>
 
+                                    <div class="form-group">
+                                        <label>Satuan Pendidikan Target <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="assignment-satuan-pendidikan-selector"
+                                            name="target_satuan_pendidikan"
+                                            :headers="['Satuan Pendidikan', 'Kabupaten', 'Target User']"
+                                            :items="$currentSatuanPendidikanItems"
+                                            :selected="$selectedTargetSatuanPendidikan"
+                                            :initialSelectedItems="$currentSelectedSatuanPendidikanItems"
+                                            searchPlaceholder="Cari satuan pendidikan target..."
+                                            emptyMessage="{{ $selectedTargetKabupaten !== [] ? 'Belum ada satuan pendidikan yang tersedia untuk kombinasi ketenagaan, jabatan, dan kabupaten ini.' : 'Pilih minimal satu kabupaten target terlebih dahulu.' }}"
+                                            selectedTitle="Satuan Pendidikan Target" />
+                                        <small class="form-text text-muted">
+                                            Pilih satu atau beberapa satuan pendidikan sesuai ketenagaan, jabatan, dan
+                                            kabupaten target. Hanya user pada satuan pendidikan ini yang akan otomatis
+                                            ditugaskan.
+                                        </small>
+                                        @if ($errors->has('target_satuan_pendidikan') || $errors->has('target_satuan_pendidikan.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_satuan_pendidikan') ?: $errors->first('target_satuan_pendidikan.*') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     <div class="auto-summary-panel mb-4">
                                         <div class="d-flex flex-wrap justify-content-between align-items-start">
                                             <div class="mb-3">
@@ -404,6 +509,7 @@
                                                 <span class="auto-summary-pill" id="auto-summary-assessment-count">0 assessment sumber</span>
                                                 <span class="auto-summary-pill" id="auto-summary-jabatan-count">0 jabatan</span>
                                                 <span class="auto-summary-pill" id="auto-summary-kabupaten-count">0 kabupaten</span>
+                                                <span class="auto-summary-pill" id="auto-summary-school-count">0 satuan pendidikan</span>
                                                 <span class="auto-summary-pill" id="auto-summary-user-count">0 user</span>
                                             </div>
                                         </div>
@@ -520,14 +626,15 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>Kabupaten</th>
+                                                                <th>Satuan Pendidikan</th>
                                                                 <th>Kode Kombinasi</th>
                                                                 <th>Target User</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="auto-combination-distribution-list">
                                                             <tr>
-                                                                <td colspan="3" class="auto-summary-empty">
-                                                                    Preview pembagian kabupaten akan tampil setelah jabatan dan kabupaten target dipilih.
+                                                                <td colspan="4" class="auto-summary-empty">
+                                                                    Preview pembagian kabupaten akan tampil setelah jabatan, kabupaten, dan satuan pendidikan target dipilih.
                                                                 </td>
                                                             </tr>
                                                         </tbody>
@@ -736,6 +843,12 @@
                                         <div class="summary-value summary-value--compact" id="summary-kabupaten">Belum dipilih</div>
                                     </div>
                                     <div class="mb-3">
+                                        <div class="text-muted small">Satuan Pendidikan Dipilih</div>
+                                        <div class="summary-value summary-value--compact" id="summary-satuan-pendidikan">
+                                            Belum dipilih
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
                                         <div class="text-muted small">Assessment Sumber</div>
                                         <div class="summary-value" id="summary-assessment-count">0</div>
                                     </div>
@@ -860,19 +973,15 @@
             const combinationOptionsByKetenagaan = @json($combinationOptionsByKetenagaan);
             const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
             const kabupatenOptionsByKetenagaan = @json($kabupatenOptionsByKetenagaan);
+            const satuanPendidikanOptionsByKetenagaan = @json($satuanPendidikanOptionsByKetenagaan);
             const sessionCapacity = {{ $sessionCapacity }};
             const defaultDurationHours = {{ $defaultSessionDurationHours }};
             const batchThreshold = {{ $batchThreshold }};
-            const initialKabupatenState = @json([
-                'target' => $selectedTargetKetenagaan,
-                'jabatan' => collect($selectedTargetJabatan)
-                    ->map(fn ($jabatan) => (string) $jabatan)
-                    ->sort()
-                    ->values()
-                    ->all(),
-            ]);
+            const initialKabupatenState = @json($initialKabupatenState);
+            const initialSatuanPendidikanState = @json($initialSatuanPendidikanState);
             let activeJabatanTarget = @json($selectedTargetKetenagaan);
             let activeKabupatenStateKey = JSON.stringify(initialKabupatenState);
+            let activeSatuanPendidikanStateKey = JSON.stringify(initialSatuanPendidikanState);
             const assignmentForm = document.getElementById('assignment-form');
 
             function escapeHtml(value) {
@@ -896,12 +1005,20 @@
                 return document.querySelector('[data-table-id="assignment-kabupaten-selector"]');
             }
 
+            function getSatuanPendidikanSelector() {
+                return document.querySelector('[data-table-id="assignment-satuan-pendidikan-selector"]');
+            }
+
             function getAvailableJabatanItems(target = getSelectedTargetKetenagaan()) {
                 return target && Array.isArray(jabatanOptionsByKetenagaan[target]) ? jabatanOptionsByKetenagaan[target] : [];
             }
 
             function getAvailableKabupatenBaseItems(target = getSelectedTargetKetenagaan()) {
                 return target && Array.isArray(kabupatenOptionsByKetenagaan[target]) ? kabupatenOptionsByKetenagaan[target] : [];
+            }
+
+            function getAvailableSatuanPendidikanBaseItems(target = getSelectedTargetKetenagaan()) {
+                return target && Array.isArray(satuanPendidikanOptionsByKetenagaan[target]) ? satuanPendidikanOptionsByKetenagaan[target] : [];
             }
 
             function getSelectedJabatanIds() {
@@ -1001,6 +1118,98 @@
                     .filter((item) => item);
             }
 
+            function buildSatuanPendidikanItemsForSelection(
+                target = getSelectedTargetKetenagaan(),
+                selectedJabatanItems = getSelectedJabatanItems(),
+                selectedKabupatenItems = getSelectedKabupatenItems()
+            ) {
+                if (!target || selectedJabatanItems.length === 0 || selectedKabupatenItems.length === 0) {
+                    return [];
+                }
+
+                const selectedJabatanIds = selectedJabatanItems
+                    .map((item) => String(item.id || '').trim())
+                    .filter((value) => value !== '');
+                const selectedKabupatenIds = selectedKabupatenItems
+                    .map((item) => String(item.id || '').trim())
+                    .filter((value) => value !== '');
+
+                return getAvailableSatuanPendidikanBaseItems(target)
+                    .map((item) => {
+                        const payload = item && item.payload && typeof item.payload === 'object' ? item.payload : {};
+                        const kabupaten = String(payload.kabupaten || '').trim();
+                        const countsByJabatan = payload && payload.counts_by_jabatan && typeof payload.counts_by_jabatan === 'object' ?
+                            payload.counts_by_jabatan :
+                            {};
+
+                        if (selectedKabupatenIds.includes(kabupaten) === false) {
+                            return null;
+                        }
+
+                        const userCount = selectedJabatanIds.reduce((total, jabatanId) => {
+                            return total + Number(countsByJabatan[jabatanId] || 0);
+                        }, 0);
+
+                        if (userCount < 1) {
+                            return null;
+                        }
+
+                        return {
+                            id: String(item.id || ''),
+                            label: String(item.label || item.id || ''),
+                            description: userCount + ' user pada jabatan dan kabupaten terpilih',
+                            cells: [
+                                String(item.label || item.id || '-'),
+                                kabupaten || '-',
+                                userCount + ' user',
+                            ],
+                            payload: Object.assign({}, payload, {
+                                user_count: userCount,
+                            }),
+                        };
+                    })
+                    .filter((item) => item && item.id !== '');
+            }
+
+            function buildSatuanPendidikanStateKey(
+                target = getSelectedTargetKetenagaan(),
+                selectedJabatanItems = getSelectedJabatanItems(),
+                selectedKabupatenItems = getSelectedKabupatenItems()
+            ) {
+                return JSON.stringify({
+                    target: target || '',
+                    jabatan: selectedJabatanItems
+                        .map((item) => String(item.id || '').trim())
+                        .filter((value) => value !== '')
+                        .sort(),
+                    kabupaten: selectedKabupatenItems
+                        .map((item) => String(item.id || '').trim())
+                        .filter((value) => value !== '')
+                        .sort(),
+                });
+            }
+
+            function getSelectedSatuanPendidikanIds() {
+                const selector = getSatuanPendidikanSelector();
+
+                if (!selector) {
+                    return [];
+                }
+
+                return Array.from(selector.querySelectorAll('input[name="target_satuan_pendidikan[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
+            }
+
+            function getSelectedSatuanPendidikanItems() {
+                const selectedIds = getSelectedSatuanPendidikanIds();
+                const itemMap = new Map(buildSatuanPendidikanItemsForSelection().map((item) => [String(item.id), item]));
+
+                return selectedIds
+                    .map((id) => itemMap.get(String(id)))
+                    .filter((item) => item);
+            }
+
             function syncJabatanSelector(force = false) {
                 const selector = getJabatanSelector();
                 const target = getSelectedTargetKetenagaan();
@@ -1040,6 +1249,40 @@
                         emptyMessage: selectedJabatanItems.length === 0 ?
                             'Pilih minimal satu jabatan target terlebih dahulu.' :
                             'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.',
+                        emitChange: false,
+                    },
+                }));
+            }
+
+            function syncSatuanPendidikanSelector(force = false) {
+                const selector = getSatuanPendidikanSelector();
+                const target = getSelectedTargetKetenagaan();
+                const selectedJabatanItems = getSelectedJabatanItems();
+                const selectedKabupatenItems = getSelectedKabupatenItems();
+                const stateKey = buildSatuanPendidikanStateKey(
+                    target,
+                    selectedJabatanItems,
+                    selectedKabupatenItems
+                );
+
+                if (!selector || (!force && activeSatuanPendidikanStateKey === stateKey)) {
+                    return;
+                }
+
+                activeSatuanPendidikanStateKey = stateKey;
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: buildSatuanPendidikanItemsForSelection(
+                            target,
+                            selectedJabatanItems,
+                            selectedKabupatenItems
+                        ),
+                        selectedIds: [],
+                        emptyMessage: selectedJabatanItems.length === 0 ?
+                            'Pilih minimal satu jabatan target terlebih dahulu.' :
+                            (selectedKabupatenItems.length === 0 ?
+                                'Pilih minimal satu kabupaten target terlebih dahulu.' :
+                                'Belum ada satuan pendidikan yang tersedia untuk kombinasi ketenagaan, jabatan, dan kabupaten ini.'),
                         emitChange: false,
                     },
                 }));
@@ -1141,6 +1384,27 @@
                 return preview.join(', ') + ' +' + (selectedKabupatenItems.length - 2) + ' lainnya';
             }
 
+            function formatSelectedSatuanPendidikanSummary(selectedSatuanPendidikanItems) {
+                if (selectedSatuanPendidikanItems.length === 0) {
+                    return 'Belum dipilih';
+                }
+
+                const preview = selectedSatuanPendidikanItems
+                    .slice(0, 2)
+                    .map((item) => {
+                        const kabupaten = String((item.payload && item.payload.kabupaten) || '').trim();
+                        const label = item.label || item.id || '-';
+
+                        return kabupaten !== '' ? `${label} (${kabupaten})` : label;
+                    });
+
+                if (selectedSatuanPendidikanItems.length <= 2) {
+                    return preview.join(', ');
+                }
+
+                return preview.join(', ') + ' +' + (selectedSatuanPendidikanItems.length - 2) + ' lainnya';
+            }
+
             function getSelectedSummary() {
                 const target = getSelectedTargetKetenagaan();
 
@@ -1179,6 +1443,7 @@
                     getSelectedTargetKetenagaan(),
                     normalizeSeedSelectionList(getSelectedJabatanIds()).join(','),
                     normalizeSeedSelectionList(getSelectedKabupatenIds()).join(','),
+                    normalizeSeedSelectionList(getSelectedSatuanPendidikanIds()).join(','),
                 ].join('|');
             }
 
@@ -1217,9 +1482,29 @@
                         numeric: true,
                     });
                 });
+                const selectedSatuanPendidikanItems = getSelectedSatuanPendidikanItems();
+                const schoolsByKabupaten = selectedSatuanPendidikanItems.reduce((map, item) => {
+                    const payload = item && item.payload && typeof item.payload === 'object' ? item.payload : {};
+                    const kabupaten = String(payload.kabupaten || '').trim();
+
+                    if (!map.has(kabupaten)) {
+                        map.set(kabupaten, []);
+                    }
+
+                    map.get(kabupaten).push(item);
+
+                    return map;
+                }, new Map());
                 const rows = selectedKabupatenItems.map((item, index) => {
+                    const kabupatenId = String(item.id || '').trim();
+                    const schools = schoolsByKabupaten.get(kabupatenId) || [];
+
                     return {
                         kabupaten: item,
+                        schoolCount: schools.length,
+                        userCount: schools.reduce((total, schoolItem) => {
+                            return total + Number((schoolItem.payload && schoolItem.payload.user_count) || 0);
+                        }, 0),
                         combination: orderedCombinations[index % orderedCombinations.length] || null,
                     };
                 });
@@ -1228,6 +1513,7 @@
                     combinationOptions,
                     orderedCombinations,
                     rows,
+                    selectedSatuanPendidikanItems,
                 };
             }
 
@@ -1320,7 +1606,12 @@
                 }).join('');
             }
 
-            function renderAutoCombinationDistribution(distributionRows, combinationOptions, selectedKabupatenItems) {
+            function renderAutoCombinationDistribution(
+                distributionRows,
+                combinationOptions,
+                selectedKabupatenItems,
+                selectedSatuanPendidikanItems
+            ) {
                 const tbody = document.getElementById('auto-combination-distribution-list');
 
                 if (!tbody) {
@@ -1330,7 +1621,7 @@
                 if (combinationOptions.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="3" class="auto-summary-empty">
+                            <td colspan="4" class="auto-summary-empty">
                                 Belum ada kombinasi aktif yang bisa dibagikan otomatis untuk ketenagaan ini.
                             </td>
                         </tr>
@@ -1339,11 +1630,11 @@
                     return;
                 }
 
-                if (selectedKabupatenItems.length === 0) {
+                if (selectedKabupatenItems.length === 0 || selectedSatuanPendidikanItems.length === 0) {
                     tbody.innerHTML = `
                         <tr>
-                            <td colspan="3" class="auto-summary-empty">
-                                Preview pembagian kabupaten akan tampil setelah jabatan dan kabupaten target dipilih.
+                            <td colspan="4" class="auto-summary-empty">
+                                Preview pembagian kabupaten akan tampil setelah jabatan, kabupaten, dan satuan pendidikan target dipilih.
                             </td>
                         </tr>
                     `;
@@ -1352,15 +1643,14 @@
                 }
 
                 tbody.innerHTML = distributionRows.map((row) => {
-                    const userCount = Number((row.kabupaten.payload && row.kabupaten.payload.user_count) || 0);
-
                     return `
                         <tr>
                             <td class="font-weight-bold">${escapeHtml(row.kabupaten.label || row.kabupaten.id || '-')}</td>
+                            <td>${Number(row.schoolCount || 0)} satuan pendidikan</td>
                             <td>
                                 <div class="font-weight-600">${escapeHtml(row.combination && row.combination.kode || '-')}</div>
                             </td>
-                            <td>${userCount} user</td>
+                            <td>${Number(row.userCount || 0)} user</td>
                         </tr>
                     `;
                 }).join('');
@@ -1372,12 +1662,15 @@
                 const selectedJabatanItems = getSelectedJabatanItems();
                 const availableKabupatenItems = buildKabupatenItemsForSelection();
                 const selectedKabupatenItems = getSelectedKabupatenItems();
+                const availableSatuanPendidikanItems = buildSatuanPendidikanItemsForSelection();
+                const selectedSatuanPendidikanItems = getSelectedSatuanPendidikanItems();
                 const combinationDistribution = buildAutoCombinationDistribution();
                 const combinationOptions = combinationDistribution.combinationOptions;
                 const labelNode = document.getElementById('auto-summary-ketenagaan-label');
                 const assessmentCountNode = document.getElementById('auto-summary-assessment-count');
                 const jabatanCountNode = document.getElementById('auto-summary-jabatan-count');
                 const kabupatenCountNode = document.getElementById('auto-summary-kabupaten-count');
+                const schoolCountNode = document.getElementById('auto-summary-school-count');
                 const userCountNode = document.getElementById('auto-summary-user-count');
                 const formCountNode = document.getElementById('auto-summary-form-count');
                 const fieldCountNode = document.getElementById('auto-summary-field-count');
@@ -1392,7 +1685,7 @@
                 const combinationQuestionsNode = document.getElementById('auto-combination-summary-questions');
 
                 const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
-                const userCount = selectedKabupatenItems.reduce((total, item) => {
+                const userCount = selectedSatuanPendidikanItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
                 const distributionMethod = userCount === 0
@@ -1413,6 +1706,10 @@
 
                 if (kabupatenCountNode) {
                     kabupatenCountNode.textContent = selectedKabupatenItems.length + ' kabupaten';
+                }
+
+                if (schoolCountNode) {
+                    schoolCountNode.textContent = selectedSatuanPendidikanItems.length + ' satuan pendidikan';
                 }
 
                 if (userCountNode) {
@@ -1442,7 +1739,7 @@
 
                 if (combinationCodeNode) {
                     combinationCodeNode.textContent = combinationOptions.length > 0
-                        ? 'Urutan kombinasi diacak stabil dari judul penugasan + target jabatan/kabupaten.'
+                        ? 'Urutan kombinasi diacak stabil dari judul penugasan + target jabatan/kabupaten/satuan pendidikan.'
                         : 'Acak per kabupaten dengan urutan acak stabil.';
                 }
 
@@ -1493,8 +1790,12 @@
                         warningMessages.push('Belum ada data kabupaten untuk kombinasi ketenagaan dan jabatan ini.');
                     } else if (summary && selectedKabupatenItems.length === 0) {
                         warningMessages.push('Pilih minimal satu kabupaten target.');
+                    } else if (summary && availableSatuanPendidikanItems.length === 0) {
+                        warningMessages.push('Belum ada data satuan pendidikan untuk kombinasi ketenagaan, jabatan, dan kabupaten ini.');
+                    } else if (summary && selectedSatuanPendidikanItems.length === 0) {
+                        warningMessages.push('Pilih minimal satu satuan pendidikan target.');
                     } else if (summary && userCount === 0) {
-                        warningMessages.push('Belum ada user/peserta pada kombinasi jabatan dan kabupaten yang dipilih.');
+                        warningMessages.push('Belum ada user/peserta pada kombinasi jabatan, kabupaten, dan satuan pendidikan yang dipilih.');
                     }
 
                     warningNode.classList.toggle('d-none', warningMessages.length === 0);
@@ -1504,6 +1805,7 @@
                 if (submitButton) {
                     submitButton.disabled = !summary || combinationOptions.length === 0 || assessmentCount === 0 || selectedJabatanItems.length === 0 ||
                         selectedKabupatenItems.length === 0 ||
+                        selectedSatuanPendidikanItems.length === 0 ||
                         userCount === 0;
                 }
 
@@ -1512,7 +1814,8 @@
                 renderAutoCombinationDistribution(
                     combinationDistribution.rows,
                     combinationOptions,
-                    selectedKabupatenItems
+                    selectedKabupatenItems,
+                    selectedSatuanPendidikanItems
                 );
             }
 
@@ -1520,11 +1823,12 @@
                 const summary = getSelectedSummary();
                 const selectedJabatanItems = getSelectedJabatanItems();
                 const selectedKabupatenItems = getSelectedKabupatenItems();
+                const selectedSatuanPendidikanItems = getSelectedSatuanPendidikanItems();
                 const combinationOptions = getAvailableCombinationOptions();
                 const assessmentCount = buildMetricValue(combinationOptions, 'total_assessments');
                 const formCount = buildMetricValue(combinationOptions, 'total_forms');
                 const fieldCount = buildMetricValue(combinationOptions, 'total_questions');
-                const userCount = selectedKabupatenItems.reduce((total, item) => {
+                const userCount = selectedSatuanPendidikanItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
                 const totalSessions = userCount > 0 ? Math.ceil(userCount / sessionCapacity) : 0;
@@ -1537,6 +1841,7 @@
                 const summaryJabatan = document.getElementById('summary-jabatan');
                 const summaryCombinationTitle = document.getElementById('summary-combination-title');
                 const summaryKabupaten = document.getElementById('summary-kabupaten');
+                const summarySatuanPendidikan = document.getElementById('summary-satuan-pendidikan');
                 const summaryAssessmentCount = document.getElementById('summary-assessment-count');
                 const summaryForms = document.getElementById('summary-forms');
                 const summaryFields = document.getElementById('summary-fields');
@@ -1563,6 +1868,10 @@
 
                 if (summaryKabupaten) {
                     summaryKabupaten.textContent = formatSelectedKabupatenSummary(selectedKabupatenItems);
+                }
+
+                if (summarySatuanPendidikan) {
+                    summarySatuanPendidikan.textContent = formatSelectedSatuanPendidikanSummary(selectedSatuanPendidikanItems);
                 }
 
                 if (summaryAssessmentCount) {
@@ -1610,23 +1919,33 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const jabatanSelector = getJabatanSelector();
                 const kabupatenSelector = getKabupatenSelector();
+                const satuanPendidikanSelector = getSatuanPendidikanSelector();
                 const titleInput = document.querySelector('input[name="judul_penugasan"]');
 
                 if (jabatanSelector) {
                     jabatanSelector.addEventListener('multiple-choice-table:change', function() {
                         syncKabupatenSelector();
+                        syncSatuanPendidikanSelector();
                         refreshSummaries();
                     });
                 }
 
                 if (kabupatenSelector) {
-                    kabupatenSelector.addEventListener('multiple-choice-table:change', refreshSummaries);
+                    kabupatenSelector.addEventListener('multiple-choice-table:change', function() {
+                        syncSatuanPendidikanSelector();
+                        refreshSummaries();
+                    });
+                }
+
+                if (satuanPendidikanSelector) {
+                    satuanPendidikanSelector.addEventListener('multiple-choice-table:change', refreshSummaries);
                 }
 
                 document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
                     input.addEventListener('change', function() {
                         syncJabatanSelector();
                         syncKabupatenSelector();
+                        syncSatuanPendidikanSelector();
                         refreshSummaries();
                     });
                 });

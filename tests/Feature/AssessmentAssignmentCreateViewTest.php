@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\AssessmentAssignment;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Tests\TestCase;
 
 class AssessmentAssignmentCreateViewTest extends TestCase
@@ -17,6 +18,9 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                 '_old_input' => [
                     'target_jabatan' => ['Guru', 'Kepala Sekolah'],
                     'target_kabupaten' => ['Kota Makassar'],
+                    'target_satuan_pendidikan' => [
+                        AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+                    ],
                     'durasi_sesi_jam' => '3',
                     'jam_mulai' => '08:00',
                 ],
@@ -213,6 +217,29 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                         ],
                     ],
                 ],
+                'satuanPendidikanOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+                            'label' => 'SD Negeri 1 Makassar',
+                            'description' => '18 user pada SD Negeri 1 Makassar',
+                            'cells' => ['SD Negeri 1 Makassar', 'Kota Makassar', '18 user'],
+                            'payload' => [
+                                'kabupaten' => 'Kota Makassar',
+                                'satuan_pendidikan' => 'SD Negeri 1 Makassar',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 18,
+                                'counts_by_jabatan' => [
+                                    'Guru' => 16,
+                                    'Kepala Sekolah' => 2,
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [],
+                ],
                 'batchThreshold' => 25,
                 'sessionCapacity' => 41,
                 'defaultSessionDurationHours' => 3,
@@ -223,19 +250,23 @@ class AssessmentAssignmentCreateViewTest extends TestCase
         $response->assertSee('id="auto-summary-assessment-list"', false);
         $response->assertSee('Jabatan Target');
         $response->assertSee('Kabupaten Target');
+        $response->assertSee('Satuan Pendidikan Target');
         $response->assertSee('const ketenagaanSummaries =', false);
         $response->assertSee('const combinationOptionsByKetenagaan =', false);
         $response->assertSee('const jabatanOptionsByKetenagaan =', false);
         $response->assertSee('const kabupatenOptionsByKetenagaan =', false);
+        $response->assertSee('const satuanPendidikanOptionsByKetenagaan =', false);
         $response->assertSee('Distribusi Kombinasi Soal Otomatis');
         $response->assertSee('id="auto-combination-list"', false);
         $response->assertSee('id="auto-combination-distribution-list"', false);
         $response->assertSee('id="assignment-ketenagaan-tenaga_pendidik"', false);
         $response->assertSee('data-table-id="assignment-jabatan-selector"', false);
         $response->assertSee('data-table-id="assignment-kabupaten-selector"', false);
+        $response->assertSee('data-table-id="assignment-satuan-pendidikan-selector"', false);
         $response->assertSee('KMB-001');
         $response->assertSee('Kepala Sekolah');
         $response->assertSee('Kota Makassar');
+        $response->assertSee('SD Negeri 1 Makassar');
         $response->assertDontSee('name="assessment_combination_id"', false);
         $response->assertDontSee('data-table-id="guru-selector"', false);
         $response->assertDontSee('data-table-id="assessment-selector"', false);
@@ -250,6 +281,9 @@ class AssessmentAssignmentCreateViewTest extends TestCase
             'assessment_combination_id' => 7,
             'target_jabatan' => ['Guru'],
             'target_kabupaten' => ['Kota Makassar'],
+            'target_satuan_pendidikan' => [
+                AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+            ],
             'durasi_sesi_jam' => 3,
             'total_target' => 12,
         ]);
@@ -353,6 +387,28 @@ class AssessmentAssignmentCreateViewTest extends TestCase
                             'cells' => ['Kota Makassar', '22 user'],
                             'payload' => [
                                 'kabupaten' => 'Kota Makassar',
+                                'ketenagaan' => 'tenaga_pendidik',
+                                'ketenagaan_label' => 'Tenaga Pendidik',
+                                'user_count' => 22,
+                                'counts_by_jabatan' => [
+                                    'Guru' => 22,
+                                ],
+                            ],
+                        ],
+                    ],
+                    'tenaga_kependidikan' => [],
+                    'stakeholder' => [],
+                ],
+                'satuanPendidikanOptionsByKetenagaan' => [
+                    'tenaga_pendidik' => [
+                        [
+                            'id' => AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+                            'label' => 'SD Negeri 1 Makassar',
+                            'description' => '22 user pada SD Negeri 1 Makassar',
+                            'cells' => ['SD Negeri 1 Makassar', 'Kota Makassar', '22 user'],
+                            'payload' => [
+                                'kabupaten' => 'Kota Makassar',
+                                'satuan_pendidikan' => 'SD Negeri 1 Makassar',
                                 'ketenagaan' => 'tenaga_pendidik',
                                 'ketenagaan_label' => 'Tenaga Pendidik',
                                 'user_count' => 22,

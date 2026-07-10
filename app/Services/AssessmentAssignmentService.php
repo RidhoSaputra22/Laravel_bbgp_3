@@ -13,6 +13,7 @@ use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -148,6 +149,7 @@ class AssessmentAssignmentService
                 'assessment_combination_id' => $context['primary_assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
                 'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
+                'target_satuan_pendidikan' => $this->normalizeTargetSatuanPendidikanSelections($payload['target_satuan_pendidikan'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
                 'tanggal_mulai' => $payload['tanggal_mulai'] ?? null,
                 'jam_mulai' => $context['start_time'],
@@ -233,6 +235,7 @@ class AssessmentAssignmentService
                 'assessment_combination_id' => $context['primary_assessment_combination']?->id,
                 'target_jabatan' => $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []),
                 'target_kabupaten' => $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []),
+                'target_satuan_pendidikan' => $this->normalizeTargetSatuanPendidikanSelections($payload['target_satuan_pendidikan'] ?? []),
                 'deskripsi' => $payload['deskripsi'] ?? null,
                 'tanggal_mulai' => $payload['tanggal_mulai'] ?? null,
                 'jam_mulai' => $context['start_time'],
@@ -720,6 +723,7 @@ class AssessmentAssignmentService
             'target_ketenagaan' => $assignment->target_ketenagaan,
             'target_jabatan' => $assignment->target_jabatan ?? [],
             'target_kabupaten' => $assignment->target_kabupaten ?? [],
+            'target_satuan_pendidikan' => $assignment->target_satuan_pendidikan ?? [],
         ], $targetKetenagaan);
     }
 
@@ -1076,6 +1080,17 @@ class AssessmentAssignmentService
             ->all();
     }
 
+    private function normalizeTargetSatuanPendidikanSelections(mixed $targetSatuanPendidikan): array
+    {
+        return collect(is_array($targetSatuanPendidikan) ? $targetSatuanPendidikan : [$targetSatuanPendidikan])
+            ->filter(fn ($selectionKey) => filled($selectionKey))
+            ->map(fn ($selectionKey) => trim((string) $selectionKey))
+            ->filter(fn (string $selectionKey) => $selectionKey !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     private function resolveGuruIds(
         array $payload,
         ?AssessmentKetenagaanType $targetKetenagaan = null
@@ -1083,6 +1098,9 @@ class AssessmentAssignmentService
         if ($targetKetenagaan) {
             $selectedJabatan = $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []);
             $selectedKabupaten = $this->normalizeTargetKabupatenSelections($payload['target_kabupaten'] ?? []);
+            $selectedSatuanPendidikan = $this->normalizeTargetSatuanPendidikanSelections(
+                $payload['target_satuan_pendidikan'] ?? []
+            );
             $query = Guru::query()
                 ->where('eksternal_jabatan', $targetKetenagaan->guruValue());
 
@@ -1093,6 +1111,8 @@ class AssessmentAssignmentService
             if ($selectedKabupaten !== []) {
                 $query->whereIn('kabupaten', $selectedKabupaten);
             }
+
+            $this->applyTargetSatuanPendidikanFilter($query, $selectedSatuanPendidikan);
 
             return $query
                 ->orderBy('nama_lengkap')
@@ -1296,13 +1316,15 @@ class AssessmentAssignmentService
         ?string $title,
         ?string $targetKetenagaan,
         array $selectedJabatan = [],
-        array $selectedKabupaten = []
+        array $selectedKabupaten = [],
+        array $selectedSatuanPendidikan = []
     ): string {
         return implode('|', [
             trim((string) $title),
             trim((string) $targetKetenagaan),
             implode(',', $this->normalizeSeedSelectionList($selectedJabatan)),
             implode(',', $this->normalizeSeedSelectionList($selectedKabupaten)),
+            implode(',', $this->normalizeSeedSelectionList($selectedSatuanPendidikan)),
         ]);
     }
 
@@ -1312,8 +1334,49 @@ class AssessmentAssignmentService
             $assignment->judul_penugasan,
             $assignment->target_ketenagaan,
             $assignment->target_jabatan ?? [],
-            $assignment->target_kabupaten ?? []
+            $assignment->target_kabupaten ?? [],
+            $assignment->target_satuan_pendidikan ?? []
         );
+    }
+
+    private function applyTargetSatuanPendidikanFilter($query, array $selectedSatuanPendidikan): void
+    {
+        $groups = $this->groupSatuanPendidikanSelectionsByKabupaten($selectedSatuanPendidikan);
+
+        if ($groups === []) {
+            return;
+        }
+
+        $query->where(function ($builder) use ($groups) {
+            foreach ($groups as $kabupaten => $schools) {
+                $builder->orWhere(function ($nestedQuery) use ($kabupaten, $schools) {
+                    if ($kabupaten !== '__ANY__') {
+                        $nestedQuery->where('kabupaten', $kabupaten);
+                    }
+
+                    $nestedQuery->whereIn('satuan_pendidikan', $schools);
+                });
+            }
+        });
+    }
+
+    private function groupSatuanPendidikanSelectionsByKabupaten(array $selectedSatuanPendidikan): array
+    {
+        return collect($selectedSatuanPendidikan)
+            ->map(fn ($selectionKey) => AssessmentSchoolTargetKey::decode($selectionKey))
+            ->filter(fn (array $selection) => $selection['satuan_pendidikan'] !== '')
+            ->groupBy(fn (array $selection) => $selection['kabupaten'] ?? '__ANY__')
+            ->map(function (Collection $rows) {
+                return $rows
+                    ->pluck('satuan_pendidikan')
+                    ->map(fn ($school) => trim((string) $school))
+                    ->filter(fn (string $school) => $school !== '')
+                    ->unique()
+                    ->values()
+                    ->all();
+            })
+            ->filter(fn (array $schools) => $schools !== [])
+            ->all();
     }
 
     private function normalizeSeedSelectionList(array $values): array

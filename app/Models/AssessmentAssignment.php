@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\AssessmentKetenagaanType;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,7 @@ class AssessmentAssignment extends Model
         'assessment_combination_id',
         'target_jabatan',
         'target_kabupaten',
+        'target_satuan_pendidikan',
         'deskripsi',
         'tanggal_mulai',
         'jam_mulai',
@@ -36,6 +38,7 @@ class AssessmentAssignment extends Model
     protected $casts = [
         'target_jabatan' => 'array',
         'target_kabupaten' => 'array',
+        'target_satuan_pendidikan' => 'array',
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
         'security_config' => 'array',
@@ -111,6 +114,16 @@ class AssessmentAssignment extends Model
         return collect($this->target_kabupaten ?? [])
             ->filter(fn ($kabupaten) => filled($kabupaten))
             ->map(fn ($kabupaten) => (string) $kabupaten)
+            ->values()
+            ->all();
+    }
+
+    public function getTargetSatuanPendidikanLabelsAttribute(): array
+    {
+        return collect($this->target_satuan_pendidikan ?? [])
+            ->filter(fn ($selectionKey) => filled($selectionKey))
+            ->map(fn ($selectionKey) => AssessmentSchoolTargetKey::label($selectionKey))
+            ->filter(fn (string $label) => $label !== '')
             ->values()
             ->all();
     }

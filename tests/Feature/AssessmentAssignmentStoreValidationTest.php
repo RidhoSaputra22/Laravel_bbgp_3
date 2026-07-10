@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -106,6 +107,9 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
                 'target_ketenagaan' => 'tenaga_pendidik',
                 'target_jabatan' => ['Guru'],
                 'target_kabupaten' => ['Kabupaten Gowa'],
+                'target_satuan_pendidikan' => [
+                    AssessmentSchoolTargetKey::encode('Kabupaten Gowa', 'SD Negeri 1 Gowa'),
+                ],
                 'durasi_sesi_jam' => 3,
             ]);
 
@@ -149,10 +153,68 @@ class AssessmentAssignmentStoreValidationTest extends TestCase
                 'target_ketenagaan' => 'tenaga_pendidik',
                 'target_jabatan' => ['Guru'],
                 'target_kabupaten' => ['Kota Makassar'],
+                'target_satuan_pendidikan' => [
+                    AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+                ],
                 'durasi_sesi_jam' => 3,
             ]);
 
         $response->assertRedirect(route('assessment.assignment.create'));
         $response->assertSessionHasErrors('target_ketenagaan');
+    }
+
+    public function test_store_rejects_satuan_pendidikan_that_do_not_match_selected_scope(): void
+    {
+        DB::table('assessments')->insert([
+            'kode_assessment' => 'ASM-003',
+            'judul' => 'Assessment Sekolah',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('gurus')->insert([
+            'nama_lengkap' => 'Guru Makassar',
+            'email' => 'guru.makassar@example.test',
+            'satuan_pendidikan' => 'SD Negeri 1 Makassar',
+            'kabupaten' => 'Kota Makassar',
+            'eksternal_jabatan' => 'Tenaga Pendidik',
+            'jenis_jabatan' => 'Guru',
+            'status_kepegawaian' => 'ASN',
+            'is_verif' => 'sudah',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('assessment_combinations')->insert([
+            'kode_kombinasi' => 'KMB-003',
+            'judul' => 'Kombinasi Sekolah',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $response = $this
+            ->from(route('assessment.assignment.create'))
+            ->withSession([
+                'cek' => true,
+                'role' => 'admin',
+            ])
+            ->post(route('assessment.assignment.store'), [
+                'judul_penugasan' => 'Penugasan Sekolah Tidak Valid',
+                'target_ketenagaan' => 'tenaga_pendidik',
+                'target_jabatan' => ['Guru'],
+                'target_kabupaten' => ['Kota Makassar'],
+                'target_satuan_pendidikan' => [
+                    AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 99 Makassar'),
+                ],
+                'durasi_sesi_jam' => 3,
+            ]);
+
+        $response->assertRedirect(route('assessment.assignment.create'));
+        $response->assertSessionHasErrors('target_satuan_pendidikan');
     }
 }
