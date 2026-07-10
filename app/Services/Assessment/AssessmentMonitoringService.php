@@ -3,6 +3,7 @@
 namespace App\Services\Assessment;
 
 use App\Enum\LevelKompetensi;
+use App\Enum\KompetensiGuru;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentSession;
 use App\Models\AssessmentAssignmentTarget;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class AssessmentMonitoringService
@@ -44,6 +46,57 @@ class AssessmentMonitoringService
                 $kabupatenRows,
                 $sessionRows
             ),
+        ];
+    }
+
+    public function buildGlobalExplorer(
+        array $filters = [],
+        string $mode = 'individual',
+        int $perPage = 20,
+        int $page = 1
+    ): array {
+        $normalizedFilters = $this->normalizeAssignmentExplorerFilters($filters);
+        $resolvedMode = in_array($mode, ['individual', 'summary'], true) ? $mode : 'individual';
+        $resolvedPerPage = max(10, min($perPage, 50));
+        $resolvedPage = max($page, 1);
+        $filterOptions = $this->buildGlobalExplorerFilterOptions();
+
+        $individualPaginator = null;
+        $individualRows = [];
+        $summaryPayload = [
+            'summary' => null,
+            'charts' => [],
+            'meta' => [
+                'cache_ttl_seconds' => 60,
+                'has_scored_data' => false,
+            ],
+        ];
+
+        if ($resolvedMode === 'individual') {
+            $individualPaginator = $this->paginateGlobalExplorerIndividuals(
+                $normalizedFilters,
+                $resolvedPerPage,
+                $resolvedPage
+            );
+            $individualRows = $individualPaginator->items();
+        } else {
+            $summaryPayload = $this->buildGlobalExplorerSummaryPayload($normalizedFilters);
+        }
+
+        return [
+            'mode' => $resolvedMode,
+            'filters' => [
+                'selected' => $normalizedFilters,
+                'options' => $filterOptions,
+                'has_active_filters' => collect($normalizedFilters)->contains(
+                    fn (?string $value) => filled($value)
+                ),
+            ],
+            'individual_rows' => $individualRows,
+            'individual_paginator' => $individualPaginator,
+            'summary' => $summaryPayload['summary'] ?? null,
+            'charts' => $summaryPayload['charts'] ?? [],
+            'meta' => $summaryPayload['meta'] ?? [],
         ];
     }
 
@@ -403,6 +456,273 @@ class AssessmentMonitoringService
             ->first() ?? (object) [];
     }
 
+    private function buildGlobalExplorerFilterOptions(): array
+    {
+        return Cache::remember(
+            'assessment-global-monitor-options',
+            now()->addMinutes(10),
+            function () {
+                return [
+                    'kabupaten' => $this->buildGlobalExplorerOptionRows(
+                        $this->assignmentTargetKabupatenSql(),
+                        'kabupaten'
+                    ),
+                    'jabatan' => $this->buildGlobalExplorerOptionRows(
+                        $this->assignmentTargetJabatanSql(),
+                        'jabatan'
+                    ),
+                    'satuan_pendidikan' => $this->buildGlobalExplorerOptionRows(
+                        $this->assignmentTargetSchoolSql(),
+                        'satuan_pendidikan'
+                    ),
+                ];
+            }
+        );
+    }
+
+    private function buildGlobalExplorerOptionRows(string $expression, string $alias): array
+    {
+        return $this->globalAssignmentTargetGuruBaseQuery()
+            ->selectRaw($expression.' as '.$alias)
+            ->selectRaw('count(*) as participant_total')
+            ->groupByRaw($expression)
+            ->orderBy($alias)
+            ->get()
+            ->map(function (object $row) use ($alias) {
+                return [
+                    'value' => (string) data_get($row, $alias, ''),
+                    'label' => (string) data_get($row, $alias, ''),
+                    'participant_total' => (int) ($row->participant_total ?? 0),
+                ];
+            })
+            ->filter(fn (array $item) => $item['value'] !== '')
+            ->values()
+            ->all();
+    }
+
+    private function paginateGlobalExplorerIndividuals(
+        array $filters,
+        int $perPage,
+        int $page
+    ): LengthAwarePaginator {
+        $paginator = $this->globalAssignmentDetailListBaseQuery($filters)
+            ->orderByDesc('target.assessment_assignment_id')
+            ->orderByDesc('target.id')
+            ->paginate($perPage, ['*'], 'monitor_page', $page)
+            ->withQueryString();
+
+        $paginator->setCollection(
+            $paginator->getCollection()
+                ->map(fn (object $row) => $this->serializeAssignmentDetailRow($row))
+                ->values()
+        );
+        $paginator->fragment('monitoring-explorer');
+
+        return $paginator;
+    }
+
+    private function buildGlobalExplorerSummaryPayload(array $filters): array
+    {
+        $cacheTtlSeconds = 60;
+        $cacheKey = 'assessment-global-monitor-summary:'.md5(json_encode($filters));
+
+        return Cache::remember(
+            $cacheKey,
+            now()->addSeconds($cacheTtlSeconds),
+            function () use ($filters, $cacheTtlSeconds) {
+                $stats = $this->fetchGlobalExplorerStats($filters);
+                $targetTotal = (int) ($stats->filtered_target_total ?? 0);
+                $assignmentTotal = (int) ($stats->assignment_total ?? 0);
+                $submittedTotal = (int) ($stats->submitted_total ?? 0);
+                $inProgressTotal = (int) ($stats->in_progress_total ?? 0);
+                $notStartedTotal = (int) ($stats->not_started_total ?? 0);
+                $timeoutTotal = (int) ($stats->timeout_total ?? 0);
+                $pendingReviewTotal = (int) ($stats->pending_review_total ?? 0);
+                $scoredTotal = (int) ($stats->scored_total ?? 0);
+                $manualSubmittedTotal = max($submittedTotal - $timeoutTotal, 0);
+                $averageScore = isset($stats->average_score) && $stats->average_score !== null
+                    ? round((float) $stats->average_score, 2)
+                    : null;
+
+                $competencyRows = collect(KompetensiGuru::cases())
+                    ->map(function (KompetensiGuru $kompetensi) use ($stats) {
+                        $scoreColumn = $kompetensi->value.'_average_score';
+                        $averageScore = isset($stats->{$scoreColumn}) && $stats->{$scoreColumn} !== null
+                            ? round((float) $stats->{$scoreColumn}, 2)
+                            : null;
+
+                        return [
+                            'key' => $kompetensi->value,
+                            'label' => $kompetensi->label(),
+                            'average_score' => $averageScore,
+                            'formatted_score' => $averageScore !== null ? number_format($averageScore, 2) : '-',
+                            'level_label' => $averageScore !== null
+                                ? LevelKompetensi::fromScore($averageScore)?->shortLabel()
+                                : null,
+                        ];
+                    })
+                    ->values();
+
+                $levelRows = collect(LevelKompetensi::cases())
+                    ->map(function (LevelKompetensi $level) use ($stats) {
+                        return [
+                            'value' => $level->value,
+                            'label' => $level->shortLabel(),
+                            'count' => (int) data_get($stats, 'level_'.$level->value, 0),
+                        ];
+                    })
+                    ->values();
+
+                $dominantLevel = $levelRows
+                    ->sortByDesc(fn (array $row) => ($row['count'] * 10) + $row['value'])
+                    ->first(fn (array $row) => $row['count'] > 0);
+
+                return [
+                    'summary' => [
+                        'filtered_target_total' => $targetTotal,
+                        'assignment_total' => $assignmentTotal,
+                        'submitted_total' => $submittedTotal,
+                        'scored_total' => $scoredTotal,
+                        'in_progress_total' => $inProgressTotal,
+                        'not_started_total' => $notStartedTotal,
+                        'timeout_total' => $timeoutTotal,
+                        'pending_review_total' => $pendingReviewTotal,
+                        'average_score' => $averageScore,
+                        'average_score_label' => $averageScore !== null ? number_format($averageScore, 2) : '-',
+                        'dominant_level_label' => $dominantLevel['label'] ?? 'Belum ada level',
+                        'dominant_level_total' => (int) ($dominantLevel['count'] ?? 0),
+                        'completion_rate' => $targetTotal > 0
+                            ? round(($submittedTotal / $targetTotal) * 100, 2)
+                            : 0.0,
+                        'participation_rate' => $targetTotal > 0
+                            ? round((($submittedTotal + $inProgressTotal) / $targetTotal) * 100, 2)
+                            : 0.0,
+                        'competencies' => $competencyRows->all(),
+                        'levels' => $levelRows->all(),
+                    ],
+                    'charts' => [
+                        'status' => [
+                            'labels' => ['Selesai Manual', 'Sedang Mengerjakan', 'Belum Mulai', 'Selesai Timeout'],
+                            'data' => [$manualSubmittedTotal, $inProgressTotal, $notStartedTotal, $timeoutTotal],
+                        ],
+                        'levels' => [
+                            'labels' => $levelRows->pluck('label')->all(),
+                            'data' => $levelRows->pluck('count')->all(),
+                        ],
+                        'radar' => [
+                            'labels' => $competencyRows->pluck('label')->all(),
+                            'data' => $competencyRows
+                                ->map(fn (array $row) => $row['average_score'] ?? 0)
+                                ->all(),
+                            'max_score' => 5,
+                        ],
+                        'competencies' => [
+                            'labels' => $competencyRows->pluck('label')->all(),
+                            'data' => $competencyRows
+                                ->map(fn (array $row) => $row['average_score'] ?? 0)
+                                ->all(),
+                        ],
+                    ],
+                    'meta' => [
+                        'cache_ttl_seconds' => $cacheTtlSeconds,
+                        'has_scored_data' => $scoredTotal > 0,
+                    ],
+                ];
+            }
+        );
+    }
+
+    private function fetchGlobalExplorerStats(array $filters): object
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        $query = $this->globalAssignmentExplorerBaseQuery($filters)
+            ->selectRaw('count(*) as filtered_target_total')
+            ->selectRaw('count(distinct target.assessment_assignment_id) as assignment_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('sum(case when '.$scoreExpr.' is not null then 1 else 0 end) as scored_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 1.00 and '.$scoreExpr.' < 1.80 then 1 else 0 end) as level_1')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 1.80 and '.$scoreExpr.' < 2.60 then 1 else 0 end) as level_2')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 2.60 and '.$scoreExpr.' < 3.40 then 1 else 0 end) as level_3')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 3.40 and '.$scoreExpr.' < 4.20 then 1 else 0 end) as level_4')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 4.20 and '.$scoreExpr.' <= 5.00 then 1 else 0 end) as level_5');
+
+        foreach (KompetensiGuru::cases() as $kompetensi) {
+            $competencyScoreExpr = $this->assignmentTargetCompetencyScoreSql($kompetensi);
+            $query->selectRaw(
+                'avg(case when '.$competencyScoreExpr.' is not null then '.$competencyScoreExpr.' end) as '
+                .$kompetensi->value.'_average_score'
+            );
+        }
+
+        return $query->first() ?? (object) [];
+    }
+
+    private function globalAssignmentTargetGuruBaseQuery()
+    {
+        return DB::table('assessment_assignment_targets as target')
+            ->join('gurus as guru', 'guru.id', '=', 'target.guru_id');
+    }
+
+    private function globalAssignmentExplorerBaseQuery(array $filters = [])
+    {
+        $query = $this->globalAssignmentTargetBaseQuery()
+            ->leftJoin('gurus as guru', 'guru.id', '=', 'target.guru_id');
+
+        $this->applyAssignmentExplorerFilters($query, $filters);
+
+        return $query;
+    }
+
+    private function globalAssignmentDetailListBaseQuery(array $filters = [])
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        return $this->globalAssignmentExplorerBaseQuery($filters)
+            ->leftJoin(
+                'assessment_assignment_sessions as assignment_session',
+                'assignment_session.id',
+                '=',
+                'target.assessment_assignment_session_id'
+            )
+            ->leftJoin(
+                'assessment_assignments as assignment',
+                'assignment.id',
+                '=',
+                'target.assessment_assignment_id'
+            )
+            ->selectRaw('target.id as target_id')
+            ->selectRaw('target.assessment_assignment_id as assignment_id')
+            ->selectRaw("coalesce(assignment.judul_penugasan, 'Penugasan') as assignment_title")
+            ->selectRaw("coalesce(assignment.kode_penugasan, '-') as assignment_code")
+            ->selectRaw("coalesce(guru.nama_lengkap, 'Peserta tidak ditemukan') as participant_name")
+            ->selectRaw("coalesce(nullif(trim(guru.kabupaten), ''), '-') as kabupaten")
+            ->selectRaw("coalesce(nullif(trim(guru.eksternal_jabatan), ''), nullif(trim(guru.jenis_jabatan), ''), '-') as jabatan")
+            ->selectRaw("coalesce(nullif(trim(guru.satuan_pendidikan), ''), '-') as school")
+            ->selectRaw("coalesce(assignment_session.label_sesi, 'Belum dipetakan') as session_label")
+            ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
+            ->selectRaw('coalesce(target.started_at, attempt.started_at) as resolved_started_at')
+            ->selectRaw('case when '.$submittedExpr.' then 1 else 0 end as is_submitted')
+            ->selectRaw('case when '.$timeoutExpr.' then 1 else 0 end as is_timeout')
+            ->selectRaw('case when '.$inProgressExpr.' then 1 else 0 end as is_in_progress')
+            ->selectRaw($manualPendingExpr.' as manual_pending_items')
+            ->selectRaw($scoreExpr.' as score');
+    }
+
     private function globalAssignmentTargetBaseQuery()
     {
         return DB::table('assessment_assignment_targets as target')
@@ -487,6 +807,59 @@ class AssessmentMonitoringService
             'charts' => $this->buildAssignmentDetailCharts($assignment, $summary),
             'kabupaten_rows' => [],
             'session_rows' => [],
+        ];
+    }
+
+    public function buildAssignmentExplorer(
+        AssessmentAssignment $assignment,
+        array $filters = [],
+        string $mode = 'individual',
+        int $perPage = 20,
+        int $page = 1
+    ): array {
+        $normalizedFilters = $this->normalizeAssignmentExplorerFilters($filters);
+        $resolvedMode = in_array($mode, ['individual', 'summary'], true) ? $mode : 'individual';
+        $resolvedPerPage = max(10, min($perPage, 50));
+        $resolvedPage = max($page, 1);
+        $filterOptions = $this->buildAssignmentExplorerFilterOptions($assignment);
+
+        $individualPaginator = null;
+        $individualRows = [];
+        $summaryPayload = [
+            'summary' => null,
+            'charts' => [],
+            'meta' => [
+                'cache_ttl_seconds' => 60,
+                'has_scored_data' => false,
+            ],
+        ];
+
+        if ($resolvedMode === 'individual') {
+            $individualPaginator = $this->paginateAssignmentExplorerIndividuals(
+                $assignment,
+                $normalizedFilters,
+                $resolvedPerPage,
+                $resolvedPage
+            );
+            $individualRows = $individualPaginator->items();
+        } else {
+            $summaryPayload = $this->buildAssignmentExplorerSummaryPayload($assignment, $normalizedFilters);
+        }
+
+        return [
+            'mode' => $resolvedMode,
+            'filters' => [
+                'selected' => $normalizedFilters,
+                'options' => $filterOptions,
+                'has_active_filters' => collect($normalizedFilters)->contains(
+                    fn (?string $value) => filled($value)
+                ),
+            ],
+            'individual_rows' => $individualRows,
+            'individual_paginator' => $individualPaginator,
+            'summary' => $summaryPayload['summary'] ?? null,
+            'charts' => $summaryPayload['charts'] ?? [],
+            'meta' => $summaryPayload['meta'] ?? [],
         ];
     }
 
@@ -823,7 +1196,7 @@ class AssessmentMonitoringService
             ->first();
     }
 
-    private function assignmentDetailListBaseQuery(AssessmentAssignment $assignment)
+    private function assignmentDetailListBaseQuery(AssessmentAssignment $assignment, array $filters = [])
     {
         $submittedExpr = $this->assignmentTargetSubmittedSql();
         $timeoutExpr = $this->assignmentTargetTimeoutSql();
@@ -831,8 +1204,7 @@ class AssessmentMonitoringService
         $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
         $scoreExpr = $this->assignmentTargetOverallScoreSql();
 
-        return $this->assignmentTargetBaseQuery($assignment->id)
-            ->leftJoin('gurus as guru', 'guru.id', '=', 'target.guru_id')
+        return $this->assignmentExplorerBaseQuery($assignment->id, $filters)
             ->leftJoin(
                 'assessment_assignment_sessions as assignment_session',
                 'assignment_session.id',
@@ -842,6 +1214,7 @@ class AssessmentMonitoringService
             ->selectRaw('target.id as target_id')
             ->selectRaw("coalesce(guru.nama_lengkap, 'Peserta tidak ditemukan') as participant_name")
             ->selectRaw("coalesce(nullif(trim(guru.kabupaten), ''), '-') as kabupaten")
+            ->selectRaw("coalesce(nullif(trim(guru.eksternal_jabatan), ''), nullif(trim(guru.jenis_jabatan), ''), '-') as jabatan")
             ->selectRaw("coalesce(nullif(trim(guru.satuan_pendidikan), ''), '-') as school")
             ->selectRaw("coalesce(assignment_session.label_sesi, 'Belum dipetakan') as session_label")
             ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
@@ -851,6 +1224,311 @@ class AssessmentMonitoringService
             ->selectRaw('case when '.$inProgressExpr.' then 1 else 0 end as is_in_progress')
             ->selectRaw($manualPendingExpr.' as manual_pending_items')
             ->selectRaw($scoreExpr.' as score');
+    }
+
+    private function normalizeAssignmentExplorerFilters(array $filters): array
+    {
+        return [
+            'kabupaten' => $this->normalizeAssignmentExplorerFilterValue($filters['kabupaten'] ?? null),
+            'jabatan' => $this->normalizeAssignmentExplorerFilterValue($filters['jabatan'] ?? null),
+            'satuan_pendidikan' => $this->normalizeAssignmentExplorerFilterValue($filters['satuan_pendidikan'] ?? null),
+        ];
+    }
+
+    private function normalizeAssignmentExplorerFilterValue(mixed $value): ?string
+    {
+        if (! is_string($value) && ! is_numeric($value)) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    private function buildAssignmentExplorerFilterOptions(AssessmentAssignment $assignment): array
+    {
+        return Cache::remember(
+            'assessment-assignment-monitor-options:'.$assignment->id,
+            now()->addMinutes(10),
+            function () use ($assignment) {
+                return [
+                    'kabupaten' => $this->buildAssignmentExplorerOptionRows(
+                        $assignment->id,
+                        $this->assignmentTargetKabupatenSql(),
+                        'kabupaten'
+                    ),
+                    'jabatan' => $this->buildAssignmentExplorerOptionRows(
+                        $assignment->id,
+                        $this->assignmentTargetJabatanSql(),
+                        'jabatan'
+                    ),
+                    'satuan_pendidikan' => $this->buildAssignmentExplorerOptionRows(
+                        $assignment->id,
+                        $this->assignmentTargetSchoolSql(),
+                        'satuan_pendidikan'
+                    ),
+                ];
+            }
+        );
+    }
+
+    private function buildAssignmentExplorerOptionRows(int $assignmentId, string $expression, string $alias): array
+    {
+        return $this->assignmentTargetGuruBaseQuery($assignmentId)
+            ->selectRaw($expression.' as '.$alias)
+            ->selectRaw('count(*) as participant_total')
+            ->groupByRaw($expression)
+            ->orderBy($alias)
+            ->get()
+            ->map(function (object $row) use ($alias) {
+                return [
+                    'value' => (string) data_get($row, $alias, ''),
+                    'label' => (string) data_get($row, $alias, ''),
+                    'participant_total' => (int) ($row->participant_total ?? 0),
+                ];
+            })
+            ->filter(fn (array $item) => $item['value'] !== '')
+            ->values()
+            ->all();
+    }
+
+    private function paginateAssignmentExplorerIndividuals(
+        AssessmentAssignment $assignment,
+        array $filters,
+        int $perPage,
+        int $page
+    ): LengthAwarePaginator {
+        $paginator = $this->assignmentDetailListBaseQuery($assignment, $filters)
+            ->orderByRaw('case when target.submitted_at is null and attempt.submitted_at is null then 1 else 0 end')
+            ->orderBy('target.id')
+            ->paginate($perPage, ['*'], 'monitor_page', $page)
+            ->withQueryString();
+
+        $paginator->setCollection(
+            $paginator->getCollection()
+                ->map(fn (object $row) => $this->serializeAssignmentDetailRow($row))
+                ->values()
+        );
+        $paginator->fragment('monitoring-explorer');
+
+        return $paginator;
+    }
+
+    private function buildAssignmentExplorerSummaryPayload(
+        AssessmentAssignment $assignment,
+        array $filters
+    ): array {
+        $cacheTtlSeconds = 60;
+        $cacheKey = 'assessment-assignment-monitor-summary:'
+            .$assignment->id.':'
+            .md5(json_encode($filters));
+
+        return Cache::remember(
+            $cacheKey,
+            now()->addSeconds($cacheTtlSeconds),
+            function () use ($assignment, $filters, $cacheTtlSeconds) {
+                $stats = $this->fetchAssignmentExplorerStats($assignment->id, $filters);
+                $targetTotal = (int) ($stats->filtered_target_total ?? 0);
+                $submittedTotal = (int) ($stats->submitted_total ?? 0);
+                $inProgressTotal = (int) ($stats->in_progress_total ?? 0);
+                $notStartedTotal = (int) ($stats->not_started_total ?? 0);
+                $timeoutTotal = (int) ($stats->timeout_total ?? 0);
+                $pendingReviewTotal = (int) ($stats->pending_review_total ?? 0);
+                $scoredTotal = (int) ($stats->scored_total ?? 0);
+                $manualSubmittedTotal = max($submittedTotal - $timeoutTotal, 0);
+                $averageScore = isset($stats->average_score) && $stats->average_score !== null
+                    ? round((float) $stats->average_score, 2)
+                    : null;
+
+                $competencyRows = collect(KompetensiGuru::cases())
+                    ->map(function (KompetensiGuru $kompetensi) use ($stats) {
+                        $scoreColumn = $kompetensi->value.'_average_score';
+                        $averageScore = isset($stats->{$scoreColumn}) && $stats->{$scoreColumn} !== null
+                            ? round((float) $stats->{$scoreColumn}, 2)
+                            : null;
+
+                        return [
+                            'key' => $kompetensi->value,
+                            'label' => $kompetensi->label(),
+                            'average_score' => $averageScore,
+                            'formatted_score' => $averageScore !== null ? number_format($averageScore, 2) : '-',
+                            'level_label' => $averageScore !== null
+                                ? LevelKompetensi::fromScore($averageScore)?->shortLabel()
+                                : null,
+                        ];
+                    })
+                    ->values();
+
+                $levelRows = collect(LevelKompetensi::cases())
+                    ->map(function (LevelKompetensi $level) use ($stats) {
+                        return [
+                            'value' => $level->value,
+                            'label' => $level->shortLabel(),
+                            'count' => (int) data_get($stats, 'level_'.$level->value, 0),
+                        ];
+                    })
+                    ->values();
+
+                $dominantLevel = $levelRows
+                    ->sortByDesc(fn (array $row) => ($row['count'] * 10) + $row['value'])
+                    ->first(fn (array $row) => $row['count'] > 0);
+
+                return [
+                    'summary' => [
+                        'filtered_target_total' => $targetTotal,
+                        'submitted_total' => $submittedTotal,
+                        'scored_total' => $scoredTotal,
+                        'in_progress_total' => $inProgressTotal,
+                        'not_started_total' => $notStartedTotal,
+                        'timeout_total' => $timeoutTotal,
+                        'pending_review_total' => $pendingReviewTotal,
+                        'average_score' => $averageScore,
+                        'average_score_label' => $averageScore !== null ? number_format($averageScore, 2) : '-',
+                        'dominant_level_label' => $dominantLevel['label'] ?? 'Belum ada level',
+                        'dominant_level_total' => (int) ($dominantLevel['count'] ?? 0),
+                        'completion_rate' => $targetTotal > 0
+                            ? round(($submittedTotal / $targetTotal) * 100, 2)
+                            : 0.0,
+                        'participation_rate' => $targetTotal > 0
+                            ? round((($submittedTotal + $inProgressTotal) / $targetTotal) * 100, 2)
+                            : 0.0,
+                        'competencies' => $competencyRows->all(),
+                        'levels' => $levelRows->all(),
+                    ],
+                    'charts' => [
+                        'status' => [
+                            'labels' => ['Selesai Manual', 'Sedang Mengerjakan', 'Belum Mulai', 'Selesai Timeout'],
+                            'data' => [$manualSubmittedTotal, $inProgressTotal, $notStartedTotal, $timeoutTotal],
+                        ],
+                        'levels' => [
+                            'labels' => $levelRows->pluck('label')->all(),
+                            'data' => $levelRows->pluck('count')->all(),
+                        ],
+                        'radar' => [
+                            'labels' => $competencyRows->pluck('label')->all(),
+                            'data' => $competencyRows
+                                ->map(fn (array $row) => $row['average_score'] ?? 0)
+                                ->all(),
+                            'max_score' => 5,
+                        ],
+                        'competencies' => [
+                            'labels' => $competencyRows->pluck('label')->all(),
+                            'data' => $competencyRows
+                                ->map(fn (array $row) => $row['average_score'] ?? 0)
+                                ->all(),
+                        ],
+                    ],
+                    'meta' => [
+                        'cache_ttl_seconds' => $cacheTtlSeconds,
+                        'has_scored_data' => $scoredTotal > 0,
+                    ],
+                ];
+            }
+        );
+    }
+
+    private function fetchAssignmentExplorerStats(int $assignmentId, array $filters): object
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $inProgressExpr = $this->assignmentTargetInProgressSql();
+        $notStartedExpr = $this->assignmentTargetNotStartedSql();
+        $timeoutExpr = $this->assignmentTargetTimeoutSql();
+        $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
+        $scoreExpr = $this->assignmentTargetOverallScoreSql();
+
+        $query = $this->assignmentExplorerBaseQuery($assignmentId, $filters)
+            ->selectRaw('count(*) as filtered_target_total')
+            ->selectRaw('sum(case when '.$submittedExpr.' then 1 else 0 end) as submitted_total')
+            ->selectRaw('sum(case when '.$inProgressExpr.' then 1 else 0 end) as in_progress_total')
+            ->selectRaw('sum(case when '.$notStartedExpr.' then 1 else 0 end) as not_started_total')
+            ->selectRaw('sum(case when '.$timeoutExpr.' then 1 else 0 end) as timeout_total')
+            ->selectRaw('sum(case when '.$manualPendingExpr.' > 0 then 1 else 0 end) as pending_review_total')
+            ->selectRaw('sum(case when '.$scoreExpr.' is not null then 1 else 0 end) as scored_total')
+            ->selectRaw('avg(case when '.$scoreExpr.' is not null then '.$scoreExpr.' end) as average_score')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 1.00 and '.$scoreExpr.' < 1.80 then 1 else 0 end) as level_1')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 1.80 and '.$scoreExpr.' < 2.60 then 1 else 0 end) as level_2')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 2.60 and '.$scoreExpr.' < 3.40 then 1 else 0 end) as level_3')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 3.40 and '.$scoreExpr.' < 4.20 then 1 else 0 end) as level_4')
+            ->selectRaw('sum(case when '.$scoreExpr.' >= 4.20 and '.$scoreExpr.' <= 5.00 then 1 else 0 end) as level_5');
+
+        foreach (KompetensiGuru::cases() as $kompetensi) {
+            $competencyScoreExpr = $this->assignmentTargetCompetencyScoreSql($kompetensi);
+            $query->selectRaw(
+                'avg(case when '.$competencyScoreExpr.' is not null then '.$competencyScoreExpr.' end) as '
+                .$kompetensi->value.'_average_score'
+            );
+        }
+
+        return $query->first() ?? (object) [];
+    }
+
+    private function assignmentExplorerBaseQuery(int $assignmentId, array $filters = [])
+    {
+        $query = $this->assignmentTargetBaseQuery($assignmentId)
+            ->leftJoin('gurus as guru', 'guru.id', '=', 'target.guru_id');
+
+        $this->applyAssignmentExplorerFilters($query, $filters);
+
+        return $query;
+    }
+
+    private function assignmentTargetGuruBaseQuery(int $assignmentId)
+    {
+        return DB::table('assessment_assignment_targets as target')
+            ->join('gurus as guru', 'guru.id', '=', 'target.guru_id')
+            ->where('target.assessment_assignment_id', $assignmentId);
+    }
+
+    private function applyAssignmentExplorerFilters($query, array $filters): void
+    {
+        $normalizedFilters = $this->normalizeAssignmentExplorerFilters($filters);
+
+        if ($normalizedFilters['kabupaten']) {
+            $query->whereRaw(
+                $this->assignmentTargetKabupatenSql().' = ?',
+                [$normalizedFilters['kabupaten']]
+            );
+        }
+
+        if ($normalizedFilters['jabatan']) {
+            $query->whereRaw(
+                $this->assignmentTargetJabatanSql().' = ?',
+                [$normalizedFilters['jabatan']]
+            );
+        }
+
+        if ($normalizedFilters['satuan_pendidikan']) {
+            $query->whereRaw(
+                $this->assignmentTargetSchoolSql().' = ?',
+                [$normalizedFilters['satuan_pendidikan']]
+            );
+        }
+    }
+
+    private function assignmentTargetKabupatenSql(): string
+    {
+        return "coalesce(nullif(trim(guru.kabupaten), ''), 'Kabupaten belum diisi')";
+    }
+
+    private function assignmentTargetJabatanSql(): string
+    {
+        return "coalesce(nullif(trim(guru.eksternal_jabatan), ''), nullif(trim(guru.jenis_jabatan), ''), 'Jabatan belum diisi')";
+    }
+
+    private function assignmentTargetSchoolSql(): string
+    {
+        return "coalesce(nullif(trim(guru.satuan_pendidikan), ''), 'Satuan pendidikan belum diisi')";
+    }
+
+    private function assignmentTargetCompetencyScoreSql(KompetensiGuru $kompetensi): string
+    {
+        $competencyIndex = collect(KompetensiGuru::cases())
+            ->search(fn (KompetensiGuru $case) => $case->value === $kompetensi->value);
+
+        return "cast(nullif(json_unquote(json_extract(attempt.scoring_summary, '$.radar_chart.datasets["
+            .$competencyIndex
+            ."].score')), '') as decimal(8,2))";
     }
 
     private function assignmentTargetBaseQuery(int $assignmentId)
@@ -906,8 +1584,12 @@ class AssessmentMonitoringService
 
         return [
             'target_id' => (int) $row->target_id,
+            'assignment_id' => isset($row->assignment_id) ? (int) $row->assignment_id : null,
+            'assignment_title' => isset($row->assignment_title) ? (string) ($row->assignment_title ?: 'Penugasan') : null,
+            'assignment_code' => isset($row->assignment_code) ? (string) ($row->assignment_code ?: '-') : null,
             'name' => (string) ($row->participant_name ?: 'Peserta tidak ditemukan'),
             'kabupaten' => (string) ($row->kabupaten ?: '-'),
+            'jabatan' => (string) ($row->jabatan ?: '-'),
             'school' => (string) ($row->school ?: '-'),
             'status_label' => $this->resolveAssignmentDetailStatusLabel($row),
             'session_label' => (string) ($row->session_label ?: 'Belum dipetakan'),

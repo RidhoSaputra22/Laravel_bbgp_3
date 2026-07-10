@@ -11,7 +11,6 @@ use App\Models\AssessmentFormField;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
-use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\JsonResponse;
@@ -29,7 +28,6 @@ class AssessmentAssignmentController extends Controller
 
     public function __construct(
         private readonly AssessmentAssignmentService $assignmentService,
-        private readonly AssessmentAttemptLifecycleService $attemptLifecycleService,
         private readonly AssessmentMonitoringService $assessmentMonitoringService
     ) {}
 
@@ -187,38 +185,25 @@ class AssessmentAssignmentController extends Controller
             ->withCount(['targets', 'sessions'])
             ->findOrFail($id);
 
-        $perPage = max(10, min((int) $request->input('target_per_page', self::TARGET_PAGE_SIZE), 100));
-        $targets = $assignment->targets()
-            ->select([
-                'id',
-                'assessment_assignment_id',
-                'assessment_assignment_session_id',
-                'guru_id',
-                'status',
-                'assigned_at',
-                'started_at',
-                'deadline_at',
-                'submitted_at',
-                'completion_mode',
-                'timed_out_at',
-            ])
-            ->with([
-                'guru:id,nama_lengkap,email,eksternal_jabatan,jenis_jabatan,satuan_pendidikan,kabupaten',
-                'session:id,label_sesi,waktu_mulai,waktu_selesai',
-                'attempt:id,assessment_assignment_target_id,status,completion_mode,submitted_at,timed_out_at,disqualified_at,disqualification_reason,serious_violation_count,warning_violation_count',
-            ])
-            ->paginate($perPage, ['*'], 'target_page')
-            ->withQueryString();
-        $targets->setCollection(
-            $this->attemptLifecycleService->syncExpiredTargets($targets->getCollection())
+        $monitoringExplorerFilters = $this->resolveMonitoringExplorerFilters($request);
+        $monitoringExplorerMode = $this->resolveMonitoringExplorerMode($request);
+        $monitoringExplorerPerPage = max(
+            10,
+            min((int) $request->input('monitor_per_page', self::TARGET_PAGE_SIZE), 50)
         );
 
         return view('pages.admin.assessment.assignment.show', [
             'menu' => $this->menu,
             'assignment' => $assignment,
-            'targets' => $targets,
             'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
             'monitoringPanel' => $this->assessmentMonitoringService->buildAssignmentDetail($assignment),
+            'monitoringExplorer' => $this->assessmentMonitoringService->buildAssignmentExplorer(
+                $assignment,
+                $monitoringExplorerFilters,
+                $monitoringExplorerMode,
+                $monitoringExplorerPerPage,
+                max((int) $request->input('monitor_page', 1), 1)
+            ),
         ]);
     }
 
@@ -311,6 +296,41 @@ class AssessmentAssignmentController extends Controller
             in_array(session('role'), ['admin', 'superadmin', 'kepala', 'database'], true),
             403
         );
+    }
+
+    private function resolveMonitoringExplorerFilters(Request $request): array
+    {
+        return [
+            'kabupaten' => $this->normalizeMonitoringExplorerFilterValue(
+                $request->input('monitor_kabupaten')
+            ),
+            'jabatan' => $this->normalizeMonitoringExplorerFilterValue(
+                $request->input('monitor_jabatan')
+            ),
+            'satuan_pendidikan' => $this->normalizeMonitoringExplorerFilterValue(
+                $request->input('monitor_satuan_pendidikan')
+            ),
+        ];
+    }
+
+    private function resolveMonitoringExplorerMode(Request $request): string
+    {
+        $mode = trim((string) $request->input('monitor_view', 'individual'));
+
+        return in_array($mode, ['individual', 'summary'], true)
+            ? $mode
+            : 'individual';
+    }
+
+    private function normalizeMonitoringExplorerFilterValue(mixed $value): ?string
+    {
+        if (! is_string($value) && ! is_numeric($value)) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return $normalized !== '' ? $normalized : null;
     }
 
     private function buildFormViewData(?AssessmentAssignment $assignment = null): array

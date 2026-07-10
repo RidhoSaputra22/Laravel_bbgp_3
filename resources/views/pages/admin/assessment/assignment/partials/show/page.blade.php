@@ -24,6 +24,101 @@
             max-height: 350px;
             overflow-y: auto;
         }
+
+        .monitor-filter-card {
+            border: 1px solid #d8e4ff;
+            box-shadow: 0 10px 30px rgba(83, 109, 254, 0.08);
+        }
+
+        .monitor-filter-card .card-header {
+            align-items: flex-start;
+            border-bottom: 1px solid #edf1ff;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .monitor-filter-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .monitor-filter-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .monitor-filter-actions {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: space-between;
+        }
+
+        .monitor-active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .monitor-summary-card {
+            border: 1px solid #edf1ff;
+        }
+
+        .monitor-summary-card .card-header {
+            border-bottom: 1px solid #edf1ff;
+        }
+
+        .monitor-summary-stat {
+            border: 1px solid #edf1ff;
+            border-radius: 0.3rem;
+            height: 100%;
+            padding: 1rem;
+        }
+
+        .monitor-summary-stat__label {
+            color: #6c757d;
+            font-size: 0.82rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .monitor-summary-stat__value {
+            color: #34395e;
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .monitor-competency-card {
+            border: 1px solid #edf1ff;
+            border-radius: 0.3rem;
+            height: 100%;
+            padding: 1rem;
+        }
+
+        .monitor-competency-card__label {
+            color: #34395e;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .monitor-competency-card__score {
+            color: #6777ef;
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .monitor-summary-chart {
+            min-height: 290px;
+            position: relative;
+        }
+
+        @media (max-width: 991.98px) {
+            .monitor-filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 @endpush
 
@@ -48,6 +143,19 @@
         $monitoringSummary = $monitoringPanel['summary'] ?? [];
         $detailLists = $monitoringPanel['lists'] ?? [];
         $detailCharts = $monitoringPanel['charts'] ?? [];
+        $monitoringExplorer = $monitoringExplorer ?? [];
+        $explorerMode = $monitoringExplorer['mode'] ?? 'individual';
+        $explorerFilters = $monitoringExplorer['filters'] ?? [];
+        $explorerSelectedFilters = $explorerFilters['selected'] ?? [];
+        $explorerFilterOptions = $explorerFilters['options'] ?? [];
+        $explorerRows = $monitoringExplorer['individual_rows'] ?? [];
+        $explorerPaginator = $monitoringExplorer['individual_paginator'] ?? null;
+        $explorerSummary = $monitoringExplorer['summary'] ?? [];
+        $explorerCharts = $monitoringExplorer['charts'] ?? [];
+        $explorerMeta = $monitoringExplorer['meta'] ?? [];
+        $explorerActiveFilterCount = collect($explorerSelectedFilters)
+            ->filter(fn($value) => filled($value))
+            ->count();
     @endphp
 
     <div class="main-content">
@@ -533,6 +641,351 @@
                             </div>
                         </div>
 
+                        <div class="card monitor-filter-card mb-4" id="monitoring-explorer">
+                            <div class="card-header">
+                                <div>
+                                    <h4 class="mb-1">Filter Monitoring Penugasan</h4>
+                                    <div class="text-muted small">
+                                        Filter ini dipakai untuk mode individu dan ringkasan visual agregat.
+                                    </div>
+                                </div>
+                                <div class="card-header-action">
+                                    <span class="badge badge-light">
+                                        {{ $explorerActiveFilterCount }} filter aktif
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <form action="{{ route('assessment.assignment.show', $assignment->id) }}#monitoring-explorer"
+                                    method="GET">
+                                    <input type="hidden" name="monitor_per_page"
+                                        value="{{ $explorerPaginator?->perPage() ?? request('monitor_per_page', 25) }}">
+
+                                    <div class="monitor-filter-grid mb-3">
+                                        <div class="form-group">
+                                            <label for="monitor-kabupaten">Kabupaten</label>
+                                            <select class="form-control" id="monitor-kabupaten" name="monitor_kabupaten">
+                                                <option value="">Semua kabupaten</option>
+                                                @foreach ($explorerFilterOptions['kabupaten'] ?? [] as $option)
+                                                    <option value="{{ $option['value'] }}"
+                                                        {{ ($explorerSelectedFilters['kabupaten'] ?? null) === $option['value'] ? 'selected' : '' }}>
+                                                        {{ $option['label'] }} ({{ $option['participant_total'] }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="monitor-jabatan">Jabatan</label>
+                                            <select class="form-control" id="monitor-jabatan" name="monitor_jabatan">
+                                                <option value="">Semua jabatan</option>
+                                                @foreach ($explorerFilterOptions['jabatan'] ?? [] as $option)
+                                                    <option value="{{ $option['value'] }}"
+                                                        {{ ($explorerSelectedFilters['jabatan'] ?? null) === $option['value'] ? 'selected' : '' }}>
+                                                        {{ $option['label'] }} ({{ $option['participant_total'] }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="monitor-satuan-pendidikan">Satuan Pendidikan</label>
+                                            <select class="form-control" id="monitor-satuan-pendidikan"
+                                                name="monitor_satuan_pendidikan">
+                                                <option value="">Semua satuan pendidikan</option>
+                                                @foreach ($explorerFilterOptions['satuan_pendidikan'] ?? [] as $option)
+                                                    <option value="{{ $option['value'] }}"
+                                                        {{ ($explorerSelectedFilters['satuan_pendidikan'] ?? null) === $option['value'] ? 'selected' : '' }}>
+                                                        {{ $option['label'] }} ({{ $option['participant_total'] }})
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="monitor-filter-actions">
+                                        <div class="monitor-active-filters">
+                                            @foreach ([
+                                                'Kabupaten: ' . ($explorerSelectedFilters['kabupaten'] ?? ''),
+                                                'Jabatan: ' . ($explorerSelectedFilters['jabatan'] ?? ''),
+                                                'Satuan Pendidikan: ' . ($explorerSelectedFilters['satuan_pendidikan'] ?? ''),
+                                            ] as $filterLabel)
+                                                @if (! str_ends_with($filterLabel, ': '))
+                                                    <span class="badge badge-primary">{{ $filterLabel }}</span>
+                                                @endif
+                                            @endforeach
+                                            @if ($explorerActiveFilterCount === 0)
+                                                <span class="text-muted small">Tidak ada filter aktif. Semua peserta akan ditampilkan.</span>
+                                            @endif
+                                        </div>
+                                        <div class="d-flex flex-wrap" style="gap: 0.5rem;">
+                                            <button type="submit" name="monitor_view" value="individual"
+                                                class="btn {{ $explorerMode === 'individual' ? 'btn-primary' : 'btn-outline-primary' }}">
+                                                <i class="fas fa-users mr-1"></i> Lihat Individu
+                                            </button>
+                                            <button type="submit" name="monitor_view" value="summary"
+                                                class="btn {{ $explorerMode === 'summary' ? 'btn-success' : 'btn-outline-success' }}">
+                                                <i class="fas fa-chart-pie mr-1"></i> Lihat Semua
+                                            </button>
+                                            <a href="{{ route('assessment.assignment.show', $assignment->id) }}#monitoring-explorer"
+                                                class="btn btn-light">
+                                                <i class="fas fa-sync-alt mr-1"></i> Reset Filter
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        @if ($explorerMode === 'individual')
+                            <div class="card monitor-summary-card mb-4">
+                                <div class="card-header">
+                                    <h4>Hasil Monitoring Per Individu</h4>
+                                    <div class="card-header-action">
+                                        <span class="badge badge-light">
+                                            {{ $explorerPaginator?->total() ?? count($explorerRows) }} peserta
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    @if ($explorerPaginator && $explorerPaginator->total() > 0)
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                            <div class="text-muted small">
+                                                Menampilkan {{ $explorerPaginator->firstItem() ?? 0 }} -
+                                                {{ $explorerPaginator->lastItem() ?? 0 }} dari
+                                                {{ $explorerPaginator->total() }} peserta.
+                                            </div>
+                                            <div class="text-muted small">
+                                                Mode ini hanya mengambil satu halaman data agar query tetap ringan.
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if (empty($explorerRows))
+                                        <div class="alert alert-light border mb-0">
+                                            Tidak ada peserta yang cocok dengan filter monitoring saat ini.
+                                        </div>
+                                    @else
+                                        <div class="table-responsive">
+                                            <table class="table table-striped mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th class="text-center" style="width: 70px;">No</th>
+                                                        <th>Nama</th>
+                                                        <th style="width: 150px;">Skor Umum</th>
+                                                        <th style="width: 160px;">Level Umum</th>
+                                                        <th style="width: 170px;">Aksi</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($explorerRows as $participant)
+                                                        <tr>
+                                                            <td class="text-center">
+                                                                {{ (($explorerPaginator?->firstItem() ?? 1) - 1) + $loop->iteration }}
+                                                            </td>
+                                                            <td>
+                                                                <div class="font-weight-bold">{{ $participant['name'] }}</div>
+                                                                <small class="text-muted d-block">
+                                                                    {{ $participant['jabatan'] ?: '-' }} •
+                                                                    {{ $participant['kabupaten'] ?: '-' }}
+                                                                </small>
+                                                                <small class="text-muted d-block">
+                                                                    {{ $participant['school'] ?: '-' }} •
+                                                                    {{ $participant['session_label'] ?: '-' }}
+                                                                </small>
+                                                                <small class="text-muted d-block">
+                                                                    Status: {{ $participant['status_label'] }}
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                <div class="font-weight-bold text-success">
+                                                                    {{ $participant['score_label'] ?: '-' }}
+                                                                </div>
+                                                                <small class="text-muted">
+                                                                    Submit: {{ $participant['submitted_at'] ?: '-' }}
+                                                                </small>
+                                                            </td>
+                                                            <td>
+                                                                @if ($participant['score_level'])
+                                                                    <span class="badge badge-info">
+                                                                        {{ $participant['score_level'] }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="text-muted">-</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if ($participant['review_url'])
+                                                                    <a href="{{ $participant['review_url'] }}"
+                                                                        class="btn btn-sm btn-primary">
+                                                                        <i class="fas fa-clipboard-check mr-1"></i> Detail
+                                                                    </a>
+                                                                @else
+                                                                    <span class="text-muted small">Belum ada hasil</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        @if ($explorerPaginator)
+                                            <div class="mt-3">
+                                                {{ $explorerPaginator->links() }}
+                                            </div>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <div class="card monitor-summary-card mb-4">
+                                <div class="card-header">
+                                    <div>
+                                        <h4 class="mb-1">Ringkasan Visual Semua Peserta Terfilter</h4>
+                                        <div class="text-muted small">
+                                            Nilai di bawah ini adalah hasil agregasi keseluruhan peserta yang lolos filter.
+                                        </div>
+                                    </div>
+                                    <div class="card-header-action">
+                                        <span class="badge badge-light">
+                                            Cache {{ (int) ($explorerMeta['cache_ttl_seconds'] ?? 60) }} detik
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-light border">
+                                        Mode ringkasan disimpan singkat di cache agar agregasi skor, level, dan
+                                        kompetensi tidak menghitung ulang semua peserta setiap refresh.
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+                                            <div class="monitor-summary-stat">
+                                                <div class="monitor-summary-stat__label">Peserta Terfilter</div>
+                                                <div class="monitor-summary-stat__value">
+                                                    {{ $explorerSummary['filtered_target_total'] ?? 0 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+                                            <div class="monitor-summary-stat">
+                                                <div class="monitor-summary-stat__label">Sudah Mengisi</div>
+                                                <div class="monitor-summary-stat__value text-success">
+                                                    {{ $explorerSummary['submitted_total'] ?? 0 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+                                            <div class="monitor-summary-stat">
+                                                <div class="monitor-summary-stat__label">Skor Umum</div>
+                                                <div class="monitor-summary-stat__value">
+                                                    {{ $explorerSummary['average_score_label'] ?? '-' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+                                            <div class="monitor-summary-stat">
+                                                <div class="monitor-summary-stat__label">Level Umum Dominan</div>
+                                                <div class="monitor-summary-stat__value">
+                                                    {{ $explorerSummary['dominant_level_label'] ?? '-' }}
+                                                </div>
+                                                <small class="text-muted">
+                                                    {{ $explorerSummary['dominant_level_total'] ?? 0 }} peserta
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+                                            <div class="monitor-summary-stat">
+                                                <div class="monitor-summary-stat__label">Review Pending</div>
+                                                <div class="monitor-summary-stat__value text-primary">
+                                                    {{ $explorerSummary['pending_review_total'] ?? 0 }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-2 col-lg-4 col-md-6 mb-3">
+                                            <div class="monitor-summary-stat">
+                                                <div class="monitor-summary-stat__label">Partisipasi</div>
+                                                <div class="monitor-summary-stat__value text-warning">
+                                                    {{ number_format((float) ($explorerSummary['participation_rate'] ?? 0), 2) }}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        @foreach ($explorerSummary['competencies'] ?? [] as $competency)
+                                            <div class="col-lg-3 col-md-6 mb-3">
+                                                <div class="monitor-competency-card">
+                                                    <div class="monitor-competency-card__label">
+                                                        {{ $competency['label'] }}
+                                                    </div>
+                                                    <div class="monitor-competency-card__score">
+                                                        {{ $competency['formatted_score'] }}
+                                                    </div>
+                                                    <small class="text-muted">
+                                                        {{ $competency['level_label'] ?: 'Belum ada level' }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    @if (! ($explorerMeta['has_scored_data'] ?? false))
+                                        <div class="alert alert-warning">
+                                            Belum ada skor peserta yang bisa diagregasi pada filter ini. Grafik status
+                                            tetap ditampilkan untuk memantau progres pengisian.
+                                        </div>
+                                    @endif
+
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="card border">
+                                                <div class="card-header">
+                                                    <h4>Jaring Laba-Laba Kompetensi</h4>
+                                                </div>
+                                                <div class="card-body monitor-summary-chart">
+                                                    <canvas id="assignmentExplorerRadarChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="card border">
+                                                <div class="card-header">
+                                                    <h4>Status Peserta Terfilter</h4>
+                                                </div>
+                                                <div class="card-body monitor-summary-chart">
+                                                    <canvas id="assignmentExplorerStatusChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="card border">
+                                                <div class="card-header">
+                                                    <h4>Distribusi Level Umum</h4>
+                                                </div>
+                                                <div class="card-body monitor-summary-chart">
+                                                    <canvas id="assignmentExplorerLevelChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="card border">
+                                                <div class="card-header">
+                                                    <h4>Rata-rata Kompetensi</h4>
+                                                </div>
+                                                <div class="card-body monitor-summary-chart">
+                                                    <canvas id="assignmentExplorerCompetencyChart"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="alert alert-light border">
+                            Snapshot di bawah ini tetap menampilkan gambaran cepat seluruh penugasan tanpa filter.
+                        </div>
+
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="card border">
@@ -808,155 +1261,6 @@
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h4>Daftar Peserta Yang Ditugasi</h4>
-                    </div>
-                    <div class="card-body">
-                        @if ($targets->isEmpty())
-                            <div class="alert alert-warning mb-0">
-                                Penugasan ini masih diproses atau belum memiliki target peserta tersimpan.
-                            </div>
-                        @else
-                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                                <div class="text-muted small">
-                                    Menampilkan
-                                    {{ $targets->firstItem() ?? 0 }} - {{ $targets->lastItem() ?? 0 }}
-                                    dari {{ $targets->total() }} peserta.
-                                </div>
-                                <div class="text-muted small">
-                                    {{ $targets->perPage() }} peserta per halaman
-                                </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped" id="table-assignment-target">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">#</th>
-                                            <th>Nama Peserta</th>
-                                            <th>Instansi</th>
-                                            <th>Kabupaten</th>
-                                            <th>Sesi Assessment</th>
-                                            <th>Status Target</th>
-                                            <th>Waktu Ditugaskan</th>
-                                            <th>Mulai Dikerjakan</th>
-                                            <th>Batas Selesai</th>
-                                            <th>Selesai / Timeout</th>
-                                            <th>Mode Selesai</th>
-                                            <th>Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($targets as $target)
-                                            @php
-                                                $targetBadge =
-                                                    [
-                                                        'ditugaskan' => 'primary',
-                                                        'dikerjakan' => 'warning',
-                                                        'selesai' => 'success',
-                                                        'dibatalkan' => 'secondary',
-                                                    ][$target->status] ?? 'secondary';
-                                                $attemptStatus = optional($target->attempt)->status;
-                                                $completionMode = optional($target->attempt)->completion_mode ?: $target->completion_mode;
-                                                $isDisqualified = optional($target->attempt)->disqualified_at !== null;
-                                                $seriousViolationCount = (int) (optional($target->attempt)->serious_violation_count ?? 0);
-                                                $warningViolationCount = (int) (optional($target->attempt)->warning_violation_count ?? 0);
-                                                $completionBadge = $isDisqualified
-                                                    ? 'danger'
-                                                    : ($completionMode === 'timeout' ? 'secondary' : 'success');
-                                            @endphp
-                                            <tr>
-                                                <td class="text-center">{{ ($targets->firstItem() ?? 0) + $loop->index }}</td>
-                                                <td>
-                                                    <div class="font-weight-bold">
-                                                        {{ optional($target->guru)->nama_lengkap ?: 'Peserta tidak ditemukan' }}
-                                                    </div>
-                                                    <small class="text-muted">
-                                                        {{ collect([
-                                                            optional($target->guru)->email ?: null,
-                                                            optional($target->guru)->eksternal_jabatan ?: null,
-                                                            optional($target->guru)->jenis_jabatan ?: null,
-                                                        ])->filter()->implode(' | ') ?: '-' }}
-                                                    </small>
-                                                </td>
-                                                <td>{{ optional($target->guru)->satuan_pendidikan ?: '-' }}</td>
-                                                <td>{{ optional($target->guru)->kabupaten ?: '-' }}</td>
-                                                <td>
-                                                    <div class="font-weight-bold">
-                                                        {{ optional($target->session)->label_sesi ?: 'Belum dipetakan' }}
-                                                    </div>
-                                                    <small class="text-muted">
-                                                        {{ optional($target->session)->jadwal_sesi_label ?: 'Jadwal belum diatur' }}
-                                                    </small>
-                                                </td>
-                                                <td>
-                                                    <span class="badge badge-{{ $targetBadge }}">
-                                                        {{ ucfirst($target->status) }}
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {{ $target->assigned_at ? $target->assigned_at->format('d M Y H:i') : '-' }}
-                                                </td>
-                                                <td>
-                                                    {{ $target->started_at ? $target->started_at->format('d M Y H:i') : '-' }}
-                                                </td>
-                                                <td>
-                                                    {{ $target->deadline_at ? $target->deadline_at->format('d M Y H:i') : '-' }}
-                                                </td>
-                                                <td>
-                                                    @if ($target->submitted_at)
-                                                        {{ $target->submitted_at->format('d M Y H:i') }}
-                                                    @elseif ($target->timed_out_at)
-                                                        {{ $target->timed_out_at->format('d M Y H:i') }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if ($isDisqualified)
-                                                        <span class="badge badge-{{ $completionBadge }}">
-                                                            Didiskualifikasi
-                                                        </span>
-                                                        <small class="text-muted d-block mt-2">
-                                                            {{ optional($target->attempt)->disqualification_reason ?: 'Guard ujian menghentikan sesi peserta.' }}
-                                                        </small>
-                                                    @elseif ($completionMode)
-                                                        <span class="badge badge-{{ $completionBadge }}">
-                                                            {{ $completionMode === 'timeout' ? 'Timeout' : 'Manual' }}
-                                                        </span>
-                                                    @else
-                                                        <span class="text-muted">-</span>
-                                                    @endif
-                                                    @if ($seriousViolationCount > 0 || $warningViolationCount > 0)
-                                                        <small class="text-muted d-block mt-2">
-                                                            Pelanggaran: {{ $seriousViolationCount }} serius /
-                                                            {{ $warningViolationCount }} warning
-                                                        </small>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if ($attemptStatus === 'submitted')
-                                                        <a href="{{ route('assessment.assignment.review.show', $target->id) }}"
-                                                            class="btn btn-sm btn-primary">
-                                                            <i class="fas fa-clipboard-check"></i> Lihat Hasil
-                                                        </a>
-                                                    @elseif ($attemptStatus === 'in_progress')
-                                                        <span class="badge badge-warning">Sedang dikerjakan</span>
-                                                    @else
-                                                        <span class="text-muted">Belum ada hasil</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="mt-3">
-                                {{ $targets->links() }}
-                            </div>
-                        @endif
-                    </div>
-                </div>
             </div>
         </section>
     </div>
@@ -1015,7 +1319,12 @@
                 session: @json($detailCharts['session_completion'] ?? ['labels' => [], 'submitted' => [], 'pending' => []]),
                 kabupaten: @json($detailCharts['kabupaten_completion'] ?? ['labels' => [], 'submitted' => [], 'pending' => []]),
                 scoreLevels: @json($detailCharts['score_levels'] ?? ['labels' => [], 'data' => []]),
+                explorerStatus: @json($explorerCharts['status'] ?? ['labels' => [], 'data' => []]),
+                explorerLevels: @json($explorerCharts['levels'] ?? ['labels' => [], 'data' => []]),
+                explorerRadar: @json($explorerCharts['radar'] ?? ['labels' => [], 'data' => [], 'max_score' => 5]),
+                explorerCompetencies: @json($explorerCharts['competencies'] ?? ['labels' => [], 'data' => []]),
             };
+            const explorerMode = @json($explorerMode);
 
             function initDataTable(selector, nonSortableColumns) {
                 const table = $(selector);
@@ -1170,9 +1479,130 @@
                 }
             }
 
+            function initExplorerCharts() {
+                if (typeof Chart === 'undefined' || explorerMode !== 'summary') {
+                    return;
+                }
+
+                const radarCtx = document.getElementById('assignmentExplorerRadarChart');
+                if (radarCtx) {
+                    new Chart(radarCtx, {
+                        type: 'radar',
+                        data: {
+                            labels: chartPayload.explorerRadar.labels,
+                            datasets: [{
+                                label: 'Rata-rata Kompetensi',
+                                data: chartPayload.explorerRadar.data,
+                                backgroundColor: 'rgba(103, 119, 239, 0.18)',
+                                borderColor: '#6777ef',
+                                pointBackgroundColor: '#6777ef',
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                position: 'bottom',
+                            },
+                            scale: {
+                                ticks: {
+                                    beginAtZero: true,
+                                    min: 0,
+                                    max: chartPayload.explorerRadar.max_score || 5,
+                                    stepSize: 1,
+                                },
+                            },
+                        },
+                    });
+                }
+
+                const statusCtx = document.getElementById('assignmentExplorerStatusChart');
+                if (statusCtx) {
+                    new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: chartPayload.explorerStatus.labels,
+                            datasets: [{
+                                data: chartPayload.explorerStatus.data,
+                                backgroundColor: ['#47c363', '#ffa426', '#6c757d', '#6777ef'],
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                position: 'bottom',
+                            },
+                        },
+                    });
+                }
+
+                const levelCtx = document.getElementById('assignmentExplorerLevelChart');
+                if (levelCtx) {
+                    new Chart(levelCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartPayload.explorerLevels.labels,
+                            datasets: [{
+                                label: 'Jumlah Peserta',
+                                data: chartPayload.explorerLevels.data,
+                                backgroundColor: ['#6777ef', '#3abaf4', '#ffa426', '#47c363', '#fc544b'],
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                display: false,
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        precision: 0,
+                                    },
+                                }],
+                            },
+                        },
+                    });
+                }
+
+                const competencyCtx = document.getElementById('assignmentExplorerCompetencyChart');
+                if (competencyCtx) {
+                    new Chart(competencyCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartPayload.explorerCompetencies.labels,
+                            datasets: [{
+                                label: 'Rata-rata Skor',
+                                data: chartPayload.explorerCompetencies.data,
+                                backgroundColor: '#3abaf4',
+                            }],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                display: false,
+                            },
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true,
+                                        min: 0,
+                                        max: 5,
+                                    },
+                                }],
+                            },
+                        },
+                    });
+                }
+            }
+
             initDataTable('#table-assignment-assessment', [0]);
             initDataTable('#table-assignment-session', [0]);
             initCharts();
+            initExplorerCharts();
         });
     </script>
 @endpush
