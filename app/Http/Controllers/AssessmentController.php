@@ -292,6 +292,7 @@ class AssessmentController extends Controller
                 'forms.*.fields.*.opsi_field_text' => 'nullable|string',
                 'forms.*.fields.*.opsi_score_text' => 'nullable|string',
                 'forms.*.fields.*.repeater_config_text' => 'nullable|string',
+                'forms.*.fields.*.raw_opsi_field_json' => 'nullable|string',
                 'forms.*.fields.*.radio_options' => 'nullable|array',
                 'forms.*.fields.*.radio_options.*.label' => 'nullable|string|max:1000',
                 'forms.*.fields.*.radio_options.*.value' => 'nullable|string|max:255',
@@ -625,6 +626,10 @@ class AssessmentController extends Controller
     {
         $fieldType = $fieldData['tipe_field'] ?? null;
 
+        if ($fieldType === 'file') {
+            return $this->parseRawFieldOptionsJson($fieldData['raw_opsi_field_json'] ?? null);
+        }
+
         if (! in_array($fieldType, ['select', 'radio', 'checkbox', 'repeater'], true)) {
             return null;
         }
@@ -671,6 +676,17 @@ class AssessmentController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    private function parseRawFieldOptionsJson(?string $rawOptions): ?array
+    {
+        $decoded = json_decode((string) $rawOptions, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+            return null;
+        }
+
+        return $decoded;
     }
 
     /**
@@ -1077,14 +1093,13 @@ class AssessmentController extends Controller
                         'tipe_field' => $field->tipe_field,
                         'placeholder' => $field->placeholder,
                         'bantuan' => $field->bantuan,
+                        'raw_opsi_field_json' => $this->formatRawFieldOptionsJsonForBuilder($field->tipe_field, $field->opsi_field),
                         'repeater_config_text' => $field->tipe_field === 'repeater' && is_array($field->opsi_field)
                             ? json_encode($field->opsi_field, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
                             : null,
-                        'opsi_field_text' => in_array($field->tipe_field, ['radio', 'repeater'], true)
-                            ? null
-                            : ($choiceOptions !== []
-                                ? collect($choiceOptions)->pluck('label')->implode(', ')
-                                : ($field->opsi_field ? implode(', ', $field->opsi_field) : null)),
+                        'opsi_field_text' => in_array($field->tipe_field, ['select', 'checkbox'], true)
+                            ? $this->formatChoiceOptionLabelsForBuilder($choiceOptions, $field->opsi_field)
+                            : null,
                         'opsi_score_text' => $this->formatOptionScoreText($choiceOptions),
                         'radio_options' => $radioOptions,
                         'scoring' => [
@@ -1119,6 +1134,40 @@ class AssessmentController extends Controller
                 })->toArray(),
             ];
         })->toArray();
+    }
+
+    private function formatChoiceOptionLabelsForBuilder(array $choiceOptions, mixed $rawOptions): ?string
+    {
+        if ($choiceOptions !== []) {
+            $labels = collect($choiceOptions)
+                ->pluck('label')
+                ->map(fn ($label) => trim((string) $label))
+                ->filter()
+                ->values();
+
+            return $labels->isEmpty() ? null : $labels->implode(', ');
+        }
+
+        if (! is_array($rawOptions) || ! array_is_list($rawOptions)) {
+            return null;
+        }
+
+        $labels = collect($rawOptions)
+            ->filter(fn ($option) => is_scalar($option))
+            ->map(fn ($option) => trim((string) $option))
+            ->filter()
+            ->values();
+
+        return $labels->isEmpty() ? null : $labels->implode(', ');
+    }
+
+    private function formatRawFieldOptionsJsonForBuilder(?string $fieldType, mixed $rawOptions): ?string
+    {
+        if (in_array($fieldType, ['select', 'radio', 'checkbox', 'repeater'], true) || ! is_array($rawOptions)) {
+            return null;
+        }
+
+        return json_encode($rawOptions, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: null;
     }
 
     private function formatOptionScoreText(array $options): ?string

@@ -1784,6 +1784,7 @@
                 const opsiFieldTextName = `${fieldPrefix}[opsi_field_text]`;
                 const opsiScoreTextName = `${fieldPrefix}[opsi_score_text]`;
                 const repeaterConfigName = `${fieldPrefix}[repeater_config_text]`;
+                const rawOpsiFieldJsonName = `${fieldPrefix}[raw_opsi_field_json]`;
                 const radioOptionsName = `${fieldPrefix}[radio_options]`;
                 const bantuanName = `${fieldPrefix}[bantuan]`;
                 const lebarKolomName = `${fieldPrefix}[lebar_kolom]`;
@@ -1838,6 +1839,9 @@
                             <input type="hidden" class="assessment-field-id-input"
                                 name="${fieldIdName}"
                                 value="${escapeHtml(fieldData.id || '')}">
+                            <input type="hidden"
+                                name="${rawOpsiFieldJsonName}"
+                                value="${escapeHtml(fieldData.raw_opsi_field_json || '')}">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Pertanyaan ${fieldIndex + 1}</h6>
                                 <div class="assessment-builder-actions">
@@ -2682,6 +2686,7 @@
                         $fieldCard.find('textarea[name$="[opsi_score_text]"]').val()?.trim() || '' : null,
                     repeater_config_text: fieldType === repeaterFieldType ?
                         $fieldCard.find('textarea[name$="[repeater_config_text]"]').val()?.trim() || '' : null,
+                    raw_opsi_field_json: $fieldCard.find('input[name$="[raw_opsi_field_json]"]').val()?.trim() || '',
                     radio_options: fieldType === multipleChoiceFieldType ? getMultipleChoiceOptions($fieldCard) : [],
                     scoring: {
                         enabled: $fieldCard.find('input[name$="[scoring][enabled]"]').is(':checked'),
