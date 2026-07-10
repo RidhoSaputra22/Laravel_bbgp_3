@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Assessment;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\Assessment\AssessmentAttemptSecurityService;
@@ -14,6 +15,8 @@ use Illuminate\Http\Request;
 
 class PortalController extends Controller
 {
+    private const ADMIN_RESULT_ROLES = ['admin', 'superadmin', 'kepala', 'database'];
+
     public function __construct(
         private readonly AssessmentPortalAuthService $authService,
         private readonly AssessmentPortalService $portalService,
@@ -497,18 +500,49 @@ class PortalController extends Controller
         ]);
     }
 
-    public function result(string $id)
+    public function result(Request $request, string $id)
     {
-        $guru = $this->requireGuru();
-        $target = $this->portalService->findTargetForGuru($guru, (int) $id);
+        $viewerMode = 'participant';
+
+        if ($this->canAdminViewParticipantResult()) {
+            $viewerMode = 'admin';
+            $target = $this->findTargetForAdminResult((int) $id);
+            $guru = $target->guru;
+
+            abort_unless($guru, 404);
+        } elseif ($this->authService->isAuthenticated()) {
+            $guru = $this->requireGuru();
+            $target = $this->portalService->findTargetForGuru($guru, (int) $id);
+        } else {
+            return redirect()
+                ->route('assessment.portal.auth')
+                ->with('assessment_portal_notice', 'Silakan login terlebih dahulu untuk melihat hasil assessment.');
+        }
+
         $target = $this->attemptLifecycleService->syncExpiredTarget($target);
         $attempt = $target->attempt;
 
         if (! $attempt) {
+            if ($viewerMode === 'admin') {
+                return redirect()
+                    ->to($this->resolveAdminResultBackUrl($request, $target))
+                    ->withErrors([
+                        'portal' => 'Peserta ini belum memulai assessment.',
+                    ]);
+            }
+
             return redirect()->route('assessment.portal.show', $target->id);
         }
 
         if ($attempt->status !== 'submitted') {
+            if ($viewerMode === 'admin') {
+                return redirect()
+                    ->to($this->resolveAdminResultBackUrl($request, $target))
+                    ->withErrors([
+                        'portal' => 'Assessment peserta ini belum selesai dikirim.',
+                    ]);
+            }
+
             return redirect()
                 ->route('assessment.portal.show', $target->id)
                 ->withErrors([
@@ -517,7 +551,7 @@ class PortalController extends Controller
         }
 
         return view('assessment.result.result', [
-            'menu' => 'assessment-portal',
+            'menu' => $viewerMode === 'admin' ? 'assessment-monitoring' : 'assessment-portal',
             'guru' => $guru,
             'target' => $target,
             'attempt' => $attempt,
@@ -525,6 +559,13 @@ class PortalController extends Controller
             'summary' => $this->attemptService->buildResultSummary($attempt),
             'scoringSummary' => $this->attemptService->buildScoringSummary($attempt),
             'answerLookup' => $this->attemptService->buildAnswerLookup($attempt),
+            'viewerMode' => $viewerMode,
+            'backUrl' => $viewerMode === 'admin'
+                ? $this->resolveAdminResultBackUrl($request, $target)
+                : route('assessment.portal.dashboard'),
+            'backLabel' => $viewerMode === 'admin'
+                ? 'Kembali ke Monitoring'
+                : 'Kembali ke Dashboard',
         ]);
     }
 
@@ -550,5 +591,38 @@ class PortalController extends Controller
         $decodedBucket = json_decode($rawBucket, true);
 
         return is_array($decodedBucket) ? $decodedBucket : [];
+    }
+
+    private function canAdminViewParticipantResult(): bool
+    {
+        return session('cek') && in_array(session('role'), self::ADMIN_RESULT_ROLES, true);
+    }
+
+    private function findTargetForAdminResult(int $targetId): AssessmentAssignmentTarget
+    {
+        return AssessmentAssignmentTarget::with([
+            'assignment.assessments.forms.fields',
+            'assignment.combination',
+            'combination',
+            'session',
+            'guru',
+            'attempt.answers',
+            'attempt.securityEvents',
+        ])->findOrFail($targetId);
+    }
+
+    private function resolveAdminResultBackUrl(Request $request, AssessmentAssignmentTarget $target): string
+    {
+        $referer = (string) $request->headers->get('referer', '');
+
+        if (
+            $referer !== ''
+            && $referer !== $request->fullUrl()
+            && str_contains($referer, '/dashboard/assessment/')
+        ) {
+            return $referer;
+        }
+
+        return route('assessment.assignment.show', $target->assessment_assignment_id).'#monitoring-explorer';
     }
 }

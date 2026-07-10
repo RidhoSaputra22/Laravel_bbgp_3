@@ -2,6 +2,10 @@
 
 @section('content')
     @php
+        $viewerMode = $viewerMode ?? 'participant';
+        $isAdminViewer = $viewerMode === 'admin';
+        $backUrl = $backUrl ?? route('assessment.portal.dashboard');
+        $backLabel = $backLabel ?? 'Kembali ke Dashboard';
         $snapshot = $attempt->structure_snapshot ?? [];
         $startedAt = ($attempt->started_at ?? $target->started_at)?->format('d M Y H:i');
         $submittedAt = $attempt->submitted_at?->format('d M Y H:i');
@@ -36,7 +40,20 @@
         $assignmentDateText = $meta['date_text'] ?? '-';
         $assessmentTotal = (int) ($meta['assessment_total'] ?? 0);
         $formTotal = (int) ($meta['form_total'] ?? 0);
-        $description = $meta['description'] ?? 'Hasil assessment ini tersimpan pada portal peserta.';
+        $description = $isAdminViewer
+            ? ($isDisqualified
+                ? ($attempt->disqualification_reason ?: 'Assessment dihentikan oleh sistem guard karena pelanggaran aturan ujian.')
+                : ($autoSubmitted
+                    ? 'Batas waktu peserta berakhir. Jawaban terakhir diproses otomatis dan soal kosong diberi skor 0.'
+                    : 'Assessment peserta sudah dikirim dan hasilnya dapat ditinjau kembali kapan saja.'))
+            : ($meta['description'] ?? 'Hasil assessment ini tersimpan pada portal peserta.');
+        $pageDescription = $isAdminViewer
+            ? 'Ringkasan dan seluruh jawaban peserta yang sudah dikirim tersedia pada halaman ini.'
+            : 'Ringkasan dan seluruh jawaban yang sudah Anda kirim tersedia pada halaman ini.';
+        $assignmentDescription = $target->assignment->deskripsi
+            ?: ($isAdminViewer
+                ? 'Hasil pengisian assessment peserta tersimpan dan dapat ditinjau kembali kapan saja.'
+                : 'Hasil pengisian assessment Anda tersimpan dan dapat ditinjau kembali kapan saja pada portal peserta.');
         $answerHelper = \App\Support\Assessment\AssessmentAnswerViewHelper::class;
         $normalizeFieldLabel = static function (array $field): string {
             $fieldLabel = trim((string) ($field['label'] ?? ''));
@@ -136,7 +153,7 @@
                     Hasil Assessment Peserta
                 </h1>
                 <p class="text-xs font-light">
-                    Ringkasan dan seluruh jawaban yang sudah Anda kirim tersedia pada halaman ini.
+                    {{ $pageDescription }}
                 </p>
             </div>
             <div class="text-right text-sm">
@@ -162,7 +179,7 @@
                                 {{ $target->assignment->judul_penugasan }}
                             </h2>
                             <p class="mt-2 text-sm leading-relaxed text-slate-500">
-                                {{ $target->assignment->deskripsi ?: 'Hasil pengisian assessment Anda tersimpan dan dapat ditinjau kembali kapan saja pada portal peserta.' }}
+                                {{ $assignmentDescription }}
                             </p>
                         </div>
 
@@ -179,11 +196,11 @@
 
                     <div class="flex flex-wrap gap-2">
                         <x-assessment::ui.button
-                            :href="route('assessment.portal.dashboard')"
+                            :href="$backUrl"
                             icon="fas fa-th-large"
                             class="font-bold"
                         >
-                            Kembali ke Dashboard
+                            {{ $backLabel }}
                         </x-assessment::ui.button>
                     </div>
                 </div>

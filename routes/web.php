@@ -106,6 +106,7 @@ Route::prefix('assessment')
     ->name('assessment.portal.')
     ->group(function () {
         Route::get('/', [AssessmentPortalController::class, 'landing'])->name('index');
+        Route::get('/result/{id}', [AssessmentPortalController::class, 'result'])->name('result');
         Route::get('/auth', [AssessmentPortalAuthController::class, 'showLoginForm'])->name('auth');
         Route::post('/auth', [AssessmentPortalAuthController::class, 'login'])->name('login');
 
@@ -117,7 +118,6 @@ Route::prefix('assessment')
             Route::post('/show/{id}/security/violation', [AssessmentPortalController::class, 'securityViolation'])->name('security.violation');
             Route::post('/show/{id}/security/disqualify', [AssessmentPortalController::class, 'securityDisqualify'])->name('security.disqualify');
             Route::post('/show/{id}/submit', [AssessmentPortalController::class, 'submit'])->name('submit');
-            Route::get('/result/{id}', [AssessmentPortalController::class, 'result'])->name('result');
             Route::post('/logout', [AssessmentPortalAuthController::class, 'logout'])->name('logout');
         });
     });

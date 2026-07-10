@@ -2,18 +2,21 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
 use App\Models\Guru;
 use App\Models\Kabupaten;
 use App\Models\Sekolah;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class GuruSeeder extends Seeder
 {
-    private const TOTAL_GURU = 20000;
-    // private const TOTAL_GURU = 100;
+    // private const TOTAL_GURU = 20000;
+    private const TOTAL_GURU = 100;
 
     private const SYNC_CHUNK_SIZE = 500;
 
@@ -24,6 +27,7 @@ class GuruSeeder extends Seeder
     {
         $kabupatenGroups = $this->buildKabupatenGroups();
         $kabupatenAllocations = $this->buildKabupatenAllocations($kabupatenGroups, self::TOTAL_GURU);
+        $hashedPassword = Hash::make('password');
 
         $maleFirstNames = [
             'Ahmad', 'Andi', 'Rizal', 'Fadli', 'Ilham',
@@ -155,15 +159,58 @@ class GuruSeeder extends Seeder
         $this->deleteStaleSeedRows(array_column($rows, 'no_ktp'));
 
         foreach (array_chunk($rows, self::SYNC_CHUNK_SIZE) as $chunk) {
-            DB::transaction(function () use ($chunk): void {
+            DB::transaction(function () use ($chunk, $hashedPassword): void {
                 foreach ($chunk as $row) {
                     Guru::updateOrCreate(
                         ['no_ktp' => $row['no_ktp']],
                         Arr::except($row, ['no_ktp'])
                     );
                 }
+
+                $this->syncLoginAccounts($chunk, $hashedPassword);
             });
         }
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function syncLoginAccounts(array $rows, string $hashedPassword): void
+    {
+        foreach ($rows as $row) {
+            $role = $this->resolveLoginRole((string) $row['eksternal_jabatan']);
+            $payload = [
+                'name' => (string) $row['nama_lengkap'],
+                'username' => $this->buildSeedUsername((string) $row['no_ktp']),
+                'no_ktp' => (string) $row['no_ktp'],
+                'password' => $hashedPassword,
+                'role' => $role,
+            ];
+
+            User::updateOrCreate(
+                ['no_ktp' => $payload['no_ktp'], 'role' => $payload['role']],
+                $payload
+            );
+
+            Admin::updateOrCreate(
+                ['no_ktp' => $payload['no_ktp'], 'role' => $payload['role']],
+                $payload
+            );
+        }
+    }
+
+    private function resolveLoginRole(string $eksternalJabatan): string
+    {
+        return match (Str::lower(trim($eksternalJabatan))) {
+            'tenaga kependidikan' => 'tenaga kependidikan',
+            'stakeholder' => 'stakeholder',
+            default => 'tenaga pendidik',
+        };
+    }
+
+    private function buildSeedUsername(string $noKtp): string
+    {
+        return 'guru_seed_' . $noKtp;
     }
 
     /**
