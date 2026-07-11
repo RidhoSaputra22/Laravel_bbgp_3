@@ -11,10 +11,12 @@ class AssessmentPortalRoutesTest extends TestCase
         $portalUrl = route('assessment.portal.index', absolute: false);
         $adminUrl = route('assessment.index', absolute: false);
         $autosaveUrl = route('assessment.portal.autosave', 5, absolute: false);
+        $downloadResultUrl = route('assessment.portal.result.download', 5, absolute: false);
 
         $this->assertSame('/assessment', $portalUrl);
         $this->assertSame('/dashboard/assessment', $adminUrl);
         $this->assertSame('/assessment/show/5/autosave', $autosaveUrl);
+        $this->assertSame('/assessment/result/5/download', $downloadResultUrl);
         $this->assertNotSame($portalUrl, $adminUrl);
     }
 

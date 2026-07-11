@@ -107,6 +107,7 @@ Route::prefix('assessment')
     ->group(function () {
         Route::get('/', [AssessmentPortalController::class, 'landing'])->name('index');
         Route::get('/result/{id}', [AssessmentPortalController::class, 'result'])->name('result');
+        Route::get('/result/{id}/download', [AssessmentPortalController::class, 'downloadResultPdf'])->name('result.download');
         Route::get('/auth', [AssessmentPortalAuthController::class, 'showLoginForm'])->name('auth');
         Route::post('/auth', [AssessmentPortalAuthController::class, 'login'])->name('login');
 

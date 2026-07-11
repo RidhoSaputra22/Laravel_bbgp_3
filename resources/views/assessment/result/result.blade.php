@@ -6,6 +6,8 @@
         $isAdminViewer = $viewerMode === 'admin';
         $backUrl = $backUrl ?? route('assessment.portal.dashboard');
         $backLabel = $backLabel ?? 'Kembali ke Dashboard';
+        $isStakeholderDownloadAvailable = $isStakeholderDownloadAvailable ?? false;
+        $stakeholderResultDownloadUrl = $stakeholderResultDownloadUrl ?? null;
         $snapshot = $attempt->structure_snapshot ?? [];
         $startedAt = ($attempt->started_at ?? $target->started_at)?->format('d M Y H:i');
         $submittedAt = $attempt->submitted_at?->format('d M Y H:i');
@@ -196,6 +198,17 @@
                     </div>
 
                     <div class="flex flex-wrap gap-2  justify-start lg:justify-end">
+                        @if ($isStakeholderDownloadAvailable && $stakeholderResultDownloadUrl)
+                            <x-assessment::ui.button
+                                :href="$stakeholderResultDownloadUrl"
+                                variant="outline"
+                                icon="fas fa-file-pdf"
+                                class="font-bold"
+                            >
+                                Download PDF Jawaban
+                            </x-assessment::ui.button>
+                        @endif
+
                         <x-assessment::ui.button
                             :href="$backUrl"
                             icon="fas fa-th-large"
