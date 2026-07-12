@@ -82,6 +82,8 @@ class AssessmentAttemptServiceTest extends TestCase
             $table->id();
             $table->unsignedBigInteger('assessment_form_id');
             $table->string('label');
+            $table->string('autofill_source')->nullable();
+            $table->string('lookup_source')->nullable();
             $table->string('tipe_field')->default('text');
             $table->json('opsi_field')->nullable();
             $table->unsignedInteger('urutan')->default(1);

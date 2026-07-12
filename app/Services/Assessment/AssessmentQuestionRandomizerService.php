@@ -5,13 +5,16 @@ namespace App\Services\Assessment;
 use App\Enum\AssessmentInstrumentType;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentFormField;
+use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\AssessmentStructureMetadataResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use Illuminate\Support\Str;
 
 class AssessmentQuestionRandomizerService
 {
     public function __construct(
-        private readonly AssessmentStructureMetadataResolver $metadataResolver
+        private readonly AssessmentStructureMetadataResolver $metadataResolver,
+        private readonly AssessmentFieldLookupResolver $fieldLookupResolver
     ) {}
 
     public function buildSnapshot(AssessmentAssignmentTarget $target): array
@@ -250,6 +253,8 @@ class AssessmentQuestionRandomizerService
             'tipe_field' => $field->tipe_field,
             'placeholder' => $field->placeholder,
             'bantuan' => $field->bantuan,
+            'autofill_source' => $field->autofill_source,
+            'lookup_source' => $field->lookup_source,
             'opsi_field' => $this->mapFieldOptions($field, $instrumentType, $targetId, $assessmentId, $formId),
             'validasi' => $field->validasi,
             'scoring_config' => $field->scoring_config,
@@ -274,6 +279,8 @@ class AssessmentQuestionRandomizerService
             'tipe_field' => $field['tipe_field'] ?? null,
             'placeholder' => $field['placeholder'] ?? null,
             'bantuan' => $field['bantuan'] ?? null,
+            'autofill_source' => $field['autofill_source'] ?? null,
+            'lookup_source' => $field['lookup_source'] ?? null,
             'opsi_field' => $this->mapSnapshotFieldOptions(
                 $field,
                 $instrumentType,
@@ -298,7 +305,10 @@ class AssessmentQuestionRandomizerService
             return is_array($field->opsi_field) ? $field->opsi_field : [];
         }
 
-        $options = $this->normalizeOptions($field->opsi_field);
+        $lookupSource = $this->fieldLookupResolver->normalizeSource($field->lookup_source, $field->tipe_field);
+        $options = $lookupSource
+            ? $this->resolveLookupOptions($lookupSource, $field->opsi_field)
+            : $this->normalizeOptions($field->opsi_field);
 
         if (! $this->shouldRandomizeChoiceOptions($field, $instrumentType)) {
             return $options;
@@ -321,7 +331,13 @@ class AssessmentQuestionRandomizerService
             return is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
         }
 
-        $options = $this->normalizeOptions(is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []);
+        $lookupSource = $this->fieldLookupResolver->normalizeSource(
+            $field['lookup_source'] ?? null,
+            $field['tipe_field'] ?? null
+        );
+        $options = $lookupSource
+            ? $this->resolveLookupOptions($lookupSource, is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [])
+            : $this->normalizeOptions(is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []);
 
         if (! $this->shouldRandomizeSnapshotChoiceOptions($field, $instrumentType)) {
             return $options;
@@ -344,6 +360,41 @@ class AssessmentQuestionRandomizerService
                 'level_kompetensi_label' => $option['level_kompetensi_label'],
             ])
             ->filter(fn ($option) => $option['value'] !== '')
+            ->values()
+            ->all();
+    }
+
+    private function resolveLookupOptions(string $lookupSource, ?array $storedOptions = null): array
+    {
+        $resolvedOptions = $this->fieldLookupResolver->resolveOptions($lookupSource);
+        $storedOptionMap = collect($this->normalizeOptions($storedOptions))
+            ->mapWithKeys(function (array $option) {
+                $keys = collect([
+                    Str::lower(trim((string) ($option['value'] ?? ''))),
+                    Str::lower(trim((string) ($option['label'] ?? ''))),
+                ])->filter()->unique()->all();
+
+                return collect($keys)
+                    ->mapWithKeys(fn (string $key) => [$key => $option])
+                    ->all();
+            })
+            ->all();
+
+        return collect($resolvedOptions)
+            ->map(function (array $option) use ($storedOptionMap) {
+                $match = $storedOptionMap[Str::lower(trim((string) ($option['value'] ?? '')))]
+                    ?? $storedOptionMap[Str::lower(trim((string) ($option['label'] ?? '')))]
+                    ?? [];
+
+                return array_filter([
+                    'label' => $option['label'] ?? null,
+                    'value' => $option['value'] ?? null,
+                    'score' => $match['score'] ?? null,
+                    'level_kompetensi' => $match['level_kompetensi'] ?? null,
+                    'level_kompetensi_label' => $match['level_kompetensi_label'] ?? null,
+                ], static fn ($value) => $value !== null && $value !== '');
+            })
+            ->filter(fn ($option) => ($option['value'] ?? '') !== '')
             ->values()
             ->all();
     }

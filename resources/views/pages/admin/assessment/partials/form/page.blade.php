@@ -6,6 +6,9 @@
     $instrumentTypes = \App\Enum\AssessmentInstrumentType::options();
     $teacherCompetencies = \App\Enum\KompetensiGuru::options();
     $fieldTypeBadges = $fieldTypes ?? [];
+    $participantAutoFillOptions = $participantAutoFillOptions ?? [];
+    $fieldLookupOptions = $fieldLookupOptions ?? [];
+    $fieldLookupCatalog = $fieldLookupCatalog ?? [];
     $validationErrors = $errors->getMessages();
     $ketenagaanOptions = $ketenagaanOptions ?? \App\Enum\AssessmentKetenagaanType::options();
     $selectedTargetKetenagaan = old(
@@ -884,12 +887,17 @@
             const fieldScoringMethods = @json($fieldScoringMethods);
             const ketenagaanLabels = @json($ketenagaanOptions);
             const instrumentTypes = @json($instrumentTypes);
+            const participantAutoFillOptions = @json($participantAutoFillOptions);
+            const fieldLookupOptions = @json($fieldLookupOptions);
+            const fieldLookupCatalog = @json($fieldLookupCatalog);
             const scoringGuidancePreset = @json($scoringGuidancePreset);
             const initialForms = @json($builderSeed);
             const validationErrors = @json($validationErrors);
             const textOptionFieldTypes = ['select', 'checkbox'];
             const multipleChoiceFieldType = 'radio';
             const repeaterFieldType = 'repeater';
+            const participantAutofillSupportedFieldTypes = ['text', 'textarea', 'number', 'email', 'date', 'select', 'radio', 'checkbox'];
+            const fieldLookupSupportedFieldTypes = ['select'];
             const columnOptions = ['col-md-12', 'col-md-8', 'col-md-6', 'col-md-4'];
             const $builderShell = $('#assessment-builder-shell');
             const $builderLoading = $('#assessment-builder-loading');
@@ -1009,6 +1017,218 @@
                 }
 
                 return `Nama field otomatis: <code>${escapeHtml(generatedName)}</code>`;
+            };
+            const normalizeAutofillKeyword = (value) => String(value || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+            const participantAutofillSuggestionMap = {
+                nama_lengkap: ['nama_lengkap', 'nama lengkap', 'nama peserta'],
+                no_ktp: ['nik', 'no ktp', 'nomor ktp', 'ktp'],
+                nip_nuptk: ['nip_nuptk', 'nip nuptk'],
+                nip: [' nip ', 'nomor induk pegawai', 'nip'],
+                nuptk: ['nuptk'],
+                golongan: ['golongan', 'pangkat'],
+                jabatan: ['jabatan'],
+                status_kepegawaian: ['status_kepegawaian', 'status kepegawaian'],
+                eksternal_jabatan: ['ketenagaan', 'kelompok jabatan'],
+                jenis_jabatan: ['jenis_jabatan', 'jenis jabatan'],
+                kategori_jabatan: ['kategori_jabatan', 'kategori jabatan'],
+                tugas_jabatan: ['tugas_jabatan', 'tugas jabatan'],
+                latar_jabatan: ['latar_jabatan', 'latar jabatan'],
+                gender: ['jenis_kelamin', 'jenis kelamin', 'gender', 'kelamin'],
+                tempat_lahir: ['tempat_lahir', 'tempat lahir'],
+                tgl_lahir: ['tanggal_lahir', 'tanggal lahir', 'tgl_lahir', 'tgl lahir'],
+                agama: ['agama'],
+                pendidikan: ['pendidikan', 'kualifikasi akademik'],
+                email: ['email', 'surel'],
+                no_hp: ['no_hp', 'nomor hp', 'no hp', 'telepon'],
+                no_wa: ['no_wa', 'nomor wa', 'nomor whatsapp', 'whatsapp'],
+                satuan_pendidikan: ['satuan_pendidikan', 'satuan pendidikan', 'sekolah', 'instansi'],
+                npsn_sekolah: ['npsn'],
+                kabupaten: ['kabupaten_kota', 'kabupaten kota', 'kabupaten', 'kota'],
+                alamat_satuan: ['alamat_satuan', 'alamat satuan'],
+                alamat_rumah: ['alamat_rumah', 'alamat rumah'],
+                npwp: ['npwp'],
+                no_rek: ['no_rek', 'nomor rekening', 'rekening'],
+                jenis_bank: ['jenis_bank', 'jenis bank', 'bank'],
+            };
+            const supportsParticipantAutofill = (fieldType) => participantAutofillSupportedFieldTypes.includes(String(fieldType || ''));
+            const resolveSuggestedParticipantAutofillSource = (labelValue, fieldNameValue = '') => {
+                const haystack = normalizeAutofillKeyword([fieldNameValue, labelValue].filter(Boolean).join(' '));
+
+                if (!haystack) {
+                    return '';
+                }
+
+                if (['nama', 'nama lengkap'].includes(haystack)) {
+                    return 'nama_lengkap';
+                }
+
+                return Object.entries(participantAutofillSuggestionMap).find(([, keywords]) => {
+                    return keywords.some((keyword) => haystack.includes(normalizeAutofillKeyword(keyword)));
+                })?.[0] || '';
+            };
+            const buildParticipantAutofillOptions = (selectedValue = '') => {
+                let optionsHtml = '<option value="">Manual / tanpa auto-fill</option>';
+
+                Object.entries(participantAutoFillOptions).forEach(([value, label]) => {
+                    optionsHtml += `
+                        <option value="${escapeHtml(value)}" ${String(selectedValue || '') === value ? 'selected' : ''}>
+                            ${escapeHtml(label)}
+                        </option>
+                    `;
+                });
+
+                return optionsHtml;
+            };
+            const buildParticipantAutofillHint = (fieldType, selectedSource = '') => {
+                if (!supportsParticipantAutofill(fieldType)) {
+                    return 'Auto-fill peserta belum didukung untuk tipe field ini.';
+                }
+
+                if (!selectedSource) {
+                    return 'Pilih sumber data peserta jika jawaban perlu terisi otomatis saat assessment dibuka.';
+                }
+
+                const sourceLabel = participantAutoFillOptions[selectedSource] || selectedSource;
+
+                return `Nilai akan diisi otomatis dari data peserta: <code>${escapeHtml(sourceLabel)}</code>.`;
+            };
+            const supportsFieldLookup = (fieldType) => fieldLookupSupportedFieldTypes.includes(String(fieldType || ''));
+            const resolveSelectedTargetKetenagaanValue = () => $('input[name="target_ketenagaan"]:checked').val() || '';
+            const fieldLookupSuggestionMap = {
+                master_golongan: ['golongan', 'pangkat'],
+                master_golongan_pns: ['golongan pns', 'pangkat pns'],
+                master_golongan_pppk: ['golongan pppk', 'pangkat pppk'],
+                master_status_kepegawaian: ['status kepegawaian'],
+                master_pendidikan: ['pendidikan', 'kualifikasi akademik'],
+                master_kabupaten: ['kabupaten kota', 'kabupaten', 'kota'],
+                master_satuan_pendidikan: ['satuan pendidikan', 'sekolah', 'instansi'],
+                master_jenis_jabatan: ['jenis jabatan'],
+                master_tugas_jabatan: ['tugas jabatan'],
+                master_latar_jabatan: ['latar jabatan'],
+            };
+            const resolveSuggestedFieldLookupSource = (labelValue, fieldNameValue = '', targetKetenagaanValue = '') => {
+                const haystack = normalizeAutofillKeyword([fieldNameValue, labelValue].filter(Boolean).join(' '));
+
+                if (!haystack) {
+                    return '';
+                }
+
+                if (
+                    haystack.includes('jabatan')
+                    && !haystack.includes('jenis jabatan')
+                    && !haystack.includes('tugas jabatan')
+                    && !haystack.includes('latar jabatan')
+                ) {
+                    if (targetKetenagaanValue === 'tenaga_pendidik') {
+                        return 'master_jabatan_pendidik';
+                    }
+
+                    if (targetKetenagaanValue === 'tenaga_kependidikan') {
+                        return 'master_jabatan_kependidikan';
+                    }
+
+                    if (targetKetenagaanValue === 'stakeholder') {
+                        return 'master_jabatan_stakeholder';
+                    }
+
+                    return 'master_jabatan_umum';
+                }
+
+                return Object.entries(fieldLookupSuggestionMap).find(([, keywords]) => {
+                    return keywords.some((keyword) => haystack.includes(normalizeAutofillKeyword(keyword)));
+                })?.[0] || '';
+            };
+            const buildFieldLookupSourceOptions = (selectedValue = '') => {
+                let optionsHtml = '<option value="">Manual / tanpa lookup database</option>';
+
+                Object.entries(fieldLookupOptions).forEach(([value, label]) => {
+                    optionsHtml += `
+                        <option value="${escapeHtml(value)}" ${String(selectedValue || '') === value ? 'selected' : ''}>
+                            ${escapeHtml(label)}
+                        </option>
+                    `;
+                });
+
+                return optionsHtml;
+            };
+            const resolveFieldLookupPreviewMeta = (selectedSource = '') => {
+                return fieldLookupCatalog[selectedSource] || null;
+            };
+            const buildFieldLookupHint = (fieldType, selectedSource = '') => {
+                if (!supportsFieldLookup(fieldType)) {
+                    return 'Lookup opsi database hanya tersedia untuk field daftar pilihan.';
+                }
+
+                if (!selectedSource) {
+                    return 'Pilih sumber database jika opsi field perlu mengikuti master data tanpa input manual.';
+                }
+
+                const sourceLabel = fieldLookupOptions[selectedSource] || selectedSource;
+                const previewMeta = resolveFieldLookupPreviewMeta(selectedSource);
+                const totalOptions = Number(previewMeta?.total || 0);
+
+                if (totalOptions < 1) {
+                    return `Master data <code>${escapeHtml(sourceLabel)}</code> belum memiliki opsi yang bisa dipakai.`;
+                }
+
+                return `Opsi akan diambil otomatis dari <code>${escapeHtml(sourceLabel)}</code>. Saat ini tersedia ${totalOptions} data.`;
+            };
+            const buildFieldLookupPreview = (fieldType, selectedSource = '') => {
+                if (!supportsFieldLookup(fieldType) || !selectedSource) {
+                    return '';
+                }
+
+                const previewMeta = resolveFieldLookupPreviewMeta(selectedSource);
+                const previewItems = Array.isArray(previewMeta?.preview) ? previewMeta.preview : [];
+
+                if (!previewItems.length) {
+                    return '<div class="text-warning mt-2">Belum ada contoh opsi dari database.</div>';
+                }
+
+                const badgesHtml = previewItems.map((item) => {
+                    const label = typeof item === 'object' ? (item.label || item.value || '') : String(item || '');
+                    return `<span class="badge badge-light border mr-1 mb-1">${escapeHtml(label)}</span>`;
+                }).join('');
+                const remaining = Math.max(Number(previewMeta?.total || 0) - previewItems.length, 0);
+
+                return `
+                    <div class="mt-2">
+                        <div class="mb-1">${badgesHtml}</div>
+                        ${remaining > 0 ? `<small class="text-muted">+${remaining} opsi lainnya akan tetap dimuat dari database.</small>` : ''}
+                    </div>
+                `;
+            };
+            const resolvePreviewChoiceOptions = (field) => {
+                if ((field.tipe_field || '') === 'select' && (field.lookup_source || '')) {
+                    const previewItems = resolveFieldLookupPreviewMeta(field.lookup_source)?.preview || [];
+
+                    return previewItems.map((item) => {
+                        if (item && typeof item === 'object') {
+                            return {
+                                label: item.label || item.value || '',
+                                value: item.value || item.label || '',
+                            };
+                        }
+
+                        const value = String(item || '');
+
+                        return {
+                            label: value,
+                            value: value,
+                        };
+                    }).filter((item) => item.value);
+                }
+
+                return parseOptionText(field.opsi_field_text).map((item) => ({
+                    label: item,
+                    value: item,
+                }));
             };
 
             const normalizeChecked = (value) => {
@@ -1774,12 +1994,23 @@
                 const showMultipleChoiceOptions = fieldType === multipleChoiceFieldType;
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
+                const resolvedAutofillSource = fieldData.autofill_source || resolveSuggestedParticipantAutofillSource(
+                    fieldData.label || '',
+                    fieldData.nama_field || ''
+                );
+                const resolvedLookupSource = fieldData.lookup_source || resolveSuggestedFieldLookupSource(
+                    fieldData.label || '',
+                    fieldData.nama_field || '',
+                    resolveSelectedTargetKetenagaanValue()
+                );
                 const fieldPrefix = `forms[${formIndex}][fields][${fieldIndex}]`;
                 const fieldIdName = `${fieldPrefix}[id]`;
                 const labelName = `${fieldPrefix}[label]`;
                 const deskripsiName = `${fieldPrefix}[deskripsi]`;
                 const tipeFieldName = `${fieldPrefix}[tipe_field]`;
                 const placeholderName = `${fieldPrefix}[placeholder]`;
+                const autofillSourceName = `${fieldPrefix}[autofill_source]`;
+                const lookupSourceName = `${fieldPrefix}[lookup_source]`;
                 const urutanName = `${fieldPrefix}[urutan]`;
                 const opsiFieldTextName = `${fieldPrefix}[opsi_field_text]`;
                 const opsiScoreTextName = `${fieldPrefix}[opsi_score_text]`;
@@ -1822,6 +2053,11 @@
                     'form-group',
                     'standard-option-wrapper',
                     showTextOptions ? '' : 'd-none',
+                );
+                const lookupSourceWrapperClass = joinClasses(
+                    'form-group',
+                    'field-lookup-source-wrapper',
+                    fieldType === 'select' ? '' : 'd-none',
                 );
                 const multipleChoiceWrapperClass = joinClasses(
                     'multiple-choice-wrapper',
@@ -1895,6 +2131,23 @@
 
                             <div class="row">
                                 <div class="col-md-12">
+                                    <div class="form-group participant-autofill-wrapper">
+                                        <label>Auto-fill dari Data Peserta</label>
+                                        <select class="${getInputClass(autofillSourceName, 'form-control field-autofill-source-select')}"
+                                            name="${autofillSourceName}"
+                                            ${supportsParticipantAutofill(fieldType) ? '' : 'disabled'}>
+                                            ${buildParticipantAutofillOptions(resolvedAutofillSource)}
+                                        </select>
+                                        ${buildInvalidFeedback(autofillSourceName)}
+                                        <small class="form-text text-muted participant-autofill-hint">
+                                            ${buildParticipantAutofillHint(fieldType, resolvedAutofillSource)}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label>Deskripsi Pertanyaan</label>
                                         <textarea class="${getInputClass(deskripsiName)} field-description-input"
@@ -1920,22 +2173,48 @@
                             </div>
 
                             <div class="${standardOptionWrapperClass}">
-                                <label>${buildRequiredLabel('Opsi Field (Daftar Pilihan / Kotak Centang)')}</label>
-                                <textarea class="${getInputClass(opsiFieldTextName)}"
-                                    name="${opsiFieldTextName}"
-                                    rows="2"
-                                    placeholder="Contoh: Ya, Tidak, Mungkin">${escapeHtml(fieldData.opsi_field_text)}</textarea>
-                                ${buildInvalidFeedback(opsiFieldTextName)}
-                                <small class="text-muted d-block mt-2">
-                                    Isi skor opsi per baris dengan format <code>Label = Skor</code>, misalnya
-                                    <code>Ya = 5</code>.
-                                </small>
-                                <label class="mt-3">Skor Opsi (Opsional)</label>
-                                <textarea class="${getInputClass(opsiScoreTextName)}"
-                                    name="${opsiScoreTextName}"
-                                    rows="3"
-                                    placeholder="Ya = 5&#10;Tidak = 1">${escapeHtml(fieldData.opsi_score_text)}</textarea>
-                                ${buildInvalidFeedback(opsiScoreTextName)}
+                                <div class="${lookupSourceWrapperClass}">
+                                    <label>Lookup Opsi dari Database</label>
+                                    <select class="${getInputClass(lookupSourceName, 'form-control field-lookup-source-select')}"
+                                        name="${lookupSourceName}"
+                                        data-suggested-default="${fieldData.lookup_source ? '0' : '1'}"
+                                        ${supportsFieldLookup(fieldType) ? '' : 'disabled'}>
+                                        ${buildFieldLookupSourceOptions(resolvedLookupSource)}
+                                    </select>
+                                    ${buildInvalidFeedback(lookupSourceName)}
+                                    <small class="form-text text-muted field-lookup-source-hint">
+                                        ${buildFieldLookupHint(fieldType, resolvedLookupSource)}
+                                    </small>
+                                    <div class="field-lookup-source-preview">
+                                        ${buildFieldLookupPreview(fieldType, resolvedLookupSource)}
+                                    </div>
+                                </div>
+                                <div class="manual-choice-options-wrapper">
+                                    <label>${buildRequiredLabel('Opsi Field (Daftar Pilihan / Kotak Centang)')}</label>
+                                    <textarea class="${getInputClass(opsiFieldTextName)} field-manual-options-input"
+                                        name="${opsiFieldTextName}"
+                                        rows="2"
+                                        placeholder="Contoh: Ya, Tidak, Mungkin">${escapeHtml(fieldData.opsi_field_text)}</textarea>
+                                    ${buildInvalidFeedback(opsiFieldTextName)}
+                                    <small class="text-muted d-block mt-2 manual-choice-options-hint">
+                                        Isi opsi manual per baris atau dipisah koma.
+                                    </small>
+                                </div>
+                                <div class="option-score-wrapper">
+                                    <small class="text-muted d-block mt-2">
+                                        Isi skor opsi per baris dengan format <code>Label = Skor</code>, misalnya
+                                        <code>Ya = 5</code>.
+                                    </small>
+                                    <label class="mt-3">Skor Opsi (Opsional)</label>
+                                    <textarea class="${getInputClass(opsiScoreTextName)}"
+                                        name="${opsiScoreTextName}"
+                                        rows="3"
+                                        placeholder="Ya = 5&#10;Tidak = 1">${escapeHtml(fieldData.opsi_score_text)}</textarea>
+                                    ${buildInvalidFeedback(opsiScoreTextName)}
+                                    <small class="text-muted d-block mt-2 option-score-hint">
+                                        Jika memakai lookup database, gunakan label opsi sesuai master data pada preview di atas.
+                                    </small>
+                                </div>
                             </div>
 
                             <div class="${multipleChoiceWrapperClass}">
@@ -2464,6 +2743,8 @@
                 toggleOptionWrapper($fieldCard);
                 toggleScoringWrapper($fieldCard);
                 updateAutoFieldNameHint($fieldCard);
+                updateParticipantAutofillState($fieldCard);
+                updateFieldLookupState($fieldCard);
 
                 if (!options.skipSummary) {
                     renderBuilderSummary();
@@ -2572,11 +2853,24 @@
                 const showTextOptions = textOptionFieldTypes.includes(selectedType);
                 const showMultipleChoiceOptions = selectedType === multipleChoiceFieldType;
                 const showRepeaterOptions = selectedType === repeaterFieldType;
+                const selectedLookupSource = $fieldCard.find('.field-lookup-source-select').val()?.trim() || '';
+                const showLookupSource = selectedType === 'select';
+                const showManualChoiceOptions = showTextOptions && (!showLookupSource || !selectedLookupSource);
 
                 $fieldCard.find('.standard-option-wrapper')
                     .toggleClass('d-none', !showTextOptions)
-                    .find('textarea')
+                    .find('.field-lookup-source-select, textarea')
                     .prop('disabled', !showTextOptions);
+                $fieldCard.find('.field-lookup-source-wrapper')
+                    .toggleClass('d-none', !showLookupSource);
+                $fieldCard.find('.manual-choice-options-wrapper')
+                    .toggleClass('d-none', !showManualChoiceOptions);
+                $fieldCard.find('.field-manual-options-input')
+                    .prop('disabled', !showManualChoiceOptions);
+                $fieldCard.find('.option-score-wrapper')
+                    .toggleClass('d-none', !showTextOptions);
+                $fieldCard.find('.field-lookup-source-select')
+                    .prop('disabled', !showLookupSource);
 
                 $fieldCard.find('.multiple-choice-wrapper')
                     .toggleClass('d-none', !showMultipleChoiceOptions)
@@ -2593,6 +2887,65 @@
                 } else {
                     updateRemoveRadioOptionState($fieldCard);
                 }
+            };
+
+            const updateParticipantAutofillState = ($fieldCard) => {
+                const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
+                const $select = $fieldCard.find('.field-autofill-source-select');
+                const $hint = $fieldCard.find('.participant-autofill-hint');
+                const isSupported = supportsParticipantAutofill(selectedType);
+                const labelValue = $fieldCard.find('.field-label-input').val()?.trim() || '';
+                const fieldNameValue = slugifyFieldName(labelValue);
+                const currentValue = $select.val()?.trim() || '';
+                const userTouched = $select.data('userTouched') === true;
+
+                if (isSupported && !currentValue && !userTouched) {
+                    const suggestedSource = resolveSuggestedParticipantAutofillSource(labelValue, fieldNameValue);
+
+                    if (suggestedSource) {
+                        $select.val(suggestedSource);
+                    }
+                }
+
+                const selectedSource = isSupported ? ($select.val()?.trim() || '') : '';
+
+                $select.prop('disabled', !isSupported);
+                $hint.html(buildParticipantAutofillHint(selectedType, selectedSource));
+            };
+
+            const updateFieldLookupState = ($fieldCard) => {
+                const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
+                const $select = $fieldCard.find('.field-lookup-source-select');
+                const $hint = $fieldCard.find('.field-lookup-source-hint');
+                const $preview = $fieldCard.find('.field-lookup-source-preview');
+                const isSupported = supportsFieldLookup(selectedType);
+                const labelValue = $fieldCard.find('.field-label-input').val()?.trim() || '';
+                const fieldNameValue = slugifyFieldName(labelValue);
+                const targetKetenagaanValue = resolveSelectedTargetKetenagaanValue();
+                const currentValue = $select.val()?.trim() || '';
+                const userTouched = $select.data('userTouched') === true;
+                const usesSuggestedDefault = String($select.data('suggestedDefault') || '') === '1' || $select.data(
+                    'suggestedDefault'
+                ) === true;
+                const suggestedSource = resolveSuggestedFieldLookupSource(
+                    labelValue,
+                    fieldNameValue,
+                    targetKetenagaanValue
+                );
+
+                if (isSupported && !userTouched && suggestedSource && (!currentValue || usesSuggestedDefault)) {
+                    $select.val(suggestedSource);
+                    $select.data('suggestedDefault', true);
+                } else if (isSupported && !userTouched && usesSuggestedDefault && !suggestedSource) {
+                    $select.val('');
+                }
+
+                const selectedSource = isSupported ? ($select.val()?.trim() || '') : '';
+
+                $select.prop('disabled', !isSupported);
+                $hint.html(buildFieldLookupHint(selectedType, selectedSource));
+                $preview.html(buildFieldLookupPreview(selectedType, selectedSource));
+                toggleOptionWrapper($fieldCard);
             };
 
             const toggleScoringWrapper = ($fieldCard) => {
@@ -2676,10 +3029,17 @@
                 return {
                     id: fieldId > 0 ? fieldId : null,
                     label: $fieldCard.find('input[name$="[label]"]').val()?.trim() || '',
+                    nama_field: slugifyFieldName($fieldCard.find('input[name$="[label]"]').val()?.trim() || ''),
                     deskripsi: $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '',
                     tipe_field: fieldType,
                     placeholder: $fieldCard.find('input[name$="[placeholder]"]').val()?.trim() || '',
                     bantuan: $fieldCard.find('textarea[name$="[bantuan]"]').val()?.trim() || '',
+                    autofill_source: supportsParticipantAutofill(fieldType)
+                        ? ($fieldCard.find('select[name$="[autofill_source]"]').val()?.trim() || '')
+                        : '',
+                    lookup_source: supportsFieldLookup(fieldType)
+                        ? ($fieldCard.find('select[name$="[lookup_source]"]').val()?.trim() || '')
+                        : '',
                     opsi_field_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
                     opsi_score_text: textOptionFieldTypes.includes(fieldType) ?
@@ -2920,11 +3280,16 @@
                                 type: field.tipe_field || 'text',
                                 placeholder: field.placeholder || '',
                                 helpText: field.bantuan || '',
+                                autofillSource: field.autofill_source || '',
+                                autofillSourceLabel: participantAutoFillOptions[field.autofill_source || ''] || '',
+                                lookupSource: field.lookup_source || '',
+                                lookupSourceLabel: fieldLookupOptions[field.lookup_source || ''] || '',
+                                lookupSourceCount: Number(resolveFieldLookupPreviewMeta(field.lookup_source || '')?.total || 0),
                                 options: field.tipe_field === multipleChoiceFieldType ?
                                     (field.radio_options || []) :
                                     (field.tipe_field === repeaterFieldType ?
                                         parseRepeaterConfig(field.repeater_config_text) :
-                                        parseOptionText(field.opsi_field_text)),
+                                        resolvePreviewChoiceOptions(field)),
                                 widthClass: field.lebar_kolom || 'col-md-12',
                                 required: normalizeChecked(field.is_required),
                             }));
@@ -2964,9 +3329,17 @@
                         <textarea class="form-control" rows="3" placeholder="${placeholder}"></textarea>
                     `;
                 } else if (field.type === 'select') {
-                    const options = field.options.length ? field.options : ['Belum ada opsi'];
+                    const options = field.options.length ? field.options : [{
+                        label: 'Belum ada opsi',
+                        value: ''
+                    }];
                     const optionsHtml = options.map((option) => {
-                        return `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`;
+                        const normalizedOption = option && typeof option === 'object' ? option : {
+                            label: String(option || ''),
+                            value: String(option || ''),
+                        };
+
+                        return `<option value="${escapeHtml(normalizedOption.value || '')}">${escapeHtml(normalizedOption.label || normalizedOption.value || '')}</option>`;
                     }).join('');
 
                     inputHtml = `
@@ -3074,19 +3447,27 @@
                         `;
                     }
                 } else if (field.type === 'checkbox') {
-                    const options = field.options.length ? field.options : ['Belum ada opsi'];
+                    const options = field.options.length ? field.options : [{
+                        label: 'Belum ada opsi',
+                        value: ''
+                    }];
 
                     inputHtml = options.map((option, index) => {
+                        const normalizedOption = option && typeof option === 'object' ? option : {
+                            label: String(option || ''),
+                            value: String(option || ''),
+                        };
                         const inputId = `${sanitizePreviewKey(previewKey)}-${index}`;
 
                         return `
                             <div class="custom-control custom-checkbox mb-2">
                                 <input type="checkbox" class="custom-control-input"
                                     id="${inputId}"
-                                    name="${sanitizePreviewKey(previewKey)}[]">
+                                    name="${sanitizePreviewKey(previewKey)}[]"
+                                    value="${escapeHtml(normalizedOption.value || '')}">
                                 <label class="custom-control-label"
                                     for="${inputId}">
-                                    ${escapeHtml(option)}
+                                    ${escapeHtml(normalizedOption.label || normalizedOption.value || '')}
                                 </label>
                             </div>
                         `;
@@ -3118,6 +3499,8 @@
                     <div class="form-group">
                         <label>${fieldLabel}</label>
                         ${field.description ? `<small class="form-text text-muted mb-2">${escapeHtml(field.description)}</small>` : ''}
+                        ${field.autofillSourceLabel ? `<small class="form-text text-primary mb-2">Auto-fill peserta: ${escapeHtml(field.autofillSourceLabel)}</small>` : ''}
+                        ${field.lookupSourceLabel ? `<small class="form-text text-info mb-2">Lookup database: ${escapeHtml(field.lookupSourceLabel)}${field.lookupSourceCount ? ` (${escapeHtml(field.lookupSourceCount)} data)` : ''}</small>` : ''}
                         ${inputHtml}
                         ${field.helpText ? `<small class="form-text text-muted">${escapeHtml(field.helpText)}</small>` : ''}
                     </div>
@@ -3297,13 +3680,40 @@
             });
 
             $(document).on('input', '.field-label-input', function() {
-                updateAutoFieldNameHint($(this).closest('.assessment-field-card'));
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                updateAutoFieldNameHint($fieldCard);
+                updateParticipantAutofillState($fieldCard);
+                updateFieldLookupState($fieldCard);
+                schedulePreviewRender();
             });
 
             $(document).on('change', '.field-type-select', function() {
                 const $fieldCard = $(this).closest('.assessment-field-card');
                 toggleOptionWrapper($fieldCard);
+                updateParticipantAutofillState($fieldCard);
+                updateFieldLookupState($fieldCard);
                 toggleScoringWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', '.field-autofill-source-select', function() {
+                $(this).data('userTouched', true);
+                updateParticipantAutofillState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', '.field-lookup-source-select', function() {
+                $(this).data('userTouched', true);
+                $(this).data('suggestedDefault', false);
+                updateFieldLookupState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', 'input[name="target_ketenagaan"]', function() {
+                $('.assessment-field-card').each(function() {
+                    updateFieldLookupState($(this));
+                });
+                renderBuilderSummary();
                 schedulePreviewRender();
             });
 

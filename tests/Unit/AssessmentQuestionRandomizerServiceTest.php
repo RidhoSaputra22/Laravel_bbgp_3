@@ -10,7 +10,10 @@ use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentQuestionRandomizerService;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class AssessmentQuestionRandomizerServiceTest extends TestCase
@@ -223,6 +226,89 @@ class AssessmentQuestionRandomizerServiceTest extends TestCase
         $this->assertSame('Assessment Dari Kombinasi', data_get($snapshot, 'assessments.0.judul'));
         $this->assertSame([701], collect(data_get($snapshot, 'assessments.0.forms.0.fields', []))->pluck('id')->all());
         $this->assertNotSame('Assessment Fallback', data_get($snapshot, 'assessments.0.judul'));
+    }
+
+    public function test_it_keeps_participant_autofill_source_in_snapshot_fields(): void
+    {
+        $field = $this->makeField(901, 'Nama Lengkap', 'text', [], [
+            'autofill_source' => 'nama_lengkap',
+        ]);
+        $target = $this->makeTarget(31, [
+            $this->makeAssessment(401, AssessmentInstrumentType::PORTOFOLIO->value, [
+                $this->makeForm(501, [$field], [
+                    'judul_form' => 'Identitas',
+                    'kode_form' => 'FORM-ID',
+                ]),
+            ], [
+                'kode_assessment' => 'ASM-ID',
+                'judul' => 'Assessment Identitas',
+            ]),
+        ]);
+
+        $snapshot = app(AssessmentQuestionRandomizerService::class)->buildSnapshot($target);
+
+        $this->assertSame(
+            'nama_lengkap',
+            data_get($snapshot, 'assessments.0.forms.0.fields.0.autofill_source')
+        );
+    }
+
+    public function test_it_resolves_lookup_options_from_database_for_select_fields(): void
+    {
+        config()->set('database.default', 'sqlite');
+        config()->set('database.connections.sqlite.database', ':memory:');
+
+        DB::purge('sqlite');
+        DB::reconnect('sqlite');
+
+        Schema::connection('sqlite')->create('kepegawaians', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        DB::table('kepegawaians')->insert([
+            ['name' => 'ASN', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'PPPK', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
+        try {
+            $field = $this->makeField(902, 'Status Kepegawaian', 'select', [
+                ['label' => 'ASN', 'value' => 'ASN', 'score' => 5],
+            ], [
+                'lookup_source' => 'master_status_kepegawaian',
+            ]);
+            $target = $this->makeTarget(32, [
+                $this->makeAssessment(402, AssessmentInstrumentType::PORTOFOLIO->value, [
+                    $this->makeForm(502, [$field], [
+                        'judul_form' => 'Profil Kepegawaian',
+                        'kode_form' => 'FORM-KEP',
+                    ]),
+                ], [
+                    'kode_assessment' => 'ASM-KEP',
+                    'judul' => 'Assessment Kepegawaian',
+                ]),
+            ]);
+
+            $snapshot = app(AssessmentQuestionRandomizerService::class)->buildSnapshot($target);
+
+            $this->assertSame(
+                'master_status_kepegawaian',
+                data_get($snapshot, 'assessments.0.forms.0.fields.0.lookup_source')
+            );
+            $this->assertSame(
+                ['ASN', 'PPPK'],
+                collect(data_get($snapshot, 'assessments.0.forms.0.fields.0.opsi_field', []))
+                    ->pluck('label')
+                    ->all()
+            );
+            $this->assertSame(
+                5.0,
+                data_get($snapshot, 'assessments.0.forms.0.fields.0.opsi_field.0.score')
+            );
+        } finally {
+            Schema::connection('sqlite')->dropIfExists('kepegawaians');
+        }
     }
 
     private function makeRandomizationTarget(int $targetId): AssessmentAssignmentTarget

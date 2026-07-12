@@ -19,6 +19,8 @@ class AssessmentFormField extends Model
         'bantuan',
         'opsi_field',
         'nilai_default',
+        'autofill_source',
+        'lookup_source',
         'validasi',
         'scoring_config',
         'lebar_kolom',

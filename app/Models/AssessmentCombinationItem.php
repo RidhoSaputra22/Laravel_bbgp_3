@@ -31,6 +31,8 @@ class AssessmentCombinationItem extends Model
         'field_type',
         'field_placeholder',
         'field_help',
+        'field_autofill_source',
+        'field_lookup_source',
         'field_options',
         'field_validation',
         'field_scoring_config',

@@ -43,6 +43,7 @@ class AssessmentAssignmentCreatePublishedOnlyTest extends TestCase
             $table->unsignedBigInteger('assessment_form_id');
             $table->string('label')->nullable();
             $table->string('type')->nullable();
+            $table->string('lookup_source')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

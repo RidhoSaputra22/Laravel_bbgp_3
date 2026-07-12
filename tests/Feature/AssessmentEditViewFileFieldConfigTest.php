@@ -67,6 +67,8 @@ class AssessmentEditViewFileFieldConfigTest extends TestCase
             $table->text('bantuan')->nullable();
             $table->json('opsi_field')->nullable();
             $table->text('nilai_default')->nullable();
+            $table->string('autofill_source')->nullable();
+            $table->string('lookup_source')->nullable();
             $table->json('validasi')->nullable();
             $table->json('scoring_config')->nullable();
             $table->string('lebar_kolom')->default('col-md-12');

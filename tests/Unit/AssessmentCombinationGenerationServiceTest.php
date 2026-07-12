@@ -69,6 +69,8 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
             $table->text('bantuan')->nullable();
             $table->json('opsi_field')->nullable();
             $table->text('nilai_default')->nullable();
+            $table->string('autofill_source')->nullable();
+            $table->string('lookup_source')->nullable();
             $table->json('validasi')->nullable();
             $table->json('scoring_config')->nullable();
             $table->string('lebar_kolom')->nullable();
@@ -140,6 +142,8 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
             $table->string('field_type')->default('text');
             $table->string('field_placeholder')->nullable();
             $table->text('field_help')->nullable();
+            $table->string('field_autofill_source')->nullable();
+            $table->string('field_lookup_source')->nullable();
             $table->json('field_options')->nullable();
             $table->json('field_validation')->nullable();
             $table->json('field_scoring_config')->nullable();

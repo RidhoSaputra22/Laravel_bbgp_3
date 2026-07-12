@@ -67,6 +67,8 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             $table->text('bantuan')->nullable();
             $table->json('opsi_field')->nullable();
             $table->text('nilai_default')->nullable();
+            $table->string('autofill_source')->nullable();
+            $table->string('lookup_source')->nullable();
             $table->json('validasi')->nullable();
             $table->json('scoring_config')->nullable();
             $table->string('lebar_kolom')->default('col-md-12');
@@ -118,6 +120,8 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             $table->string('field_type')->default('text');
             $table->string('field_placeholder')->nullable();
             $table->text('field_help')->nullable();
+            $table->string('field_autofill_source')->nullable();
+            $table->string('field_lookup_source')->nullable();
             $table->json('field_options')->nullable();
             $table->json('field_validation')->nullable();
             $table->json('field_scoring_config')->nullable();
@@ -128,10 +132,24 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             $table->unsignedInteger('field_order')->default(1);
             $table->timestamps();
         });
+
+        Schema::connection('sqlite')->create('jabatan_penugasan_golongans', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+
+        Schema::connection('sqlite')->create('golongan_p3ks', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
     }
 
     protected function tearDown(): void
     {
+        Schema::connection('sqlite')->dropIfExists('golongan_p3ks');
+        Schema::connection('sqlite')->dropIfExists('jabatan_penugasan_golongans');
         Schema::connection('sqlite')->dropIfExists('assessment_combination_items');
         Schema::connection('sqlite')->dropIfExists('assessment_combinations');
         Schema::connection('sqlite')->dropIfExists('assessment_form_fields');
@@ -203,6 +221,14 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             'assessment_form_field_id' => null,
         ]);
 
+        DB::table('jabatan_penugasan_golongans')->insert([
+            ['name' => 'III/a', 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'IV/a', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        DB::table('golongan_p3ks')->insert([
+            ['name' => 'Ahli Pertama', 'created_at' => now(), 'updated_at' => now()],
+        ]);
+
         $response = $this
             ->withSession(['role' => 'admin'])
             ->put(route('assessment.update', $assessment->id), $this->validPayload($assessment, $form, $field));
@@ -215,6 +241,12 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame('Form Profil Diperbarui', $updatedForm->judul_form);
         $this->assertSame('Label Pertanyaan Diperbarui', $updatedField->label);
         $this->assertSame('label_pertanyaan_diperbarui', $updatedField->nama_field);
+        $this->assertSame('master_golongan', $updatedField->lookup_source);
+        $this->assertSame('select', $updatedField->tipe_field);
+        $this->assertSame(
+            ['Ahli Pertama', 'III/a', 'IV/a'],
+            collect($updatedField->opsi_field ?? [])->pluck('label')->all()
+        );
 
         $combination->refresh()->load('items');
 
@@ -231,6 +263,11 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame('Label Pertanyaan Diperbarui', $item->field_label);
         $this->assertSame('Placeholder diperbarui', $item->field_placeholder);
         $this->assertSame('label_pertanyaan_diperbarui', $item->field_name);
+        $this->assertSame('master_golongan', $item->field_lookup_source);
+        $this->assertSame(
+            ['Ahli Pertama', 'III/a', 'IV/a'],
+            collect($item->field_options ?? [])->pluck('label')->all()
+        );
 
         $snapshotAssessment = collect(data_get($combination->structure_snapshot, 'assessments', []))->first();
         $snapshotForm = collect($snapshotAssessment['forms'] ?? [])->first();
@@ -240,6 +277,7 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame('Form Profil Diperbarui', $snapshotForm['judul_form'] ?? null);
         $this->assertSame('Label Pertanyaan Diperbarui', $snapshotField['label'] ?? null);
         $this->assertSame('Placeholder diperbarui', $snapshotField['placeholder'] ?? null);
+        $this->assertSame('master_golongan', $snapshotField['lookup_source'] ?? null);
     }
 
     private function validPayload(
@@ -279,9 +317,10 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
                             'id' => $field->id,
                             'label' => 'Label Pertanyaan Diperbarui',
                             'deskripsi' => 'Deskripsi field baru.',
-                            'tipe_field' => 'text',
+                            'tipe_field' => 'select',
                             'placeholder' => 'Placeholder diperbarui',
                             'bantuan' => 'Bantuan diperbarui',
+                            'lookup_source' => 'master_golongan',
                             'opsi_field_text' => '',
                             'opsi_score_text' => '',
                             'repeater_config_text' => '',

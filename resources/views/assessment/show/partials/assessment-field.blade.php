@@ -1,6 +1,7 @@
 @php
     $savedAnswer = $answerLookup[(int) $field['id']] ?? [];
     $savedPayload = is_array($savedAnswer['payload'] ?? null) ? $savedAnswer['payload'] : [];
+    $autofillSourceLabel = trim((string) ($savedAnswer['autofill_source_label'] ?? ''));
     $fieldError = $errors->first('answers.' . $field['id']);
     $hasFieldError = filled($fieldError);
     $assessmentIndex = isset($assessmentIndex) ? max((int) $assessmentIndex, 0) : 0;
@@ -82,6 +83,12 @@
             @if (!empty($field['deskripsi']))
                 <p class="mt-1 text-sm text-slate-600">
                     {{ $field['deskripsi'] }}
+                </p>
+            @endif
+
+            @if ($autofillSourceLabel !== '')
+                <p class="mt-1 text-xs font-medium text-[#1376bd]">
+                    Terisi otomatis dari data peserta: {{ $autofillSourceLabel }}
                 </p>
             @endif
         </div>

@@ -9,7 +9,9 @@ use App\Enum\LevelKompetensi;
 use App\Models\Assessment;
 use App\Models\AssessmentForm;
 use App\Services\Assessment\AssessmentCombinationService;
+use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\ParticipantAutoFillResolver;
 use App\Support\Assessment\ScoringGuidanceAssistant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +24,9 @@ class AssessmentController extends Controller
     private string $menu = 'assessment';
 
     public function __construct(
-        private readonly AssessmentCombinationService $combinationService
+        private readonly AssessmentCombinationService $combinationService,
+        private readonly ParticipantAutoFillResolver $participantAutoFillResolver,
+        private readonly AssessmentFieldLookupResolver $fieldLookupResolver
     ) {}
 
     /**
@@ -58,6 +62,9 @@ class AssessmentController extends Controller
             ]),
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => [],
+            'participantAutoFillOptions' => $this->participantAutoFillResolver->options(),
+            'fieldLookupOptions' => $this->fieldLookupResolver->options(),
+            'fieldLookupCatalog' => $this->fieldLookupResolver->previewCatalog(),
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
         ]);
     }
@@ -136,6 +143,9 @@ class AssessmentController extends Controller
             'assessment' => $assessment,
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => $this->buildFormBuilderData($assessment),
+            'participantAutoFillOptions' => $this->participantAutoFillResolver->options(),
+            'fieldLookupOptions' => $this->fieldLookupResolver->options(),
+            'fieldLookupCatalog' => $this->fieldLookupResolver->previewCatalog(),
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
         ]);
     }
@@ -289,6 +299,16 @@ class AssessmentController extends Controller
                 ],
                 'forms.*.fields.*.placeholder' => 'nullable|string|max:255',
                 'forms.*.fields.*.bantuan' => 'nullable|string',
+                'forms.*.fields.*.autofill_source' => [
+                    'nullable',
+                    'string',
+                    Rule::in(array_keys($this->participantAutoFillResolver->options())),
+                ],
+                'forms.*.fields.*.lookup_source' => [
+                    'nullable',
+                    'string',
+                    Rule::in(array_keys($this->fieldLookupResolver->options())),
+                ],
                 'forms.*.fields.*.opsi_field_text' => 'nullable|string',
                 'forms.*.fields.*.opsi_score_text' => 'nullable|string',
                 'forms.*.fields.*.repeater_config_text' => 'nullable|string',
@@ -363,6 +383,7 @@ class AssessmentController extends Controller
         $validator->after(function ($validator) use ($request, $assessmentId) {
             $forms = $request->input('forms', []);
             $fieldTypesWithTextOptions = ['select', 'checkbox'];
+            $targetKetenagaan = $request->input('target_ketenagaan');
 
             foreach ($forms as $formIndex => $form) {
                 $usedFieldNames = [];
@@ -376,6 +397,13 @@ class AssessmentController extends Controller
 
                 foreach (($form['fields'] ?? []) as $fieldIndex => $field) {
                     $namaField = $this->generateFieldNameFromLabel($field['label'] ?? '');
+                    $lookupSource = $this->resolveFieldLookupSource(
+                        $field['lookup_source'] ?? null,
+                        $field['tipe_field'] ?? null,
+                        $field['label'] ?? null,
+                        $namaField,
+                        $targetKetenagaan
+                    );
 
                     if ($namaField === '') {
                         $validator->errors()->add(
@@ -446,13 +474,31 @@ class AssessmentController extends Controller
                     }
 
                     if (
-                        in_array($field['tipe_field'] ?? '', $fieldTypesWithTextOptions, true) &&
-                        blank($field['opsi_field_text'] ?? null)
+                        ($field['tipe_field'] ?? '') !== 'select'
+                        && filled($field['lookup_source'] ?? null)
                     ) {
                         $validator->errors()->add(
-                            "forms.$formIndex.fields.$fieldIndex.opsi_field_text",
-                            'Opsi wajib diisi untuk field daftar pilihan atau kotak centang.'
+                            "forms.$formIndex.fields.$fieldIndex.lookup_source",
+                            'Lookup opsi database hanya tersedia untuk field daftar pilihan.'
                         );
+                    }
+
+                    if (in_array($field['tipe_field'] ?? '', $fieldTypesWithTextOptions, true)) {
+                        if (($field['tipe_field'] ?? '') === 'select' && $lookupSource) {
+                            if ($this->fieldLookupResolver->resolveOptions($lookupSource) === []) {
+                                $validator->errors()->add(
+                                    "forms.$formIndex.fields.$fieldIndex.lookup_source",
+                                    'Sumber lookup database belum memiliki data yang bisa dipakai sebagai opsi.'
+                                );
+                            }
+                        } elseif (blank($field['opsi_field_text'] ?? null)) {
+                            $validator->errors()->add(
+                                "forms.$formIndex.fields.$fieldIndex.opsi_field_text",
+                                ($field['tipe_field'] ?? '') === 'select'
+                                    ? 'Isi opsi manual atau pilih lookup database untuk field daftar pilihan.'
+                                    : 'Opsi wajib diisi untuk field kotak centang.'
+                            );
+                        }
                     }
 
                     if (($field['tipe_field'] ?? '') === 'repeater') {
@@ -558,7 +604,12 @@ class AssessmentController extends Controller
             }
 
             $retainedFormIds[] = (int) $form->id;
-            $this->syncFormFields($form, $formData['fields'] ?? [], $assessment->instrument_type);
+            $this->syncFormFields(
+                $form,
+                $formData['fields'] ?? [],
+                $assessment->instrument_type,
+                $assessment->target_ketenagaan
+            );
         }
 
         $formIdsToDelete = $existingForms
@@ -572,7 +623,12 @@ class AssessmentController extends Controller
         }
     }
 
-    private function syncFormFields(AssessmentForm $form, array $fields, ?string $instrumentType = null): void
+    private function syncFormFields(
+        AssessmentForm $form,
+        array $fields,
+        ?string $instrumentType = null,
+        ?string $targetKetenagaan = null
+    ): void
     {
         $existingFields = $form->fields()
             ->get()
@@ -580,15 +636,29 @@ class AssessmentController extends Controller
         $retainedFieldIds = [];
 
         foreach (array_values($fields) as $fieldIndex => $fieldData) {
+            $generatedFieldName = $this->generateFieldNameFromLabel($fieldData['label'] ?? '');
             $fieldAttributes = [
                 'label' => $fieldData['label'],
                 'deskripsi' => $fieldData['deskripsi'] ?? null,
-                'nama_field' => $this->generateFieldNameFromLabel($fieldData['label']),
+                'nama_field' => $generatedFieldName,
                 'tipe_field' => $fieldData['tipe_field'],
                 'placeholder' => $fieldData['placeholder'] ?? null,
                 'bantuan' => $fieldData['bantuan'] ?? null,
-                'opsi_field' => $this->parseFieldOptions($fieldData),
+                'opsi_field' => $this->parseFieldOptions($fieldData, $targetKetenagaan, $generatedFieldName),
                 'nilai_default' => null,
+                'autofill_source' => $this->resolveFieldAutoFillSource(
+                    $fieldData['autofill_source'] ?? null,
+                    $fieldData['tipe_field'] ?? null,
+                    $fieldData['label'] ?? null,
+                    $generatedFieldName
+                ),
+                'lookup_source' => $this->resolveFieldLookupSource(
+                    $fieldData['lookup_source'] ?? null,
+                    $fieldData['tipe_field'] ?? null,
+                    $fieldData['label'] ?? null,
+                    $generatedFieldName,
+                    $targetKetenagaan
+                ),
                 'validasi' => [
                     'required' => (bool) ($fieldData['is_required'] ?? false),
                     'tipe_field' => $fieldData['tipe_field'],
@@ -622,7 +692,11 @@ class AssessmentController extends Controller
         }
     }
 
-    private function parseFieldOptions(array $fieldData): ?array
+    private function parseFieldOptions(
+        array $fieldData,
+        ?string $targetKetenagaan = null,
+        ?string $fieldName = null
+    ): ?array
     {
         $fieldType = $fieldData['tipe_field'] ?? null;
 
@@ -653,9 +727,24 @@ class AssessmentController extends Controller
             return $this->parseRepeaterConfigText($fieldData['repeater_config_text'] ?? null);
         }
 
-        $rawOptions = $fieldData['opsi_field_text'] ?? null;
-        $options = preg_split('/[\r\n,]+/', (string) $rawOptions);
-        $options = array_values(array_filter(array_map('trim', $options)));
+        $lookupSource = $this->resolveFieldLookupSource(
+            $fieldData['lookup_source'] ?? null,
+            $fieldType,
+            $fieldData['label'] ?? null,
+            $fieldName,
+            $targetKetenagaan
+        );
+        $options = $lookupSource
+            ? collect($this->fieldLookupResolver->resolveOptions($lookupSource))
+                ->pluck('label')
+                ->map(fn ($label) => trim((string) $label))
+                ->filter()
+                ->values()
+                ->all()
+            : array_values(array_filter(array_map(
+                'trim',
+                preg_split('/[\r\n,]+/', (string) ($fieldData['opsi_field_text'] ?? null)) ?: []
+            )));
         $scoreMap = $this->parseOptionScoreText($fieldData['opsi_score_text'] ?? null, $options);
 
         if ($options === []) {
@@ -965,6 +1054,43 @@ class AssessmentController extends Controller
         return Str::slug((string) $label, '_');
     }
 
+    private function resolveFieldAutoFillSource(
+        ?string $source,
+        ?string $fieldType,
+        ?string $label,
+        ?string $fieldName = null
+    ): ?string {
+        $normalizedSource = $this->participantAutoFillResolver->normalizeSource($source, $fieldType);
+
+        if ($normalizedSource) {
+            return $normalizedSource;
+        }
+
+        return $this->participantAutoFillResolver->normalizeSource(
+            $this->participantAutoFillResolver->inferSourceFromField($label, $fieldName),
+            $fieldType
+        );
+    }
+
+    private function resolveFieldLookupSource(
+        ?string $source,
+        ?string $fieldType,
+        ?string $label,
+        ?string $fieldName = null,
+        ?string $targetKetenagaan = null
+    ): ?string {
+        $normalizedSource = $this->fieldLookupResolver->normalizeSource($source, $fieldType);
+
+        if ($normalizedSource) {
+            return $normalizedSource;
+        }
+
+        return $this->fieldLookupResolver->normalizeSource(
+            $this->fieldLookupResolver->inferSourceFromField($label, $fieldName, $targetKetenagaan),
+            $fieldType
+        );
+    }
+
     private function generateUniqueSlug(string $title, ?int $ignoreId = null): string
     {
         $baseSlug = Str::slug($title);
@@ -1043,7 +1169,7 @@ class AssessmentController extends Controller
 
     private function buildFormBuilderData(Assessment $assessment): array
     {
-        return $assessment->forms->map(function ($form) {
+        return $assessment->forms->map(function ($form) use ($assessment) {
             return [
                 'id' => $form->id,
                 'judul_form' => $form->judul_form,
@@ -1061,7 +1187,7 @@ class AssessmentController extends Controller
                     'exclude_from_competency' => (bool) data_get($form->scoring_config, 'exclude_from_competency', false),
                     'advanced_rules_text' => $this->formatAdvancedRulesText(data_get($form->scoring_config, 'advanced_rules_text') ?: data_get($form->scoring_config, 'advanced_rules')),
                 ],
-                'fields' => $form->fields->map(function ($field) {
+                'fields' => $form->fields->map(function ($field) use ($assessment) {
                     $radioOptions = [];
                     $choiceOptions = [];
 
@@ -1089,10 +1215,24 @@ class AssessmentController extends Controller
                     return [
                         'id' => $field->id,
                         'label' => $field->label,
+                        'nama_field' => $field->nama_field,
                         'deskripsi' => $field->deskripsi,
                         'tipe_field' => $field->tipe_field,
                         'placeholder' => $field->placeholder,
                         'bantuan' => $field->bantuan,
+                        'autofill_source' => $this->resolveFieldAutoFillSource(
+                            $field->autofill_source,
+                            $field->tipe_field,
+                            $field->label,
+                            $field->nama_field
+                        ),
+                        'lookup_source' => $this->resolveFieldLookupSource(
+                            $field->lookup_source,
+                            $field->tipe_field,
+                            $field->label,
+                            $field->nama_field,
+                            $assessment->target_ketenagaan
+                        ),
                         'raw_opsi_field_json' => $this->formatRawFieldOptionsJsonForBuilder($field->tipe_field, $field->opsi_field),
                         'repeater_config_text' => $field->tipe_field === 'repeater' && is_array($field->opsi_field)
                             ? json_encode($field->opsi_field, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)

@@ -4,6 +4,36 @@
     @php
         $snapshot = $attempt->structure_snapshot ?? [];
         $answerLookup = $answerLookup ?? [];
+        $participantAutoFillResolver = app(\App\Support\Assessment\ParticipantAutoFillResolver::class);
+        $autoFilledAnswerLookup = [];
+
+        foreach (($snapshot['assessments'] ?? []) as $assessmentEntry) {
+            foreach (($assessmentEntry['forms'] ?? []) as $formEntry) {
+                foreach (($formEntry['fields'] ?? []) as $fieldEntry) {
+                    $fieldId = (int) ($fieldEntry['id'] ?? 0);
+
+                    if ($fieldId < 1 || array_key_exists($fieldId, $answerLookup)) {
+                        continue;
+                    }
+
+                    $resolvedAutoFill = $participantAutoFillResolver->resolveForField($fieldEntry, $guru);
+
+                    if (! $resolvedAutoFill) {
+                        continue;
+                    }
+
+                    $autoFilledAnswerLookup[$fieldId] = array_merge(
+                        $resolvedAutoFill['answer'] ?? [],
+                        [
+                            'autofill_source' => $resolvedAutoFill['source'] ?? null,
+                            'autofill_source_label' => $resolvedAutoFill['source_label'] ?? null,
+                        ],
+                    );
+                }
+            }
+        }
+
+        $answerLookup = array_replace($autoFilledAnswerLookup, $answerLookup);
         $buildDisplayFieldLabel = static function (
             array $field,
             ?int $displayQuestionNumber = null,
