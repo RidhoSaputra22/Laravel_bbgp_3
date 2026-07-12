@@ -850,27 +850,47 @@ class AssessmentController extends Controller
             ->all();
     }
 
-    private function parseRepeaterConfigText(?string $rawConfig): ?array
+    private function parseRepeaterConfigText(mixed $rawConfig): ?array
     {
-        $decoded = json_decode((string) $rawConfig, true);
+        if (is_array($rawConfig)) {
+            $decoded = $rawConfig;
+        } else {
+            $decoded = json_decode((string) $rawConfig, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
-            return null;
+            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+                return null;
+            }
         }
+
+        $allowedColumnTypes = ['text', 'textarea', 'number', 'email', 'date', 'url', 'select'];
 
         $columns = collect($decoded['columns'] ?? [])
             ->filter(fn ($column) => is_array($column))
-            ->map(function (array $column) {
+            ->map(function (array $column) use ($allowedColumnTypes) {
+                $fieldName = Str::slug(trim((string) ($column['nama_field'] ?? '')), '_');
+                $fieldType = trim((string) ($column['tipe_field'] ?? 'text')) ?: 'text';
+                $fieldType = in_array($fieldType, $allowedColumnTypes, true) ? $fieldType : 'text';
+                $options = collect(Arr::wrap($column['opsi_field'] ?? []))
+                    ->map(function ($option) {
+                        if (is_array($option)) {
+                            $option = $option['label'] ?? $option['value'] ?? null;
+                        }
+
+                        return trim((string) $option);
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+
                 return [
                     'label' => trim((string) ($column['label'] ?? '')),
-                    'nama_field' => trim((string) ($column['nama_field'] ?? '')),
-                    'tipe_field' => trim((string) ($column['tipe_field'] ?? 'text')) ?: 'text',
+                    'nama_field' => $fieldName,
+                    'tipe_field' => $fieldType,
                     'placeholder' => trim((string) ($column['placeholder'] ?? '')),
-                    'opsi_field' => is_array($column['opsi_field'] ?? null) ? $column['opsi_field'] : [],
+                    'opsi_field' => $fieldType === 'select' ? $options : [],
                     'is_required' => (bool) ($column['is_required'] ?? false),
                 ];
             })
-            ->filter(fn ($column) => $column['label'] !== '' && $column['nama_field'] !== '')
             ->values()
             ->all();
 
@@ -885,7 +905,7 @@ class AssessmentController extends Controller
         ];
     }
 
-    private function validateRepeaterConfigText(?string $rawConfig): array
+    private function validateRepeaterConfigText(mixed $rawConfig): array
     {
         $parsedConfig = $this->parseRepeaterConfigText($rawConfig);
 
@@ -893,6 +913,72 @@ class AssessmentController extends Controller
             return [
                 'valid' => false,
                 'message' => 'Konfigurasi tabel berulang wajib berupa JSON valid dan minimal memiliki satu kolom.',
+            ];
+        }
+
+        $columns = collect($parsedConfig['columns'] ?? []);
+        $minRows = max((int) ($parsedConfig['min_rows'] ?? 0), 0);
+        $maxRows = max((int) ($parsedConfig['max_rows'] ?? 0), 0);
+
+        if ($maxRows > 0 && $maxRows < $minRows) {
+            return [
+                'valid' => false,
+                'message' => 'Maksimal baris tabel berulang tidak boleh lebih kecil dari minimal baris.',
+            ];
+        }
+
+        if ($columns->isEmpty()) {
+            return [
+                'valid' => false,
+                'message' => 'Tambahkan minimal satu kolom pada tabel berulang.',
+            ];
+        }
+
+        foreach ($columns as $column) {
+            $columnLabel = trim((string) ($column['label'] ?? ''));
+            $columnName = trim((string) ($column['nama_field'] ?? ''));
+            $columnType = trim((string) ($column['tipe_field'] ?? 'text')) ?: 'text';
+
+            if ($columnLabel === '') {
+                return [
+                    'valid' => false,
+                    'message' => 'Label kolom pada tabel berulang wajib diisi.',
+                ];
+            }
+
+            if ($columnName === '') {
+                return [
+                    'valid' => false,
+                    'message' => 'Nama field kolom pada tabel berulang wajib diisi.',
+                ];
+            }
+
+            if (! in_array($columnType, ['text', 'textarea', 'number', 'email', 'date', 'url', 'select'], true)) {
+                return [
+                    'valid' => false,
+                    'message' => "Tipe input untuk kolom {$columnLabel} tidak dikenali.",
+                ];
+            }
+
+            if ($columnType === 'select' && collect($column['opsi_field'] ?? [])->filter()->isEmpty()) {
+                return [
+                    'valid' => false,
+                    'message' => "Kolom {$columnLabel} bertipe daftar pilihan wajib memiliki minimal satu opsi.",
+                ];
+            }
+        }
+
+        $duplicateNames = $columns
+            ->pluck('nama_field')
+            ->map(fn ($name) => trim((string) $name))
+            ->filter()
+            ->duplicates()
+            ->values();
+
+        if ($duplicateNames->isNotEmpty()) {
+            return [
+                'valid' => false,
+                'message' => 'Nama field kolom pada tabel berulang harus unik.',
             ];
         }
 

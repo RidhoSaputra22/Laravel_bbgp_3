@@ -204,6 +204,54 @@
             background: #fff;
         }
 
+        .repeater-config-shell {
+            background: #f8fbff;
+            border: 1px solid #dbe8fb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .repeater-config-shell .form-text code,
+        .repeater-column-name-hint code {
+            background: #eef4ff;
+            border-radius: 0.25rem;
+            color: #2455a6;
+            padding: 0.12rem 0.35rem;
+        }
+
+        .repeater-column-row {
+            background: #fff;
+            border: 1px solid #dfe7f7;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .repeater-column-row__title {
+            color: #23396b;
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .repeater-column-row__meta {
+            color: #6b7a90;
+            display: block;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .repeater-column-row textarea.form-control {
+            height: 88px !important;
+            min-height: 88px !important;
+        }
+
+        .repeater-column-required-switch {
+            min-height: 100%;
+        }
+
+        .repeater-column-required-switch .custom-control-label {
+            font-weight: 600;
+        }
+
         .assessment-builder-actions {
             display: flex;
             align-items: center;
@@ -897,6 +945,15 @@
             const multipleChoiceFieldType = 'radio';
             const repeaterFieldType = 'repeater';
             const fileFieldType = 'file';
+            const repeaterColumnFieldTypes = {
+                text: 'Teks',
+                textarea: 'Area Teks',
+                number: 'Angka',
+                email: 'Email',
+                date: 'Tanggal',
+                url: 'URL / Link',
+                select: 'Daftar Pilihan',
+            };
             const participantAutofillSupportedFieldTypes = ['text', 'textarea', 'number', 'email', 'date', 'select', 'radio', 'checkbox'];
             const fieldLookupSupportedFieldTypes = ['select'];
             const columnOptions = ['col-md-12', 'col-md-8', 'col-md-6', 'col-md-4'];
@@ -1673,7 +1730,7 @@
                 }
 
                 const repeaterConfig = fieldType === repeaterFieldType
-                    ? parseRepeaterConfig($fieldCard.find('textarea[name$="[repeater_config_text]"]').val()?.trim() || '')
+                    ? collectRepeaterConfigData($fieldCard)
                     : null;
                 const suggestion = buildScoringGuidanceSuggestion(sourceText, fieldType, {
                     target_rows: repeaterConfig?.min_rows || 1,
@@ -1894,29 +1951,123 @@
                 return normalizedOptions;
             };
 
-            const buildDefaultRepeaterConfigText = () => JSON.stringify({
+            const normalizeRepeaterColumnType = (value) => {
+                const normalizedValue = String(value || '').trim();
+                return Object.prototype.hasOwnProperty.call(repeaterColumnFieldTypes, normalizedValue)
+                    ? normalizedValue
+                    : 'text';
+            };
+
+            const normalizeNonNegativeInteger = (value, fallback = 0) => {
+                const numericValue = Number(value);
+
+                if (!Number.isFinite(numericValue) || numericValue < 0) {
+                    return fallback;
+                }
+
+                return Math.round(numericValue);
+            };
+
+            const buildDefaultRepeaterConfig = () => ({
                 min_rows: 1,
                 max_rows: 10,
-                columns: [{
+                columns: [
+                    {
                         label: 'Kolom 1',
                         nama_field: 'kolom_1',
                         tipe_field: 'text',
                         placeholder: 'Isi kolom 1',
-                        is_required: true
+                        opsi_field: [],
+                        is_required: true,
+                        auto_generated: true,
                     },
                     {
                         label: 'Kolom 2',
                         nama_field: 'kolom_2',
                         tipe_field: 'text',
                         placeholder: 'Isi kolom 2',
-                        is_required: false
+                        opsi_field: [],
+                        is_required: false,
+                        auto_generated: true,
                     },
                 ],
-            }, null, 2);
+            });
 
-            const normalizeRepeaterConfigText = (value) => {
-                const rawValue = String(value || '').trim();
-                return rawValue || buildDefaultRepeaterConfigText();
+            const normalizeRepeaterColumnOptions = (value) => {
+                if (!Array.isArray(value)) {
+                    return [];
+                }
+
+                return value.map((item) => {
+                    if (item && typeof item === 'object') {
+                        return String(item.label || item.value || '').trim();
+                    }
+
+                    return String(item || '').trim();
+                }).filter(Boolean);
+            };
+
+            const normalizeRepeaterColumnShape = (column = {}, index = 0) => {
+                const rawColumn = column && typeof column === 'object' ? column : {};
+                const label = String(rawColumn.label ?? '').trim();
+                const explicitFieldName = String(rawColumn.nama_field ?? '').trim();
+                const generatedFieldName = slugifyFieldName(explicitFieldName || label || `kolom_${index + 1}`) || `kolom_${index + 1}`;
+
+                return {
+                    label: label,
+                    nama_field: generatedFieldName,
+                    tipe_field: normalizeRepeaterColumnType(rawColumn.tipe_field),
+                    placeholder: String(rawColumn.placeholder ?? '').trim(),
+                    opsi_field: normalizeRepeaterColumnOptions(rawColumn.opsi_field),
+                    is_required: normalizeChecked(rawColumn.is_required),
+                    auto_generated: rawColumn.auto_generated === true
+                        || explicitFieldName === ''
+                        || explicitFieldName === slugifyFieldName(label),
+                };
+            };
+
+            const normalizeRepeaterConfigData = (value) => {
+                const isBlankString = typeof value === 'string' && String(value).trim() === '';
+                const useDefaultConfig = value === null || value === undefined || isBlankString;
+                const fallbackConfig = buildDefaultRepeaterConfig();
+                const rawConfig = typeof value === 'string'
+                    ? parseJsonSafely(value)
+                    : (value && typeof value === 'object' ? value : null);
+
+                if (!rawConfig || typeof rawConfig !== 'object') {
+                    return fallbackConfig;
+                }
+
+                const rawColumns = Array.isArray(rawConfig.columns)
+                    ? rawConfig.columns
+                    : (useDefaultConfig ? fallbackConfig.columns : []);
+
+                return {
+                    min_rows: normalizeNonNegativeInteger(rawConfig.min_rows, 0),
+                    max_rows: normalizeNonNegativeInteger(rawConfig.max_rows, 0),
+                    columns: rawColumns.map((column, index) => normalizeRepeaterColumnShape(column, index)),
+                };
+            };
+
+            const buildRepeaterConfigJson = (config = {}) => {
+                const normalizedConfig = normalizeRepeaterConfigData(config);
+
+                return JSON.stringify({
+                    min_rows: normalizeNonNegativeInteger(normalizedConfig.min_rows, 0),
+                    max_rows: normalizeNonNegativeInteger(normalizedConfig.max_rows, 0),
+                    columns: (normalizedConfig.columns || []).map((column, index) => {
+                        const normalizedColumn = normalizeRepeaterColumnShape(column, index);
+
+                        return {
+                            label: normalizedColumn.label,
+                            nama_field: normalizedColumn.nama_field,
+                            tipe_field: normalizedColumn.tipe_field,
+                            placeholder: normalizedColumn.placeholder,
+                            opsi_field: normalizedColumn.tipe_field === 'select' ? normalizedColumn.opsi_field : [],
+                            is_required: normalizedColumn.is_required,
+                        };
+                    }),
+                });
             };
 
             const parseJsonSafely = (value) => {
@@ -1999,6 +2150,102 @@
                 return 'Peserta akan mengunggah file langsung ke sistem.';
             };
 
+            const buildRepeaterColumnTypeOptions = (selectedValue = 'text') => {
+                const normalizedValue = normalizeRepeaterColumnType(selectedValue);
+
+                return Object.entries(repeaterColumnFieldTypes).map(([value, label]) => `
+                    <option value="${escapeHtml(value)}" ${normalizedValue === value ? 'selected' : ''}>
+                        ${escapeHtml(label)}
+                    </option>
+                `).join('');
+            };
+
+            const buildRepeaterColumnRow = (columnIndex, columnData = {}) => {
+                const normalizedColumn = normalizeRepeaterColumnShape(columnData, columnIndex);
+                const showSelectOptions = normalizedColumn.tipe_field === 'select';
+                const optionLines = normalizedColumn.opsi_field.join('\n');
+                const fieldNameHint = normalizedColumn.nama_field
+                    ? `Key penyimpanan: <code>${escapeHtml(normalizedColumn.nama_field)}</code>`
+                    : 'Nama field otomatis dibuat dari label kolom.';
+                const requiredInputId = `repeater-column-required-${Date.now()}-${columnIndex}-${Math.random().toString(36).slice(2, 8)}`;
+
+                return `
+                    <div class="repeater-column-row mb-3" data-column-index="${columnIndex}">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <div class="repeater-column-row__title">Kolom ${columnIndex + 1}</div>
+                                <small class="repeater-column-row__meta">
+                                    ${escapeHtml(normalizedColumn.label || 'Label kolom belum diisi')}
+                                </small>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-repeater-column">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>${buildRequiredLabel('Label Kolom')}</label>
+                                    <input type="text" class="form-control repeater-column-label-input"
+                                        value="${escapeHtml(normalizedColumn.label)}"
+                                        placeholder="Contoh: Pengalaman">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>${buildRequiredLabel('Nama Field')}</label>
+                                    <input type="text" class="form-control repeater-column-name-input"
+                                        value="${escapeHtml(normalizedColumn.nama_field)}"
+                                        data-auto-generated="${normalizedColumn.auto_generated ? '1' : '0'}"
+                                        placeholder="pengalaman">
+                                    <small class="form-text text-muted repeater-column-name-hint">${fieldNameHint}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>${buildRequiredLabel('Tipe Input')}</label>
+                                    <select class="form-control repeater-column-type-select">
+                                        ${buildRepeaterColumnTypeOptions(normalizedColumn.tipe_field)}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group mb-md-0">
+                                    <label>Placeholder</label>
+                                    <input type="text" class="form-control repeater-column-placeholder-input"
+                                        value="${escapeHtml(normalizedColumn.placeholder)}"
+                                        placeholder="Placeholder kolom">
+                                </div>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="custom-control custom-switch repeater-column-required-switch mb-0">
+                                    <input type="checkbox" class="custom-control-input repeater-column-required-input"
+                                        id="${requiredInputId}"
+                                        ${normalizedColumn.is_required ? 'checked' : ''}>
+                                    <label class="custom-control-label" for="${requiredInputId}">
+                                        Wajib diisi
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="${joinClasses('form-group', 'repeater-column-options-wrapper', showSelectOptions ? '' : 'd-none')}">
+                            <label class="mt-3">Opsi Pilihan</label>
+                            <textarea class="form-control repeater-column-options-input"
+                                rows="3"
+                                placeholder="Contoh: SD&#10;SMP&#10;SMA">${escapeHtml(optionLines)}</textarea>
+                            <small class="text-muted d-block mt-2">
+                                Isi opsi per baris atau dipisah koma jika tipe kolom menggunakan daftar pilihan.
+                            </small>
+                        </div>
+                    </div>
+                `;
+            };
+
             const buildRadioOptionRow = (formIndex, fieldIndex, optionIndex, optionData = {}) => {
                 const normalizedOption = normalizeRadioOptionShape(optionData);
                 const optionText = normalizedOption.label || '';
@@ -2073,6 +2320,7 @@
                 const fieldType = fieldData.tipe_field || 'text';
                 const showTextOptions = textOptionFieldTypes.includes(fieldType);
                 const showMultipleChoiceOptions = fieldType === multipleChoiceFieldType;
+                const repeaterConfig = normalizeRepeaterConfigData(fieldData.repeater_config_text);
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
                 const fileFieldConfig = parseFileFieldConfigJson(fieldData.raw_opsi_field_json || '');
@@ -2151,6 +2399,10 @@
                     'form-group',
                     'repeater-option-wrapper',
                     fieldType === repeaterFieldType ? '' : 'd-none',
+                );
+                const repeaterConfigShellClass = joinClasses(
+                    'repeater-config-shell',
+                    hasError(repeaterConfigName) ? 'assessment-invalid-wrapper' : '',
                 );
                 const fileOptionWrapperClass = joinClasses(
                     'form-group',
@@ -2340,17 +2592,50 @@
                             </div>
 
                             <div class="${repeaterWrapperClass}">
-                                <label>${buildRequiredLabel('Konfigurasi Tabel Berulang (JSON)')}</label>
-                                <textarea class="${getInputClass(repeaterConfigName)} repeater-config-input"
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <label class="mb-1">${buildRequiredLabel('Konfigurasi Tabel Berulang')}</label>
+                                        <small class="text-muted d-block">
+                                            Susun jumlah baris dan kolom tabel tanpa menulis JSON manual.
+                                        </small>
+                                    </div>
+                                    <button type="button" class="btn btn-light btn-sm btn-add-repeater-column">
+                                        <i class="fas fa-plus"></i> Tambah Kolom
+                                    </button>
+                                </div>
+                                <input type="hidden" class="repeater-config-json-input"
                                     name="${repeaterConfigName}"
-                                    rows="10"
-                                    placeholder='{"min_rows":1,"max_rows":10,"columns":[{"label":"Kolom 1","nama_field":"kolom_1","tipe_field":"text","is_required":true}]}'">${escapeHtml(normalizeRepeaterConfigText(fieldData.repeater_config_text))}</textarea>
+                                    value="${escapeHtml(buildRepeaterConfigJson(repeaterConfig))}">
                                 ${buildInvalidFeedback(repeaterConfigName)}
-                                <small class="text-muted d-block mt-2">
-                                    Gunakan JSON untuk mendefinisikan <code>min_rows</code>, <code>max_rows</code>,
-                                    dan daftar <code>columns</code>. Setiap kolom minimal memiliki
-                                    <code>label</code>, <code>nama_field</code>, dan <code>tipe_field</code>.
-                                </small>
+                                <div class="${repeaterConfigShellClass}">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Minimal Baris Terisi</label>
+                                                <input type="number" min="0" class="form-control repeater-min-rows-input"
+                                                    value="${escapeHtml(repeaterConfig.min_rows)}"
+                                                    placeholder="1">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label>Maksimal Baris Terisi</label>
+                                                <input type="number" min="0" class="form-control repeater-max-rows-input"
+                                                    value="${escapeHtml(repeaterConfig.max_rows)}"
+                                                    placeholder="10">
+                                                <small class="form-text text-muted">Isi <code>0</code> jika tanpa batas.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="repeater-column-list">
+                                        ${repeaterConfig.columns.map((column, columnIndex) => buildRepeaterColumnRow(columnIndex, column)).join('')}
+                                    </div>
+
+                                    <small class="text-muted d-block mt-2">
+                                        Setiap kolom minimal membutuhkan label, nama field, dan tipe input.
+                                    </small>
+                                </div>
                             </div>
 
                             <div class="card border mt-4 scoring-config-card">
@@ -2851,6 +3136,7 @@
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
                 updateFileInputModeState($fieldCard);
+                syncRepeaterConfigState($fieldCard);
 
                 if (!options.skipSummary) {
                     renderBuilderSummary();
@@ -2986,7 +3272,7 @@
 
                 $fieldCard.find('.repeater-option-wrapper')
                     .toggleClass('d-none', !showRepeaterOptions)
-                    .find('textarea')
+                    .find('input, select, textarea')
                     .prop('disabled', !showRepeaterOptions);
                 $fieldCard.find('.file-option-wrapper')
                     .toggleClass('d-none', !showFileOptions);
@@ -3141,13 +3427,115 @@
                     return null;
                 }
 
-                try {
-                    const parsed = JSON.parse(value);
+                const normalizedConfig = normalizeRepeaterConfigData(value);
+                return normalizedConfig && typeof normalizedConfig === 'object' ? normalizedConfig : null;
+            };
 
-                    return parsed && typeof parsed === 'object' ? parsed : null;
-                } catch (error) {
-                    return null;
+            const getRepeaterColumnDefaultName = ($columnRow) => {
+                const rowIndex = Number($columnRow.attr('data-column-index') || 0);
+                const labelValue = $columnRow.find('.repeater-column-label-input').val()?.trim() || '';
+                return slugifyFieldName(labelValue || `kolom_${rowIndex + 1}`) || `kolom_${rowIndex + 1}`;
+            };
+
+            const isRepeaterColumnNameAutoGenerated = ($nameInput) => {
+                const autoGeneratedValue = $nameInput.data('autoGenerated');
+                return autoGeneratedValue === true
+                    || autoGeneratedValue === 1
+                    || autoGeneratedValue === '1'
+                    || autoGeneratedValue === 'true';
+            };
+
+            const updateRepeaterColumnRowState = ($columnRow) => {
+                const columnIndex = Number($columnRow.attr('data-column-index') || 0);
+                const labelValue = $columnRow.find('.repeater-column-label-input').val()?.trim() || '';
+                const $nameInput = $columnRow.find('.repeater-column-name-input');
+                const currentName = $nameInput.val()?.trim() || '';
+                const defaultName = getRepeaterColumnDefaultName($columnRow);
+                const autoGenerated = isRepeaterColumnNameAutoGenerated($nameInput);
+                const columnType = normalizeRepeaterColumnType($columnRow.find('.repeater-column-type-select').val() || 'text');
+
+                $columnRow.find('.repeater-column-row__title').text(`Kolom ${columnIndex + 1}`);
+                $columnRow.find('.repeater-column-row__meta').text(labelValue || 'Label kolom belum diisi');
+
+                if (!currentName || autoGenerated) {
+                    $nameInput.val(defaultName);
+                    $nameInput.data('autoGenerated', true);
                 }
+
+                $columnRow.find('.repeater-column-name-hint').html(
+                    $nameInput.val()?.trim()
+                        ? `Key penyimpanan: <code>${escapeHtml($nameInput.val()?.trim() || '')}</code>`
+                        : 'Nama field otomatis dibuat dari label kolom.'
+                );
+
+                $columnRow.find('.repeater-column-type-select').val(columnType);
+                $columnRow.find('.repeater-column-options-wrapper')
+                    .toggleClass('d-none', columnType !== 'select');
+                $columnRow.find('.repeater-column-options-input')
+                    .prop('disabled', columnType !== 'select');
+            };
+
+            const collectRepeaterConfigData = ($fieldCard) => {
+                const minRows = normalizeNonNegativeInteger($fieldCard.find('.repeater-min-rows-input').val(), 0);
+                const maxRows = normalizeNonNegativeInteger($fieldCard.find('.repeater-max-rows-input').val(), 0);
+                const columns = $fieldCard.find('.repeater-column-row').map(function(index) {
+                    const $columnRow = $(this);
+                    const label = $columnRow.find('.repeater-column-label-input').val()?.trim() || '';
+                    const rawFieldName = $columnRow.find('.repeater-column-name-input').val()?.trim() || '';
+                    const fieldName = slugifyFieldName(rawFieldName || label || `kolom_${index + 1}`) || `kolom_${index + 1}`;
+                    const columnType = normalizeRepeaterColumnType($columnRow.find('.repeater-column-type-select').val() || 'text');
+                    const placeholder = $columnRow.find('.repeater-column-placeholder-input').val()?.trim() || '';
+                    const optionsText = $columnRow.find('.repeater-column-options-input').val()?.trim() || '';
+                    const options = columnType === 'select' ? parseOptionText(optionsText) : [];
+                    const isRequired = $columnRow.find('.repeater-column-required-input').is(':checked');
+                    const hasMeaningfulValue = Boolean(label || rawFieldName || placeholder || optionsText || isRequired || columnType !== 'text');
+
+                    if (!hasMeaningfulValue) {
+                        return null;
+                    }
+
+                    return {
+                        label: label,
+                        nama_field: fieldName,
+                        tipe_field: columnType,
+                        placeholder: placeholder,
+                        opsi_field: options,
+                        is_required: isRequired,
+                    };
+                }).get().filter(Boolean);
+
+                return {
+                    min_rows: minRows,
+                    max_rows: maxRows,
+                    columns: columns,
+                };
+            };
+
+            const syncRepeaterConfigState = ($fieldCard) => {
+                $fieldCard.find('.repeater-column-row').each(function(index) {
+                    $(this).attr('data-column-index', index);
+                    updateRepeaterColumnRowState($(this));
+                });
+
+                const shouldDisableRemove = $fieldCard.find('.repeater-column-row').length <= 1;
+                $fieldCard.find('.btn-remove-repeater-column')
+                    .prop('disabled', shouldDisableRemove)
+                    .toggleClass('disabled', shouldDisableRemove);
+
+                const configJson = buildRepeaterConfigJson(collectRepeaterConfigData($fieldCard));
+                $fieldCard.find('.repeater-config-json-input').val(configJson);
+
+                if (($fieldCard.find('.field-type-select').val() || '') !== repeaterFieldType) {
+                    $fieldCard.find('.repeater-option-wrapper')
+                        .find('input, select, textarea')
+                        .prop('disabled', true);
+                }
+            };
+
+            const appendRepeaterColumn = ($fieldCard, columnData = {}) => {
+                const columnIndex = $fieldCard.find('.repeater-column-row').length;
+                $fieldCard.find('.repeater-column-list').append(buildRepeaterColumnRow(columnIndex, columnData));
+                syncRepeaterConfigState($fieldCard);
             };
 
             const collectFieldPayload = ($fieldCard, fieldIndex) => {
@@ -3179,8 +3567,9 @@
                         $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
                     opsi_score_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_score_text]"]').val()?.trim() || '' : null,
-                    repeater_config_text: fieldType === repeaterFieldType ?
-                        $fieldCard.find('textarea[name$="[repeater_config_text]"]').val()?.trim() || '' : null,
+                    repeater_config_text: fieldType === repeaterFieldType
+                        ? ($fieldCard.find('.repeater-config-json-input').val()?.trim() || buildRepeaterConfigJson(collectRepeaterConfigData($fieldCard)))
+                        : null,
                     raw_opsi_field_json: fieldType === fileFieldType
                         ? buildFileFieldConfigJson(rawFileOptionConfig, fileInputMode)
                         : rawFileOptionConfig,
@@ -3823,6 +4212,60 @@
                 schedulePreviewRender();
             });
 
+            $(document).on('click', '.btn-add-repeater-column', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                appendRepeaterColumn($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-remove-repeater-column', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+
+                if ($fieldCard.find('.repeater-column-row').length <= 1) {
+                    return;
+                }
+
+                $(this).closest('.repeater-column-row').remove();
+                syncRepeaterConfigState($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('input', '.repeater-column-label-input', function() {
+                const $columnRow = $(this).closest('.repeater-column-row');
+                const $nameInput = $columnRow.find('.repeater-column-name-input');
+                const autoGenerated = isRepeaterColumnNameAutoGenerated($nameInput);
+
+                if (autoGenerated || !$nameInput.val()?.trim()) {
+                    $nameInput.val(getRepeaterColumnDefaultName($columnRow));
+                    $nameInput.data('autoGenerated', true);
+                }
+
+                syncRepeaterConfigState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('input', '.repeater-column-name-input', function() {
+                const $columnRow = $(this).closest('.repeater-column-row');
+                const normalizedValue = slugifyFieldName($(this).val() || '');
+                const defaultName = getRepeaterColumnDefaultName($columnRow);
+
+                $(this).val(normalizedValue);
+                $(this).data('autoGenerated', !normalizedValue || normalizedValue === defaultName);
+
+                syncRepeaterConfigState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('input', '.repeater-min-rows-input, .repeater-max-rows-input, .repeater-column-placeholder-input, .repeater-column-options-input', function() {
+                syncRepeaterConfigState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', '.repeater-column-type-select, .repeater-column-required-input', function() {
+                syncRepeaterConfigState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
             $(document).on('input', '.radio-option-text, .radio-option-code', function() {
                 schedulePreviewRender();
             });
@@ -3832,6 +4275,7 @@
                 updateAutoFieldNameHint($fieldCard);
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
+                syncRepeaterConfigState($fieldCard);
                 schedulePreviewRender();
             });
 
@@ -3842,6 +4286,7 @@
                 updateFieldLookupState($fieldCard);
                 updateFileInputModeState($fieldCard);
                 toggleScoringWrapper($fieldCard);
+                syncRepeaterConfigState($fieldCard);
                 schedulePreviewRender();
             });
 
@@ -3945,6 +4390,7 @@
 
                 $('.assessment-field-card').each(function() {
                     applyScoringGuidanceSuggestion($(this));
+                    syncRepeaterConfigState($(this));
                 });
 
                 if (!validateAllKeywordGroupsFields()) {
