@@ -349,6 +349,10 @@ Route::group(
                     Route::get('/create', 'AssessmentAssignmentController@create')->name('assessment.assignment.create');
                     Route::get('/edit/{id}', 'AssessmentAssignmentController@edit')->name('assessment.assignment.edit');
                     Route::get('/guru-options', 'AssessmentAssignmentController@guruOptions')->name('assessment.assignment.guru-options');
+                    Route::get('/show/{id}/monitoring-individuals', 'AssessmentAssignmentController@monitoringIndividuals')
+                        ->name('assessment.assignment.monitoring-individuals');
+                    Route::post('/target/{targetId}/retry-disqualified', 'AssessmentAssignmentController@retryDisqualifiedTarget')
+                        ->name('assessment.assignment.retry-disqualified-target');
                     Route::post('/store', 'AssessmentAssignmentController@store')->name('assessment.assignment.store');
                     Route::put('/update/{id}', 'AssessmentAssignmentController@update')->name('assessment.assignment.update');
                     Route::post('/hapus/{id}', 'AssessmentAssignmentController@destroy')->name('assessment.assignment.hapus');

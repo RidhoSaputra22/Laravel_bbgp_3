@@ -767,90 +767,114 @@
                                     @if ($explorerPaginator && $explorerPaginator->total() > 0)
                                         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                             <div class="text-muted small">
-                                                Menampilkan {{ $explorerPaginator->firstItem() ?? 0 }} -
-                                                {{ $explorerPaginator->lastItem() ?? 0 }} dari
                                                 {{ $explorerPaginator->total() }} peserta.
                                             </div>
                                             <div class="text-muted small">
-                                                Mode ini hanya mengambil satu halaman data agar query tetap ringan.
+                                                Pencarian dan pagination memakai DataTables server-side agar query
+                                                tetap ringan.
                                             </div>
                                         </div>
                                     @endif
 
-                                    @if (empty($explorerRows))
-                                        <div class="alert alert-light border mb-0">
-                                            Tidak ada peserta yang cocok dengan filter monitoring saat ini.
-                                        </div>
-                                    @else
-                                        <div class="table-responsive">
-                                            <table class="table table-striped mb-0">
-                                                <thead>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped mb-0" id="table-monitoring-individual"
+                                            data-source-url="{{ route('assessment.assignment.monitoring-individuals', $assignment->id) }}"
+                                            data-page-length="{{ $explorerPaginator?->perPage() ?? request('monitor_per_page', 25) }}"
+                                            data-return-url="{{ request()->fullUrl() }}#monitoring-explorer"
+                                            data-monitor-kabupaten="{{ $explorerSelectedFilters['kabupaten'] ?? '' }}"
+                                            data-monitor-jabatan="{{ $explorerSelectedFilters['jabatan'] ?? '' }}"
+                                            data-monitor-satuan-pendidikan="{{ $explorerSelectedFilters['satuan_pendidikan'] ?? '' }}">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center" style="width: 70px;">No</th>
+                                                    <th>Nama</th>
+                                                    <th style="width: 150px;">Skor Umum</th>
+                                                    <th style="width: 160px;">Level Umum</th>
+                                                    <th style="width: 170px;">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @forelse ($explorerRows as $participant)
                                                     <tr>
-                                                        <th class="text-center" style="width: 70px;">No</th>
-                                                        <th>Nama</th>
-                                                        <th style="width: 150px;">Skor Umum</th>
-                                                        <th style="width: 160px;">Level Umum</th>
-                                                        <th style="width: 170px;">Aksi</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach ($explorerRows as $participant)
-                                                        <tr>
-                                                            <td class="text-center">
-                                                                {{ (($explorerPaginator?->firstItem() ?? 1) - 1) + $loop->iteration }}
-                                                            </td>
-                                                            <td>
-                                                                <div class="font-weight-bold">{{ $participant['name'] }}</div>
-                                                                <small class="text-muted d-block">
-                                                                    {{ $participant['jabatan'] ?: '-' }} •
-                                                                    {{ $participant['kabupaten'] ?: '-' }}
-                                                                </small>
-                                                                <small class="text-muted d-block">
-                                                                    {{ $participant['school'] ?: '-' }} •
-                                                                    {{ $participant['session_label'] ?: '-' }}
-                                                                </small>
-                                                                <small class="text-muted d-block">
-                                                                    Status: {{ $participant['status_label'] }}
-                                                                </small>
-                                                            </td>
-                                                            <td>
-                                                                <div class="font-weight-bold text-success">
-                                                                    {{ $participant['score_label'] ?: '-' }}
+                                                        <td class="text-center">
+                                                            {{ (($explorerPaginator?->firstItem() ?? 1) - 1) + $loop->iteration }}
+                                                        </td>
+                                                        <td>
+                                                            <div class="font-weight-bold">{{ $participant['name'] }}</div>
+                                                            <small class="text-muted d-block">
+                                                                {{ $participant['jabatan'] ?: '-' }} •
+                                                                {{ $participant['kabupaten'] ?: '-' }}
+                                                            </small>
+                                                            <small class="text-muted d-block">
+                                                                {{ $participant['school'] ?: '-' }} •
+                                                                {{ $participant['session_label'] ?: '-' }}
+                                                            </small>
+                                                            <small class="text-muted d-block">
+                                                                Status: {{ $participant['status_label'] }}
+                                                            </small>
+                                                        </td>
+                                                        <td>
+                                                            <div class="font-weight-bold text-success">
+                                                                {{ $participant['score_label'] ?: '-' }}
+                                                            </div>
+                                                            <small class="text-muted">
+                                                                Submit: {{ $participant['submitted_at'] ?: '-' }}
+                                                            </small>
+                                                        </td>
+                                                        <td>
+                                                            @if ($participant['score_level'])
+                                                                <span class="badge badge-info">
+                                                                    {{ $participant['score_level'] }}
+                                                                </span>
+                                                            @else
+                                                                <span class="text-muted">-</span>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            @if ($participant['review_url'] || $participant['retry_url'])
+                                                                <div class="d-flex flex-wrap"
+                                                                    style="gap: 0.35rem;">
+                                                                    @if ($participant['review_url'])
+                                                                        <a href="{{ $participant['review_url'] }}"
+                                                                            class="btn btn-sm btn-primary">
+                                                                            <i class="fas fa-clipboard-check mr-1"></i> Detail
+                                                                        </a>
+                                                                    @endif
+                                                                    @if ($participant['retry_url'])
+                                                                        <form action="{{ $participant['retry_url'] }}"
+                                                                            method="POST" class="d-inline-block mb-0"
+                                                                            onsubmit="return confirm('Izinkan peserta ini mengulangi assessment dari record terakhir? Jawaban yang sudah tersimpan tidak akan dihapus.');">
+                                                                            @csrf
+                                                                            <input type="hidden" name="return_url"
+                                                                                value="{{ request()->fullUrl() }}#monitoring-explorer">
+                                                                            <button type="submit"
+                                                                                class="btn btn-sm btn-warning">
+                                                                                <i class="fas fa-redo mr-1"></i> Ulangi
+                                                                            </button>
+                                                                        </form>
+                                                                    @endif
                                                                 </div>
-                                                                <small class="text-muted">
-                                                                    Submit: {{ $participant['submitted_at'] ?: '-' }}
-                                                                </small>
-                                                            </td>
-                                                            <td>
-                                                                @if ($participant['score_level'])
-                                                                    <span class="badge badge-info">
-                                                                        {{ $participant['score_level'] }}
-                                                                    </span>
-                                                                @else
-                                                                    <span class="text-muted">-</span>
-                                                                @endif
-                                                            </td>
-                                                            <td>
-                                                                @if ($participant['review_url'])
-                                                                    <a href="{{ $participant['review_url'] }}"
-                                                                        class="btn btn-sm btn-primary">
-                                                                        <i class="fas fa-clipboard-check mr-1"></i> Detail
-                                                                    </a>
-                                                                @else
-                                                                    <span class="text-muted small">Belum ada hasil</span>
-                                                                @endif
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                            @else
+                                                                <span class="text-muted small">Belum ada hasil</span>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                @empty
+                                                    <tr>
+                                                        <td colspan="5" class="text-center text-muted py-4">
+                                                            Tidak ada peserta yang cocok dengan filter monitoring saat
+                                                            ini.
+                                                        </td>
+                                                    </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
 
-                                        @if ($explorerPaginator)
-                                            <div class="mt-3">
-                                                {{ $explorerPaginator->links() }}
-                                            </div>
-                                        @endif
+                                    @if ($explorerPaginator)
+                                        <div class="mt-3 monitoring-individual-pagination">
+                                            {{ $explorerPaginator->links() }}
+                                        </div>
                                     @endif
                                 </div>
                             </div>
@@ -1220,6 +1244,7 @@
                 explorerCompetencies: @json($explorerCharts['competencies'] ?? ['labels' => [], 'data' => []]),
             };
             const explorerMode = @json($explorerMode);
+            const csrfToken = @json(csrf_token());
 
             function initDataTable(selector, nonSortableColumns) {
                 const table = $(selector);
@@ -1239,6 +1264,159 @@
                     }, ],
                     language: {
                         url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
+                    },
+                });
+            }
+
+            function escapeHtml(value) {
+                return $('<div>').text(value ?? '').html();
+            }
+
+            function initMonitoringIndividualDataTable() {
+                const table = $('#table-monitoring-individual');
+
+                if (!table.length) {
+                    return;
+                }
+
+                const sourceUrl = table.data('sourceUrl');
+
+                if (!sourceUrl) {
+                    return;
+                }
+
+                const fallbackPagination = $('.monitoring-individual-pagination');
+                const returnUrl = table.data('returnUrl') || '';
+
+                table.DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ordering: false,
+                    pageLength: Number(table.data('pageLength')) || 25,
+                    lengthMenu: [
+                        [10, 25, 50],
+                        [10, 25, 50],
+                    ],
+                    searchDelay: 400,
+                    autoWidth: false,
+                    ajax: {
+                        url: sourceUrl,
+                        data: function(d) {
+                            d.monitor_kabupaten = table.data('monitorKabupaten') || '';
+                            d.monitor_jabatan = table.data('monitorJabatan') || '';
+                            d.monitor_satuan_pendidikan = table.data('monitorSatuanPendidikan') || '';
+                        },
+                    },
+                    columns: [{
+                            data: 'row_number',
+                            className: 'text-center',
+                            searchable: false,
+                        },
+                        {
+                            data: null,
+                            render: function(data, type, row) {
+                                if (type !== 'display') {
+                                    return [
+                                        row.name || '',
+                                        row.jabatan || '',
+                                        row.kabupaten || '',
+                                        row.school || '',
+                                        row.session_label || '',
+                                        row.status_label || '',
+                                    ].join(' ');
+                                }
+
+                                return `
+                                    <div class="font-weight-bold">${escapeHtml(row.name || '-')}</div>
+                                    <small class="text-muted d-block">
+                                        ${escapeHtml(row.jabatan || '-')} • ${escapeHtml(row.kabupaten || '-')}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        ${escapeHtml(row.school || '-')} • ${escapeHtml(row.session_label || '-')}
+                                    </small>
+                                    <small class="text-muted d-block">
+                                        Status: ${escapeHtml(row.status_label || '-')}
+                                    </small>
+                                `;
+                            },
+                        },
+                        {
+                            data: null,
+                            render: function(data, type, row) {
+                                if (type !== 'display') {
+                                    return [row.score_label || '', row.submitted_at || ''].join(' ');
+                                }
+
+                                return `
+                                    <div class="font-weight-bold text-success">${escapeHtml(row.score_label || '-')}</div>
+                                    <small class="text-muted">
+                                        Submit: ${escapeHtml(row.submitted_at || '-')}
+                                    </small>
+                                `;
+                            },
+                        },
+                        {
+                            data: 'score_level',
+                            render: function(data, type, row) {
+                                if (type !== 'display') {
+                                    return row.score_level || '';
+                                }
+
+                                if (row.score_level) {
+                                    return `<span class="badge badge-info">${escapeHtml(row.score_level)}</span>`;
+                                }
+
+                                return '<span class="text-muted">-</span>';
+                            },
+                        },
+                        {
+                            data: null,
+                            searchable: false,
+                            render: function(data, type, row) {
+                                if (type !== 'display') {
+                                    return [row.review_url || '', row.retry_url || ''].join(' ');
+                                }
+
+                                if (row.review_url || row.retry_url) {
+                                    const detailButton = row.review_url
+                                        ? `
+                                            <a href="${escapeHtml(row.review_url)}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-clipboard-check mr-1"></i> Detail
+                                            </a>
+                                        `
+                                        : '';
+                                    const retryButton = row.retry_url
+                                        ? `
+                                            <form action="${escapeHtml(row.retry_url)}" method="POST" class="d-inline-block mb-0"
+                                                onsubmit="return confirm('Izinkan peserta ini mengulangi assessment dari record terakhir? Jawaban yang sudah tersimpan tidak akan dihapus.');">
+                                                <input type="hidden" name="_token" value="${escapeHtml(csrfToken)}">
+                                                <input type="hidden" name="return_url" value="${escapeHtml(returnUrl)}">
+                                                <button type="submit" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-redo mr-1"></i> Ulangi
+                                                </button>
+                                            </form>
+                                        `
+                                        : '';
+
+                                    return `
+                                        <div class="d-flex flex-wrap" style="gap: 0.35rem;">
+                                            ${detailButton}
+                                            ${retryButton}
+                                        </div>
+                                    `;
+                                }
+
+                                return '<span class="text-muted small">Belum ada hasil</span>';
+                            },
+                        },
+                    ],
+                    language: {
+                        url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
+                        search: 'Cari data:',
+                        searchPlaceholder: 'Nama, kabupaten, jabatan, sekolah...',
+                    },
+                    initComplete: function() {
+                        fallbackPagination.hide();
                     },
                 });
             }
@@ -1496,6 +1674,7 @@
 
             initDataTable('#table-assignment-assessment', [0]);
             initDataTable('#table-assignment-session', [0]);
+            initMonitoringIndividualDataTable();
             initCharts();
             initExplorerCharts();
         });

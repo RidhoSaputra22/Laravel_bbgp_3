@@ -6,6 +6,7 @@ use App\Enum\AssessmentInstrumentType;
 use App\Enum\AssessmentKetenagaanType;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
+use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
@@ -13,10 +14,12 @@ use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Support\Assessment\AssessmentStageConfig;
+use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -30,7 +33,8 @@ class AssessmentAssignmentController extends Controller
 
     public function __construct(
         private readonly AssessmentAssignmentService $assignmentService,
-        private readonly AssessmentMonitoringService $assessmentMonitoringService
+        private readonly AssessmentMonitoringService $assessmentMonitoringService,
+        private readonly AssessmentAttemptService $attemptService
     ) {}
 
     public function index()
@@ -209,6 +213,57 @@ class AssessmentAssignmentController extends Controller
         ]);
     }
 
+    public function monitoringIndividuals(Request $request, string $id): JsonResponse
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+
+        return response()->json(
+            $this->assessmentMonitoringService->buildAssignmentExplorerDataTable(
+                $assignment,
+                $this->resolveMonitoringExplorerFilters($request),
+                [
+                    'draw' => (int) $request->input('draw', 0),
+                    'start' => (int) $request->input('start', 0),
+                    'length' => (int) $request->input('length', self::TARGET_PAGE_SIZE),
+                    'search' => $request->input('search.value'),
+                ]
+            )
+        );
+    }
+
+    public function retryDisqualifiedTarget(Request $request, string $targetId)
+    {
+        $this->authorizeAccess();
+
+        $target = AssessmentAssignmentTarget::with('attempt')
+            ->findOrFail((int) $targetId);
+
+        try {
+            $this->attemptService->reopenDisqualified($target);
+
+            return redirect()
+                ->to($this->resolveTargetRetryReturnUrl($request, $target))
+                ->with(
+                    'assignment_notice',
+                    'Peserta berhasil diizinkan mengulangi assessment dari record terakhir tanpa menghapus jawaban sebelumnya.'
+                );
+        } catch (ValidationException $exception) {
+            return redirect()
+                ->to($this->resolveTargetRetryReturnUrl($request, $target))
+                ->withErrors($exception->errors());
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->to($this->resolveTargetRetryReturnUrl($request, $target))
+                ->withErrors([
+                    'assignment' => 'Terjadi kesalahan saat membuka ulang attempt peserta yang didiskualifikasi.',
+                ]);
+        }
+    }
+
     public function update(Request $request, string $id)
     {
         $this->authorizeAccess();
@@ -333,6 +388,19 @@ class AssessmentAssignmentController extends Controller
         $normalized = trim((string) $value);
 
         return $normalized !== '' ? $normalized : null;
+    }
+
+    private function resolveTargetRetryReturnUrl(Request $request, AssessmentAssignmentTarget $target): string
+    {
+        $fallbackUrl = route('assessment.assignment.show', $target->assessment_assignment_id).'#monitoring-explorer';
+        $returnUrl = trim((string) $request->input('return_url', ''));
+        $expectedBaseUrl = route('assessment.assignment.show', $target->assessment_assignment_id);
+
+        if ($returnUrl !== '' && Str::startsWith($returnUrl, $expectedBaseUrl)) {
+            return str_contains($returnUrl, '#') ? $returnUrl : $returnUrl.'#monitoring-explorer';
+        }
+
+        return $fallbackUrl;
     }
 
     private function buildFormViewData(?AssessmentAssignment $assignment = null): array

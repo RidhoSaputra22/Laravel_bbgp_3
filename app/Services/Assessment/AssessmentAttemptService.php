@@ -2,6 +2,7 @@
 
 namespace App\Services\Assessment;
 
+use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
 use App\Support\Assessment\ChoiceFieldOtherOption;
@@ -389,6 +390,99 @@ class AssessmentAttemptService
                 ];
             })
             ->all();
+    }
+
+    public function reopenDisqualified(AssessmentAssignmentTarget $target): AssessmentAttempt
+    {
+        $target->loadMissing('attempt');
+        $attempt = $target->attempt;
+
+        if (! $attempt || ! $this->isDisqualifiedAttempt($attempt)) {
+            throw ValidationException::withMessages([
+                'assignment' => 'Peserta ini tidak berada pada status didiskualifikasi yang bisa diulangi.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($attempt) {
+            /** @var \App\Models\AssessmentAttempt $lockedAttempt */
+            $lockedAttempt = AssessmentAttempt::query()
+                ->with('target')
+                ->whereKey($attempt->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            /** @var \App\Models\AssessmentAssignmentTarget|null $lockedTarget */
+            $lockedTarget = $lockedAttempt->target()
+                ->lockForUpdate()
+                ->first();
+
+            if (! $lockedTarget) {
+                throw ValidationException::withMessages([
+                    'assignment' => 'Target assessment peserta tidak ditemukan.',
+                ]);
+            }
+
+            if (! $this->isDisqualifiedAttempt($lockedAttempt)) {
+                throw ValidationException::withMessages([
+                    'assignment' => 'Peserta ini tidak lagi berada pada status didiskualifikasi.',
+                ]);
+            }
+
+            $snapshot = is_array($lockedAttempt->structure_snapshot ?? null) ? $lockedAttempt->structure_snapshot : [];
+            $progress = is_array($lockedAttempt->progress_snapshot ?? null)
+                ? AssessmentStageProgress::normalize($lockedAttempt->progress_snapshot, $snapshot)
+                : null;
+            $now = now();
+            $seriousViolationCount = (int) ($lockedAttempt->serious_violation_count ?? 0);
+            $warningViolationCount = (int) ($lockedAttempt->warning_violation_count ?? 0);
+
+            if ($progress && AssessmentStageProgress::usesStageFlow($snapshot, $progress)) {
+                $stageIndex = $this->resolveDisqualifiedStageIndex($lockedAttempt, $progress);
+                $progress = AssessmentStageProgress::reopenStage($progress, $stageIndex, $now);
+            }
+
+            $lockedAttempt->forceFill([
+                'status' => 'draft',
+                'progress_snapshot' => $progress,
+                'result_summary' => null,
+                'scoring_summary' => null,
+                'started_at' => null,
+                'deadline_at' => null,
+                'submitted_at' => null,
+                'completion_mode' => null,
+                'timed_out_at' => null,
+                'disqualified_at' => null,
+                'disqualification_reason' => null,
+                'serious_violation_count' => 0,
+                'warning_violation_count' => 0,
+                'last_violation_at' => null,
+            ])->save();
+
+            $lockedTarget->forceFill([
+                'status' => 'ditugaskan',
+                'started_at' => null,
+                'deadline_at' => null,
+                'submitted_at' => null,
+                'completion_mode' => null,
+                'timed_out_at' => null,
+            ])->save();
+
+            $lockedAttempt->securityEvents()->create([
+                'event_key' => 'admin_retry_disqualified_attempt',
+                'violation_type' => 'system',
+                'lock_mode' => 'retry',
+                'message' => 'Attempt didiskualifikasi dibuka ulang oleh admin. Jawaban terakhir peserta tetap dipertahankan.',
+                'counts_toward_disqualify' => false,
+                'client_occurred_at' => $now,
+                'metadata' => [
+                    'previous_serious_violation_count' => $seriousViolationCount,
+                    'previous_warning_violation_count' => $warningViolationCount,
+                    'preserved_answers' => true,
+                ],
+            ]);
+
+            return $this->loadAttemptRelations($lockedAttempt->fresh());
+        });
     }
 
     private function finalizeAttempt(
@@ -1839,6 +1933,67 @@ class AssessmentAttemptService
             ->flatMap(fn ($form) => $form['fields'] ?? [])
             ->values()
             ->all();
+    }
+
+    private function isDisqualifiedAttempt(AssessmentAttempt $attempt): bool
+    {
+        return $attempt->status === 'submitted'
+            && (
+                $attempt->disqualified_at !== null
+                || (string) data_get($attempt->result_summary ?? [], 'submission_mode') === 'security_disqualified'
+            );
+    }
+
+    private function resolveDisqualifiedStageIndex(AssessmentAttempt $attempt, array $progress): int
+    {
+        $submittedAtLabel = $attempt->submitted_at?->format('Y-m-d H:i:s');
+        $stages = collect($progress['stages'] ?? [])
+            ->filter(fn ($stage) => is_array($stage))
+            ->values();
+
+        if ($submittedAtLabel) {
+            $matchedStage = $stages->first(function (array $stage) use ($submittedAtLabel) {
+                if (($stage['status'] ?? null) !== AssessmentStageProgress::STATUS_SUBMITTED) {
+                    return false;
+                }
+
+                if (! filled($stage['submitted_at'] ?? null)) {
+                    return false;
+                }
+
+                try {
+                    return Carbon::parse((string) $stage['submitted_at'])->format('Y-m-d H:i:s') === $submittedAtLabel;
+                } catch (\Throwable $exception) {
+                    return false;
+                }
+            });
+
+            if (is_array($matchedStage)) {
+                return (int) ($matchedStage['stage_index'] ?? 0);
+            }
+        }
+
+        $matchedStage = $stages->first(function (array $stage) {
+            return ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_SUBMITTED
+                && ! filled($stage['completion_mode'] ?? null);
+        });
+
+        if (is_array($matchedStage)) {
+            return (int) ($matchedStage['stage_index'] ?? 0);
+        }
+
+        $lastSubmittedStage = $stages
+            ->reverse()
+            ->first(fn (array $stage) => ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_SUBMITTED);
+
+        if (is_array($lastSubmittedStage)) {
+            return (int) ($lastSubmittedStage['stage_index'] ?? 0);
+        }
+
+        return AssessmentStageProgress::resolveCurrentStageIndex(
+            $progress,
+            is_numeric($progress['current_stage_index'] ?? null) ? (int) $progress['current_stage_index'] : -1
+        );
     }
 
     private function loadAttemptRelations(AssessmentAttempt $attempt): AssessmentAttempt

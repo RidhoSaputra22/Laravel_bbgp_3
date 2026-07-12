@@ -688,6 +688,7 @@ class AssessmentMonitoringService
     private function globalAssignmentDetailListBaseQuery(array $filters = [])
     {
         $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $disqualifiedExpr = $this->assignmentTargetDisqualifiedSql();
         $timeoutExpr = $this->assignmentTargetTimeoutSql();
         $inProgressExpr = $this->assignmentTargetInProgressSql();
         $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
@@ -719,6 +720,7 @@ class AssessmentMonitoringService
             ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
             ->selectRaw('coalesce(target.started_at, attempt.started_at) as resolved_started_at')
             ->selectRaw('case when '.$submittedExpr.' then 1 else 0 end as is_submitted')
+            ->selectRaw('case when '.$disqualifiedExpr.' then 1 else 0 end as is_disqualified')
             ->selectRaw('case when '.$timeoutExpr.' then 1 else 0 end as is_timeout')
             ->selectRaw('case when '.$inProgressExpr.' then 1 else 0 end as is_in_progress')
             ->selectRaw($manualPendingExpr.' as manual_pending_items')
@@ -866,6 +868,50 @@ class AssessmentMonitoringService
             'summary' => $summaryPayload['summary'] ?? null,
             'charts' => $summaryPayload['charts'] ?? [],
             'meta' => $summaryPayload['meta'] ?? [],
+        ];
+    }
+
+    public function buildAssignmentExplorerDataTable(
+        AssessmentAssignment $assignment,
+        array $filters = [],
+        array $options = []
+    ): array {
+        $normalizedFilters = $this->normalizeAssignmentExplorerFilters($filters);
+        $draw = max((int) ($options['draw'] ?? 0), 0);
+        $start = max((int) ($options['start'] ?? 0), 0);
+        $length = max(10, min((int) ($options['length'] ?? 25), 50));
+        $search = $this->normalizeAssignmentExplorerFilterValue($options['search'] ?? null);
+
+        $recordsTotal = $this->assignmentExplorerBaseQuery($assignment->id, $normalizedFilters)
+            ->count('target.id');
+
+        $query = $this->assignmentDetailListBaseQuery($assignment, $normalizedFilters);
+
+        if ($search) {
+            $this->applyAssignmentExplorerSearch($query, $search);
+        }
+
+        $recordsFiltered = (clone $query)->count('target.id');
+        $rows = $query
+            ->orderByRaw('case when target.submitted_at is null and attempt.submitted_at is null then 1 else 0 end')
+            ->orderBy('target.id')
+            ->offset($start)
+            ->limit($length)
+            ->get()
+            ->map(fn (object $row) => $this->serializeAssignmentDetailRow($row))
+            ->values()
+            ->map(function (array $row, int $index) use ($start) {
+                $row['row_number'] = $start + $index + 1;
+
+                return $row;
+            })
+            ->all();
+
+        return [
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data' => $rows,
         ];
     }
 
@@ -1205,6 +1251,7 @@ class AssessmentMonitoringService
     private function assignmentDetailListBaseQuery(AssessmentAssignment $assignment, array $filters = [])
     {
         $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $disqualifiedExpr = $this->assignmentTargetDisqualifiedSql();
         $timeoutExpr = $this->assignmentTargetTimeoutSql();
         $inProgressExpr = $this->assignmentTargetInProgressSql();
         $manualPendingExpr = $this->assignmentTargetManualPendingItemsSql();
@@ -1233,6 +1280,7 @@ class AssessmentMonitoringService
             ->selectRaw('coalesce(target.submitted_at, attempt.submitted_at) as resolved_submitted_at')
             ->selectRaw('coalesce(target.started_at, attempt.started_at) as resolved_started_at')
             ->selectRaw('case when '.$submittedExpr.' then 1 else 0 end as is_submitted')
+            ->selectRaw('case when '.$disqualifiedExpr.' then 1 else 0 end as is_disqualified')
             ->selectRaw('case when '.$timeoutExpr.' then 1 else 0 end as is_timeout')
             ->selectRaw('case when '.$inProgressExpr.' then 1 else 0 end as is_in_progress')
             ->selectRaw($manualPendingExpr.' as manual_pending_items')
@@ -1519,6 +1567,64 @@ class AssessmentMonitoringService
         }
     }
 
+    private function applyAssignmentExplorerSearch($query, string $search): void
+    {
+        $keyword = '%'.$this->escapeSqlLikeValue($search).'%';
+        $normalizedSearch = function_exists('mb_strtolower')
+            ? mb_strtolower($search, 'UTF-8')
+            : strtolower($search);
+        $matchesDisqualified = str_contains($normalizedSearch, 'diskual')
+            || str_contains($normalizedSearch, 'disqual');
+        $matchesSubmitted = str_contains($normalizedSearch, 'sudah')
+            || str_contains($normalizedSearch, 'submit')
+            || str_contains($normalizedSearch, 'mengisi');
+        $matchesTimeout = str_contains($normalizedSearch, 'timeout');
+        $matchesInProgress = str_contains($normalizedSearch, 'sedang')
+            || str_contains($normalizedSearch, 'progress')
+            || str_contains($normalizedSearch, 'mengerjakan');
+        $matchesNotStarted = str_contains($normalizedSearch, 'belum');
+
+        $query->where(function ($builder) use (
+            $keyword,
+            $matchesDisqualified,
+            $matchesSubmitted,
+            $matchesTimeout,
+            $matchesInProgress,
+            $matchesNotStarted
+        ) {
+            $builder->whereRaw("coalesce(guru.nama_lengkap, '') like ? escape '\\\\'", [$keyword])
+                ->orWhereRaw($this->assignmentTargetKabupatenSql()." like ? escape '\\\\'", [$keyword])
+                ->orWhereRaw($this->assignmentTargetJabatanSql()." like ? escape '\\\\'", [$keyword])
+                ->orWhereRaw($this->assignmentTargetSchoolSql()." like ? escape '\\\\'", [$keyword])
+                ->orWhereRaw("coalesce(assignment_session.label_sesi, 'Tanpa sesi') like ? escape '\\\\'", [$keyword]);
+
+            if ($matchesDisqualified) {
+                $builder->orWhereRaw($this->assignmentTargetDisqualifiedSql());
+            }
+
+            if ($matchesSubmitted) {
+                $builder->orWhereRaw($this->assignmentTargetSubmittedSql());
+            }
+
+            if ($matchesTimeout) {
+                $builder->orWhereRaw($this->assignmentTargetTimeoutSql());
+            }
+
+            if ($matchesInProgress) {
+                $builder->orWhereRaw($this->assignmentTargetInProgressSql());
+            }
+
+            if ($matchesNotStarted) {
+                $builder->orWhereRaw($this->assignmentTargetNotStartedSql());
+            }
+        });
+    }
+
+    private function escapeSqlLikeValue(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+    }
+
     private function assignmentTargetKabupatenSql(): string
     {
         return "coalesce(nullif(trim(guru.kabupaten), ''), 'Kabupaten belum diisi')";
@@ -1554,6 +1660,11 @@ class AssessmentMonitoringService
     private function assignmentTargetSubmittedSql(): string
     {
         return "(attempt.status = 'submitted' or target.status = 'selesai' or target.submitted_at is not null or attempt.submitted_at is not null)";
+    }
+
+    private function assignmentTargetDisqualifiedSql(): string
+    {
+        return "(attempt.disqualified_at is not null or json_unquote(json_extract(attempt.result_summary, '$.submission_mode')) = 'security_disqualified')";
     }
 
     private function assignmentTargetActivitySql(): string
@@ -1594,6 +1705,7 @@ class AssessmentMonitoringService
         $score = isset($row->score) && $row->score !== null
             ? round((float) $row->score, 2)
             : null;
+        $isDisqualified = (int) ($row->is_disqualified ?? 0) === 1;
 
         return [
             'target_id' => (int) $row->target_id,
@@ -1612,17 +1724,25 @@ class AssessmentMonitoringService
             'submitted_at' => $this->formatDateTimeLabel($row->resolved_submitted_at ?? null),
             'started_at' => $this->formatDateTimeLabel($row->resolved_started_at ?? null),
             'manual_pending_items' => (int) ($row->manual_pending_items ?? 0),
+            'is_disqualified' => $isDisqualified,
             'score' => $score,
             'score_label' => $score !== null ? number_format($score, 2) : null,
             'score_level' => $score !== null ? LevelKompetensi::fromScore($score)?->shortLabel() : null,
             'review_url' => ((int) ($row->is_submitted ?? 0)) === 1
                 ? route('assessment.portal.result', (int) $row->target_id)
                 : null,
+            'retry_url' => $isDisqualified
+                ? route('assessment.assignment.retry-disqualified-target', (int) $row->target_id)
+                : null,
         ];
     }
 
     private function resolveAssignmentDetailStatusLabel(object $row): string
     {
+        if ((int) ($row->is_disqualified ?? 0) === 1) {
+            return 'Didiskualifikasi';
+        }
+
         if ((int) ($row->is_timeout ?? 0) === 1) {
             return 'Selesai Timeout';
         }
@@ -1982,6 +2102,10 @@ class AssessmentMonitoringService
 
     private function resolveTargetStatusLabel(AssessmentAssignmentTarget $target): string
     {
+        if ($this->isDisqualified($target)) {
+            return 'Didiskualifikasi';
+        }
+
         if ($this->isTimeout($target)) {
             return 'Selesai Timeout';
         }
@@ -2002,6 +2126,12 @@ class AssessmentMonitoringService
         return $target->started_at !== null
             || $target->attempt?->started_at !== null
             || in_array((string) ($target->status ?: $target->attempt?->status), ['dikerjakan', 'selesai', 'in_progress', 'submitted'], true);
+    }
+
+    private function isDisqualified(AssessmentAssignmentTarget $target): bool
+    {
+        return $target->attempt?->disqualified_at !== null
+            || (string) data_get($target->attempt?->result_summary ?? [], 'submission_mode') === 'security_disqualified';
     }
 
     private function isSubmitted(AssessmentAssignmentTarget $target): bool

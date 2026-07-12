@@ -328,6 +328,47 @@ class AssessmentStageProgress
         return $progress;
     }
 
+    public static function reopenStage(
+        array $progress,
+        int $stageIndex,
+        CarbonInterface|string|null $reopenedAt = null
+    ): array {
+        $reopenedAtCarbon = self::parseCarbon($reopenedAt) ?: now();
+
+        $progress['stages'] = collect(self::resolveStages($progress))
+            ->map(function (array $stage) use ($stageIndex) {
+                $currentStageIndex = (int) ($stage['stage_index'] ?? -1);
+                $status = $stage['status'] ?? self::STATUS_READY;
+
+                if ($currentStageIndex === $stageIndex) {
+                    $stage['status'] = self::STATUS_READY;
+                    $stage['started_at'] = null;
+                    $stage['deadline_at'] = null;
+                    $stage['submitted_at'] = null;
+                    $stage['completion_mode'] = null;
+
+                    return $stage;
+                }
+
+                if ($currentStageIndex > $stageIndex && $status !== self::STATUS_SUBMITTED) {
+                    $stage['started_at'] = null;
+                    $stage['deadline_at'] = null;
+                    $stage['submitted_at'] = null;
+                    $stage['completion_mode'] = null;
+                }
+
+                return $stage;
+            })
+            ->values()
+            ->all();
+
+        $progress = self::synchronizeStageLocks($progress);
+        $progress['current_stage_index'] = self::resolveCurrentStageIndex($progress, $stageIndex);
+        $progress['updated_at'] = $reopenedAtCarbon->toIso8601String();
+
+        return $progress;
+    }
+
     public static function isAllSubmitted(array $progress): bool
     {
         $stages = self::resolveStages($progress);
@@ -349,15 +390,26 @@ class AssessmentStageProgress
 
     private static function unlockReadyStages(array $progress): array
     {
+        return self::synchronizeStageLocks($progress);
+    }
+
+    private static function synchronizeStageLocks(array $progress): array
+    {
         $stages = collect(self::resolveStages($progress))
             ->values()
             ->all();
 
         foreach ($stages as $index => $stage) {
+            $status = $stage['status'] ?? self::STATUS_READY;
+
+            if ($status === self::STATUS_SUBMITTED) {
+                continue;
+            }
+
             $config = AssessmentStageConfig::normalize(is_array($stage['config'] ?? null) ? $stage['config'] : []);
 
             if (! ($config['lock_until_previous_stages_completed'] ?? false)) {
-                if (($stage['status'] ?? null) === self::STATUS_LOCKED) {
+                if ($status === self::STATUS_LOCKED) {
                     $stages[$index]['status'] = self::STATUS_READY;
                 }
 
@@ -368,9 +420,19 @@ class AssessmentStageProgress
             $allPreviousSubmitted = collect($previousStages)
                 ->every(fn (array $previousStage) => ($previousStage['status'] ?? null) === self::STATUS_SUBMITTED);
 
-            if ($allPreviousSubmitted && ($stage['status'] ?? null) === self::STATUS_LOCKED) {
-                $stages[$index]['status'] = self::STATUS_READY;
+            if ($allPreviousSubmitted) {
+                if ($status === self::STATUS_LOCKED) {
+                    $stages[$index]['status'] = self::STATUS_READY;
+                }
+
+                continue;
             }
+
+            $stages[$index]['status'] = self::STATUS_LOCKED;
+            $stages[$index]['started_at'] = null;
+            $stages[$index]['deadline_at'] = null;
+            $stages[$index]['submitted_at'] = null;
+            $stages[$index]['completion_mode'] = null;
         }
 
         $progress['stages'] = $stages;
