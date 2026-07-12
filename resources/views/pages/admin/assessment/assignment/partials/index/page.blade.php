@@ -95,11 +95,8 @@
                                                     <br>
                                                     <span class="font-weight-bold">{{ $data->judul_penugasan }}</span>
                                                     <br>
-                                                    <span
-                                                        class="badge badge-{{ $data->activation_status_badge_class }} mt-1">
-                                                        {{ $data->activation_status_label }}
-                                                    </span>
-                                                    <br>
+
+
                                                     @if ($data->target_ketenagaan_label)
                                                         <small>{{ $data->target_ketenagaan_label }}</small>
                                                     @endif
