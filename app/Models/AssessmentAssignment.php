@@ -16,6 +16,7 @@ class AssessmentAssignment extends Model
     protected $fillable = [
         'kode_penugasan',
         'judul_penugasan',
+        'is_active',
         'session_enabled',
         'target_ketenagaan',
         'assessment_combination_id',
@@ -39,6 +40,7 @@ class AssessmentAssignment extends Model
     ];
 
     protected $casts = [
+        'is_active' => 'boolean',
         'session_enabled' => 'boolean',
         'target_jabatan' => 'array',
         'target_kabupaten' => 'array',
@@ -59,6 +61,16 @@ class AssessmentAssignment extends Model
         return $query
             ->orderByDesc($this->qualifyColumn('created_at'))
             ->orderByDesc($this->qualifyColumn('id'));
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('is_active'), true);
+    }
+
+    public function scopeInactive(Builder $query): Builder
+    {
+        return $query->where($this->qualifyColumn('is_active'), false);
     }
 
     public function assessments()
@@ -105,6 +117,21 @@ class AssessmentAssignment extends Model
     public function usesSessionScheduling(): bool
     {
         return (bool) ($this->session_enabled ?? true);
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) ($this->is_active ?? true);
+    }
+
+    public function getActivationStatusLabelAttribute(): string
+    {
+        return $this->isActive() ? 'Aktif' : 'Nonaktif';
+    }
+
+    public function getActivationStatusBadgeClassAttribute(): string
+    {
+        return $this->isActive() ? 'success' : 'secondary';
     }
 
     public function getSessionModeLabelAttribute(): string

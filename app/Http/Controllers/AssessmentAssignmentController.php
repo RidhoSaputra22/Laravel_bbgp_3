@@ -430,6 +430,22 @@ class AssessmentAssignmentController extends Controller
         }
     }
 
+    public function updateActivationStatus(Request $request, string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+        ]);
+
+        $assignment->forceFill([
+            'is_active' => (bool) $validated['is_active'],
+        ])->save();
+
+        return back()->with('assignment_notice', $this->buildActivationNotice($assignment));
+    }
+
     public function destroy(string $id)
     {
         $this->authorizeAccess();
@@ -602,6 +618,15 @@ class AssessmentAssignmentController extends Controller
         return 'Retry penugasan dijalankan. Resume untuk '
             .($result['resumed_count'] ?? 0)
             .' target diproses melalui '.$distributionMethod.'.';
+    }
+
+    private function buildActivationNotice(AssessmentAssignment $assignment): string
+    {
+        if ($assignment->isActive()) {
+            return 'Penugasan assessment diaktifkan kembali. Penugasan kembali tampil di portal peserta sesuai jadwal dan status distribusinya.';
+        }
+
+        return 'Penugasan assessment dinonaktifkan. Penugasan tidak lagi tampil di portal peserta, tetapi target, attempt, jawaban, dan histori tetap tersimpan.';
     }
 
     private function buildAddParticipantsNotice(array $result): string

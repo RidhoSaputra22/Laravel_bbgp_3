@@ -95,6 +95,11 @@
                                                     <br>
                                                     <span class="font-weight-bold">{{ $data->judul_penugasan }}</span>
                                                     <br>
+                                                    <span
+                                                        class="badge badge-{{ $data->activation_status_badge_class }} mt-1">
+                                                        {{ $data->activation_status_label }}
+                                                    </span>
+                                                    <br>
                                                     @if ($data->target_ketenagaan_label)
                                                         <small>{{ $data->target_ketenagaan_label }}</small>
                                                     @endif
@@ -196,6 +201,19 @@
                                                         class="btn btn-warning btn-sm my-1">
                                                         <i class="fas fa-edit mr-1"></i> Edit
                                                     </a>
+                                                    <form action="{{ route('assessment.assignment.activation', $data->id) }}"
+                                                        method="POST" class=" my-1"
+                                                        onsubmit="return confirm('{{ $data->isActive() ? 'Nonaktifkan penugasan ini? Penugasan akan disembunyikan dari portal peserta tetapi histori tetap tersimpan.' : 'Aktifkan kembali penugasan ini agar muncul lagi di portal peserta?' }}');">
+                                                        @csrf
+                                                        <input type="hidden" name="is_active"
+                                                            value="{{ $data->isActive() ? 0 : 1 }}">
+                                                        <button type="submit"
+                                                            class="btn btn-{{ $data->isActive() ? 'secondary' : 'success' }} btn-sm">
+                                                            <i
+                                                                class="fas fa-{{ $data->isActive() ? 'toggle-off' : 'toggle-on' }} mr-1"></i>
+                                                            {{ $data->isActive() ? 'Nonaktifkan' : 'Aktifkan' }}
+                                                        </button>
+                                                    </form>
                                                     <button type="button"
                                                         class="btn btn-danger btn-sm my-1 js-assignment-delete-trigger"
                                                         data-toggle="modal" data-target="#assignmentDeleteModal"
@@ -207,7 +225,7 @@
                                                     </button>
                                                     @if ($monitoring['retry_available'] ?? false)
                                                         <form action="{{ route('assessment.assignment.retry', $data->id) }}"
-                                                            method="POST" class="d-inline-block my-1">
+                                                            method="POST" class=" my-1">
                                                             @csrf
                                                             <button type="submit" class="btn btn-danger btn-sm">
                                                                 <i class="fas fa-redo mr-1"></i> Retry

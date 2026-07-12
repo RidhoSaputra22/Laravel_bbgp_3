@@ -173,6 +173,17 @@
                     <a href="{{ route('assessment.assignment.edit', $assignment->id) }}" class="btn btn-warning mr-2">
                         <i class="fas fa-edit"></i> Edit
                     </a>
+                    <form action="{{ route('assessment.assignment.activation', $assignment->id) }}" method="POST"
+                        class="d-inline-block mr-2"
+                        onsubmit="return confirm('{{ $assignment->isActive() ? 'Nonaktifkan penugasan ini? Penugasan akan disembunyikan dari portal peserta tetapi histori tetap tersimpan.' : 'Aktifkan kembali penugasan ini agar muncul lagi di portal peserta?' }}');">
+                        @csrf
+                        <input type="hidden" name="is_active" value="{{ $assignment->isActive() ? 0 : 1 }}">
+                        <button type="submit"
+                            class="btn btn-{{ $assignment->isActive() ? 'secondary' : 'success' }}">
+                            <i class="fas fa-{{ $assignment->isActive() ? 'toggle-off' : 'toggle-on' }}"></i>
+                            {{ $assignment->isActive() ? 'Nonaktifkan' : 'Aktifkan' }}
+                        </button>
+                    </form>
                     <button type="button" class="btn btn-danger mr-2" data-toggle="modal"
                         data-target="#assignmentDeleteModal">
                         <i class="fas fa-trash"></i> Hapus
@@ -202,6 +213,13 @@
                 @if ($errors->has('assignment'))
                     <div class="alert alert-danger">
                         {{ $errors->first('assignment') }}
+                    </div>
+                @endif
+
+                @if (! $assignment->isActive())
+                    <div class="alert alert-warning">
+                        Penugasan ini sedang <strong>nonaktif</strong>. Penugasan tidak tampil di portal peserta sampai
+                        diaktifkan kembali, tetapi target, attempt, jawaban, dan histori tetap tersimpan.
                     </div>
                 @endif
 
@@ -295,6 +313,17 @@
                                     {{ ucfirst($assignment->status_distribusi) }}
                                 </span>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-muted small">Status Akses Peserta</div>
+                            <div>
+                                <span class="badge badge-{{ $assignment->activation_status_badge_class }}">
+                                    {{ $assignment->activation_status_label }}
+                                </span>
+                            </div>
+                            <small class="text-muted d-block">
+                                Saat nonaktif, penugasan disembunyikan dari portal peserta tanpa menghapus histori.
+                            </small>
                         </div>
                         <div class="mb-3">
                             <div class="text-muted small">Mode Sesi</div>

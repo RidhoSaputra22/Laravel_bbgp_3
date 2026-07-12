@@ -28,6 +28,7 @@ class AssessmentPortalService
             'session',
             'attempt',
         ])
+            ->whereHas('assignment', fn ($query) => $query->active())
             ->where('guru_id', $guru->id)
             ->latestAssignmentFirst()
             ->get();
@@ -213,6 +214,16 @@ class AssessmentPortalService
                     : 'Assessment sudah dikirim. Anda dapat melihat hasilnya kembali kapan saja.',
                 'can_open' => false,
                 'can_view_result' => true,
+            ]);
+        }
+
+        if (! $assignment->isActive()) {
+            return array_merge($meta, [
+                'status' => 'inactive',
+                'label' => 'Dinonaktifkan',
+                'badge' => 'secondary',
+                'description' => 'Penugasan ini sedang dinonaktifkan admin dan sementara tidak tampil di dashboard peserta.',
+                'can_open' => false,
             ]);
         }
 
