@@ -6,6 +6,7 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
+use App\Models\AssessmentAssignmentSession;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class AssessmentAssignmentService
@@ -129,6 +131,18 @@ class AssessmentAssignmentService
         return (clone $this->buildCombinationPoolBaseQuery($targetKetenagaan))
             ->reorder()
             ->count();
+    }
+
+    public function buildAssignableParticipantQueryForAssignment(AssessmentAssignment $assignment)
+    {
+        $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($assignment->target_ketenagaan);
+
+        if (! $targetKetenagaan) {
+            return Guru::query()->whereRaw('1 = 0');
+        }
+
+        return Guru::query()
+            ->where('eksternal_jabatan', $targetKetenagaan->guruValue());
     }
 
     public function createAssignment(array $payload, ?int $assignedBy = null): AssessmentAssignment
@@ -310,6 +324,99 @@ class AssessmentAssignmentService
             'new_target_count' => count($context['guru_ids']),
             'queued' => $shouldBatch,
         ];
+    }
+
+    public function addParticipants(AssessmentAssignment $assignment, array $guruIds): array
+    {
+        $requestedGuruIds = $this->normalizeGuruIds($guruIds);
+
+        if ($requestedGuruIds === []) {
+            throw ValidationException::withMessages([
+                'guru_ids' => 'Pilih minimal satu peserta tambahan.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($assignment, $requestedGuruIds) {
+            /** @var \App\Models\AssessmentAssignment $lockedAssignment */
+            $lockedAssignment = AssessmentAssignment::query()
+                ->whereKey($assignment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (in_array($lockedAssignment->status_distribusi, ['diproses', 'gagal'], true)) {
+                throw ValidationException::withMessages([
+                    'guru_ids' => 'Penugasan masih diproses atau bermasalah. Selesaikan distribusi sebelumnya terlebih dahulu.',
+                ]);
+            }
+
+            $eligibleGuruIds = $this->buildAssignableParticipantQueryForAssignment($lockedAssignment)
+                ->whereIn('id', $requestedGuruIds)
+                ->pluck('id')
+                ->map(fn ($guruId) => (int) $guruId)
+                ->all();
+
+            $invalidGuruIds = array_values(array_diff($requestedGuruIds, $eligibleGuruIds));
+
+            if ($invalidGuruIds !== []) {
+                throw ValidationException::withMessages([
+                    'guru_ids' => 'Sebagian peserta tidak sesuai dengan ketenagaan penugasan ini atau datanya sudah tidak valid.',
+                ]);
+            }
+
+            $existingGuruIds = AssessmentAssignmentTarget::query()
+                ->where('assessment_assignment_id', $lockedAssignment->id)
+                ->whereIn('guru_id', $requestedGuruIds)
+                ->pluck('guru_id')
+                ->map(fn ($guruId) => (int) $guruId)
+                ->all();
+
+            if ($existingGuruIds !== []) {
+                throw ValidationException::withMessages([
+                    'guru_ids' => 'Sebagian peserta sudah ada di penugasan ini. Hanya peserta yang belum ditugaskan yang bisa ditambahkan.',
+                ]);
+            }
+
+            $orderedGuruIds = $this->buildAssignableParticipantQueryForAssignment($lockedAssignment)
+                ->whereIn('id', $requestedGuruIds)
+                ->orderBy('nama_lengkap')
+                ->pluck('id')
+                ->map(fn ($guruId) => (int) $guruId)
+                ->all();
+
+            $sessionAllocation = $this->allocateAdditionalSessionSlots(
+                $lockedAssignment,
+                $orderedGuruIds
+            );
+            $combinationLookup = $this->buildIncrementalKabupatenCombinationLookup(
+                $lockedAssignment,
+                $orderedGuruIds
+            );
+            $targetRows = $this->buildAdditionalTargetRows(
+                $lockedAssignment,
+                $orderedGuruIds,
+                $sessionAllocation['session_id_by_guru'],
+                $combinationLookup
+            );
+
+            $this->storeTargetRows($targetRows);
+
+            $lockedAssignment->forceFill([
+                'total_target' => (int) $lockedAssignment->targets()
+                    ->where('status', '!=', 'dibatalkan')
+                    ->count(),
+                'total_sesi' => $lockedAssignment->usesSessionScheduling()
+                    ? (int) $lockedAssignment->sessions()->count()
+                    : 0,
+            ])->save();
+
+            $this->refreshAssignmentSummary($lockedAssignment->id);
+
+            return [
+                'assignment' => $lockedAssignment->fresh(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets'),
+                'added_count' => count($targetRows),
+                'created_session_count' => $sessionAllocation['created_session_count'],
+            ];
+        });
     }
 
     public function deleteAssignment(AssessmentAssignment $assignment): array
@@ -1457,6 +1564,250 @@ class AssessmentAssignmentService
         } while (AssessmentAssignment::where('kode_penugasan', $code)->exists());
 
         return $code;
+    }
+
+    private function allocateAdditionalSessionSlots(
+        AssessmentAssignment $assignment,
+        array $guruIds
+    ): array {
+        if (! $assignment->usesSessionScheduling() || $guruIds === []) {
+            return [
+                'session_id_by_guru' => [],
+                'created_session_count' => 0,
+            ];
+        }
+
+        $sessions = $assignment->sessions()
+            ->orderBy('nomor_sesi')
+            ->lockForUpdate()
+            ->get()
+            ->values();
+        $occupancyBySessionId = AssessmentAssignmentTarget::query()
+            ->selectRaw('assessment_assignment_session_id, count(*) as aggregate')
+            ->where('assessment_assignment_id', $assignment->id)
+            ->whereNotNull('assessment_assignment_session_id')
+            ->where('status', '!=', 'dibatalkan')
+            ->groupBy('assessment_assignment_session_id')
+            ->pluck('aggregate', 'assessment_assignment_session_id')
+            ->mapWithKeys(fn ($count, $sessionId) => [(int) $sessionId => (int) $count])
+            ->all();
+        $createdSessionIds = [];
+        $sessionIdByGuru = [];
+        $nextSessionNumber = ((int) $sessions->max('nomor_sesi')) + 1;
+        $tailSession = $sessions->last();
+
+        foreach ($guruIds as $guruId) {
+            if (! $tailSession || ! $this->canAppendParticipantToSession(
+                $tailSession,
+                (int) ($occupancyBySessionId[$tailSession->id] ?? 0)
+            )) {
+                $tailSession = $this->createAdditionalSession(
+                    $assignment,
+                    $tailSession,
+                    max($nextSessionNumber, 1)
+                );
+                $sessions->push($tailSession);
+                $occupancyBySessionId[$tailSession->id] = 0;
+                $createdSessionIds[$tailSession->id] = true;
+                $nextSessionNumber = $tailSession->nomor_sesi + 1;
+            }
+
+            $sessionIdByGuru[$guruId] = $tailSession->id;
+            $occupancyBySessionId[$tailSession->id] = (int) ($occupancyBySessionId[$tailSession->id] ?? 0) + 1;
+        }
+
+        foreach ($sessions as $session) {
+            $resolvedTotal = (int) ($occupancyBySessionId[$session->id] ?? 0);
+
+            if ((int) $session->total_peserta === $resolvedTotal) {
+                continue;
+            }
+
+            $session->forceFill([
+                'total_peserta' => $resolvedTotal,
+            ])->save();
+        }
+
+        return [
+            'session_id_by_guru' => $sessionIdByGuru,
+            'created_session_count' => count($createdSessionIds),
+        ];
+    }
+
+    private function canAppendParticipantToSession(
+        AssessmentAssignmentSession $session,
+        int $occupiedParticipants
+    ): bool {
+        $capacity = max((int) ($session->kapasitas_peserta ?: self::TARGETS_PER_SESSION), 1);
+
+        if ($occupiedParticipants >= $capacity) {
+            return false;
+        }
+
+        if ($session->waktu_mulai && now()->greaterThanOrEqualTo($session->waktu_mulai)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function createAdditionalSession(
+        AssessmentAssignment $assignment,
+        ?AssessmentAssignmentSession $previousSession,
+        int $sessionNumber
+    ): AssessmentAssignmentSession {
+        $durationHours = (int) ($assignment->durasi_sesi_jam ?: self::DEFAULT_SESSION_DURATION_HOURS);
+        $sessionStartAt = $this->resolveAdditionalSessionStartAt(
+            $assignment,
+            $previousSession,
+            $sessionNumber,
+            $durationHours
+        );
+        $sessionEndAt = $sessionStartAt
+            ? $sessionStartAt->copy()->addHours($durationHours)
+            : null;
+
+        return $assignment->sessions()->create([
+            'nomor_sesi' => $sessionNumber,
+            'label_sesi' => 'Sesi '.$sessionNumber,
+            'waktu_mulai' => $sessionStartAt,
+            'waktu_selesai' => $sessionEndAt,
+            'kapasitas_peserta' => self::TARGETS_PER_SESSION,
+            'total_peserta' => 0,
+            'durasi_sesi_jam' => $durationHours,
+        ]);
+    }
+
+    private function resolveAdditionalSessionStartAt(
+        AssessmentAssignment $assignment,
+        ?AssessmentAssignmentSession $previousSession,
+        int $sessionNumber,
+        int $durationHours
+    ): ?Carbon {
+        if ($previousSession?->waktu_selesai) {
+            return $previousSession->waktu_selesai->copy();
+        }
+
+        if ($previousSession?->waktu_mulai) {
+            $previousDuration = (int) ($previousSession->durasi_sesi_jam ?: $durationHours);
+
+            return $previousSession->waktu_mulai->copy()->addHours($previousDuration);
+        }
+
+        $firstSessionStartAt = $this->resolveFirstSessionStartAtFromAssignment($assignment);
+
+        if (! $firstSessionStartAt) {
+            return null;
+        }
+
+        return $firstSessionStartAt->copy()->addHours(max($sessionNumber - 1, 0) * $durationHours);
+    }
+
+    private function buildIncrementalKabupatenCombinationLookup(
+        AssessmentAssignment $assignment,
+        array $guruIds
+    ): array {
+        $existingLookup = $this->resolveExistingKabupatenCombinationLookup($assignment);
+        $orderedCombinations = $this->sortCombinationsForRoundRobin(
+            $this->resolveAssessmentCombinationsFromAssignment($assignment),
+            $this->buildCombinationSeedKeyFromAssignment($assignment)
+        );
+
+        if ($orderedCombinations->isEmpty()) {
+            return $existingLookup;
+        }
+
+        $newKabupatenKeys = collect($this->resolveGuruKabupatenLookup($guruIds))
+            ->map(fn ($kabupatenKey) => $kabupatenKey !== '' ? $kabupatenKey : '__EMPTY__')
+            ->unique()
+            ->filter(fn (string $kabupatenKey) => ! array_key_exists($kabupatenKey, $existingLookup))
+            ->values()
+            ->all();
+
+        natcasesort($newKabupatenKeys);
+        $newKabupatenKeys = array_values($newKabupatenKeys);
+        $offset = count($existingLookup);
+
+        foreach ($newKabupatenKeys as $index => $kabupatenKey) {
+            $combination = $orderedCombinations[($offset + $index) % $orderedCombinations->count()] ?? null;
+
+            if (! $combination) {
+                continue;
+            }
+
+            $existingLookup[$kabupatenKey] = (int) $combination->id;
+        }
+
+        return $existingLookup;
+    }
+
+    private function resolveExistingKabupatenCombinationLookup(
+        AssessmentAssignment $assignment
+    ): array {
+        return DB::table('assessment_assignment_targets as target')
+            ->join('gurus as guru', 'guru.id', '=', 'target.guru_id')
+            ->where('target.assessment_assignment_id', $assignment->id)
+            ->where('target.status', '!=', 'dibatalkan')
+            ->whereNotNull('target.assessment_combination_id')
+            ->orderBy('target.id')
+            ->get([
+                'guru.kabupaten',
+                'target.assessment_combination_id',
+            ])
+            ->reduce(function (array $carry, $row) {
+                $kabupatenKey = $this->normalizeKabupatenKey($row->kabupaten ?? null);
+                $lookupKey = $kabupatenKey !== '' ? $kabupatenKey : '__EMPTY__';
+
+                if (! array_key_exists($lookupKey, $carry)) {
+                    $carry[$lookupKey] = (int) $row->assessment_combination_id;
+                }
+
+                return $carry;
+            }, []);
+    }
+
+    private function buildAdditionalTargetRows(
+        AssessmentAssignment $assignment,
+        array $guruIds,
+        array $sessionIdByGuru,
+        array $kabupatenCombinationLookup
+    ): array {
+        if ($guruIds === []) {
+            return [];
+        }
+
+        $now = now();
+        $guruKabupatenLookup = $this->resolveGuruKabupatenLookup($guruIds);
+        $defaultCombinationId = collect($kabupatenCombinationLookup)
+            ->filter(fn ($combinationId) => filled($combinationId))
+            ->map(fn ($combinationId) => (int) $combinationId)
+            ->first();
+
+        return collect($guruIds)
+            ->values()
+            ->map(function (int $guruId) use (
+                $assignment,
+                $sessionIdByGuru,
+                $kabupatenCombinationLookup,
+                $guruKabupatenLookup,
+                $defaultCombinationId,
+                $now
+            ) {
+                $kabupatenKey = $guruKabupatenLookup[$guruId] ?? '';
+                $lookupKey = $kabupatenKey !== '' ? $kabupatenKey : '__EMPTY__';
+
+                return [
+                    'assessment_assignment_id' => $assignment->id,
+                    'assessment_assignment_session_id' => $sessionIdByGuru[$guruId] ?? null,
+                    'assessment_combination_id' => $kabupatenCombinationLookup[$lookupKey] ?? $defaultCombinationId,
+                    'guru_id' => $guruId,
+                    'status' => 'ditugaskan',
+                    'assigned_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            })
+            ->all();
     }
 
     private function createSessions(

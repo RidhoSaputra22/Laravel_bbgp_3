@@ -157,6 +157,8 @@
         $explorerActiveFilterCount = collect($explorerSelectedFilters)
             ->filter(fn($value) => filled($value))
             ->count();
+        $participantAdditionPanel = $participantAdditionPanel ?? [];
+        $addParticipantsErrors = $errors->getBag('addParticipants');
     @endphp
 
     <div class="main-content">
@@ -199,6 +201,13 @@
                 @if ($errors->has('assignment'))
                     <div class="alert alert-danger">
                         {{ $errors->first('assignment') }}
+                    </div>
+                @endif
+
+                @if (!empty($participantAdditionPanel['disabled_reason']))
+                    <div class="alert alert-light border">
+                        <div class="font-weight-bold mb-1">Tambah Peserta Manual</div>
+                        <div>{{ $participantAdditionPanel['disabled_reason'] }}</div>
                     </div>
                 @endif
 
@@ -660,19 +669,27 @@
                         </div>
 
                         <div class="card monitor-filter-card mb-4" id="monitoring-explorer">
-                            <div class="card-header">
-                                <div>
-                                    <h4 class="mb-1">Filter Monitoring Penugasan</h4>
-                                    <div class="text-muted small">
-                                        Filter ini dipakai untuk mode individu dan ringkasan visual agregat.
-                                    </div>
+                        <div class="card-header">
+                            <div>
+                                <h4 class="mb-1">Filter Monitoring Penugasan</h4>
+                                <div class="text-muted small">
+                                    Filter ini dipakai untuk mode individu dan ringkasan visual agregat.
                                 </div>
-                                <div class="card-header-action">
+                            </div>
+                            <div class="card-header-action">
+                                <div class="d-flex flex-wrap justify-content-end align-items-center" style="gap: 0.5rem;">
                                     <span class="badge badge-light">
                                         {{ $explorerActiveFilterCount }} filter aktif
                                     </span>
+                                    <button type="button"
+                                        class="btn btn-sm {{ !empty($participantAdditionPanel['can_open_modal']) ? 'btn-success' : 'btn-light disabled' }}"
+                                        data-toggle="modal" data-target="#assignmentAddParticipantsModal"
+                                        {{ !empty($participantAdditionPanel['can_open_modal']) ? '' : 'disabled' }}>
+                                        <i class="fas fa-user-plus mr-1"></i> Tambah Peserta
+                                    </button>
                                 </div>
                             </div>
+                        </div>
                             <div class="card-body">
                                 <form action="{{ route('assessment.assignment.show', $assignment->id) }}#monitoring-explorer"
                                     method="GET">
@@ -758,9 +775,14 @@
                                 <div class="card-header">
                                     <h4>Hasil Monitoring Per Individu</h4>
                                     <div class="card-header-action">
-                                        <span class="badge badge-light">
-                                            {{ $explorerPaginator?->total() ?? count($explorerRows) }} peserta
-                                        </span>
+                                        <div class="d-flex flex-wrap justify-content-end align-items-center" style="gap: 0.5rem;">
+                                            <span class="badge badge-light">
+                                                {{ $explorerPaginator?->total() ?? count($explorerRows) }} peserta
+                                            </span>
+                                            <span class="badge badge-success">
+                                                {{ (int) ($participantAdditionPanel['available_total'] ?? 0) }} kandidat tambahan
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -1184,6 +1206,73 @@
         </section>
     </div>
 
+    <div class="modal fade" id="assignmentAddParticipantsModal" tabindex="-1" role="dialog"
+        aria-labelledby="assignmentAddParticipantsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document" id="assignment-add-participants">
+            <form action="{{ route('assessment.assignment.add-participants', $assignment->id) }}" method="POST"
+                class="modal-content">
+                @csrf
+                <div class="modal-header bg-success">
+                    <h5 class="modal-title text-white" id="assignmentAddParticipantsModalLabel">Tambah Peserta Penugasan</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-light border">
+                        Peserta baru akan ditambahkan ke penugasan ini tanpa reset distribusi, tanpa menghapus jawaban,
+                        dan tanpa mengubah progres peserta lama yang sedang mengerjakan maupun yang sudah selesai.
+                    </div>
+
+                    <div class="alert alert-success border">
+                        Daftar di bawah ini memuat semua peserta pada ketenagaan
+                        <strong>{{ $assignment->target_ketenagaan_label ?: '-' }}</strong>, kecuali yang sudah ada di
+                        penugasan ini.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-4 mb-3">
+                            <div class="text-muted small">Ketenagaan</div>
+                            <div class="font-weight-bold">{{ $assignment->target_ketenagaan_label ?: '-' }}</div>
+                        </div>
+                        <div class="col-lg-4 mb-3">
+                            <div class="text-muted small">Peserta Sudah Ditugaskan</div>
+                            <div class="font-weight-bold">{{ $assignment->total_ditugaskan }} peserta</div>
+                        </div>
+                        <div class="col-lg-4 mb-3">
+                            <div class="text-muted small">Kandidat Tambahan Tersedia</div>
+                            <div class="font-weight-bold text-success">
+                                {{ (int) ($participantAdditionPanel['available_total'] ?? 0) }} peserta
+                            </div>
+                        </div>
+                    </div>
+
+                    @if ($addParticipantsErrors->has('guru_ids'))
+                        <div class="alert alert-danger">
+                            {{ $addParticipantsErrors->first('guru_ids') }}
+                        </div>
+                    @endif
+
+                    <x-multiple-choice-table id="assignment-add-participants-selector" name="guru_ids"
+                        :headers="['Nama', 'Email', 'Satuan Pendidikan', 'Kabupaten', 'Verifikasi']"
+                        :items="[]" :selected="$participantAdditionPanel['selected_ids'] ?? []"
+                        :initialSelectedItems="$participantAdditionPanel['selected_items'] ?? []"
+                        ajax-url="{{ route('assessment.assignment.add-participants-options', $assignment->id) }}"
+                        page-size="10" search-placeholder="Cari nama peserta tambahan..."
+                        empty-message="{{ $participantAdditionPanel['disabled_reason'] ?? 'Tidak ada peserta tambahan yang tersedia pada ketenagaan ini.' }}"
+                        selected-title="Peserta Tambahan" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success"
+                        {{ !empty($participantAdditionPanel['can_open_modal']) ? '' : 'disabled' }}>
+                        <i class="fas fa-user-plus mr-1"></i> Tambahkan ke Penugasan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="modal fade" id="assignmentDeleteModal" tabindex="-1" role="dialog"
         aria-labelledby="assignmentDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -1245,6 +1334,7 @@
             };
             const explorerMode = @json($explorerMode);
             const csrfToken = @json(csrf_token());
+            const shouldOpenAddParticipantsModal = @json($addParticipantsErrors->any());
 
             function initDataTable(selector, nonSortableColumns) {
                 const table = $(selector);
@@ -1677,6 +1767,10 @@
             initMonitoringIndividualDataTable();
             initCharts();
             initExplorerCharts();
+
+            if (shouldOpenAddParticipantsModal) {
+                $('#assignmentAddParticipantsModal').modal('show');
+            }
         });
     </script>
 @endpush

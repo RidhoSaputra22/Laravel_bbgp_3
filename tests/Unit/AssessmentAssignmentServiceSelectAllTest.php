@@ -70,6 +70,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->id();
             $table->string('kode_penugasan')->unique();
             $table->string('judul_penugasan');
+            $table->boolean('session_enabled')->default(true);
             $table->string('target_ketenagaan')->nullable();
             $table->unsignedBigInteger('assessment_combination_id')->nullable();
             $table->text('target_jabatan')->nullable();
@@ -96,6 +97,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->unsignedBigInteger('assessment_assignment_id');
             $table->unsignedBigInteger('assessment_id');
             $table->unsignedInteger('urutan')->default(1);
+            $table->text('stage_config')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
         });

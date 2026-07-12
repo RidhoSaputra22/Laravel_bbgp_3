@@ -203,6 +203,7 @@ class AssessmentAssignmentController extends Controller
             'assignment' => $assignment,
             'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
             'monitoringPanel' => $this->assessmentMonitoringService->buildAssignmentDetail($assignment),
+            'participantAdditionPanel' => $this->buildParticipantAdditionPanel($assignment),
             'monitoringExplorer' => $this->assessmentMonitoringService->buildAssignmentExplorer(
                 $assignment,
                 $monitoringExplorerFilters,
@@ -231,6 +232,111 @@ class AssessmentAssignmentController extends Controller
                 ]
             )
         );
+    }
+
+    public function addParticipantOptions(Request $request, string $id): JsonResponse
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+        $additionPanel = $this->buildParticipantAdditionPanel($assignment);
+
+        if (! ($additionPanel['can_open_modal'] ?? false)) {
+            return response()->json([
+                'items' => [],
+                'pagination' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'per_page' => self::GURU_PAGE_SIZE,
+                    'total' => 0,
+                    'from' => 0,
+                    'to' => 0,
+                ],
+            ]);
+        }
+
+        $query = $this->assignmentService
+            ->buildAssignableParticipantQueryForAssignment($assignment)
+            ->select([
+                'id',
+                'nama_lengkap',
+                'email',
+                'satuan_pendidikan',
+                'kabupaten',
+                'eksternal_jabatan',
+                'jenis_jabatan',
+                'status_kepegawaian',
+                'is_verif',
+            ]);
+        $existingGuruIds = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->pluck('guru_id')
+            ->map(fn ($guruId) => (int) $guruId)
+            ->all();
+
+        if ($existingGuruIds !== []) {
+            $query->whereNotIn('id', $existingGuruIds);
+        }
+
+        $this->applyGuruSelectionScope($query, [
+            'q' => $request->input('q'),
+        ]);
+
+        $perPage = max(5, min((int) $request->input('per_page', self::GURU_PAGE_SIZE), 50));
+        $page = max((int) $request->input('page', 1), 1);
+        $paginator = $query
+            ->orderBy('nama_lengkap')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'items' => $paginator->getCollection()
+                ->map(fn (Guru $guru) => $this->transformGuruTableItem($guru))
+                ->values()
+                ->all(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'from' => $paginator->firstItem() ?? 0,
+                'to' => $paginator->lastItem() ?? 0,
+            ],
+        ]);
+    }
+
+    public function addParticipants(Request $request, string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+
+        try {
+            $result = $this->assignmentService->addParticipants(
+                $assignment,
+                $this->normalizeGuruIdList((array) $request->input('guru_ids', []))
+            );
+
+            /** @var \App\Models\AssessmentAssignment $updatedAssignment */
+            $updatedAssignment = $result['assignment'];
+
+            return redirect()
+                ->route('assessment.assignment.show', $updatedAssignment->id)
+                ->with('assignment_notice', $this->buildAddParticipantsNotice($result));
+        } catch (ValidationException $exception) {
+            return redirect()
+                ->to(route('assessment.assignment.show', $assignment->id).'#assignment-add-participants')
+                ->withErrors($exception->errors(), 'addParticipants')
+                ->withInput();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->to(route('assessment.assignment.show', $assignment->id).'#assignment-add-participants')
+                ->withErrors([
+                    'guru_ids' => 'Terjadi kesalahan saat menambahkan peserta baru ke penugasan assessment.',
+                ], 'addParticipants')
+                ->withInput();
+        }
     }
 
     public function retryDisqualifiedTarget(Request $request, string $targetId)
@@ -496,6 +602,61 @@ class AssessmentAssignmentController extends Controller
         return 'Retry penugasan dijalankan. Resume untuk '
             .($result['resumed_count'] ?? 0)
             .' target diproses melalui '.$distributionMethod.'.';
+    }
+
+    private function buildAddParticipantsNotice(array $result): string
+    {
+        $parts = [
+            ($result['added_count'] ?? 0).' peserta baru berhasil ditambahkan tanpa reset penugasan.',
+            'Peserta lama tetap menggunakan progres dan sesi yang sudah ada.',
+        ];
+
+        if (($result['created_session_count'] ?? 0) > 0) {
+            $parts[] = $result['created_session_count'].' sesi tambahan dibuat untuk menampung peserta baru secara aman.';
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private function buildParticipantAdditionPanel(AssessmentAssignment $assignment): array
+    {
+        $selectedGuruIds = $this->normalizeGuruIdList((array) old('guru_ids', []));
+        $canChangeTargets = ! in_array($assignment->status_distribusi, ['diproses', 'gagal'], true);
+        $availableTotal = 0;
+
+        if ($canChangeTargets) {
+            $query = $this->assignmentService
+                ->buildAssignableParticipantQueryForAssignment($assignment);
+            $existingGuruIds = AssessmentAssignmentTarget::query()
+                ->where('assessment_assignment_id', $assignment->id)
+                ->pluck('guru_id')
+                ->map(fn ($guruId) => (int) $guruId)
+                ->all();
+
+            if ($existingGuruIds !== []) {
+                $query->whereNotIn('id', $existingGuruIds);
+            }
+
+            $availableTotal = (int) $query->count();
+        }
+
+        $disabledReason = null;
+
+        if (! $canChangeTargets) {
+            $disabledReason = $assignment->status_distribusi === 'diproses'
+                ? 'Penugasan masih diproses queue. Tunggu sampai distribusi selesai sebelum menambah peserta baru.'
+                : 'Penugasan sedang berstatus gagal. Selesaikan distribusi bermasalah terlebih dahulu sebelum menambah peserta baru.';
+        } elseif ($availableTotal < 1) {
+            $disabledReason = 'Tidak ada peserta tambahan pada ketenagaan ini atau semua peserta pada ketenagaan ini sudah pernah ditugaskan.';
+        }
+
+        return [
+            'available_total' => $availableTotal,
+            'can_open_modal' => $canChangeTargets && $availableTotal > 0,
+            'disabled_reason' => $disabledReason,
+            'selected_ids' => $selectedGuruIds,
+            'selected_items' => $this->buildSelectedGuruItems($selectedGuruIds),
+        ];
     }
 
     private function buildKetenagaanSummaries(): array
