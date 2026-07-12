@@ -16,14 +16,14 @@
         <div class="flex flex-wrap gap-2 text-xs">
             <span
                 class="inline-flex items-center rounded-sm bg-[#eaf5fb] px-3 py-1 text-xs font-semibold text-[#0d5f98]">
-                <span x-text="answeredQuestionCount()"></span>&nbsp;terjawab
+                <span x-text="answeredQuestionCount(currentAssessmentIndex)"></span>&nbsp;terjawab
             </span>
             <span
                 class="inline-flex items-center rounded-sm bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                <span x-text="unansweredQuestionCount()"></span>&nbsp;belum
+                <span x-text="unansweredQuestionCount(currentAssessmentIndex)"></span>&nbsp;belum
             </span>
             <span class="inline-flex items-center rounded-sm bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                <span x-text="flaggedQuestionCount()"></span>&nbsp;flag
+                <span x-text="flaggedQuestionCount(currentAssessmentIndex)"></span>&nbsp;flag
             </span>
         </div>
     </div>
@@ -45,7 +45,8 @@
 
     <div class="h-full space-y-4  pr-1 text-xs">
         @foreach ($questionNavigationGroups as $group)
-            <div class="space-y-2">
+            <div class="space-y-2" x-show="isQuestionNavigationGroupVisible({{ $group['assessment_index'] }})"
+                style="display: none;">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <div class="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">

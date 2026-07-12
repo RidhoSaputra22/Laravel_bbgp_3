@@ -27,9 +27,9 @@
 
 
 
-        <div x-show="flaggedUnansweredQuestionCount() > 0"
+        <div x-show="flaggedUnansweredQuestionCount('all') > 0"
             class="rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Masih ada <span class="font-semibold" x-text="flaggedUnansweredQuestionCount()"></span> soal yang
+            Masih ada <span class="font-semibold" x-text="flaggedUnansweredQuestionCount('all')"></span> soal yang
             ditandai tetapi belum dijawab. Soal tersebut harus diisi sebelum jawaban dapat dikirim.
         </div>
     </div>

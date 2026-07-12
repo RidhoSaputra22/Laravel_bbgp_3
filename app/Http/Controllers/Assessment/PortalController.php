@@ -234,6 +234,7 @@ class PortalController extends Controller
             'target' => $freshTarget,
             'attempt' => $freshAttempt,
             'meta' => $this->portalService->buildTargetMeta($freshTarget),
+            'selectedStageIndex' => $currentStageIndex,
             'answerLookup' => $this->attemptService->buildAnswerLookup($freshAttempt),
             'securityPayload' => $this->attemptSecurityService->buildClientPayload($freshAttempt, $currentStageIndex),
         ]);

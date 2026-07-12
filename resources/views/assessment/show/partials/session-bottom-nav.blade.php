@@ -38,9 +38,9 @@
 
                 <div class="flex flex-col gap-3 sm:flex-row justify-end">
                     <x-assessment::ui.button type="button" variant="outline" icon="fas fa-arrow-left"
-                        x-show="canGoPreviousStage()" x-bind:disabled="isInteractionLocked()"
-                        @click="goToAssessment(currentAssessmentIndex - 1)">
-                        Assessment Sebelumnya
+                        x-show="stageFlowEnabled" x-bind:disabled="isBusy()"
+                        @click="goToAssessmentOverview()">
+                        Kembali ke Assessment
                     </x-assessment::ui.button>
 
                     <x-assessment::ui.button type="button" variant="outline" icon="fas fa-save"
@@ -53,11 +53,6 @@
                         x-show="showStageFinalizeButton()" x-bind:disabled="isBusy()"
                         @click="submitCurrentStage()">
                         <span x-text="currentStageFinalizeLabel()"></span>
-                    </x-assessment::ui.button>
-
-                    <x-assessment::ui.button type="button" icon="fas fa-arrow-right" x-show="canGoNextStage()"
-                        x-bind:disabled="isInteractionLocked()" @click="goToAssessment(currentAssessmentIndex + 1)">
-                        Next Assessment
                     </x-assessment::ui.button>
                 </div>
             </div>

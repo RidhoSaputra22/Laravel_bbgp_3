@@ -328,8 +328,13 @@
 
         $errorAssessmentIndex = $errorFieldId !== null ? $assessmentIndexByFieldId[$errorFieldId] ?? null : null;
         $oldActiveAssessmentIndex = old('active_assessment_index');
+        $selectedStageIndex = isset($selectedStageIndex) && is_numeric($selectedStageIndex)
+            ? (int) $selectedStageIndex
+            : null;
         $stageFlowAssessmentIndex = $stageFlowEnabled
-            ? \App\Support\Assessment\AssessmentStageProgress::resolveCurrentStageIndex($stageProgress)
+            ? (is_numeric($selectedStageIndex)
+                ? $selectedStageIndex
+                : \App\Support\Assessment\AssessmentStageProgress::resolveCurrentStageIndex($stageProgress))
             : 0;
         $initialAssessmentIndex =
             $assessmentCount > 0

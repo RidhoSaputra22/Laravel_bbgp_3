@@ -1717,8 +1717,30 @@
                         .map((value) => Number(value))
                         .filter((value) => Number.isInteger(value) && value > 0)));
                 },
+                normalizeQuestionScope(assessmentIndex = null) {
+                    if (assessmentIndex === 'all') {
+                        return 'all';
+                    }
+
+                    const normalizedAssessmentIndex = assessmentIndex === null || typeof assessmentIndex === 'undefined'
+                        ? this.currentAssessmentIndex
+                        : assessmentIndex;
+
+                    return Number(normalizedAssessmentIndex);
+                },
                 questionItemByFieldId(fieldId) {
                     return this.questionItems.find((item) => Number(item.field_id) === Number(fieldId)) ?? null;
+                },
+                questionItemsForAssessment(assessmentIndex = null) {
+                    const normalizedAssessmentIndex = this.normalizeQuestionScope(assessmentIndex);
+
+                    if (normalizedAssessmentIndex === 'all') {
+                        return this.questionItems;
+                    }
+
+                    return this.questionItems.filter((item) => {
+                        return Number(item.assessment_index) === normalizedAssessmentIndex;
+                    });
                 },
                 firstQuestionFieldId(assessmentIndex) {
                     const assessmentMeta = this.assessmentItems.find((item) => Number(item.index) === Number(assessmentIndex));
@@ -1778,19 +1800,29 @@
                         flagged: this.isFieldFlagged(fieldId),
                     };
                 },
-                answeredQuestionCount() {
-                    return this.questionItems.filter((item) => this.questionState(item.field_id).answered).length;
+                answeredQuestionCount(assessmentIndex = null) {
+                    return this.questionItemsForAssessment(assessmentIndex).filter((item) => {
+                        return this.questionState(item.field_id).answered;
+                    }).length;
                 },
-                unansweredQuestionCount() {
-                    return Math.max(this.questionItems.length - this.answeredQuestionCount(), 0);
+                unansweredQuestionCount(assessmentIndex = null) {
+                    return Math.max(
+                        this.questionItemsForAssessment(assessmentIndex).length - this.answeredQuestionCount(assessmentIndex),
+                        0,
+                    );
                 },
-                flaggedQuestionCount() {
-                    return this.flaggedFieldIds.length;
+                flaggedQuestionCount(assessmentIndex = null) {
+                    return this.questionItemsForAssessment(assessmentIndex).filter((item) => {
+                        return this.isFieldFlagged(item.field_id);
+                    }).length;
                 },
-                flaggedUnansweredQuestionCount() {
-                    return this.questionItems.filter((item) => {
+                flaggedUnansweredQuestionCount(assessmentIndex = null) {
+                    return this.questionItemsForAssessment(assessmentIndex).filter((item) => {
                         return this.isFieldFlagged(item.field_id) && !this.questionState(item.field_id).answered;
                     }).length;
+                },
+                isQuestionNavigationGroupVisible(assessmentIndex) {
+                    return Number(assessmentIndex) === Number(this.currentAssessmentIndex);
                 },
                 questionButtonClass(fieldId, assessmentIndex) {
                     const isAnswered = Boolean(this.questionState(fieldId).answered);
@@ -2104,7 +2136,19 @@
                     this.isSubmitting = true;
                     form.submit();
                 },
+                goToAssessmentOverview() {
+                    if (this.isBusy()) {
+                        return;
+                    }
+
+                    window.location.href = this.overviewUrl || window.location.pathname;
+                },
                 async goToAssessment(index) {
+                    if (this.stageFlowEnabled) {
+                        this.goToAssessmentOverview();
+                        return;
+                    }
+
                     if (this.isInteractionLocked() || this.totalAssessments <= 0) {
                         return;
                     }

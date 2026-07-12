@@ -445,6 +445,295 @@ class AssessmentShowViewTest extends TestCase
         $response->assertSee('questionItems:', false);
     }
 
+    public function test_assessment_show_view_limits_question_navigation_to_current_stage_binding(): void
+    {
+        $guru = new Guru([
+            'nama_lengkap' => 'Guru Tahapan',
+            'satuan_pendidikan' => 'SMK Tahapan',
+        ]);
+
+        $assignment = new AssessmentAssignment([
+            'tanggal_mulai' => '2026-06-28',
+            'tanggal_selesai' => '2026-06-29',
+        ]);
+
+        $target = new AssessmentAssignmentTarget([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+        ]);
+        $target->id = 11;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('session', new AssessmentAssignmentSession([
+            'label_sesi' => 'Sesi 5',
+        ]));
+
+        $attempt = new AssessmentAttempt([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+            'structure_snapshot' => [
+                'meta' => [
+                    'total_questions' => 2,
+                    'required_questions' => 2,
+                ],
+                'assessments' => [
+                    [
+                        'id' => 501,
+                        'kode_assessment' => 'ASM-TAHAP-1',
+                        'judul' => 'Tahap Satu',
+                        'deskripsi' => 'Deskripsi tahap satu',
+                        'petunjuk' => null,
+                        'forms' => [
+                            [
+                                'id' => 601,
+                                'judul_form' => 'Form Tahap 1',
+                                'deskripsi' => null,
+                                'fields' => [
+                                    [
+                                        'id' => 701,
+                                        'assessment_id' => 501,
+                                        'assessment_form_id' => 601,
+                                        'label' => 'Pertanyaan tahap satu',
+                                        'deskripsi' => null,
+                                        'placeholder' => 'Isi jawaban',
+                                        'tipe_field' => 'text',
+                                        'opsi_field' => [],
+                                        'is_required' => true,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'id' => 502,
+                        'kode_assessment' => 'ASM-TAHAP-2',
+                        'judul' => 'Tahap Dua',
+                        'deskripsi' => 'Deskripsi tahap dua',
+                        'petunjuk' => null,
+                        'forms' => [
+                            [
+                                'id' => 602,
+                                'judul_form' => 'Form Tahap 2',
+                                'deskripsi' => null,
+                                'fields' => [
+                                    [
+                                        'id' => 702,
+                                        'assessment_id' => 502,
+                                        'assessment_form_id' => 602,
+                                        'label' => 'Pertanyaan tahap dua',
+                                        'deskripsi' => null,
+                                        'placeholder' => 'Isi jawaban',
+                                        'tipe_field' => 'textarea',
+                                        'opsi_field' => [],
+                                        'is_required' => true,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this
+            ->withViewErrors([])
+            ->view('assessment.show.show', [
+                'menu' => 'assessment-portal',
+                'guru' => $guru,
+                'target' => $target,
+                'attempt' => $attempt,
+                'meta' => [
+                    'session_label' => 'Sesi 5',
+                    'session_schedule_text' => 'Jadwal sesi belum ditentukan',
+                    'label' => 'Sedang Dikerjakan',
+                    'date_text' => '28 Jun 2026 - 29 Jun 2026',
+                ],
+            ]);
+
+        $response->assertSee('answeredQuestionCount(currentAssessmentIndex)', false);
+        $response->assertSee('unansweredQuestionCount(currentAssessmentIndex)', false);
+        $response->assertSee('flaggedQuestionCount(currentAssessmentIndex)', false);
+        $response->assertSee('x-show="isQuestionNavigationGroupVisible(0)"', false);
+        $response->assertSee('x-show="isQuestionNavigationGroupVisible(1)"', false);
+        $response->assertSee("flaggedUnansweredQuestionCount('all')", false);
+    }
+
+    public function test_assessment_show_view_honors_selected_stage_index_for_read_only_stage(): void
+    {
+        $guru = new Guru([
+            'nama_lengkap' => 'Guru Read Only',
+            'satuan_pendidikan' => 'SMK Read Only',
+        ]);
+
+        $assignment = new AssessmentAssignment([
+            'tanggal_mulai' => '2026-06-28',
+            'tanggal_selesai' => '2026-06-29',
+        ]);
+
+        $target = new AssessmentAssignmentTarget([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+        ]);
+        $target->id = 12;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('session', new AssessmentAssignmentSession([
+            'label_sesi' => 'Sesi 6',
+        ]));
+
+        $attempt = new AssessmentAttempt([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+            'progress_snapshot' => [
+                'stage_flow_enabled' => true,
+                'current_stage_index' => 1,
+                'stages' => [
+                    [
+                        'stage_index' => 0,
+                        'status' => 'submitted',
+                        'submitted_at' => '2026-06-28T09:00:00+08:00',
+                        'config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'direct',
+                            'allow_draft' => true,
+                            'finalize_mode' => 'manual',
+                            'lock_until_previous_stages_completed' => false,
+                            'time_limit_minutes' => null,
+                            'security' => [
+                                'enabled' => false,
+                                'require_fullscreen' => false,
+                            ],
+                        ],
+                    ],
+                    [
+                        'stage_index' => 1,
+                        'status' => 'in_progress',
+                        'started_at' => '2026-06-28T09:15:00+08:00',
+                        'config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'direct',
+                            'allow_draft' => false,
+                            'finalize_mode' => 'manual',
+                            'lock_until_previous_stages_completed' => true,
+                            'time_limit_minutes' => 90,
+                            'security' => [
+                                'enabled' => true,
+                                'require_fullscreen' => true,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'structure_snapshot' => [
+                'meta' => [
+                    'total_questions' => 2,
+                    'required_questions' => 2,
+                ],
+                'assessments' => [
+                    [
+                        'id' => 601,
+                        'kode_assessment' => 'ASM-READONLY-1',
+                        'judul' => 'Tahap Selesai',
+                        'deskripsi' => 'Tahap yang sudah permanen.',
+                        'petunjuk' => null,
+                        'stage_config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'direct',
+                            'allow_draft' => true,
+                            'finalize_mode' => 'manual',
+                            'lock_until_previous_stages_completed' => false,
+                            'time_limit_minutes' => null,
+                            'security' => [
+                                'enabled' => false,
+                                'require_fullscreen' => false,
+                            ],
+                        ],
+                        'forms' => [
+                            [
+                                'id' => 701,
+                                'judul_form' => 'Form Tahap Selesai',
+                                'deskripsi' => null,
+                                'fields' => [
+                                    [
+                                        'id' => 801,
+                                        'assessment_id' => 601,
+                                        'assessment_form_id' => 701,
+                                        'label' => 'Pertanyaan tahap selesai',
+                                        'deskripsi' => null,
+                                        'placeholder' => 'Isi jawaban',
+                                        'tipe_field' => 'text',
+                                        'opsi_field' => [],
+                                        'is_required' => true,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'id' => 602,
+                        'kode_assessment' => 'ASM-AKTIF-2',
+                        'judul' => 'Tahap Aktif',
+                        'deskripsi' => 'Tahap yang sedang berjalan.',
+                        'petunjuk' => null,
+                        'stage_config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'direct',
+                            'allow_draft' => false,
+                            'finalize_mode' => 'manual',
+                            'lock_until_previous_stages_completed' => true,
+                            'time_limit_minutes' => 90,
+                            'security' => [
+                                'enabled' => true,
+                                'require_fullscreen' => true,
+                            ],
+                        ],
+                        'forms' => [
+                            [
+                                'id' => 702,
+                                'judul_form' => 'Form Tahap Aktif',
+                                'deskripsi' => null,
+                                'fields' => [
+                                    [
+                                        'id' => 802,
+                                        'assessment_id' => 602,
+                                        'assessment_form_id' => 702,
+                                        'label' => 'Pertanyaan tahap aktif',
+                                        'deskripsi' => null,
+                                        'placeholder' => 'Isi jawaban',
+                                        'tipe_field' => 'textarea',
+                                        'opsi_field' => [],
+                                        'is_required' => true,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this
+            ->withViewErrors([])
+            ->view('assessment.show.show', [
+                'menu' => 'assessment-portal',
+                'guru' => $guru,
+                'target' => $target,
+                'attempt' => $attempt,
+                'selectedStageIndex' => 0,
+                'meta' => [
+                    'session_label' => 'Sesi 6',
+                    'session_schedule_text' => 'Jadwal sesi belum ditentukan',
+                    'label' => 'Tahap 2 Sedang Dikerjakan',
+                    'date_text' => '28 Jun 2026 - 29 Jun 2026',
+                ],
+                'securityPayload' => [
+                    'enabled' => false,
+                ],
+            ]);
+
+        $response->assertSee('initialIndex: 0', false);
+        $response->assertSee('Tahap ini sudah disimpan permanen dan ditampilkan dalam mode baca.');
+        $response->assertSee('data-assessment-panel="0"', false);
+        $response->assertSee('Kembali ke Assessment');
+        $response->assertSee('goToAssessmentOverview()', false);
+        $response->assertDontSee('Assessment Sebelumnya');
+        $response->assertDontSee('Next Assessment');
+    }
+
     public function test_radio_group_displays_sequential_labels_while_preserving_randomized_option_values(): void
     {
         $html = Blade::render(

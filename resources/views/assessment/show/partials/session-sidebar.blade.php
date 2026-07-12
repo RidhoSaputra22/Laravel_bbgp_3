@@ -28,13 +28,13 @@
                     </div>
                 @endif
             </div>
-            @if ($assessmentCount > 0)
+                @if ($assessmentCount > 0)
                 <div class="flex flex-col gap-4 mt-4">
                         <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
                             <x-assessment::ui.button type="button" variant="outline" icon="fas fa-arrow-left"
-                                x-show="canGoPreviousStage()" x-bind:disabled="isInteractionLocked()"
-                                @click="goToAssessment(currentAssessmentIndex - 1)">
-                                Assessment Sebelumnya
+                                x-show="stageFlowEnabled" x-bind:disabled="isBusy()"
+                                @click="goToAssessmentOverview()">
+                                Kembali
                             </x-assessment::ui.button>
 
                             <x-assessment::ui.button type="button" variant="outline" icon="fas fa-save"
