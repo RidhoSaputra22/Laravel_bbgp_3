@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -30,6 +31,14 @@ class AssessmentAssignmentTarget extends Model
         'submitted_at' => 'datetime',
         'timed_out_at' => 'datetime',
     ];
+
+    public function scopeLatestAssignmentFirst(Builder $query): Builder
+    {
+        return $query
+            ->orderByDesc($this->qualifyColumn('assessment_assignment_id'))
+            ->orderByDesc($this->qualifyColumn('assigned_at'))
+            ->orderByDesc($this->qualifyColumn('id'));
+    }
 
     public function assignment()
     {

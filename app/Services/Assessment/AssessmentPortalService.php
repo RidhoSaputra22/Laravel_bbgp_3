@@ -29,8 +29,7 @@ class AssessmentPortalService
             'attempt',
         ])
             ->where('guru_id', $guru->id)
-            ->orderByDesc('assigned_at')
-            ->orderByDesc('id')
+            ->latestAssignmentFirst()
             ->get();
 
         return $targets->map(function (AssessmentAssignmentTarget $target) {

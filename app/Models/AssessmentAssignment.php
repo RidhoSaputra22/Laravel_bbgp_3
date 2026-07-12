@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enum\AssessmentKetenagaanType;
 use App\Models\Pivots\AssessmentAssignmentAssessment;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -52,6 +53,13 @@ class AssessmentAssignment extends Model
         'total_target' => 'integer',
         'total_ditugaskan' => 'integer',
     ];
+
+    public function scopeNewestFirst(Builder $query): Builder
+    {
+        return $query
+            ->orderByDesc($this->qualifyColumn('created_at'))
+            ->orderByDesc($this->qualifyColumn('id'));
+    }
 
     public function assessments()
     {

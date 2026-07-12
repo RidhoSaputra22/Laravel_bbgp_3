@@ -157,6 +157,7 @@ class AssessmentMonitoringService
     private function paginateGlobalAssignmentRows(int $perPage, int $page): LengthAwarePaginator
     {
         $paginator = $this->assignmentMonitoringBaseQuery()
+            ->orderByDesc('assignment.created_at')
             ->orderByDesc('id')
             ->paginate($perPage, ['*'], 'assignment_page', $page);
 
@@ -175,6 +176,7 @@ class AssessmentMonitoringService
             ->orderByDesc('distribution_missing_total')
             ->orderByDesc('pending_total')
             ->orderByDesc('timeout_total')
+            ->orderByDesc('assignment.created_at')
             ->orderByDesc('id')
             ->limit(8)
             ->get()
@@ -186,6 +188,7 @@ class AssessmentMonitoringService
     private function buildGlobalAssignmentChartRows(): Collection
     {
         return $this->assignmentMonitoringBaseQuery()
+            ->orderByDesc('assignment.created_at')
             ->orderByDesc('id')
             ->limit(8)
             ->get()
@@ -929,7 +932,7 @@ class AssessmentMonitoringService
         return AssessmentAssignment::query()
             ->with($this->monitoringRelations())
             ->withCount(['targets', 'sessions'])
-            ->orderByDesc('id')
+            ->newestFirst()
             ->get();
     }
 

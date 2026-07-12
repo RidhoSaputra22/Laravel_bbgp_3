@@ -70,6 +70,7 @@
                                             <th>Distribusi</th>
                                             <th>Target & Sesi</th>
                                             <th class="text-center">Action</th>
+                                            <th class="d-none">Urutan Terbaru</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -214,6 +215,9 @@
                                                         </form>
                                                     @endif
                                                 </td>
+                                                <td class="d-none">
+                                                    {{ ($data->created_at?->format('YmdHis') ?? '00000000000000') . str_pad((string) $data->id, 10, '0', STR_PAD_LEFT) }}
+                                                </td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -277,14 +281,23 @@
 
             if (table.length) {
                 table.DataTable({
-                    order: [],
+                    order: [[7, 'desc']],
+                    orderFixed: {
+                        pre: [[7, 'desc']],
+                    },
                     pageLength: 10,
                     autoWidth: false,
                     columnDefs: [{
-                        targets: [0, 6],
-                        orderable: false,
-                        searchable: false,
-                    }],
+                            targets: [0, 6],
+                            orderable: false,
+                            searchable: false,
+                        },
+                        {
+                            targets: [7],
+                            visible: false,
+                            searchable: false,
+                        }
+                    ],
                     language: {
                         url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
                     },

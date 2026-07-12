@@ -46,7 +46,7 @@ class AssessmentAssignmentController extends Controller
             'creator',
             'combination',
         ])
-            ->orderByDesc('id')
+            ->newestFirst()
             ->get();
 
         $monitoringByAssignmentId = $datas
