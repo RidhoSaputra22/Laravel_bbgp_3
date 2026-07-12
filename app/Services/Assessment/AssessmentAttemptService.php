@@ -4,6 +4,7 @@ namespace App\Services\Assessment;
 
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
+use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
@@ -617,7 +618,17 @@ class AssessmentAttemptService
             }
 
             $value = $answers[$fieldId] ?? null;
-            $textValue = is_array($value) ? '' : trim((string) ($value ?? ''));
+            $selectedOptionValue = null;
+            $otherTextValue = null;
+
+            if ($fieldType === 'select' && is_array($value)) {
+                $selectedOptionValue = trim((string) ($value['value'] ?? ''));
+                $otherTextValue = trim((string) ($value['other_text'] ?? ''));
+                $textValue = $selectedOptionValue;
+            } else {
+                $textValue = is_array($value) ? '' : trim((string) ($value ?? ''));
+            }
+
             $matchedOption = null;
 
             if ($mustBeAnswered && $textValue === '') {
@@ -712,6 +723,33 @@ class AssessmentAttemptService
             }
 
             if ($fieldType === 'select') {
+                if (
+                    $textValue === ChoiceFieldOtherOption::VALUE
+                    && ChoiceFieldOtherOption::isEnabled($field)
+                ) {
+                    if ($otherTextValue === '') {
+                        $messages[$fieldKey] = "Isi jawaban lainnya untuk pertanyaan {$fieldLabel}.";
+
+                        continue;
+                    }
+
+                    $normalized[(int) $fieldId] = [
+                        'assessment_id' => $field['assessment_id'],
+                        'assessment_form_id' => $field['assessment_form_id'],
+                        'answer_text' => $otherTextValue,
+                        'answer_payload' => [
+                            'type' => 'select',
+                            'value' => ChoiceFieldOtherOption::VALUE,
+                            'label' => ChoiceFieldOtherOption::LABEL,
+                            'other_text' => $otherTextValue,
+                            'is_other' => true,
+                        ],
+                        'answer_file_path' => null,
+                    ];
+
+                    continue;
+                }
+
                 $matchedOption = collect(ChoiceOptionNormalizer::normalizeMany($field['opsi_field'] ?? []))
                     ->first(fn (array $option) => in_array($textValue, $option['aliases'] ?? [], true));
 

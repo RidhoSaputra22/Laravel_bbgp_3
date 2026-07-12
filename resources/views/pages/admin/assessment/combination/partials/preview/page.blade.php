@@ -141,16 +141,26 @@
                                                             @break
 
                                                             @case('select')
+                                                                @php
+                                                                    $selectPreviewOptions = \App\Support\Assessment\ChoiceFieldOtherOption::appendOption(
+                                                                        $field,
+                                                                        is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [],
+                                                                    );
+                                                                @endphp
                                                                 <select id="{{ $fieldLabelId }}" class="form-control" disabled>
                                                                     <option value="" selected>
                                                                         {{ $field['placeholder'] ?? '-- Pilih salah satu --' }}
                                                                     </option>
-                                                                    @foreach (($field['opsi_field'] ?? []) as $option)
+                                                                    @foreach ($selectPreviewOptions as $option)
                                                                         <option value="{{ is_array($option) ? ($option['value'] ?? '') : $option }}">
                                                                             {{ is_array($option) ? ($option['label'] ?? $option['value'] ?? '-') : $option }}
                                                                         </option>
                                                                     @endforeach
                                                                 </select>
+                                                                @if (\App\Support\Assessment\ChoiceFieldOtherOption::isEnabled($field))
+                                                                    <input type="text" class="form-control mt-2"
+                                                                        placeholder="Tulis jawaban lainnya" disabled>
+                                                                @endif
                                                             @break
 
                                                             @case('radio')

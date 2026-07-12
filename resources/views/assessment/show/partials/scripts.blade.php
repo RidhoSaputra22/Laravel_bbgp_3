@@ -2327,9 +2327,22 @@
 
                         const rawValue = typeof input.value === 'string' ? input.value : '';
                         const value = rawValue.trim();
+                        const allowsOtherInput = fieldWrapper.dataset.allowOtherInput === '1';
+                        const selectOtherOptionValue = String(fieldWrapper.dataset.selectOtherOptionValue || '').trim();
+                        const selectOtherInput = fieldType === 'select' && allowsOtherInput
+                            ? fieldWrapper.querySelector('input[name^="answers["][name$="[other_text]"]')
+                            : null;
+                        const otherTextValue = String(selectOtherInput?.value || '').trim();
 
                         if (requiresAnswer && value === '') {
                             message = `Jawaban untuk pertanyaan ${fieldLabel} wajib diisi.`;
+                        } else if (
+                            fieldType === 'select'
+                            && allowsOtherInput
+                            && value === selectOtherOptionValue
+                            && otherTextValue === ''
+                        ) {
+                            message = `Isi jawaban lainnya untuk pertanyaan ${fieldLabel}.`;
                         } else if (fieldType === 'textarea' && value !== '') {
                             message = this.getTextareaWordValidationMessage(input, fieldLabel);
                         } else if (fieldType === 'email' && value !== '' && !this.isValidEmail(value)) {
@@ -2536,6 +2549,21 @@
                     }
 
                     const value = String(input.value || '').trim();
+
+                    if (fieldType === 'select') {
+                        const allowsOtherInput = fieldWrapper.dataset.allowOtherInput === '1';
+                        const selectOtherOptionValue = String(fieldWrapper.dataset.selectOtherOptionValue || '').trim();
+
+                        if (!value) {
+                            return false;
+                        }
+
+                        if (allowsOtherInput && value === selectOtherOptionValue) {
+                            return true;
+                        }
+
+                        return true;
+                    }
 
                     return value !== '';
                 },

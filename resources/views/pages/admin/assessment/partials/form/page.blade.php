@@ -945,6 +945,8 @@
             const multipleChoiceFieldType = 'radio';
             const repeaterFieldType = 'repeater';
             const fileFieldType = 'file';
+            const selectOtherOptionValue = @js(\App\Support\Assessment\ChoiceFieldOtherOption::VALUE);
+            const selectOtherOptionLabel = @js(\App\Support\Assessment\ChoiceFieldOtherOption::LABEL);
             const repeaterColumnFieldTypes = {
                 text: 'Teks',
                 textarea: 'Area Teks',
@@ -1266,7 +1268,7 @@
                 if ((field.tipe_field || '') === 'select' && (field.lookup_source || '')) {
                     const previewItems = resolveFieldLookupPreviewMeta(field.lookup_source)?.preview || [];
 
-                    return previewItems.map((item) => {
+                    const options = previewItems.map((item) => {
                         if (item && typeof item === 'object') {
                             return {
                                 label: item.label || item.value || '',
@@ -1281,16 +1283,49 @@
                             value: value,
                         };
                     }).filter((item) => item.value);
+
+                    return appendSelectOtherOption(options, field.allow_other_input);
                 }
 
-                return parseOptionText(field.opsi_field_text).map((item) => ({
+                const options = parseOptionText(field.opsi_field_text).map((item) => ({
                     label: item,
                     value: item,
                 }));
+
+                return appendSelectOtherOption(options, field.allow_other_input);
             };
 
             const normalizeChecked = (value) => {
                 return value === true || value === 1 || value === '1' || value === 'on';
+            };
+
+            const supportsSelectOtherInput = (fieldType) => String(fieldType || '') === 'select';
+
+            const appendSelectOtherOption = (options = [], allowOtherInput = false) => {
+                if (!normalizeChecked(allowOtherInput)) {
+                    return Array.isArray(options) ? options : [];
+                }
+
+                const normalizedOptions = Array.isArray(options) ? [...options] : [];
+                const hasOtherOption = normalizedOptions.some((option) => {
+                    if (option && typeof option === 'object') {
+                        return String(option.value || '').trim() === selectOtherOptionValue;
+                    }
+
+                    return String(option || '').trim() === selectOtherOptionValue;
+                });
+
+                if (hasOtherOption) {
+                    return normalizedOptions;
+                }
+
+                normalizedOptions.push({
+                    label: selectOtherOptionLabel,
+                    value: selectOtherOptionValue,
+                    is_other: true,
+                });
+
+                return normalizedOptions;
             };
 
             const buildFieldTypeOptions = (selectedValue) => {
@@ -2325,6 +2360,7 @@
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
                 const fileFieldConfig = parseFileFieldConfigJson(fieldData.raw_opsi_field_json || '');
                 const resolvedFileInputMode = normalizeFileInputMode(fieldData.file_input_mode || fileFieldConfig.input_mode);
+                const resolvedAllowOtherInput = supportsSelectOtherInput(fieldType) && normalizeChecked(fieldData.allow_other_input);
                 const resolvedAutofillSource = fieldData.autofill_source || resolveSuggestedParticipantAutofillSource(
                     fieldData.label || '',
                     fieldData.nama_field || ''
@@ -2342,6 +2378,7 @@
                 const placeholderName = `${fieldPrefix}[placeholder]`;
                 const autofillSourceName = `${fieldPrefix}[autofill_source]`;
                 const lookupSourceName = `${fieldPrefix}[lookup_source]`;
+                const allowOtherInputName = `${fieldPrefix}[allow_other_input]`;
                 const fileInputModeName = `${fieldPrefix}[file_input_mode]`;
                 const urutanName = `${fieldPrefix}[urutan]`;
                 const opsiFieldTextName = `${fieldPrefix}[opsi_field_text]`;
@@ -2390,6 +2427,11 @@
                     'form-group',
                     'field-lookup-source-wrapper',
                     fieldType === 'select' ? '' : 'd-none',
+                );
+                const allowOtherInputWrapperClass = joinClasses(
+                    'form-group',
+                    'field-allow-other-input-wrapper',
+                    supportsSelectOtherInput(fieldType) ? '' : 'd-none',
                 );
                 const multipleChoiceWrapperClass = joinClasses(
                     'multiple-choice-wrapper',
@@ -2545,6 +2587,22 @@
                                     <div class="field-lookup-source-preview">
                                         ${buildFieldLookupPreview(fieldType, resolvedLookupSource)}
                                     </div>
+                                </div>
+                                <div class="${allowOtherInputWrapperClass}">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input field-allow-other-input-checkbox"
+                                            id="field-allow-other-input-${formIndex}-${fieldIndex}"
+                                            name="${allowOtherInputName}"
+                                            value="1" ${resolvedAllowOtherInput ? 'checked' : ''}>
+                                        <label class="custom-control-label"
+                                            for="field-allow-other-input-${formIndex}-${fieldIndex}">
+                                            Tambahkan opsi ${escapeHtml(selectOtherOptionLabel)}
+                                        </label>
+                                    </div>
+                                    ${buildInvalidFeedback(allowOtherInputName)}
+                                    <small class="text-muted d-block mt-2">
+                                        Jika aktif, peserta bisa memilih ${escapeHtml(selectOtherOptionLabel)} lalu menulis jawaban sendiri.
+                                    </small>
                                 </div>
                                 <div class="manual-choice-options-wrapper">
                                     <label>${buildRequiredLabel('Opsi Field (Daftar Pilihan / Kotak Centang)')}</label>
@@ -3246,6 +3304,7 @@
                 const showMultipleChoiceOptions = selectedType === multipleChoiceFieldType;
                 const showRepeaterOptions = selectedType === repeaterFieldType;
                 const showFileOptions = selectedType === fileFieldType;
+                const showAllowOtherInput = supportsSelectOtherInput(selectedType);
                 const selectedLookupSource = $fieldCard.find('.field-lookup-source-select').val()?.trim() || '';
                 const showLookupSource = selectedType === 'select';
                 const showManualChoiceOptions = showTextOptions && (!showLookupSource || !selectedLookupSource);
@@ -3256,6 +3315,10 @@
                     .prop('disabled', !showTextOptions);
                 $fieldCard.find('.field-lookup-source-wrapper')
                     .toggleClass('d-none', !showLookupSource);
+                $fieldCard.find('.field-allow-other-input-wrapper')
+                    .toggleClass('d-none', !showAllowOtherInput);
+                $fieldCard.find('.field-allow-other-input-checkbox')
+                    .prop('disabled', !showAllowOtherInput);
                 $fieldCard.find('.manual-choice-options-wrapper')
                     .toggleClass('d-none', !showManualChoiceOptions);
                 $fieldCard.find('.field-manual-options-input')
@@ -3562,6 +3625,9 @@
                     lookup_source: supportsFieldLookup(fieldType)
                         ? ($fieldCard.find('select[name$="[lookup_source]"]').val()?.trim() || '')
                         : '',
+                    allow_other_input: supportsSelectOtherInput(fieldType)
+                        ? $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked')
+                        : false,
                     file_input_mode: fileInputMode,
                     opsi_field_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
@@ -3811,6 +3877,7 @@
                                 lookupSource: field.lookup_source || '',
                                 lookupSourceLabel: fieldLookupOptions[field.lookup_source || ''] || '',
                                 lookupSourceCount: Number(resolveFieldLookupPreviewMeta(field.lookup_source || '')?.total || 0),
+                                allowOtherInput: normalizeChecked(field.allow_other_input),
                                 fileInputMode: normalizeFileInputMode(
                                     field.file_input_mode || parseFileFieldConfigJson(field.raw_opsi_field_json || '').input_mode
                                 ),
@@ -3876,6 +3943,12 @@
                             <option value="" selected>${placeholder || '-- Pilih salah satu --'}</option>
                             ${optionsHtml}
                         </select>
+                        ${field.allowOtherInput ? `
+                            <input type="text" class="form-control mt-2"
+                                value=""
+                                placeholder="Tulis jawaban ${escapeHtml(selectOtherOptionLabel.toLowerCase())}"
+                                disabled>
+                        ` : ''}
                     `;
                 } else if (field.type === 'radio') {
                     const options = field.options.length ? field.options : [{

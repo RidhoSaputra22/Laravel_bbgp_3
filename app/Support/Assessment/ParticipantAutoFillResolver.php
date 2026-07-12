@@ -84,21 +84,36 @@ class ParticipantAutoFillResolver
 
     public function inferSourceFromField(?string $label, ?string $fieldName = null): ?string
     {
-        $haystack = $this->normalizeKeywordSource(
-            collect([$fieldName, $label])->filter()->implode(' ')
-        );
+        $candidates = collect([$fieldName, $label])
+            ->map(fn ($value) => $this->normalizeKeywordSource((string) $value))
+            ->filter()
+            ->values()
+            ->all();
+        $haystack = implode(' ', $candidates);
 
         if ($haystack === '') {
             return null;
         }
 
-        if (in_array($haystack, ['nama', 'nama lengkap'], true)) {
+        if (array_intersect($candidates, ['nama', 'nama lengkap']) !== []) {
             return 'nama_lengkap';
         }
 
         foreach ($this->inferenceMap() as $source => $needles) {
             foreach ($needles as $needle) {
-                if (Str::contains($haystack, $needle)) {
+                $normalizedNeedle = $this->normalizeKeywordSource((string) $needle);
+
+                if ($normalizedNeedle !== '' && in_array($normalizedNeedle, $candidates, true)) {
+                    return $source;
+                }
+            }
+        }
+
+        foreach ($this->inferenceMap() as $source => $needles) {
+            foreach ($needles as $needle) {
+                $normalizedNeedle = $this->normalizeKeywordSource((string) $needle);
+
+                if ($normalizedNeedle !== '' && Str::contains($haystack, $normalizedNeedle)) {
                     return $source;
                 }
             }
@@ -229,6 +244,27 @@ class ParticipantAutoFillResolver
             ->first(fn (array $option) => $this->matchesChoiceOption($option, $rawValue));
 
         if (! is_array($matchedOption)) {
+            if (
+                ($field['tipe_field'] ?? null) === 'select'
+                && ChoiceFieldOtherOption::isEnabled($field)
+            ) {
+                return [
+                    'source' => $source,
+                    'source_label' => $this->label($source),
+                    'value' => $rawValue,
+                    'answer' => [
+                        'text' => $rawValue,
+                        'payload' => [
+                            'type' => 'select',
+                            'value' => ChoiceFieldOtherOption::VALUE,
+                            'label' => ChoiceFieldOtherOption::LABEL,
+                            'other_text' => $rawValue,
+                            'is_other' => true,
+                        ],
+                    ],
+                ];
+            }
+
             return null;
         }
 

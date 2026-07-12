@@ -8,7 +8,12 @@ class AssessmentAnswerViewHelper
 {
     public static function resolveOptionMap(array $field): array
     {
-        return collect($field['opsi_field'] ?? [])
+        $options = ChoiceFieldOtherOption::appendOption(
+            $field,
+            is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []
+        );
+
+        return collect($options)
             ->flatMap(function ($option, $index) {
                 if (! is_array($option)) {
                     $value = trim((string) $option);
@@ -44,7 +49,7 @@ class AssessmentAnswerViewHelper
                 ->all();
         }
 
-        $textValue = trim((string) data_get($answer, 'text', ''));
+        $textValue = trim((string) data_get($answer, 'payload.value', data_get($answer, 'text', '')));
 
         return $textValue !== '' ? [$textValue] : [];
     }
@@ -66,6 +71,10 @@ class AssessmentAnswerViewHelper
         }
 
         if (in_array($fieldType, ['radio', 'select'], true)) {
+            if (ChoiceFieldOtherOption::isSelected($answer)) {
+                return ChoiceFieldOtherOption::resolveText($answer) ?: ChoiceFieldOtherOption::LABEL;
+            }
+
             $selectedValue = static::resolveSelectedValues($field, $answer)[0] ?? '';
             $optionMap = static::resolveOptionMap($field);
 
@@ -111,6 +120,10 @@ class AssessmentAnswerViewHelper
 
         if ($fieldType === 'repeater') {
             return static::resolveRepeaterRows($answer) !== [];
+        }
+
+        if (ChoiceFieldOtherOption::isSelected($answer)) {
+            return ChoiceFieldOtherOption::resolveText($answer) !== '';
         }
 
         return trim((string) data_get($answer, 'text', '')) !== '';

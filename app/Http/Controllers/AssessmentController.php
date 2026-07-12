@@ -310,6 +310,7 @@ class AssessmentController extends Controller
                     'string',
                     Rule::in(array_keys($this->fieldLookupResolver->options())),
                 ],
+                'forms.*.fields.*.allow_other_input' => 'nullable|boolean',
                 'forms.*.fields.*.opsi_field_text' => 'nullable|string',
                 'forms.*.fields.*.opsi_score_text' => 'nullable|string',
                 'forms.*.fields.*.repeater_config_text' => 'nullable|string',
@@ -486,6 +487,16 @@ class AssessmentController extends Controller
                         $validator->errors()->add(
                             "forms.$formIndex.fields.$fieldIndex.lookup_source",
                             'Lookup opsi database hanya tersedia untuk field daftar pilihan.'
+                        );
+                    }
+
+                    if (
+                        ($field['tipe_field'] ?? '') !== 'select'
+                        && (bool) ($field['allow_other_input'] ?? false)
+                    ) {
+                        $validator->errors()->add(
+                            "forms.$formIndex.fields.$fieldIndex.allow_other_input",
+                            'Opsi jawaban "Lainnya" dengan input manual hanya tersedia untuk field daftar pilihan.'
                         );
                     }
 
@@ -668,6 +679,9 @@ class AssessmentController extends Controller
                 'validasi' => [
                     'required' => (bool) ($fieldData['is_required'] ?? false),
                     'tipe_field' => $fieldData['tipe_field'],
+                    'allow_other_input' => ($fieldData['tipe_field'] ?? null) === 'select'
+                        ? (bool) ($fieldData['allow_other_input'] ?? false)
+                        : false,
                 ],
                 'scoring_config' => $this->parseFieldScoringConfig($fieldData, $instrumentType),
                 'lebar_kolom' => $fieldData['lebar_kolom'] ?? 'col-md-12',
@@ -1357,6 +1371,9 @@ class AssessmentController extends Controller
                             $field->nama_field,
                             $assessment->target_ketenagaan
                         ),
+                        'allow_other_input' => $field->tipe_field === 'select'
+                            ? (bool) data_get($field->validasi, 'allow_other_input', false)
+                            : false,
                         'file_input_mode' => $field->tipe_field === 'file'
                             ? $this->normalizeFileInputMode(data_get($field->opsi_field, 'input_mode'))
                             : null,

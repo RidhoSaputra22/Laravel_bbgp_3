@@ -3,6 +3,7 @@
 namespace App\Services\Assessment\Engine;
 
 use App\Models\AssessmentAttemptAnswer;
+use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\FuzzyMembership;
 use App\Support\Assessment\ScoringConfigNormalizer;
@@ -88,6 +89,10 @@ class FieldAutoScoringEngine
             ->values();
 
         if ($selectedOptions->isEmpty()) {
+            if (ChoiceFieldOtherOption::isSelected($answer->answer_payload ?? [])) {
+                return $this->scorePresence($answer, $config);
+            }
+
             return $this->emptyResult($config, 'Pilihan jawaban tidak cocok dengan opsi yang tersedia.', true);
         }
 

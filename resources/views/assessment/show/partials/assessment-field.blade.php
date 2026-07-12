@@ -2,7 +2,9 @@
     $savedAnswer = $answerLookup[(int) $field['id']] ?? [];
     $savedPayload = is_array($savedAnswer['payload'] ?? null) ? $savedAnswer['payload'] : [];
     $autofillSourceLabel = trim((string) ($savedAnswer['autofill_source_label'] ?? ''));
-    $fieldError = $errors->first('answers.' . $field['id']);
+    $fieldError = $errors->first('answers.' . $field['id'])
+        ?: $errors->first('answers.' . $field['id'] . '.value')
+        ?: $errors->first('answers.' . $field['id'] . '.other_text');
     $hasFieldError = filled($fieldError);
     $assessmentIndex = isset($assessmentIndex) ? max((int) $assessmentIndex, 0) : 0;
     $displayQuestionNumber = isset($displayQuestionNumber) ? max((int) $displayQuestionNumber, 0) : null;
@@ -25,6 +27,30 @@
     }
 
     $oldValue = old('answers.' . $field['id'], $savedPayload['value'] ?? $savedAnswer['text'] ?? null);
+    $selectAllowsOtherInput = \App\Support\Assessment\ChoiceFieldOtherOption::isEnabled($field);
+    $selectOptionValue = \App\Support\Assessment\ChoiceFieldOtherOption::VALUE;
+    $selectOptionLabel = \App\Support\Assessment\ChoiceFieldOtherOption::LABEL;
+    $selectOptions = $field['tipe_field'] === 'select'
+        ? \App\Support\Assessment\ChoiceFieldOtherOption::appendOption(
+            $field,
+            is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [],
+        )
+        : [];
+    $oldSelectValue = $field['tipe_field'] === 'select'
+        ? old(
+            'answers.' . $field['id'] . '.value',
+            is_array($oldValue) ? ($oldValue['value'] ?? null) : $oldValue,
+        )
+        : null;
+    $oldSelectOtherText = $field['tipe_field'] === 'select'
+        ? old(
+            'answers.' . $field['id'] . '.other_text',
+            $savedPayload['other_text']
+                ?? (\App\Support\Assessment\ChoiceFieldOtherOption::isSelected($savedAnswer)
+                    ? ($savedAnswer['text'] ?? null)
+                    : null),
+        )
+        : null;
     $checkboxValues = collect(old('answers.' . $field['id'], $savedPayload['values'] ?? []))
         ->map(fn($value) => (string) $value)
         ->all();
@@ -38,6 +64,8 @@
         ->values()
         ->all();
     $answerName = 'answers[' . $field['id'] . ']';
+    $selectValueName = $answerName . '[value]';
+    $selectOtherTextName = $answerName . '[other_text]';
     $fieldType = $field['tipe_field'];
     $fileFieldConfig = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
     $fileInputMode = in_array(($fileFieldConfig['input_mode'] ?? 'file'), ['file', 'link'], true)
@@ -77,6 +105,8 @@
     data-assessment-field
     data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
     data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}"
+    data-allow-other-input="{{ $selectAllowsOtherInput ? '1' : '0' }}"
+    data-select-other-option-value="{{ $selectOptionValue }}"
     data-file-input-mode="{{ $fileInputMode }}"
     data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
     <div class="mb-3 flex items-start justify-between gap-4">
@@ -126,15 +156,42 @@
         @break
 
         @case('select')
-            <x-assessment::form.select :id="$inputId" :label="null" :description="null" :name="$answerName"
-                placeholder="Pilih jawaban"
-                :required="$isRequired" :error="$fieldError">
-                @foreach ($field['opsi_field'] ?? [] as $option)
-                    <option value="{{ $option['value'] }}" @selected((string) $oldValue === (string) $option['value'])>
-                        {{ $option['label'] }}
-                    </option>
-                @endforeach
-            </x-assessment::form.select>
+            <div x-data="{ selectValue: @js((string) ($oldSelectValue ?? '')) }" class="space-y-2">
+                <select id="{{ $inputId }}" name="{{ $selectValueName }}"
+                    @required($isRequired)
+                    x-model="selectValue"
+                    @class([
+                        'w-full rounded-sm border bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-[#1376bd] focus:ring-4 focus:ring-[#1376bd]/15',
+                        'border-red-500 focus:border-red-500 focus:ring-red-500/15' => $fieldError,
+                        'border-[#d7e3ee]' => ! $fieldError,
+                    ])>
+                    <option value="">{{ $field['placeholder'] ?: 'Pilih jawaban' }}</option>
+                    @foreach ($selectOptions as $option)
+                        @php
+                            $optionValue = is_array($option) ? (string) ($option['value'] ?? '') : (string) $option;
+                            $optionLabel = is_array($option)
+                                ? (string) ($option['label'] ?? $optionValue)
+                                : $optionValue;
+                        @endphp
+                        <option value="{{ $optionValue }}" @selected((string) ($oldSelectValue ?? '') === $optionValue)>
+                            {{ $optionLabel }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @if ($selectAllowsOtherInput)
+                    <input type="text" name="{{ $selectOtherTextName }}"
+                        value="{{ (string) ($oldSelectOtherText ?? '') }}"
+                        placeholder="Tulis jawaban lainnya"
+                        x-bind:disabled="selectValue !== @js($selectOptionValue)"
+                        x-bind:class="selectValue === @js($selectOptionValue) ? 'block' : 'hidden'"
+                        @class([
+                            'w-full rounded-sm border bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-[#1376bd] focus:ring-4 focus:ring-[#1376bd]/15',
+                            'border-red-500 focus:border-red-500 focus:ring-red-500/15' => $fieldError,
+                            'border-[#d7e3ee]' => ! $fieldError,
+                        ])>
+                @endif
+            </div>
         @break
 
         @case('radio')

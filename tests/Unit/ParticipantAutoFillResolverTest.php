@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Guru;
+use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ParticipantAutoFillResolver;
 use Tests\TestCase;
 
@@ -16,6 +17,7 @@ class ParticipantAutoFillResolverTest extends TestCase
         $this->assertSame('nip_nuptk', $resolver->inferSourceFromField('NIP / NUPTK', 'nip_nuptk'));
         $this->assertSame('golongan', $resolver->inferSourceFromField('Pangkat / Golongan', 'pangkat_golongan'));
         $this->assertSame('satuan_pendidikan', $resolver->inferSourceFromField('Nama Sekolah', 'nama_sekolah'));
+        $this->assertSame('satuan_pendidikan', $resolver->inferSourceFromField('Satuan Pendidikan', 'satuan_pendidikan'));
         $this->assertSame('kabupaten', $resolver->inferSourceFromField('Kabupaten / Kota', 'kabupaten_kota'));
     }
 
@@ -64,5 +66,33 @@ class ParticipantAutoFillResolverTest extends TestCase
         $this->assertSame('Makassar', $resolvedSelect['value']);
         $this->assertSame(['Guru'], $resolvedCheckbox['value']);
         $this->assertSame('1991-08-17', $resolvedDate['value']);
+    }
+
+    public function test_it_falls_back_to_other_select_input_when_enabled(): void
+    {
+        $resolver = app(ParticipantAutoFillResolver::class);
+        $guru = new Guru;
+        $guru->forceFill([
+            'jabatan' => 'Pengawas Madrasah',
+        ]);
+
+        $selectField = [
+            'tipe_field' => 'select',
+            'autofill_source' => 'jabatan',
+            'validasi' => [
+                'allow_other_input' => true,
+            ],
+            'opsi_field' => [
+                ['label' => 'Guru', 'value' => 'Guru'],
+                ['label' => 'Kepala Sekolah', 'value' => 'Kepala Sekolah'],
+            ],
+        ];
+
+        $resolvedSelect = $resolver->resolveForField($selectField, $guru);
+
+        $this->assertSame('Pengawas Madrasah', $resolvedSelect['value']);
+        $this->assertSame(ChoiceFieldOtherOption::VALUE, data_get($resolvedSelect, 'answer.payload.value'));
+        $this->assertSame('Pengawas Madrasah', data_get($resolvedSelect, 'answer.payload.other_text'));
+        $this->assertTrue((bool) data_get($resolvedSelect, 'answer.payload.is_other'));
     }
 }

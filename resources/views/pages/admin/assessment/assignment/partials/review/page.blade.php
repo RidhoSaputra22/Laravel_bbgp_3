@@ -280,14 +280,27 @@
                                                                 @break
 
                                                                 @case('select')
+                                                                    @php
+                                                                        $selectReviewOptions = \App\Support\Assessment\ChoiceFieldOtherOption::appendOption(
+                                                                            $field,
+                                                                            is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [],
+                                                                        );
+                                                                        $selectedOtherText = \App\Support\Assessment\ChoiceFieldOtherOption::isSelected($answer)
+                                                                            ? \App\Support\Assessment\ChoiceFieldOtherOption::resolveText($answer)
+                                                                            : '';
+                                                                    @endphp
                                                                     <select class="form-control" disabled>
-                                                                        @foreach ($field['opsi_field'] ?? [] as $option)
+                                                                        @foreach ($selectReviewOptions as $option)
                                                                             <option value="{{ is_array($option) ? ($option['value'] ?? '') : $option }}"
                                                                                 @selected(($selectedValues[0] ?? '') === (is_array($option) ? ($option['value'] ?? '') : $option))>
                                                                                 {{ is_array($option) ? ($option['label'] ?? ($option['value'] ?? '')) : $option }}
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
+                                                                    @if ($selectedOtherText !== '')
+                                                                        <input type="text" class="form-control mt-2"
+                                                                            value="{{ $selectedOtherText }}" readonly>
+                                                                    @endif
                                                                 @break
 
                                                                 @case('radio')

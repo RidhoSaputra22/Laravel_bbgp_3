@@ -12,6 +12,7 @@ use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentAutoScoringService;
 use App\Services\Assessment\AssessmentScoringService;
+use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -86,6 +87,7 @@ class AssessmentAttemptServiceTest extends TestCase
             $table->string('lookup_source')->nullable();
             $table->string('tipe_field')->default('text');
             $table->json('opsi_field')->nullable();
+            $table->json('validasi')->nullable();
             $table->unsignedInteger('urutan')->default(1);
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
@@ -396,6 +398,39 @@ class AssessmentAttemptServiceTest extends TestCase
         $this->assertNull($answer->answer_file_path);
     }
 
+    public function test_submit_accepts_select_other_input_when_enabled(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'select',
+            'opsi_field' => [
+                ['label' => 'Guru', 'value' => 'Guru'],
+                ['label' => 'Kepala Sekolah', 'value' => 'Kepala Sekolah'],
+            ],
+            'validasi' => [
+                'allow_other_input' => true,
+            ],
+        ]);
+
+        $submittedAttempt = $this->makeService()->submit(
+            $attempt,
+            [
+                $field->id => [
+                    'value' => ChoiceFieldOtherOption::VALUE,
+                    'other_text' => 'Pengawas Madrasah',
+                ],
+            ],
+            []
+        );
+
+        $answer = $submittedAttempt->answers->firstWhere('assessment_form_field_id', $field->id);
+
+        $this->assertNotNull($answer);
+        $this->assertSame('Pengawas Madrasah', $answer->answer_text);
+        $this->assertSame(ChoiceFieldOtherOption::VALUE, data_get($answer->answer_payload, 'value'));
+        $this->assertSame('Pengawas Madrasah', data_get($answer->answer_payload, 'other_text'));
+        $this->assertTrue((bool) data_get($answer->answer_payload, 'is_other'));
+    }
+
     public function test_submit_rejects_invalid_repeater_url_column(): void
     {
         ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
@@ -570,6 +605,7 @@ class AssessmentAttemptServiceTest extends TestCase
                 'label' => 'Pertanyaan Reflektif',
                 'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
                 'opsi_field' => $fieldOverrides['opsi_field'] ?? [],
+                'validasi' => $fieldOverrides['validasi'] ?? [],
                 'is_required' => $fieldOverrides['is_required'] ?? true,
             ],
         ]);
@@ -602,6 +638,7 @@ class AssessmentAttemptServiceTest extends TestCase
                     'label' => $fieldDefinition['label'] ?? 'Pertanyaan '.($index + 1),
                     'tipe_field' => $fieldDefinition['tipe_field'] ?? 'text',
                     'opsi_field' => $fieldDefinition['opsi_field'] ?? [],
+                    'validasi' => $fieldDefinition['validasi'] ?? [],
                     'urutan' => $index + 1,
                     'is_required' => (bool) ($fieldDefinition['is_required'] ?? false),
                     'is_active' => true,
@@ -633,6 +670,7 @@ class AssessmentAttemptServiceTest extends TestCase
                     'label' => $field->label,
                     'tipe_field' => $field->tipe_field,
                     'opsi_field' => $field->opsi_field ?? [],
+                    'validasi' => $field->validasi ?? [],
                     'is_required' => (bool) $field->is_required,
                 ];
             })

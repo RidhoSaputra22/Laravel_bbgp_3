@@ -186,23 +186,33 @@
                                                     class="form-text text-muted mb-2">{{ $field->deskripsi }}</small>
                                             @endif
 
-                                            @switch($field->tipe_field)
+                                        @switch($field->tipe_field)
                                                 @case('textarea')
                                                     <textarea id="{{ $fieldLabelId }}" class="form-control" rows="3" placeholder="{{ $field->placeholder }}"
                                                     ></textarea>
                                                 @break
 
                                                 @case('select')
+                                                    @php
+                                                        $selectPreviewOptions = \App\Support\Assessment\ChoiceFieldOtherOption::appendOption(
+                                                            ['validasi' => $field->validasi ?? []],
+                                                            $normalizedOptions,
+                                                        );
+                                                    @endphp
                                                     <select id="{{ $fieldLabelId }}" class="form-control">
                                                         <option value="" selected>
                                                             {{ $field->placeholder ?: '-- Pilih salah satu --' }}
                                                         </option>
-                                                        @foreach ($normalizedOptions as $option)
+                                                        @foreach ($selectPreviewOptions as $option)
                                                             <option value="{{ $option['value'] }}">
                                                                 {{ $option['label'] }}
                                                             </option>
                                                         @endforeach
                                                     </select>
+                                                    @if (\App\Support\Assessment\ChoiceFieldOtherOption::isEnabled(['validasi' => $field->validasi ?? []]))
+                                                        <input type="text" class="form-control mt-2"
+                                                            placeholder="Tulis jawaban lainnya" disabled>
+                                                    @endif
                                                 @break
 
                                                 @case('radio')
