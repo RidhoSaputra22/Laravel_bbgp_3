@@ -73,6 +73,10 @@ class AssessmentAnswerViewHelper
         }
 
         if ($fieldType === 'file') {
+            if (filled(data_get($answer, 'payload.link_url'))) {
+                return trim((string) data_get($answer, 'payload.link_url'));
+            }
+
             return (string) (data_get($answer, 'payload.original_name') ?: data_get($answer, 'text', ''));
         }
 

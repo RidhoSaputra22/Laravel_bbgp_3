@@ -896,6 +896,7 @@
             const textOptionFieldTypes = ['select', 'checkbox'];
             const multipleChoiceFieldType = 'radio';
             const repeaterFieldType = 'repeater';
+            const fileFieldType = 'file';
             const participantAutofillSupportedFieldTypes = ['text', 'textarea', 'number', 'email', 'date', 'select', 'radio', 'checkbox'];
             const fieldLookupSupportedFieldTypes = ['select'];
             const columnOptions = ['col-md-12', 'col-md-8', 'col-md-6', 'col-md-4'];
@@ -1918,6 +1919,86 @@
                 return rawValue || buildDefaultRepeaterConfigText();
             };
 
+            const parseJsonSafely = (value) => {
+                const rawValue = String(value || '').trim();
+
+                if (!rawValue) {
+                    return null;
+                }
+
+                try {
+                    const parsed = JSON.parse(rawValue);
+                    return parsed && typeof parsed === 'object' ? parsed : null;
+                } catch (error) {
+                    return null;
+                }
+            };
+
+            const normalizeFileInputMode = (value) => String(value || '').trim() === 'link' ? 'link' : 'file';
+
+            const normalizeFileFieldConfig = (config = {}) => {
+                const normalizedConfig = config && typeof config === 'object' ? config : {};
+                const accept = Array.isArray(normalizedConfig.accept)
+                    ? normalizedConfig.accept.map((item) => String(item || '').trim()).filter(Boolean)
+                    : [];
+                const maxSizeKb = Number(normalizedConfig.max_size_kb || 0) > 0
+                    ? Number(normalizedConfig.max_size_kb)
+                    : 5120;
+                const maxFiles = Number(normalizedConfig.max_files || 0) > 0
+                    ? Number(normalizedConfig.max_files)
+                    : 1;
+
+                return {
+                    input_mode: normalizeFileInputMode(normalizedConfig.input_mode),
+                    accept: accept,
+                    max_size_kb: Math.max(1, Math.round(maxSizeKb)),
+                    max_files: Math.max(1, Math.round(maxFiles)),
+                };
+            };
+
+            const parseFileFieldConfigJson = (value) => {
+                return normalizeFileFieldConfig(parseJsonSafely(value) || {});
+            };
+
+            const buildFileFieldConfigPayload = (rawValue, inputMode = 'file') => {
+                const normalizedConfig = normalizeFileFieldConfig({
+                    ...parseFileFieldConfigJson(rawValue),
+                    input_mode: inputMode,
+                });
+
+                return {
+                    input_mode: normalizedConfig.input_mode,
+                    ...(normalizedConfig.accept.length ? {
+                        accept: normalizedConfig.accept
+                    } : {}),
+                    max_size_kb: normalizedConfig.max_size_kb,
+                    max_files: normalizedConfig.max_files,
+                };
+            };
+
+            const buildFileFieldConfigJson = (rawValue, inputMode = 'file') => {
+                return JSON.stringify(buildFileFieldConfigPayload(rawValue, inputMode));
+            };
+
+            const buildFileInputModeOptions = (selectedValue = 'file') => {
+                const normalizedValue = normalizeFileInputMode(selectedValue);
+
+                return `
+                    <option value="file" ${normalizedValue === 'file' ? 'selected' : ''}>Unggah file</option>
+                    <option value="link" ${normalizedValue === 'link' ? 'selected' : ''}>Link file / Google Drive</option>
+                `;
+            };
+
+            const buildFileConfigHint = (selectedMode = 'file') => {
+                const normalizedMode = normalizeFileInputMode(selectedMode);
+
+                if (normalizedMode === 'link') {
+                    return 'Peserta akan mengisi tautan file, misalnya link Google Drive sertifikat atau SK.';
+                }
+
+                return 'Peserta akan mengunggah file langsung ke sistem.';
+            };
+
             const buildRadioOptionRow = (formIndex, fieldIndex, optionIndex, optionData = {}) => {
                 const normalizedOption = normalizeRadioOptionShape(optionData);
                 const optionText = normalizedOption.label || '';
@@ -1994,6 +2075,8 @@
                 const showMultipleChoiceOptions = fieldType === multipleChoiceFieldType;
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
+                const fileFieldConfig = parseFileFieldConfigJson(fieldData.raw_opsi_field_json || '');
+                const resolvedFileInputMode = normalizeFileInputMode(fieldData.file_input_mode || fileFieldConfig.input_mode);
                 const resolvedAutofillSource = fieldData.autofill_source || resolveSuggestedParticipantAutofillSource(
                     fieldData.label || '',
                     fieldData.nama_field || ''
@@ -2011,6 +2094,7 @@
                 const placeholderName = `${fieldPrefix}[placeholder]`;
                 const autofillSourceName = `${fieldPrefix}[autofill_source]`;
                 const lookupSourceName = `${fieldPrefix}[lookup_source]`;
+                const fileInputModeName = `${fieldPrefix}[file_input_mode]`;
                 const urutanName = `${fieldPrefix}[urutan]`;
                 const opsiFieldTextName = `${fieldPrefix}[opsi_field_text]`;
                 const opsiScoreTextName = `${fieldPrefix}[opsi_score_text]`;
@@ -2067,6 +2151,11 @@
                     'form-group',
                     'repeater-option-wrapper',
                     fieldType === repeaterFieldType ? '' : 'd-none',
+                );
+                const fileOptionWrapperClass = joinClasses(
+                    'form-group',
+                    'file-option-wrapper',
+                    fieldType === fileFieldType ? '' : 'd-none',
                 );
 
                 return `
@@ -2168,6 +2257,22 @@
                                             value="${escapeHtml(fieldData.placeholder)}"
                                             placeholder="Placeholder field">
                                         ${buildInvalidFeedback(placeholderName)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="${fileOptionWrapperClass}">
+                                        <label>Mode Input Bukti</label>
+                                        <select class="${getInputClass(fileInputModeName, 'form-control field-file-input-mode-select')}"
+                                            name="${fileInputModeName}">
+                                            ${buildFileInputModeOptions(resolvedFileInputMode)}
+                                        </select>
+                                        ${buildInvalidFeedback(fileInputModeName)}
+                                        <small class="form-text text-muted file-option-hint">
+                                            ${buildFileConfigHint(resolvedFileInputMode)}
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -2745,6 +2850,7 @@
                 updateAutoFieldNameHint($fieldCard);
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
+                updateFileInputModeState($fieldCard);
 
                 if (!options.skipSummary) {
                     renderBuilderSummary();
@@ -2853,6 +2959,7 @@
                 const showTextOptions = textOptionFieldTypes.includes(selectedType);
                 const showMultipleChoiceOptions = selectedType === multipleChoiceFieldType;
                 const showRepeaterOptions = selectedType === repeaterFieldType;
+                const showFileOptions = selectedType === fileFieldType;
                 const selectedLookupSource = $fieldCard.find('.field-lookup-source-select').val()?.trim() || '';
                 const showLookupSource = selectedType === 'select';
                 const showManualChoiceOptions = showTextOptions && (!showLookupSource || !selectedLookupSource);
@@ -2881,12 +2988,35 @@
                     .toggleClass('d-none', !showRepeaterOptions)
                     .find('textarea')
                     .prop('disabled', !showRepeaterOptions);
+                $fieldCard.find('.file-option-wrapper')
+                    .toggleClass('d-none', !showFileOptions);
+                $fieldCard.find('.field-file-input-mode-select')
+                    .prop('disabled', !showFileOptions);
 
                 if (showMultipleChoiceOptions) {
                     ensureMultipleChoiceOptions($fieldCard);
                 } else {
                     updateRemoveRadioOptionState($fieldCard);
                 }
+            };
+
+            const updateFileInputModeState = ($fieldCard) => {
+                const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
+                const $select = $fieldCard.find('.field-file-input-mode-select');
+                const $hint = $fieldCard.find('.file-option-hint');
+                const isSupported = selectedType === fileFieldType;
+                const selectedMode = normalizeFileInputMode($select.val() || 'file');
+
+                if (!$select.length) {
+                    return;
+                }
+
+                if (isSupported && !$select.val()) {
+                    $select.val('file');
+                }
+
+                $select.prop('disabled', !isSupported);
+                $hint.html(buildFileConfigHint(selectedMode));
             };
 
             const updateParticipantAutofillState = ($fieldCard) => {
@@ -3025,6 +3155,10 @@
                 const scoringMethod = $fieldCard.find('select[name$="[scoring][method]"]').val() || resolveDefaultScoringMethod(fieldType);
                 const rawFieldId = $fieldCard.find('.assessment-field-id-input').val();
                 const fieldId = Number(rawFieldId || 0);
+                const rawFileOptionConfig = $fieldCard.find('input[name$="[raw_opsi_field_json]"]').val()?.trim() || '';
+                const fileInputMode = fieldType === fileFieldType
+                    ? normalizeFileInputMode($fieldCard.find('select[name$="[file_input_mode]"]').val() || 'file')
+                    : '';
 
                 return {
                     id: fieldId > 0 ? fieldId : null,
@@ -3040,13 +3174,16 @@
                     lookup_source: supportsFieldLookup(fieldType)
                         ? ($fieldCard.find('select[name$="[lookup_source]"]').val()?.trim() || '')
                         : '',
+                    file_input_mode: fileInputMode,
                     opsi_field_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
                     opsi_score_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_score_text]"]').val()?.trim() || '' : null,
                     repeater_config_text: fieldType === repeaterFieldType ?
                         $fieldCard.find('textarea[name$="[repeater_config_text]"]').val()?.trim() || '' : null,
-                    raw_opsi_field_json: $fieldCard.find('input[name$="[raw_opsi_field_json]"]').val()?.trim() || '',
+                    raw_opsi_field_json: fieldType === fileFieldType
+                        ? buildFileFieldConfigJson(rawFileOptionConfig, fileInputMode)
+                        : rawFileOptionConfig,
                     radio_options: fieldType === multipleChoiceFieldType ? getMultipleChoiceOptions($fieldCard) : [],
                     scoring: {
                         enabled: $fieldCard.find('input[name$="[scoring][enabled]"]').is(':checked'),
@@ -3285,6 +3422,9 @@
                                 lookupSource: field.lookup_source || '',
                                 lookupSourceLabel: fieldLookupOptions[field.lookup_source || ''] || '',
                                 lookupSourceCount: Number(resolveFieldLookupPreviewMeta(field.lookup_source || '')?.total || 0),
+                                fileInputMode: normalizeFileInputMode(
+                                    field.file_input_mode || parseFileFieldConfigJson(field.raw_opsi_field_json || '').input_mode
+                                ),
                                 options: field.tipe_field === multipleChoiceFieldType ?
                                     (field.radio_options || []) :
                                     (field.tipe_field === repeaterFieldType ?
@@ -3425,7 +3565,7 @@
 
                             return `
                                 <td>
-                                    <input type="${['text', 'email', 'number', 'date'].includes(type) ? type : 'text'}"
+                                    <input type="${['text', 'email', 'number', 'date', 'url'].includes(type) ? type : 'text'}"
                                         class="form-control"
                                         placeholder="${escapeHtml(column.placeholder || '')}"
                                         readonly>
@@ -3473,14 +3613,22 @@
                         `;
                     }).join('');
                 } else if (field.type === 'file') {
-                    inputHtml = `
-                        <div class="custom-file">
-                            <input type="file" class="custom-file-input">
-                            <label class="custom-file-label">
-                                Pilih file
-                            </label>
-                        </div>
-                    `;
+                    const fileInputMode = normalizeFileInputMode(field.fileInputMode || 'file');
+
+                    inputHtml = fileInputMode === 'link'
+                        ? `
+                            <input type="url" class="form-control"
+                                value=""
+                                placeholder="${placeholder || 'https://drive.google.com/file/d/.../view'}">
+                        `
+                        : `
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input">
+                                <label class="custom-file-label">
+                                    Pilih file
+                                </label>
+                            </div>
+                        `;
                 } else {
                     const typeMap = {
                         text: 'text',
@@ -3692,6 +3840,7 @@
                 toggleOptionWrapper($fieldCard);
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
+                updateFileInputModeState($fieldCard);
                 toggleScoringWrapper($fieldCard);
                 schedulePreviewRender();
             });
@@ -3706,6 +3855,11 @@
                 $(this).data('userTouched', true);
                 $(this).data('suggestedDefault', false);
                 updateFieldLookupState($(this).closest('.assessment-field-card'));
+                schedulePreviewRender();
+            });
+
+            $(document).on('change', '.field-file-input-mode-select', function() {
+                updateFileInputModeState($(this).closest('.assessment-field-card'));
                 schedulePreviewRender();
             });
 

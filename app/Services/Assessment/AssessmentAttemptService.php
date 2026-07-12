@@ -238,14 +238,19 @@ class AssessmentAttemptService
     {
         return $attempt->answers
             ->mapWithKeys(function (AssessmentAttemptAnswer $answer) {
+                $payload = is_array($answer->answer_payload ?? null) ? $answer->answer_payload : [];
+                $resolvedFileUrl = $answer->answer_file_path
+                    ? asset('storage/'.$answer->answer_file_path)
+                    : (trim((string) ($payload['link_url'] ?? '')) ?: null);
+
                 return [
                     $answer->assessment_form_field_id => [
                         'text' => $answer->answer_text,
-                        'payload' => $answer->answer_payload ?? [],
+                        'payload' => $payload,
                         'file_path' => $answer->answer_file_path,
-                        'file_url' => $answer->answer_file_path ? asset('storage/'.$answer->answer_file_path) : null,
-                        'rows' => data_get($answer->answer_payload ?? [], 'rows', []),
-                        'columns' => data_get($answer->answer_payload ?? [], 'columns', []),
+                        'file_url' => $resolvedFileUrl,
+                        'rows' => data_get($payload, 'rows', []),
+                        'columns' => data_get($payload, 'columns', []),
                         'auto_score' => $answer->auto_score,
                         'auto_score_reason' => $answer->auto_score_reason,
                         'auto_score_metadata' => $answer->auto_score_metadata ?? [],
@@ -430,6 +435,51 @@ class AssessmentAttemptService
             $existingAnswer = $existingAnswers->get((int) $fieldId);
 
             if ($fieldType === 'file') {
+                $fileConfig = $this->resolveFileFieldConfig($field);
+                $fileInputMode = $fileConfig['input_mode'];
+                $existingLinkUrl = trim((string) data_get($existingAnswer?->answer_payload ?? [], 'link_url'));
+
+                if ($fileInputMode === 'link') {
+                    $linkValue = is_array($answers[$fieldId] ?? null)
+                        ? ''
+                        : trim((string) ($answers[$fieldId] ?? ''));
+                    $hasExistingLink = $existingLinkUrl !== '';
+
+                    if ($mustBeAnswered && $linkValue === '' && ! $hasExistingLink) {
+                        $messages[$fieldKey] = "Link file untuk pertanyaan {$fieldLabel} wajib diisi.";
+
+                        continue;
+                    }
+
+                    if ($linkValue === '') {
+                        if ($hasExistingLink) {
+                            $preserveExistingAnswerFieldIds[] = (int) $fieldId;
+                        }
+
+                        continue;
+                    }
+
+                    if (! $this->isValidExternalUrl($linkValue)) {
+                        $messages[$fieldKey] = "Link file untuk pertanyaan {$fieldLabel} harus berupa URL yang valid.";
+
+                        continue;
+                    }
+
+                    $normalized[(int) $fieldId] = [
+                        'assessment_id' => $field['assessment_id'],
+                        'assessment_form_id' => $field['assessment_form_id'],
+                        'answer_text' => $linkValue,
+                        'answer_payload' => [
+                            'type' => 'file_link',
+                            'input_mode' => 'link',
+                            'link_url' => $linkValue,
+                        ],
+                        'answer_file_path' => null,
+                    ];
+
+                    continue;
+                }
+
                 if ($mustBeAnswered && ! $uploadedFile && ! filled($existingAnswer?->answer_file_path)) {
                     $messages[$fieldKey] = "File untuk pertanyaan {$fieldLabel} wajib diunggah.";
 
@@ -450,8 +500,11 @@ class AssessmentAttemptService
                     continue;
                 }
 
-                if ($uploadedFile->getSize() > 5 * 1024 * 1024) {
-                    $messages[$fieldKey] = "File untuk pertanyaan {$fieldLabel} maksimal 5 MB.";
+                $maxSizeBytes = max((int) ($fileConfig['max_size_kb'] ?? 5120), 1) * 1024;
+
+                if ($uploadedFile->getSize() > $maxSizeBytes) {
+                    $messages[$fieldKey] = "File untuk pertanyaan {$fieldLabel} maksimal "
+                        .max((int) ($fileConfig['max_size_kb'] ?? 5120), 1)." KB.";
 
                     continue;
                 }
@@ -462,6 +515,7 @@ class AssessmentAttemptService
                     'answer_text' => $uploadedFile->getClientOriginalName(),
                     'answer_payload' => [
                         'type' => 'file',
+                        'input_mode' => 'file',
                         'original_name' => $uploadedFile->getClientOriginalName(),
                     ],
                     'answer_file_path' => null,
@@ -824,6 +878,14 @@ class AssessmentAttemptService
                             ];
                         }
                     }
+
+                    if ($column['tipe_field'] === 'url' && ! $this->isValidExternalUrl($columnValue)) {
+                        return [
+                            'rows' => [],
+                            'columns' => $columns,
+                            'message' => "Kolom {$column['label']} pada baris ".($rowIndex + 1)." untuk pertanyaan {$field['label']} harus berupa URL yang valid.",
+                        ];
+                    }
                 }
 
                 $normalizedRow[$columnName] = $columnValue;
@@ -998,6 +1060,37 @@ class AssessmentAttemptService
         return $normalizedAnswer;
     }
 
+    private function resolveFileFieldConfig(array $field): array
+    {
+        $config = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+        $inputMode = in_array(trim((string) ($config['input_mode'] ?? 'file')), ['file', 'link'], true)
+            ? trim((string) ($config['input_mode'] ?? 'file'))
+            : 'file';
+
+        return [
+            'input_mode' => $inputMode,
+            'max_size_kb' => is_numeric($config['max_size_kb'] ?? null)
+                ? max((int) $config['max_size_kb'], 1)
+                : 5120,
+            'max_files' => is_numeric($config['max_files'] ?? null)
+                ? max((int) $config['max_files'], 1)
+                : 1,
+        ];
+    }
+
+    private function isValidExternalUrl(string $value): bool
+    {
+        $value = trim($value);
+
+        if ($value === '' || ! filter_var($value, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $scheme = parse_url($value, PHP_URL_SCHEME);
+
+        return in_array(strtolower((string) $scheme), ['http', 'https'], true);
+    }
+
     private function buildSummaryFromSnapshot(
         array $snapshot,
         Collection $answers,
@@ -1105,6 +1198,10 @@ class AssessmentAttemptService
         }
 
         $payload = $answer->answer_payload ?? [];
+
+        if (filled($payload['link_url'] ?? null)) {
+            return true;
+        }
 
         if (filled($payload['value'] ?? null)) {
             return true;

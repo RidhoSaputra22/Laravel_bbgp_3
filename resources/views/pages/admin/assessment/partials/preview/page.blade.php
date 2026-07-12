@@ -253,13 +253,19 @@
                                                 @break
 
                                                 @case('file')
-                                                    <div class="custom-file">
-                                                        <input type="file" class="custom-file-input"
-                                                            id="{{ $fieldLabelId }}">
-                                                        <label class="custom-file-label" for="{{ $fieldLabelId }}">
-                                                            Pilih file
-                                                        </label>
-                                                    </div>
+                                                    @if (data_get($field->opsi_field, 'input_mode') === 'link')
+                                                        <input type="url" class="form-control"
+                                                            id="{{ $fieldLabelId }}"
+                                                            placeholder="{{ $field->placeholder ?: 'https://drive.google.com/file/d/.../view' }}">
+                                                    @else
+                                                        <div class="custom-file">
+                                                            <input type="file" class="custom-file-input"
+                                                                id="{{ $fieldLabelId }}">
+                                                            <label class="custom-file-label" for="{{ $fieldLabelId }}">
+                                                                Pilih file
+                                                            </label>
+                                                        </div>
+                                                    @endif
                                                 @break
 
                                                 @case('repeater')
@@ -304,7 +310,7 @@
                                                                                     <textarea class="form-control" rows="2"></textarea>
                                                                                 @else
                                                                                     <input
-                                                                                        type="{{ in_array(($column['tipe_field'] ?? 'text'), ['text', 'email', 'number', 'date'], true) ? ($column['tipe_field'] ?? 'text') : 'text' }}"
+                                                                                        type="{{ in_array(($column['tipe_field'] ?? 'text'), ['text', 'email', 'number', 'date', 'url'], true) ? ($column['tipe_field'] ?? 'text') : 'text' }}"
                                                                                         class="form-control" value=""
                                                                                         placeholder="{{ $column['placeholder'] ?? '' }}">
                                                                                 @endif

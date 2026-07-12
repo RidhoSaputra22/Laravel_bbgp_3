@@ -301,7 +301,7 @@ class AssessmentQuestionRandomizerService
         int $assessmentId,
         int $formId
     ): array {
-        if ($field->tipe_field === 'repeater') {
+        if (in_array($field->tipe_field, ['repeater', 'file'], true)) {
             return is_array($field->opsi_field) ? $field->opsi_field : [];
         }
 
@@ -327,7 +327,7 @@ class AssessmentQuestionRandomizerService
         int $assessmentId,
         int $formId
     ): array {
-        if (($field['tipe_field'] ?? null) === 'repeater') {
+        if (in_array(($field['tipe_field'] ?? null), ['repeater', 'file'], true)) {
             return is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
         }
 

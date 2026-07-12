@@ -367,8 +367,21 @@
                                                                                     @foreach ($repeaterRows as $row)
                                                                                         <tr>
                                                                                             @foreach ($repeaterColumns as $column)
+                                                                                                @php
+                                                                                                    $cellValue = \App\Support\Assessment\AssessmentAnswerViewHelper::formatRepeaterCell(
+                                                                                                        $column,
+                                                                                                        $row[$column['nama_field']] ?? '',
+                                                                                                    );
+                                                                                                    $cellRawValue = trim((string) ($row[$column['nama_field']] ?? ''));
+                                                                                                @endphp
                                                                                                 <td>
-                                                                                                    {{ \App\Support\Assessment\AssessmentAnswerViewHelper::formatRepeaterCell($column, $row[$column['nama_field']] ?? '') }}
+                                                                                                    @if (($column['tipe_field'] ?? null) === 'url' && $cellRawValue !== '')
+                                                                                                        <a href="{{ $cellRawValue }}" target="_blank" rel="noopener">
+                                                                                                            {{ $cellValue }}
+                                                                                                        </a>
+                                                                                                    @else
+                                                                                                        {{ $cellValue }}
+                                                                                                    @endif
                                                                                                 </td>
                                                                                             @endforeach
                                                                                         </tr>

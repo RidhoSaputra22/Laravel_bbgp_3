@@ -17,6 +17,9 @@
         default => 'text',
     };
     $isChoiceField = in_array($field['tipe_field'], ['radio', 'checkbox'], true);
+    $fileInputMode = in_array(data_get($field, 'opsi_field.input_mode'), ['file', 'link'], true)
+        ? data_get($field, 'opsi_field.input_mode')
+        : 'file';
 @endphp
 
 <div class="mb-[18px] rounded-[20px] border p-[22px] last:mb-0 {{ $error ? 'border-red-500/50 bg-red-50/50' : 'border-[#e4edf4] bg-[#fbfdff]' }}">
@@ -71,7 +74,9 @@
 
         @case('file')
             <x-assessment::form.file-input :label="$field['label']" :description="$field['deskripsi']" :hint="$field['bantuan']"
-                :name="$answerName" :required="(bool) $field['is_required']" :error="$error" />
+                :name="$answerName" :required="(bool) $field['is_required']" :error="$error"
+                :mode="$fileInputMode" :value="$fileInputMode === 'link' ? $oldValue : null"
+                :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'" />
         @break
 
         @default

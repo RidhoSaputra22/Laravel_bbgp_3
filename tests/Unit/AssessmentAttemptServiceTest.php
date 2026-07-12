@@ -370,6 +370,78 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
+    public function test_submit_accepts_file_field_in_link_mode_with_valid_url(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'file',
+            'opsi_field' => [
+                'input_mode' => 'link',
+                'max_size_kb' => 2048,
+                'max_files' => 1,
+            ],
+        ]);
+
+        $submittedAttempt = $this->makeService()->submit(
+            $attempt,
+            [$field->id => 'https://drive.google.com/file/d/sertifikat/view'],
+            []
+        );
+
+        $answer = $submittedAttempt->answers->firstWhere('assessment_form_field_id', $field->id);
+
+        $this->assertNotNull($answer);
+        $this->assertSame('https://drive.google.com/file/d/sertifikat/view', $answer->answer_text);
+        $this->assertSame('link', data_get($answer->answer_payload, 'input_mode'));
+        $this->assertSame('https://drive.google.com/file/d/sertifikat/view', data_get($answer->answer_payload, 'link_url'));
+        $this->assertNull($answer->answer_file_path);
+    }
+
+    public function test_submit_rejects_invalid_repeater_url_column(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'repeater',
+            'opsi_field' => [
+                'min_rows' => 0,
+                'max_rows' => 10,
+                'columns' => [
+                    [
+                        'label' => 'Nama Pelatihan',
+                        'nama_field' => 'nama_pelatihan',
+                        'tipe_field' => 'text',
+                        'is_required' => true,
+                    ],
+                    [
+                        'label' => 'Link Sertifikat',
+                        'nama_field' => 'link_sertifikat',
+                        'tipe_field' => 'url',
+                        'is_required' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        try {
+            $this->makeService()->submit(
+                $attempt,
+                [
+                    $field->id => [
+                        [
+                            'nama_pelatihan' => 'Bimtek Numerasi',
+                            'link_sertifikat' => 'bukan-url-valid',
+                        ],
+                    ],
+                ],
+                []
+            );
+            $this->fail('Submit should reject invalid repeater URL columns.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Kolom Link Sertifikat pada baris 1 untuk pertanyaan Pertanyaan Reflektif harus berupa URL yang valid.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
+    }
+
     public function test_submit_expired_with_empty_partial_field_ids_preserves_existing_answers(): void
     {
         ['attempt' => $attempt, 'fields' => [$firstField, $secondField]] = $this->createAttemptScenarioWithFields([
@@ -497,8 +569,8 @@ class AssessmentAttemptServiceTest extends TestCase
             [
                 'label' => 'Pertanyaan Reflektif',
                 'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
-                'opsi_field' => [],
-                'is_required' => true,
+                'opsi_field' => $fieldOverrides['opsi_field'] ?? [],
+                'is_required' => $fieldOverrides['is_required'] ?? true,
             ],
         ]);
 

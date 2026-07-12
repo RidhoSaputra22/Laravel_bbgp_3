@@ -311,6 +311,33 @@ class AssessmentQuestionRandomizerServiceTest extends TestCase
         }
     }
 
+    public function test_it_keeps_file_field_associative_config_in_snapshot_options(): void
+    {
+        $field = $this->makeField(903, 'Bukti Sertifikat', 'file', [
+            'input_mode' => 'link',
+            'accept' => ['application/pdf'],
+            'max_size_kb' => 2048,
+            'max_files' => 1,
+        ]);
+        $target = $this->makeTarget(33, [
+            $this->makeAssessment(403, AssessmentInstrumentType::PORTOFOLIO->value, [
+                $this->makeForm(503, [$field], [
+                    'judul_form' => 'Dokumen Pendukung',
+                    'kode_form' => 'FORM-DOC',
+                ]),
+            ], [
+                'kode_assessment' => 'ASM-DOC',
+                'judul' => 'Assessment Dokumen',
+            ]),
+        ]);
+
+        $snapshot = app(AssessmentQuestionRandomizerService::class)->buildSnapshot($target);
+
+        $this->assertSame('link', data_get($snapshot, 'assessments.0.forms.0.fields.0.opsi_field.input_mode'));
+        $this->assertSame(['application/pdf'], data_get($snapshot, 'assessments.0.forms.0.fields.0.opsi_field.accept'));
+        $this->assertSame(2048, data_get($snapshot, 'assessments.0.forms.0.fields.0.opsi_field.max_size_kb'));
+    }
+
     private function makeRandomizationTarget(int $targetId): AssessmentAssignmentTarget
     {
         $multipleChoiceField = $this->makeField(301, 'Soal Pilihan Ganda 1', 'radio', [

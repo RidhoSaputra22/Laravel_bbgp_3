@@ -14,6 +14,7 @@ use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\ParticipantAutoFillResolver;
 use App\Support\Assessment\ScoringGuidanceAssistant;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -312,6 +313,11 @@ class AssessmentController extends Controller
                 'forms.*.fields.*.opsi_field_text' => 'nullable|string',
                 'forms.*.fields.*.opsi_score_text' => 'nullable|string',
                 'forms.*.fields.*.repeater_config_text' => 'nullable|string',
+                'forms.*.fields.*.file_input_mode' => [
+                    'nullable',
+                    'string',
+                    Rule::in(['file', 'link']),
+                ],
                 'forms.*.fields.*.raw_opsi_field_json' => 'nullable|string',
                 'forms.*.fields.*.radio_options' => 'nullable|array',
                 'forms.*.fields.*.radio_options.*.label' => 'nullable|string|max:1000',
@@ -701,7 +707,7 @@ class AssessmentController extends Controller
         $fieldType = $fieldData['tipe_field'] ?? null;
 
         if ($fieldType === 'file') {
-            return $this->parseRawFieldOptionsJson($fieldData['raw_opsi_field_json'] ?? null);
+            return $this->parseFileFieldOptions($fieldData);
         }
 
         if (! in_array($fieldType, ['select', 'radio', 'checkbox', 'repeater'], true)) {
@@ -776,6 +782,31 @@ class AssessmentController extends Controller
         }
 
         return $decoded;
+    }
+
+    private function parseFileFieldOptions(array $fieldData): ?array
+    {
+        $rawConfig = $this->parseRawFieldOptionsJson($fieldData['raw_opsi_field_json'] ?? null);
+        $rawConfig = is_array($rawConfig) ? $rawConfig : [];
+        $inputMode = $this->normalizeFileInputMode($fieldData['file_input_mode'] ?? data_get($rawConfig, 'input_mode'));
+        $accept = collect(Arr::wrap($rawConfig['accept'] ?? []))
+            ->map(fn ($value) => trim((string) $value))
+            ->filter()
+            ->values()
+            ->all();
+        $maxSizeKb = is_numeric($rawConfig['max_size_kb'] ?? null)
+            ? max((int) $rawConfig['max_size_kb'], 1)
+            : 5120;
+        $maxFiles = is_numeric($rawConfig['max_files'] ?? null)
+            ? max((int) $rawConfig['max_files'], 1)
+            : 1;
+
+        return array_filter([
+            'input_mode' => $inputMode,
+            'accept' => $accept !== [] ? $accept : null,
+            'max_size_kb' => $inputMode === 'file' ? $maxSizeKb : null,
+            'max_files' => $inputMode === 'file' ? $maxFiles : null,
+        ], static fn ($value) => $value !== null && $value !== '');
     }
 
     /**
@@ -1091,6 +1122,13 @@ class AssessmentController extends Controller
         );
     }
 
+    private function normalizeFileInputMode(mixed $value): string
+    {
+        $mode = trim((string) $value);
+
+        return in_array($mode, ['file', 'link'], true) ? $mode : 'file';
+    }
+
     private function generateUniqueSlug(string $title, ?int $ignoreId = null): string
     {
         $baseSlug = Str::slug($title);
@@ -1233,6 +1271,9 @@ class AssessmentController extends Controller
                             $field->nama_field,
                             $assessment->target_ketenagaan
                         ),
+                        'file_input_mode' => $field->tipe_field === 'file'
+                            ? $this->normalizeFileInputMode(data_get($field->opsi_field, 'input_mode'))
+                            : null,
                         'raw_opsi_field_json' => $this->formatRawFieldOptionsJsonForBuilder($field->tipe_field, $field->opsi_field),
                         'repeater_config_text' => $field->tipe_field === 'repeater' && is_array($field->opsi_field)
                             ? json_encode($field->opsi_field, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)

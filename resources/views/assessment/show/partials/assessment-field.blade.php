@@ -39,10 +39,18 @@
         ->all();
     $answerName = 'answers[' . $field['id'] . ']';
     $fieldType = $field['tipe_field'];
+    $fileFieldConfig = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+    $fileInputMode = in_array(($fileFieldConfig['input_mode'] ?? 'file'), ['file', 'link'], true)
+        ? (string) ($fileFieldConfig['input_mode'] ?? 'file')
+        : 'file';
     $isRequired = (bool) ($field['is_required'] ?? false);
     $existingFileUrl = $savedAnswer['file_url'] ?? null;
     $existingFileName = $savedPayload['original_name'] ?? ($savedAnswer['text'] ?? null);
-    $hasExistingFile = filled($existingFileUrl) || filled($savedAnswer['file_path'] ?? null);
+    $existingLinkUrl = trim((string) ($savedPayload['link_url'] ?? ($fileInputMode === 'link' ? ($savedAnswer['text'] ?? '') : '')));
+    $oldFileLinkValue = old('answers.' . $field['id'], $savedPayload['link_url'] ?? ($fileInputMode === 'link' ? ($savedAnswer['text'] ?? null) : null));
+    $hasExistingFile = $fileInputMode === 'link'
+        ? $existingLinkUrl !== ''
+        : (filled($existingFileUrl) || filled($savedAnswer['file_path'] ?? null));
     $textareaMinWords = \App\Support\Assessment\TextareaWordLimit::minWords();
     $textareaMaxWords = \App\Support\Assessment\TextareaWordLimit::maxWords();
     $textareaWordHelperText = \App\Support\Assessment\TextareaWordLimit::helperText();
@@ -69,6 +77,7 @@
     data-assessment-field
     data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
     data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}"
+    data-file-input-mode="{{ $fileInputMode }}"
     data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
     <div class="mb-3 flex items-start justify-between gap-4">
         <div class="min-w-0">
@@ -146,23 +155,41 @@
 
         @case('file')
             <x-assessment::form.file-input :id="$inputId" :label="null" :description="null" :name="$answerName"
-                :required="$isRequired" :error="$fieldError" />
+                :required="$isRequired" :error="$fieldError" :mode="$fileInputMode"
+                :value="$fileInputMode === 'link' ? $oldFileLinkValue : null"
+                :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'" />
 
             @if ($hasExistingFile)
                 <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-3 text-sm text-slate-600">
-                    <div class="font-semibold text-slate-800">File snapshot tersimpan</div>
-                    <div class="mt-1">
-                        {{ $existingFileName ?: 'Lampiran tersimpan' }}
-                    </div>
-                    @if ($existingFileUrl)
-                        <a href="{{ $existingFileUrl }}" target="_blank" rel="noopener"
-                            class="mt-2 inline-flex items-center text-[#1376bd] hover:underline">
-                            Lihat file saat ini
-                        </a>
+                    @if ($fileInputMode === 'link')
+                        <div class="font-semibold text-slate-800">Link bukti tersimpan</div>
+                        <div class="mt-1 break-all">
+                            {{ $existingLinkUrl ?: 'Tautan tersimpan' }}
+                        </div>
+                        @if ($existingLinkUrl !== '')
+                            <a href="{{ $existingLinkUrl }}" target="_blank" rel="noopener"
+                                class="mt-2 inline-flex items-center text-[#1376bd] hover:underline">
+                                Buka link saat ini
+                            </a>
+                        @endif
+                        <div class="mt-2 text-xs text-slate-500">
+                            Isi link baru hanya jika ingin mengganti tautan yang sudah tersimpan.
+                        </div>
+                    @else
+                        <div class="font-semibold text-slate-800">File snapshot tersimpan</div>
+                        <div class="mt-1">
+                            {{ $existingFileName ?: 'Lampiran tersimpan' }}
+                        </div>
+                        @if ($existingFileUrl)
+                            <a href="{{ $existingFileUrl }}" target="_blank" rel="noopener"
+                                class="mt-2 inline-flex items-center text-[#1376bd] hover:underline">
+                                Lihat file saat ini
+                            </a>
+                        @endif
+                        <div class="mt-2 text-xs text-slate-500">
+                            Pilih file baru hanya jika ingin mengganti lampiran yang sudah tersimpan.
+                        </div>
                     @endif
-                    <div class="mt-2 text-xs text-slate-500">
-                        Pilih file baru hanya jika ingin mengganti lampiran yang sudah tersimpan.
-                    </div>
                 </div>
             @endif
         @break
@@ -242,7 +269,7 @@
                                         </div>
                                     @else
                                         <input
-                                            type="{{ in_array($columnType, ['number', 'email', 'date'], true) ? $columnType : 'text' }}"
+                                            type="{{ in_array($columnType, ['number', 'email', 'date', 'url'], true) ? $columnType : 'text' }}"
                                             @if ($columnType === 'number') inputmode="decimal" @endif
                                             class="w-full rounded-sm border border-[#d0dbe5] px-3 py-2 text-sm text-slate-700 focus:border-[#1376bd] focus:outline-none focus:ring-2 focus:ring-[#1376bd]/20"
                                             :name="fieldName(rowIndex, '{{ $columnName }}')"

@@ -116,6 +116,7 @@ class AssessmentEditViewFileFieldConfigTest extends TestCase
             'tipe_field' => 'file',
             'bantuan' => 'Format yang disarankan: PNG, JPG, atau JPEG.',
             'opsi_field' => [
+                'input_mode' => 'link',
                 'accept' => ['image/png', 'image/jpeg'],
                 'max_size_kb' => 2048,
                 'max_files' => 1,
@@ -141,5 +142,7 @@ class AssessmentEditViewFileFieldConfigTest extends TestCase
         $response->assertOk();
         $response->assertSee('Edit Assessment');
         $response->assertSee('Tanda Tangan Validator');
+        $response->assertSee('Mode Input Bukti');
+        $response->assertSee('Link file / Google Drive');
     }
 }

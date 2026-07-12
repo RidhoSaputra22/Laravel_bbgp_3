@@ -82,6 +82,21 @@
             };
         };
 
+        window.assessmentIsValidHttpUrl = function(value) {
+            const normalizedValue = String(value || '').trim();
+
+            if (!normalizedValue) {
+                return false;
+            }
+
+            try {
+                const parsedUrl = new URL(normalizedValue);
+                return ['http:', 'https:'].includes(String(parsedUrl.protocol || '').toLowerCase());
+            } catch (error) {
+                return false;
+            }
+        };
+
         window.createAssessmentSecurityGuard = function(component, securityConfig) {
             const config = securityConfig && typeof securityConfig === 'object' ? securityConfig : null;
 
@@ -2209,13 +2224,26 @@
                             message = `Minimal pilih satu jawaban untuk pertanyaan ${fieldLabel}.`;
                         }
                     } else if (fieldType === 'file') {
-                        const input = fieldWrapper.querySelector('input[type="file"]');
-                        const uploadedFile = input?.files?.[0] ?? null;
+                        const fileInputMode = fieldWrapper.dataset.fileInputMode || 'file';
 
-                        if (requiresAnswer && !uploadedFile && !hasExistingFile) {
-                            message = `File untuk pertanyaan ${fieldLabel} wajib diunggah.`;
-                        } else if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) {
-                            message = `File untuk pertanyaan ${fieldLabel} maksimal 5 MB.`;
+                        if (fileInputMode === 'link') {
+                            const input = fieldWrapper.querySelector('input[type="url"]');
+                            const linkValue = String(input?.value || '').trim();
+
+                            if (requiresAnswer && !linkValue && !hasExistingFile) {
+                                message = `Link file untuk pertanyaan ${fieldLabel} wajib diisi.`;
+                            } else if (linkValue && !window.assessmentIsValidHttpUrl(linkValue)) {
+                                message = `Link file untuk pertanyaan ${fieldLabel} harus berupa URL yang valid.`;
+                            }
+                        } else {
+                            const input = fieldWrapper.querySelector('input[type="file"]');
+                            const uploadedFile = input?.files?.[0] ?? null;
+
+                            if (requiresAnswer && !uploadedFile && !hasExistingFile) {
+                                message = `File untuk pertanyaan ${fieldLabel} wajib diunggah.`;
+                            } else if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) {
+                                message = `File untuk pertanyaan ${fieldLabel} maksimal 5 MB.`;
+                            }
                         }
                     } else if (fieldType === 'repeater') {
                         const rows = this.extractRepeaterRows(fieldWrapper);
@@ -2266,6 +2294,19 @@
                                         message = `Kolom ${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} maksimal ${max} kata. Saat ini ${wordCount} kata.`;
                                     }
 
+                                    break;
+                                }
+
+                                const invalidUrlInput = inputs.find((input) => {
+                                    return input instanceof HTMLInputElement
+                                        && input.type === 'url'
+                                        && String(input.value || '').trim() !== ''
+                                        && !window.assessmentIsValidHttpUrl(input.value || '');
+                                });
+
+                                if (invalidUrlInput) {
+                                    const columnLabel = invalidUrlInput.dataset.repeaterLabel || 'Kolom';
+                                    message = `Kolom ${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} harus berupa URL yang valid.`;
                                     break;
                                 }
                             }
@@ -2466,6 +2507,13 @@
                     }
 
                     if (fieldType === 'file') {
+                        const fileInputMode = fieldWrapper.dataset.fileInputMode || 'file';
+
+                        if (fileInputMode === 'link') {
+                            const input = fieldWrapper.querySelector('input[type="url"]');
+                            return String(input?.value || '').trim() !== '' || hasExistingFile;
+                        }
+
                         const input = fieldWrapper.querySelector('input[type="file"]');
 
                         return Boolean(input?.files?.length) || hasExistingFile;
