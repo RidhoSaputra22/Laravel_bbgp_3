@@ -12,6 +12,7 @@
             $stageProgress
         );
         $answerLookup = $answerLookup ?? [];
+        $securityPayload = $securityPayload ?? [];
         $participantAutoFillResolver = app(\App\Support\Assessment\ParticipantAutoFillResolver::class);
         $autoFilledAnswerLookup = [];
 
@@ -377,6 +378,7 @@
         initialFlaggedFieldIds: @js($initialFlaggedFieldIds),
         initialQuestionFieldId: {{ $initialQuestionFieldId }},
         autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
+        overviewUrl: @js(route('assessment.portal.show', $target->id)),
         autosaveActionThreshold: 3,
         resultUrl: @js(route('assessment.portal.result', $target->id)),
         deadlineAt: @js(optional($countdownTargetAt)->toIso8601String()),

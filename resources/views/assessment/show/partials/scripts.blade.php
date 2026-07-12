@@ -1027,6 +1027,7 @@
                 currentQuestionFieldId: Number(config.initialQuestionFieldId ?? 0),
                 questionStateByFieldId: {},
                 autosaveUrl: typeof config.autosaveUrl === 'string' ? config.autosaveUrl : '',
+                overviewUrl: typeof config.overviewUrl === 'string' ? config.overviewUrl : '',
                 resultUrl: typeof config.resultUrl === 'string' ? config.resultUrl : '',
                 deadlineAt: typeof config.deadlineAt === 'string' ? config.deadlineAt : null,
                 textareaWordLimits: config.textareaWordLimits && typeof config.textareaWordLimits === 'object'
@@ -1979,7 +1980,7 @@
                         && stageMeta.requires_start_button !== true
                         && stageMeta.read_only !== true
                         && stageMeta.is_interactive !== false
-                        && ['in_progress', 'ready'].includes(status);
+                        && ['draft', 'in_progress', 'ready'].includes(status);
                 },
                 currentStageFinalizeLabel() {
                     if (!this.stageFlowEnabled) {
@@ -2065,10 +2066,11 @@
                     const result = await this.saveCurrentAssessmentSnapshot({
                         reason: 'manual_stage_draft',
                         bucket: this.buildCurrentStageBucket('manual_stage_draft'),
+                        followRedirectOnSuccess: true,
                     });
 
                     if (result === 'saved') {
-                        window.alert('Draft tahap berhasil disimpan.');
+                        window.location.href = this.overviewUrl || window.location.pathname;
                     }
                 },
                 submitCurrentStage() {
@@ -2254,6 +2256,12 @@
                             window.location.href = payload.redirect_url;
 
                             return 'expired';
+                        }
+
+                        if (payload?.redirect_url && options.followRedirectOnSuccess === true) {
+                            window.location.href = payload.redirect_url;
+
+                            return 'redirected';
                         }
 
                         return 'saved';

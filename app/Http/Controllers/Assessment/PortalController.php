@@ -127,8 +127,10 @@ class PortalController extends Controller
         }
 
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+        $stageFlowEnabled = $this->usesStageFlow($target, $attempt);
+        $renderStageOverview = $stageFlowEnabled && ! $this->hasRequestedStageSelection($request);
 
-        if (! $this->usesStageFlow($target, $attempt) && $meta['status'] === 'ready') {
+        if (! $stageFlowEnabled && $meta['status'] === 'ready') {
             return redirect()
                 ->route('assessment.portal.dashboard')
                 ->withErrors([
@@ -137,7 +139,7 @@ class PortalController extends Controller
         }
 
         if ($meta['status'] !== 'in_progress') {
-            if (! $this->usesStageFlow($target, $attempt) || $meta['status'] !== 'ready') {
+            if (! $stageFlowEnabled || $meta['status'] !== 'ready') {
                 return redirect()
                     ->route('assessment.portal.dashboard')
                     ->withErrors([
@@ -148,27 +150,37 @@ class PortalController extends Controller
 
         $currentStageIndex = null;
 
-        if ($this->usesStageFlow($target, $attempt)) {
+        if ($stageFlowEnabled) {
             $progress = $this->resolveStageProgress($attempt);
-            $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
 
-            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
-                $stageIndex = AssessmentStageProgress::resolveCurrentStageIndex($progress);
+            if ($renderStageOverview) {
+                $currentStageIndex = AssessmentStageProgress::resolveCurrentStageIndex($progress);
+            } else {
+                $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
+
+                if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+                    $stageIndex = AssessmentStageProgress::resolveCurrentStageIndex($progress);
+                }
+
+                $stage = AssessmentStageProgress::stage($progress, $stageIndex);
+                $stageConfig = AssessmentStageProgress::stageConfig($progress, $stageIndex);
+
+                if (
+                    $stage
+                    && (
+                        ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_DRAFT
+                        || (
+                            ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
+                            && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_DIRECT
+                        )
+                    )
+                ) {
+                    $attempt = $this->attemptService->markStageStarted($attempt, $stageIndex);
+                    $progress = $this->resolveStageProgress($attempt);
+                }
+
+                $currentStageIndex = $stageIndex;
             }
-
-            $stage = AssessmentStageProgress::stage($progress, $stageIndex);
-            $stageConfig = AssessmentStageProgress::stageConfig($progress, $stageIndex);
-
-            if (
-                $stage
-                && ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
-                && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_DIRECT
-            ) {
-                $attempt = $this->attemptService->markStageStarted($attempt, $stageIndex);
-                $progress = $this->resolveStageProgress($attempt);
-            }
-
-            $currentStageIndex = $stageIndex;
         } else {
             $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
         }
@@ -204,6 +216,17 @@ class PortalController extends Controller
             'target.session',
             'target.guru',
         ]);
+
+        if ($renderStageOverview) {
+            return view('assessment.show.overview', [
+                'menu' => 'assessment-portal',
+                'guru' => $guru,
+                'target' => $freshTarget,
+                'attempt' => $freshAttempt,
+                'meta' => $this->portalService->buildTargetMeta($freshTarget),
+                'stageOverview' => $this->portalService->buildStageOverview($freshTarget, $freshAttempt),
+            ]);
+        }
 
         return view('assessment.show.show', [
             'menu' => 'assessment-portal',
@@ -323,7 +346,7 @@ class PortalController extends Controller
 
                 $redirectUrl = $expiredAttempt->status === 'submitted'
                     ? route('assessment.portal.result', $target->id)
-                    : route('assessment.portal.show', ['id' => $target->id, 'stage' => $stageIndex]);
+                    : route('assessment.portal.show', $target->id);
             } else {
                 $this->attemptService->submitExpired(
                     $attempt,
@@ -342,21 +365,30 @@ class PortalController extends Controller
             ]);
         }
 
+        $clientSnapshotBucket = $this->decodeClientSnapshotBucket($request->input('client_snapshot_bucket'));
         $savedAttempt = $this->attemptService->saveSnapshot(
             $attempt,
             $request->input('answers', []),
             $request->file('answers', []),
             $request->input('field_ids', []),
             $request->input('flagged_field_ids', []),
-            $this->decodeClientSnapshotBucket($request->input('client_snapshot_bucket'))
+            $clientSnapshotBucket,
+            $stageIndex
         );
+        $isManualStageDraftSave = $stageIndex !== null
+            && ($clientSnapshotBucket['flush_reason'] ?? null) === 'manual_stage_draft';
 
         return response()->json([
             'status' => 'saved',
-            'message' => 'Snapshot jawaban berhasil disimpan.',
+            'message' => $isManualStageDraftSave
+                ? 'Draft tahap berhasil disimpan.'
+                : 'Snapshot jawaban berhasil disimpan.',
             'answered_questions' => $savedAttempt->answered_questions,
             'answered_required_questions' => $savedAttempt->answered_required_questions,
             'saved_at' => optional($savedAttempt->last_answered_at)->toIso8601String(),
+            'redirect_url' => $isManualStageDraftSave
+                ? route('assessment.portal.show', $target->id)
+                : null,
         ]);
     }
 
@@ -471,10 +503,7 @@ class PortalController extends Controller
 
                 $redirectUrl = $expiredAttempt->status === 'submitted'
                     ? route('assessment.portal.result', $target->id)
-                    : route('assessment.portal.show', [
-                        'id' => $target->id,
-                        'stage' => $this->resolveCurrentOrNextStageIndex($expiredAttempt),
-                    ]);
+                    : route('assessment.portal.show', $target->id);
 
                 if ($request->expectsJson()) {
                     return response()->json([
@@ -503,10 +532,7 @@ class PortalController extends Controller
             }
 
             return redirect()
-                ->route('assessment.portal.show', [
-                    'id' => $target->id,
-                    'stage' => $this->resolveCurrentOrNextStageIndex($submittedAttempt),
-                ])
+                ->route('assessment.portal.show', $target->id)
                 ->with('assessment_portal_success', 'Tahap assessment berhasil disimpan permanen.');
         }
 
@@ -632,10 +658,7 @@ class PortalController extends Controller
                 $expiredAttempt = $this->attemptService->submitExpiredStage($attempt, $stageIndex);
                 $redirectUrl = $expiredAttempt->status === 'submitted'
                     ? route('assessment.portal.result', $target->id)
-                    : route('assessment.portal.show', [
-                        'id' => $target->id,
-                        'stage' => $this->resolveCurrentOrNextStageIndex($expiredAttempt),
-                    ]);
+                    : route('assessment.portal.show', $target->id);
             } else {
                 $this->attemptService->submitExpired($attempt);
                 $redirectUrl = route('assessment.portal.result', $target->id);
@@ -712,10 +735,7 @@ class PortalController extends Controller
                 );
                 $redirectUrl = $expiredAttempt->status === 'submitted'
                     ? route('assessment.portal.result', $target->id)
-                    : route('assessment.portal.show', [
-                        'id' => $target->id,
-                        'stage' => $this->resolveCurrentOrNextStageIndex($expiredAttempt),
-                    ]);
+                    : route('assessment.portal.show', $target->id);
             } else {
                 $this->attemptService->submitExpired(
                     $attempt,
@@ -914,15 +934,9 @@ class PortalController extends Controller
         );
     }
 
-    private function resolveCurrentOrNextStageIndex(AssessmentAttempt $attempt): int
+    private function hasRequestedStageSelection(Request $request): bool
     {
-        $progress = $this->resolveStageProgress($attempt);
-
-        return AssessmentStageProgress::resolveCurrentStageIndex(
-            $progress,
-            AssessmentStageProgress::nextStageIndexAfterSubmission($progress)
-                ?? (int) ($progress['current_stage_index'] ?? 0)
-        );
+        return $request->query->has('stage');
     }
 
     /**

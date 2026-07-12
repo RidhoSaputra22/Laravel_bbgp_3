@@ -11,6 +11,8 @@ class AssessmentStageProgress
 
     public const STATUS_READY = 'ready';
 
+    public const STATUS_DRAFT = 'draft';
+
     public const STATUS_IN_PROGRESS = 'in_progress';
 
     public const STATUS_SUBMITTED = 'submitted';
@@ -135,7 +137,11 @@ class AssessmentStageProgress
     public static function firstActionableStageIndex(array $progress): ?int
     {
         foreach (self::resolveStages($progress) as $stage) {
-            if (in_array($stage['status'] ?? null, [self::STATUS_READY, self::STATUS_IN_PROGRESS], true)) {
+            if (in_array(
+                $stage['status'] ?? null,
+                [self::STATUS_READY, self::STATUS_DRAFT, self::STATUS_IN_PROGRESS],
+                true
+            )) {
                 return (int) ($stage['stage_index'] ?? 0);
             }
         }
@@ -194,7 +200,10 @@ class AssessmentStageProgress
     {
         $currentStage = self::stage($progress, (int) ($progress['current_stage_index'] ?? 0));
 
-        if (! $currentStage || ($currentStage['status'] ?? null) !== self::STATUS_IN_PROGRESS) {
+        if (
+            ! $currentStage
+            || ! in_array($currentStage['status'] ?? null, [self::STATUS_IN_PROGRESS, self::STATUS_DRAFT], true)
+        ) {
             return null;
         }
 
@@ -282,6 +291,39 @@ class AssessmentStageProgress
             $progress,
             self::nextStageIndexAfterSubmission($progress) ?? $stageIndex
         );
+
+        return $progress;
+    }
+
+    public static function markStageDraft(
+        array $progress,
+        int $stageIndex,
+        CarbonInterface|string|null $savedAt = null
+    ): array {
+        $savedAtCarbon = self::parseCarbon($savedAt) ?: now();
+
+        $progress['stages'] = collect(self::resolveStages($progress))
+            ->map(function (array $stage) use ($stageIndex, $savedAtCarbon) {
+                if ((int) ($stage['stage_index'] ?? -1) !== $stageIndex) {
+                    return $stage;
+                }
+
+                if (($stage['status'] ?? null) === self::STATUS_SUBMITTED) {
+                    return $stage;
+                }
+
+                $stage['status'] = self::STATUS_DRAFT;
+                $stage['started_at'] = $stage['started_at'] ?: $savedAtCarbon->toIso8601String();
+                $stage['submitted_at'] = null;
+                $stage['completion_mode'] = null;
+
+                return $stage;
+            })
+            ->values()
+            ->all();
+
+        $progress['current_stage_index'] = $stageIndex;
+        $progress['updated_at'] = $savedAtCarbon->toIso8601String();
 
         return $progress;
     }
@@ -382,7 +424,13 @@ class AssessmentStageProgress
 
         return in_array(
             $normalized,
-            [self::STATUS_LOCKED, self::STATUS_READY, self::STATUS_IN_PROGRESS, self::STATUS_SUBMITTED],
+            [
+                self::STATUS_LOCKED,
+                self::STATUS_READY,
+                self::STATUS_DRAFT,
+                self::STATUS_IN_PROGRESS,
+                self::STATUS_SUBMITTED,
+            ],
             true
         ) ? $normalized : self::STATUS_READY;
     }

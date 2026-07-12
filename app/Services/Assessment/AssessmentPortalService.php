@@ -2,12 +2,15 @@
 
 namespace App\Services\Assessment;
 
+use App\Enum\AssessmentInstrumentType;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\AssessmentTargetTiming;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class AssessmentPortalService
@@ -288,6 +291,119 @@ class AssessmentPortalService
         return $meta;
     }
 
+    public function buildStageOverview(AssessmentAssignmentTarget $target, AssessmentAttempt $attempt): array
+    {
+        $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+        $progress = AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot);
+        $stages = collect($snapshot['assessments'] ?? [])
+            ->filter(fn ($assessment) => is_array($assessment))
+            ->values()
+            ->map(function (array $assessment, int $index) use ($progress) {
+                $stage = AssessmentStageProgress::stage($progress, $index) ?? [];
+                $config = AssessmentStageProgress::stageConfig($progress, $index);
+                $forms = collect($assessment['forms'] ?? [])
+                    ->filter(fn ($form) => is_array($form))
+                    ->values();
+                $questionTotal = (int) $forms->sum(
+                    fn ($form) => collect($form['fields'] ?? [])->filter(fn ($field) => is_array($field))->count()
+                );
+                $requiredQuestionTotal = (int) $forms->sum(function ($form) {
+                    return collect($form['fields'] ?? [])
+                        ->filter(function ($field) {
+                            if (! is_array($field)) {
+                                return false;
+                            }
+
+                            return (bool) ($field['is_required'] ?? data_get($field, 'validasi.required', false));
+                        })
+                        ->count();
+                });
+                $status = (string) ($stage['status'] ?? AssessmentStageProgress::STATUS_READY);
+                $allowDraft = (bool) ($config['allow_draft'] ?? false);
+                $requiresStartButton =
+                    ($config['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_START_BUTTON;
+                $statusLabel = $this->resolveStageStatusLabel($status, $allowDraft);
+                $statusTone = $this->resolveStageStatusTone($status, $allowDraft);
+                $title = trim((string) ($assessment['judul'] ?? '')) ?: 'Assessment '.($index + 1);
+                $startedAt = $this->parseDateTimeValue($stage['started_at'] ?? null);
+                $submittedAt = $this->parseDateTimeValue($stage['submitted_at'] ?? null);
+                $deadlineAt = $this->parseDateTimeValue($stage['deadline_at'] ?? null);
+                $instrumentLabel = AssessmentInstrumentType::tryFromMixed($assessment['instrument_type'] ?? null)?->label()
+                    ?: 'Assessment';
+
+                return [
+                    'index' => $index,
+                    'number' => $index + 1,
+                    'code' => trim((string) ($assessment['kode_assessment'] ?? '')) ?: 'ASM-'.($index + 1),
+                    'title' => $title,
+                    'description' => trim((string) ($assessment['deskripsi'] ?? '')),
+                    'instruction' => trim((string) ($assessment['petunjuk'] ?? '')),
+                    'instrument_label' => $instrumentLabel,
+                    'form_total' => (int) $forms->count(),
+                    'question_total' => $questionTotal,
+                    'required_question_total' => $requiredQuestionTotal,
+                    'status' => $status,
+                    'status_label' => $statusLabel,
+                    'status_tone' => $statusTone,
+                    'status_description' => $this->resolveStageStatusDescription(
+                        $status,
+                        $title,
+                        $allowDraft,
+                        $deadlineAt,
+                        $submittedAt,
+                        AssessmentStageProgress::lockReason($progress, $index),
+                        (string) ($stage['completion_mode'] ?? ($config['finalize_mode'] ?? 'manual'))
+                    ),
+                    'started_at_label' => $this->formatDateTimeValue($startedAt),
+                    'deadline_at_label' => $deadlineAt ? $this->formatDateTime($deadlineAt) : 'Tanpa batas waktu',
+                    'submitted_at_label' => $this->formatDateTimeValue($submittedAt),
+                    'entry_mode_label' => $requiresStartButton ? 'Tombol mulai' : 'Langsung isi',
+                    'finalize_mode_label' => ($config['finalize_mode'] ?? null) === AssessmentStageConfig::FINALIZE_AUTO
+                        ? 'Auto submit'
+                        : 'Manual / permanen',
+                    'time_limit_label' => $config['time_limit_minutes']
+                        ? $config['time_limit_minutes'].' menit'
+                        : 'Tanpa timer',
+                    'security_label' => data_get($config, 'security.enabled', false)
+                        ? (data_get($config, 'security.require_fullscreen', false)
+                            ? 'Guard aktif, fullscreen wajib'
+                            : 'Guard aktif')
+                        : 'Guard nonaktif',
+                    'allow_draft' => $allowDraft,
+                    'requires_start_button' => $requiresStartButton,
+                    'is_current' => (int) ($progress['current_stage_index'] ?? 0) === $index,
+                    'is_locked' => $status === AssessmentStageProgress::STATUS_LOCKED,
+                    'is_submitted' => $status === AssessmentStageProgress::STATUS_SUBMITTED,
+                    'can_open' => $status !== AssessmentStageProgress::STATUS_LOCKED,
+                    'action_mode' => $this->resolveStageActionMode($status, $requiresStartButton),
+                    'action_label' => $this->resolveStageActionLabel($status, $requiresStartButton),
+                ];
+            })
+            ->all();
+        $stageCollection = collect($stages);
+        $stageTotal = (int) $stageCollection->count();
+        $submittedTotal = (int) $stageCollection->where('status', AssessmentStageProgress::STATUS_SUBMITTED)->count();
+        $inProgressTotal = (int) $stageCollection->where('status', AssessmentStageProgress::STATUS_IN_PROGRESS)->count();
+        $draftTotal = (int) $stageCollection->where('status', AssessmentStageProgress::STATUS_DRAFT)->count();
+        $readyTotal = (int) $stageCollection->where('status', AssessmentStageProgress::STATUS_READY)->count();
+        $lockedTotal = (int) $stageCollection->where('status', AssessmentStageProgress::STATUS_LOCKED)->count();
+
+        return [
+            'current_stage_index' => (int) ($progress['current_stage_index'] ?? 0),
+            'stage_total' => $stageTotal,
+            'submitted_total' => $submittedTotal,
+            'in_progress_total' => $inProgressTotal,
+            'draft_total' => $draftTotal,
+            'ready_total' => $readyTotal,
+            'available_total' => $readyTotal + $draftTotal,
+            'locked_total' => $lockedTotal,
+            'completion_percent' => $stageTotal > 0
+                ? (int) round(($submittedTotal / $stageTotal) * 100)
+                : 0,
+            'stages' => $stages,
+        ];
+    }
+
     private function countQuestions(AssessmentAssignmentTarget $target): int
     {
         if ($target->combination) {
@@ -378,12 +494,14 @@ class AssessmentPortalService
                     'title' => $title,
                     'status' => $status,
                     'label' => match ($status) {
+                        AssessmentStageProgress::STATUS_DRAFT => 'Tahap '.($stageIndex + 1).' Draft',
                         AssessmentStageProgress::STATUS_IN_PROGRESS => 'Tahap '.($stageIndex + 1).' Sedang Dikerjakan',
                         AssessmentStageProgress::STATUS_SUBMITTED => 'Tahap '.($stageIndex + 1).' Selesai',
                         AssessmentStageProgress::STATUS_LOCKED => 'Tahap '.($stageIndex + 1).' Terkunci',
                         default => 'Tahap '.($stageIndex + 1).' Siap Dikerjakan',
                     },
                     'description' => match ($status) {
+                        AssessmentStageProgress::STATUS_DRAFT => $prefix.' tersimpan sebagai draft. Buka kembali tahap ini untuk melanjutkan.',
                         AssessmentStageProgress::STATUS_IN_PROGRESS => $prefix.' sedang berjalan. Buka kembali penugasan untuk melanjutkan.',
                         AssessmentStageProgress::STATUS_SUBMITTED => $prefix.' sudah selesai. Lanjutkan ke tahap berikutnya jika sudah tersedia.',
                         AssessmentStageProgress::STATUS_LOCKED => $prefix.' masih terkunci sampai tahap sebelumnya selesai atau disimpan permanen.',
@@ -407,5 +525,101 @@ class AssessmentPortalService
             'description' => 'Tahap 1: '.(trim((string) $firstStage->judul) ?: 'Assessment pertama')
                 .' siap dibuka dari halaman penugasan.',
         ];
+    }
+
+    private function resolveStageStatusLabel(string $status, bool $allowDraft): string
+    {
+        return match ($status) {
+            AssessmentStageProgress::STATUS_LOCKED => 'Terkunci',
+            AssessmentStageProgress::STATUS_DRAFT => 'Draft',
+            AssessmentStageProgress::STATUS_IN_PROGRESS => 'Sedang Dikerjakan',
+            AssessmentStageProgress::STATUS_SUBMITTED => 'Selesai',
+            default => 'Siap Dikerjakan',
+        };
+    }
+
+    private function resolveStageStatusTone(string $status, bool $allowDraft): string
+    {
+        return match ($status) {
+            AssessmentStageProgress::STATUS_LOCKED => 'secondary',
+            AssessmentStageProgress::STATUS_DRAFT => 'secondary',
+            AssessmentStageProgress::STATUS_IN_PROGRESS => 'warning',
+            AssessmentStageProgress::STATUS_SUBMITTED => 'success',
+            default => 'info',
+        };
+    }
+
+    private function resolveStageStatusDescription(
+        string $status,
+        string $title,
+        bool $allowDraft,
+        ?CarbonInterface $deadlineAt,
+        ?CarbonInterface $submittedAt,
+        ?string $lockReason,
+        ?string $completionMode
+    ): string {
+        return match ($status) {
+            AssessmentStageProgress::STATUS_LOCKED => $lockReason
+                ?: 'Tahap ini masih menunggu tahap sebelumnya selesai.',
+            AssessmentStageProgress::STATUS_DRAFT => $deadlineAt
+                ? 'Draft '.$title.' berhasil disimpan. Lanjutkan kembali sebelum '.$this->formatDateTime($deadlineAt).'.'
+                : 'Draft '.$title.' berhasil disimpan. Buka kembali tahap ini untuk melanjutkan pengerjaan.',
+            AssessmentStageProgress::STATUS_IN_PROGRESS => $deadlineAt
+                ? $title.' sedang dikerjakan. Lanjutkan sebelum '.$this->formatDateTime($deadlineAt).'.'
+                : $title.' sedang dikerjakan dan dapat dilanjutkan kembali kapan saja selama penugasan masih aktif.',
+            AssessmentStageProgress::STATUS_SUBMITTED => $submittedAt
+                ? $title.' selesai pada '.$this->formatDateTime($submittedAt)
+                    .(($completionMode === 'timeout' || $completionMode === 'deadline_auto')
+                        ? ' melalui submit otomatis.'
+                        : '.')
+                : $title.' sudah selesai disimpan permanen.',
+            default => $allowDraft
+                ? $title.' belum dimulai. Tahap ini mendukung penyimpanan draft sebelum dikirim permanen.'
+                : $title.' siap dibuka untuk mulai dikerjakan.',
+        };
+    }
+
+    private function resolveStageActionMode(string $status, bool $requiresStartButton): string
+    {
+        return match ($status) {
+            AssessmentStageProgress::STATUS_LOCKED => 'disabled',
+            AssessmentStageProgress::STATUS_SUBMITTED => 'open',
+            AssessmentStageProgress::STATUS_DRAFT => 'open',
+            AssessmentStageProgress::STATUS_IN_PROGRESS => 'open',
+            default => $requiresStartButton ? 'start' : 'open',
+        };
+    }
+
+    private function resolveStageActionLabel(string $status, bool $requiresStartButton): string
+    {
+        return match ($status) {
+            AssessmentStageProgress::STATUS_LOCKED => 'Tahap Terkunci',
+            AssessmentStageProgress::STATUS_SUBMITTED => 'Lihat Tahap',
+            AssessmentStageProgress::STATUS_DRAFT => 'Lanjutkan Tahap',
+            AssessmentStageProgress::STATUS_IN_PROGRESS => 'Lanjutkan Tahap',
+            default => $requiresStartButton ? 'Mulai Tahap' : 'Buka Tahap',
+        };
+    }
+
+    private function formatDateTimeValue(?CarbonInterface $value): string
+    {
+        return $value ? $this->formatDateTime($value) : '-';
+    }
+
+    private function parseDateTimeValue(mixed $value): ?CarbonInterface
+    {
+        if ($value instanceof CarbonInterface) {
+            return $value;
+        }
+
+        if (! filled($value)) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse((string) $value);
+        } catch (\Throwable $exception) {
+            return null;
+        }
     }
 }

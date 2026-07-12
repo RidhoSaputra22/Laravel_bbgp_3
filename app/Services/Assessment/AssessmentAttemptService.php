@@ -28,7 +28,8 @@ class AssessmentAttemptService
         array $files,
         array $fieldIds,
         array $flaggedFieldIds = [],
-        array $clientSnapshotBucket = []
+        array $clientSnapshotBucket = [],
+        ?int $stageIndex = null
     ): AssessmentAttempt {
         if ($attempt->status === 'submitted') {
             return $this->loadAttemptRelations($attempt);
@@ -69,7 +70,8 @@ class AssessmentAttemptService
             $processedFieldIds,
             $snapshot,
             $savedAt,
-            $normalizedClientSnapshotBucket
+            $normalizedClientSnapshotBucket,
+            $stageIndex
         ) {
             $this->persistNormalizedAnswers(
                 $attempt,
@@ -93,6 +95,14 @@ class AssessmentAttemptService
                 $normalizedClientSnapshotBucket,
                 $savedAt
             );
+            $updatedProgress = $this->resolveSnapshotProgressAfterSave(
+                $attempt,
+                $snapshot,
+                $processedFieldIds,
+                $normalizedClientSnapshotBucket,
+                $savedAt,
+                $stageIndex
+            );
             $attributes = [
                 'status' => 'in_progress',
                 'answered_questions' => (int) $summary['answered_questions'],
@@ -104,10 +114,20 @@ class AssessmentAttemptService
                 $attributes['structure_snapshot'] = $updatedSnapshot;
             }
 
+            if ($updatedProgress !== null) {
+                $attributes['progress_snapshot'] = $updatedProgress;
+                $attributes['deadline_at'] = AssessmentStageProgress::activeDeadlineAt($updatedProgress)
+                    ?: $attempt->deadline_at;
+            }
+
             $attempt->forceFill($attributes)->save();
 
             if (array_key_exists('structure_snapshot', $attributes)) {
                 $attempt->structure_snapshot = $updatedSnapshot;
+            }
+
+            if (array_key_exists('progress_snapshot', $attributes)) {
+                $attempt->progress_snapshot = $updatedProgress;
             }
         });
 
@@ -1644,6 +1664,79 @@ class AssessmentAttemptService
         data_set($snapshot, 'meta.autosave', $autosaveMeta);
 
         return $snapshot;
+    }
+
+    private function resolveSnapshotProgressAfterSave(
+        AssessmentAttempt $attempt,
+        array $snapshot,
+        array $processedFieldIds,
+        array $clientSnapshotBucket,
+        Carbon $savedAt,
+        ?int $stageIndex = null
+    ): ?array {
+        $progress = AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot);
+
+        if (! AssessmentStageProgress::usesStageFlow($snapshot, $progress)) {
+            return null;
+        }
+
+        $resolvedStageIndex = $stageIndex;
+
+        if ($resolvedStageIndex === null) {
+            $resolvedStageIndex = $this->resolveStageIndexFromSnapshotBucket($progress, $processedFieldIds, $clientSnapshotBucket);
+        }
+
+        if ($resolvedStageIndex === null || ! AssessmentStageProgress::canAccessStage($progress, $resolvedStageIndex)) {
+            return null;
+        }
+
+        if (($clientSnapshotBucket['flush_reason'] ?? null) !== 'manual_stage_draft') {
+            return null;
+        }
+
+        $progress = AssessmentStageProgress::markStageStarted($progress, $resolvedStageIndex, $savedAt);
+
+        return AssessmentStageProgress::markStageDraft($progress, $resolvedStageIndex, $savedAt);
+    }
+
+    private function resolveStageIndexFromSnapshotBucket(
+        array $progress,
+        array $processedFieldIds,
+        array $clientSnapshotBucket
+    ): ?int {
+        $traceEntries = collect($clientSnapshotBucket['trace'] ?? [])
+            ->filter(fn ($entry) => is_array($entry));
+        $traceStageIndex = $traceEntries
+            ->pluck('assessment_index')
+            ->first(fn ($value) => is_numeric($value) && (int) $value >= 0);
+
+        if ($traceStageIndex !== null) {
+            return (int) $traceStageIndex;
+        }
+
+        $normalizedFieldIds = $this->normalizeFieldIds($processedFieldIds);
+
+        if ($normalizedFieldIds === []) {
+            return null;
+        }
+
+        foreach ($progress['stages'] ?? [] as $stage) {
+            $stageFieldIds = collect($stage['field_ids'] ?? [])
+                ->map(fn ($fieldId) => (int) $fieldId)
+                ->filter(fn ($fieldId) => $fieldId > 0)
+                ->values()
+                ->all();
+
+            if ($stageFieldIds === []) {
+                continue;
+            }
+
+            if (count(array_diff($normalizedFieldIds, $stageFieldIds)) === 0) {
+                return (int) ($stage['stage_index'] ?? 0);
+            }
+        }
+
+        return null;
     }
 
     private function normalizeClientSnapshotBucket(array $clientSnapshotBucket): array

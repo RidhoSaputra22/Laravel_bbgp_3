@@ -12,6 +12,7 @@ use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentAutoScoringService;
 use App\Services\Assessment\AssessmentScoringService;
+use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Database\Schema\Blueprint;
@@ -57,6 +58,7 @@ class AssessmentAttemptServiceTest extends TestCase
             $table->unsignedBigInteger('assessment_assignment_id');
             $table->unsignedBigInteger('assessment_id');
             $table->unsignedInteger('urutan')->default(1);
+            $table->json('stage_config')->nullable();
             $table->timestamps();
         });
 
@@ -123,6 +125,7 @@ class AssessmentAttemptServiceTest extends TestCase
             $table->string('status')->default('in_progress');
             $table->json('structure_snapshot')->nullable();
             $table->json('security_config_snapshot')->nullable();
+            $table->json('progress_snapshot')->nullable();
             $table->json('result_summary')->nullable();
             $table->json('scoring_summary')->nullable();
             $table->unsignedInteger('total_questions')->default(0);
@@ -347,6 +350,78 @@ class AssessmentAttemptServiceTest extends TestCase
         $this->assertSame(2, $autosaveMeta['last_trace_count'] ?? null);
         $this->assertSame('navigate_question', data_get($autosaveMeta, 'last_trace.1.type'));
         $this->assertSame('Jawaban snapshot peserta', optional($savedAttempt->answers->first())->answer_text);
+    }
+
+    public function test_save_snapshot_marks_stage_as_draft_for_manual_stage_draft_request(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario();
+
+        $snapshot = $attempt->structure_snapshot ?? [];
+        data_set($snapshot, 'assessments.0.stage_config', [
+            'enabled' => true,
+            'allow_draft' => true,
+        ]);
+
+        $attempt->forceFill([
+            'structure_snapshot' => $snapshot,
+            'progress_snapshot' => [
+                'stage_flow_enabled' => true,
+                'current_stage_index' => 0,
+                'stages' => [
+                    [
+                        'assessment_id' => data_get($snapshot, 'assessments.0.id', 1),
+                        'title' => data_get($snapshot, 'assessments.0.judul', 'Assessment Portal'),
+                        'stage_index' => 0,
+                        'field_ids' => [$field->id],
+                        'status' => AssessmentStageProgress::STATUS_IN_PROGRESS,
+                        'started_at' => '2026-07-12T18:00:00+08:00',
+                        'deadline_at' => null,
+                        'submitted_at' => null,
+                        'completion_mode' => null,
+                        'config' => [
+                            'enabled' => true,
+                            'allow_draft' => true,
+                        ],
+                    ],
+                ],
+                'updated_at' => '2026-07-12T18:00:00+08:00',
+            ],
+        ])->save();
+
+        $savedAttempt = $this->makeService()->saveSnapshot(
+            $attempt->fresh(),
+            [$field->id => 'Jawaban draft peserta'],
+            [],
+            [$field->id],
+            [],
+            [
+                'flush_reason' => 'manual_stage_draft',
+                'threshold' => 3,
+                'dirty_field_ids' => [$field->id],
+                'form_data_field_ids' => [$field->id],
+                'flagged_dirty' => false,
+                'started_at' => '2026-07-12T18:05:00+08:00',
+                'trace' => [
+                    [
+                        'sequence' => 1,
+                        'type' => 'manual_stage_draft',
+                        'changed' => true,
+                        'assessment_index' => 0,
+                        'field_id' => $field->id,
+                        'client_occurred_at' => '2026-07-12T18:05:02+08:00',
+                    ],
+                ],
+            ],
+            0
+        );
+
+        $this->assertSame('in_progress', $savedAttempt->status);
+        $this->assertSame(
+            AssessmentStageProgress::STATUS_DRAFT,
+            data_get($savedAttempt->progress_snapshot, 'stages.0.status')
+        );
+        $this->assertSame('Jawaban draft peserta', optional($savedAttempt->answers->first())->answer_text);
+        $this->assertSame('manual_stage_draft', data_get($savedAttempt->structure_snapshot, 'meta.autosave.last_flush_reason'));
     }
 
     public function test_submit_rejects_textarea_answer_above_maximum_word_count(): void

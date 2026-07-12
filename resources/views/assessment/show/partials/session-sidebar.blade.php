@@ -49,11 +49,7 @@
                                 <span x-text="currentStageFinalizeLabel()"></span>
                             </x-assessment::ui.button>
 
-                            <x-assessment::ui.button type="button" icon="fas fa-arrow-right"
-                                x-show="canGoNextStage()" x-bind:disabled="isInteractionLocked()"
-                                @click="goToAssessment(currentAssessmentIndex + 1)">
-                                Next Assessment
-                            </x-assessment::ui.button>
+
                         </div>
                     </div>
                 @endif
