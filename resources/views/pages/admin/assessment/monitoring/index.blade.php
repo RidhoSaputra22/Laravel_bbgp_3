@@ -129,6 +129,7 @@
         $explorerRows = $monitoringExplorer['individual_rows'] ?? [];
         $explorerPaginator = $monitoringExplorer['individual_paginator'] ?? null;
         $explorerSummary = $monitoringExplorer['summary'] ?? [];
+        $explorerTrainingSummary = $explorerSummary['training'] ?? [];
         $explorerCharts = $monitoringExplorer['charts'] ?? [];
         $explorerMeta = $monitoringExplorer['meta'] ?? [];
         $explorerActiveFilterCount = collect($explorerSelectedFilters)
@@ -600,10 +601,56 @@
                                 @endforeach
                             </div>
 
+                            <div class="row">
+                                <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                    <div class="monitor-summary-stat">
+                                        <div class="monitor-summary-stat__label">Peserta Dengan Data Pelatihan</div>
+                                        <div class="monitor-summary-stat__value text-info">
+                                            {{ $explorerTrainingSummary['participant_with_training_total'] ?? 0 }}
+                                        </div>
+                                        <small class="text-muted">
+                                            dari {{ $explorerTrainingSummary['participant_total'] ?? ($explorerSummary['submitted_total'] ?? 0) }} peserta submit
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                    <div class="monitor-summary-stat">
+                                        <div class="monitor-summary-stat__label">Total Entri Pelatihan</div>
+                                        <div class="monitor-summary-stat__value">
+                                            {{ $explorerTrainingSummary['total_entries'] ?? 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                    <div class="monitor-summary-stat">
+                                        <div class="monitor-summary-stat__label">Total JP Pelatihan</div>
+                                        <div class="monitor-summary-stat__value text-primary">
+                                            {{ $explorerTrainingSummary['formatted_total_jp'] ?? '0' }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+                                    <div class="monitor-summary-stat">
+                                        <div class="monitor-summary-stat__label">Rata-rata Pelatihan / Peserta</div>
+                                        <div class="monitor-summary-stat__value text-warning">
+                                            {{ $explorerTrainingSummary['formatted_average_entries_per_participant'] ?? number_format(0, 2) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             @if (! ($explorerMeta['has_scored_data'] ?? false))
                                 <div class="alert alert-warning">
                                     Belum ada skor peserta yang bisa diagregasi pada filter ini. Grafik status tetap
                                     ditampilkan untuk memantau progres pengisian.
+                                </div>
+                            @endif
+
+                            @if (! ($explorerMeta['has_training_data'] ?? false))
+                                <div class="alert alert-light border">
+                                    Belum ada data pelatihan yang bisa diagregasi pada filter ini. Grafik pelatihan
+                                    akan aktif otomatis setelah peserta mengirim jawaban portfolio pengalaman
+                                    pelatihan.
                                 </div>
                             @endif
 
@@ -645,6 +692,16 @@
                                         </div>
                                         <div class="card-body monitor-summary-chart">
                                             <canvas id="globalExplorerCompetencyChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
+                                    <div class="card border">
+                                        <div class="card-header">
+                                            <h4>Ringkasan Pelatihan dan Total JP</h4>
+                                        </div>
+                                        <div class="card-body monitor-summary-chart">
+                                            <canvas id="globalExplorerTrainingChart"></canvas>
                                         </div>
                                     </div>
                                 </div>
@@ -906,6 +963,7 @@
                 explorerLevels: @json($explorerCharts['levels'] ?? ['labels' => [], 'data' => []]),
                 explorerRadar: @json($explorerCharts['radar'] ?? ['labels' => [], 'data' => [], 'max_score' => 5]),
                 explorerCompetencies: @json($explorerCharts['competencies'] ?? ['labels' => [], 'data' => []]),
+                explorerTraining: @json($explorerCharts['training'] ?? ['labels' => [], 'jp_totals' => [], 'participant_totals' => []]),
             };
             const explorerMode = @json($explorerMode);
 
@@ -1156,6 +1214,71 @@
                                         max: 5,
                                     },
                                 }],
+                            },
+                        },
+                    });
+                }
+
+                const explorerTrainingCtx = document.getElementById('globalExplorerTrainingChart');
+                if (explorerTrainingCtx) {
+                    new Chart(explorerTrainingCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: chartPayload.explorerTraining.labels,
+                            datasets: [{
+                                    label: 'Total JP',
+                                    data: chartPayload.explorerTraining.jp_totals,
+                                    backgroundColor: '#1376bd',
+                                    order: 2,
+                                },
+                                {
+                                    type: 'line',
+                                    label: 'Jumlah Peserta',
+                                    data: chartPayload.explorerTraining.participant_totals,
+                                    borderColor: '#f59e0b',
+                                    backgroundColor: 'rgba(245, 158, 11, 0.18)',
+                                    fill: false,
+                                    borderWidth: 2,
+                                    pointBackgroundColor: '#f59e0b',
+                                    pointRadius: 4,
+                                    yAxisID: 'y-axis-1',
+                                    order: 1,
+                                },
+                            ],
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            legend: {
+                                position: 'bottom',
+                            },
+                            scales: {
+                                yAxes: [{
+                                        id: 'y-axis-0',
+                                        ticks: {
+                                            beginAtZero: true,
+                                        },
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: 'Total JP',
+                                        },
+                                    },
+                                    {
+                                        id: 'y-axis-1',
+                                        position: 'right',
+                                        gridLines: {
+                                            drawOnChartArea: false,
+                                        },
+                                        ticks: {
+                                            beginAtZero: true,
+                                            precision: 0,
+                                        },
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: 'Jumlah Peserta',
+                                        },
+                                    },
+                                ],
                             },
                         },
                     });

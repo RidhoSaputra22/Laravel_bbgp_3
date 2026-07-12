@@ -15,6 +15,7 @@ use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
 use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
+use App\Support\Assessment\AssessmentTrainingSummaryHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -805,6 +806,7 @@ class PortalController extends Controller
         $target = $resultContext['target'];
         $attempt = $resultContext['attempt'];
         $isStakeholderDownloadAvailable = $this->canDownloadStakeholderResult($target);
+        $answerLookup = $this->attemptService->buildAnswerLookup($attempt);
 
         return view('assessment.result.result', [
             'menu' => $viewerMode === 'admin' ? 'assessment-monitoring' : 'assessment-portal',
@@ -814,7 +816,11 @@ class PortalController extends Controller
             'meta' => $this->portalService->buildTargetMeta($target),
             'summary' => $this->attemptService->buildResultSummary($attempt),
             'scoringSummary' => $this->attemptService->buildScoringSummary($attempt),
-            'answerLookup' => $this->attemptService->buildAnswerLookup($attempt),
+            'answerLookup' => $answerLookup,
+            'trainingSummary' => AssessmentTrainingSummaryHelper::buildAttemptSummaryFromSnapshot(
+                is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [],
+                $answerLookup
+            ),
             'viewerMode' => $viewerMode,
             'backUrl' => $viewerMode === 'admin'
                 ? $this->resolveAdminResultBackUrl($request, $target)

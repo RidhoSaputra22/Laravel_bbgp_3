@@ -7,6 +7,7 @@ use App\Enum\KompetensiGuru;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentSession;
 use App\Models\AssessmentAssignmentTarget;
+use App\Support\Assessment\AssessmentTrainingSummaryHelper;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
@@ -525,7 +526,7 @@ class AssessmentMonitoringService
     private function buildGlobalExplorerSummaryPayload(array $filters): array
     {
         $cacheTtlSeconds = 60;
-        $cacheKey = 'assessment-global-monitor-summary:'.md5(json_encode($filters));
+        $cacheKey = 'assessment-global-monitor-summary:v2:'.md5(json_encode($filters));
 
         return Cache::remember(
             $cacheKey,
@@ -577,6 +578,7 @@ class AssessmentMonitoringService
                 $dominantLevel = $levelRows
                     ->sortByDesc(fn (array $row) => ($row['count'] * 10) + $row['value'])
                     ->first(fn (array $row) => $row['count'] > 0);
+                $trainingSummary = $this->buildGlobalExplorerTrainingSummary($filters, $submittedTotal);
 
                 return [
                     'summary' => [
@@ -600,6 +602,7 @@ class AssessmentMonitoringService
                             : 0.0,
                         'competencies' => $competencyRows->all(),
                         'levels' => $levelRows->all(),
+                        'training' => $trainingSummary,
                     ],
                     'charts' => [
                         'status' => [
@@ -623,10 +626,16 @@ class AssessmentMonitoringService
                                 ->map(fn (array $row) => $row['average_score'] ?? 0)
                                 ->all(),
                         ],
+                        'training' => $trainingSummary['chart'] ?? [
+                            'labels' => [],
+                            'jp_totals' => [],
+                            'participant_totals' => [],
+                        ],
                     ],
                     'meta' => [
                         'cache_ttl_seconds' => $cacheTtlSeconds,
                         'has_scored_data' => $scoredTotal > 0,
+                        'has_training_data' => (bool) ($trainingSummary['has_data'] ?? false),
                     ],
                 ];
             }
@@ -1381,7 +1390,7 @@ class AssessmentMonitoringService
         array $filters
     ): array {
         $cacheTtlSeconds = 60;
-        $cacheKey = 'assessment-assignment-monitor-summary:'
+        $cacheKey = 'assessment-assignment-monitor-summary:v2:'
             .$assignment->id.':'
             .md5(json_encode($filters));
 
@@ -1434,6 +1443,11 @@ class AssessmentMonitoringService
                 $dominantLevel = $levelRows
                     ->sortByDesc(fn (array $row) => ($row['count'] * 10) + $row['value'])
                     ->first(fn (array $row) => $row['count'] > 0);
+                $trainingSummary = $this->buildAssignmentExplorerTrainingSummary(
+                    $assignment->id,
+                    $filters,
+                    $submittedTotal
+                );
 
                 return [
                     'summary' => [
@@ -1456,6 +1470,7 @@ class AssessmentMonitoringService
                             : 0.0,
                         'competencies' => $competencyRows->all(),
                         'levels' => $levelRows->all(),
+                        'training' => $trainingSummary,
                     ],
                     'charts' => [
                         'status' => [
@@ -1479,10 +1494,16 @@ class AssessmentMonitoringService
                                 ->map(fn (array $row) => $row['average_score'] ?? 0)
                                 ->all(),
                         ],
+                        'training' => $trainingSummary['chart'] ?? [
+                            'labels' => [],
+                            'jp_totals' => [],
+                            'participant_totals' => [],
+                        ],
                     ],
                     'meta' => [
                         'cache_ttl_seconds' => $cacheTtlSeconds,
                         'has_scored_data' => $scoredTotal > 0,
+                        'has_training_data' => (bool) ($trainingSummary['has_data'] ?? false),
                     ],
                 ];
             }
@@ -1522,6 +1543,65 @@ class AssessmentMonitoringService
         }
 
         return $query->first() ?? (object) [];
+    }
+
+    private function buildGlobalExplorerTrainingSummary(array $filters, int $participantTotal): array
+    {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $answerRows = $this->globalAssignmentExplorerBaseQuery($filters)
+            ->join('assessment_attempt_answers as answer', 'answer.assessment_attempt_id', '=', 'attempt.id')
+            ->whereRaw($submittedExpr)
+            ->where('answer.answer_text', 'like', '%entri%')
+            ->selectRaw('target.id as target_id')
+            ->addSelect('answer.answer_payload')
+            ->get();
+
+        return $this->buildTrainingSummaryFromAnswerRows($answerRows, $participantTotal);
+    }
+
+    private function buildAssignmentExplorerTrainingSummary(
+        int $assignmentId,
+        array $filters,
+        int $participantTotal
+    ): array {
+        $submittedExpr = $this->assignmentTargetSubmittedSql();
+        $answerRows = $this->assignmentExplorerBaseQuery($assignmentId, $filters)
+            ->join('assessment_attempt_answers as answer', 'answer.assessment_attempt_id', '=', 'attempt.id')
+            ->whereRaw($submittedExpr)
+            ->where('answer.answer_text', 'like', '%entri%')
+            ->selectRaw('target.id as target_id')
+            ->addSelect('answer.answer_payload')
+            ->get();
+
+        return $this->buildTrainingSummaryFromAnswerRows($answerRows, $participantTotal);
+    }
+
+    private function buildTrainingSummaryFromAnswerRows(Collection $answerRows, int $participantTotal): array
+    {
+        $rowsByTarget = [];
+
+        foreach ($answerRows as $answerRow) {
+            $targetId = (int) ($answerRow->target_id ?? 0);
+
+            if ($targetId < 1) {
+                continue;
+            }
+
+            $trainingRows = AssessmentTrainingSummaryHelper::extractRowsFromPayload(
+                $answerRow->answer_payload ?? null
+            );
+
+            if ($trainingRows === []) {
+                continue;
+            }
+
+            $rowsByTarget[$targetId] = array_merge($rowsByTarget[$targetId] ?? [], $trainingRows);
+        }
+
+        return AssessmentTrainingSummaryHelper::buildAggregateSummary(
+            array_values($rowsByTarget),
+            $participantTotal
+        );
     }
 
     private function assignmentExplorerBaseQuery(int $assignmentId, array $filters = [])

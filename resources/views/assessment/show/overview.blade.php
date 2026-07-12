@@ -22,10 +22,9 @@
             $hours = intdiv($durationMinutes, 60);
             $minutes = $durationMinutes % 60;
 
-            $durationLabel = collect([
-                $hours > 0 ? $hours . ' jam' : null,
-                $minutes > 0 ? $minutes . ' menit' : null,
-            ])->filter()->implode(' ');
+            $durationLabel = collect([$hours > 0 ? $hours . ' jam' : null, $minutes > 0 ? $minutes . ' menit' : null])
+                ->filter()
+                ->implode(' ');
         }
     @endphp
 
@@ -72,8 +71,7 @@
                             {{ $meta['label'] }}
                         </x-assessment::ui.status-badge>
 
-                        <x-assessment::ui.button :href="route('assessment.portal.dashboard')" variant="outline"
-                            icon="fas fa-arrow-left">
+                        <x-assessment::ui.button :href="route('assessment.portal.dashboard')" variant="outline" icon="fas fa-arrow-left">
                             Kembali ke Dashboard
                         </x-assessment::ui.button>
                     </div>
@@ -115,7 +113,8 @@
                     </div>
 
                     <p class="mt-2 text-sm text-slate-500">
-                        {{ $stageOverview['submitted_total'] }} dari {{ $stageOverview['stage_total'] }} tahap sudah selesai.
+                        {{ $stageOverview['submitted_total'] }} dari {{ $stageOverview['stage_total'] }} tahap sudah
+                        selesai.
                     </p>
                 @endif
             </x-assessment::ui.card>
@@ -124,30 +123,31 @@
                 @forelse ($stageOverview['stages'] as $stage)
                     <x-assessment::ui.card
                         class="{{ $stage['is_current'] ? 'ring-1 ring-[#1376bd]/20 shadow-[0_0_0_4px_rgba(19,118,189,0.06)]' : '' }} relative">
-                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+
+                        <x-assessment::ui.status-badge tone="primary"
+                            class="px-4 py-2 rounded-br-sm absolute left-0 top-0 ">
+                            Tahap {{ $stage['number'] }}
+                        </x-assessment::ui.status-badge>
+
+                        <x-assessment::ui.status-badge :tone="$stage['status_tone']"
+                            class="px-4 py-2 rounded-bl-sm absolute right-0 top-0 ">
+                            {{ $stage['status_label'] }}
+                        </x-assessment::ui.status-badge>
+
+
+
+                        <div class="mt-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                             <div class="lg:pr-6">
-                                <div class="mb-2 flex flex-wrap items-center gap-2">
-                                    <span
-                                        class="inline-flex items-center rounded-sm bg-[#eff6fb] px-2.5 py-1 text-xs font-semibold text-[#0d5f98]">
-                                        Tahap {{ $stage['number'] }}
-                                    </span>
-                                    <span
-                                        class="inline-flex items-center rounded-sm bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                                        {{ $stage['instrument_label'] }}
-                                    </span>
-                                    @if ($stage['is_current'])
-                                        <span
-                                            class="inline-flex items-center rounded-sm bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                            Tahap Aktif
-                                        </span>
-                                    @endif
+                                <div class=" flex flex-wrap items-center gap-2">
+
+
                                 </div>
 
                                 <div class="font-mono font-bold">
                                     {{ $stage['code'] }}
                                 </div>
 
-                                <h3 class="py-2 text-xl font-bold text-[#0d3557]">
+                                <h3 class="py-1 text-xl font-bold text-[#0d3557]">
                                     {{ $stage['title'] }}
                                 </h3>
 
@@ -156,9 +156,7 @@
                                 </p>
                             </div>
 
-                            <x-assessment::ui.status-badge :tone="$stage['status_tone']" class="px-4 py-2 rounded-bl-sm absolute right-0 top-0 ">
-                                {{ $stage['status_label'] }}
-                            </x-assessment::ui.status-badge>
+
                         </div>
 
 
@@ -178,15 +176,15 @@
                                         @csrf
                                         <input type="hidden" name="stage_index" value="{{ $stage['index'] }}">
 
-                                        <x-assessment::ui.button type="submit" icon="fas fa-play-circle"
-                                            class="font-bold">
+                                        <x-assessment::ui.button type="submit" icon="fas fa-play-circle" class="font-bold">
                                             {{ $stage['action_label'] }}
                                         </x-assessment::ui.button>
                                     </form>
                                 @elseif ($stage['action_mode'] === 'open')
-                                    <x-assessment::ui.button
-                                        :href="route('assessment.portal.show', ['id' => $target->id, 'stage' => $stage['index']])"
-                                        icon="fas fa-play-circle" class="font-bold">
+                                    <x-assessment::ui.button :href="route('assessment.portal.show', [
+                                        'id' => $target->id,
+                                        'stage' => $stage['index'],
+                                    ])" icon="fas fa-play-circle" class="font-bold">
                                         {{ $stage['action_label'] }}
                                     </x-assessment::ui.button>
                                 @else
@@ -236,9 +234,10 @@
                                 </x-assessment::ui.button>
                             </form>
                         @elseif ($currentStage['action_mode'] === 'open')
-                            <x-assessment::ui.button
-                                :href="route('assessment.portal.show', ['id' => $target->id, 'stage' => $currentStage['index']])"
-                                icon="fas fa-play-circle" class="font-bold">
+                            <x-assessment::ui.button :href="route('assessment.portal.show', [
+                                'id' => $target->id,
+                                'stage' => $currentStage['index'],
+                            ])" icon="fas fa-play-circle" class="font-bold">
                                 {{ $currentStage['action_label'] }}
                             </x-assessment::ui.button>
                         @else
