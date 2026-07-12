@@ -687,9 +687,9 @@ class AssessmentAssignmentController extends Controller
     private function buildKetenagaanSummaries(): array
     {
         $assessmentsByKetenagaan = $this->availableAssessmentsQuery()
-            ->orderBy('judul')
             ->get()
-            ->groupBy('target_ketenagaan');
+            ->groupBy('target_ketenagaan')
+            ->map(fn ($items) => $this->sortAssessmentsForDefaultStages($items));
 
         $participantCounts = Guru::query()
             ->selectRaw('eksternal_jabatan, count(*) as aggregate')
@@ -775,6 +775,7 @@ class AssessmentAssignmentController extends Controller
                 'assessments.id',
                 'assessments.kode_assessment',
                 'assessments.judul',
+                'assessments.instrument_type',
                 'assessments.status',
                 'assessments.target_ketenagaan',
             ])
@@ -796,6 +797,23 @@ class AssessmentAssignmentController extends Controller
             )
             ->where('assessments.is_active', true)
             ->where('assessments.status', 'publish');
+    }
+
+    private function sortAssessmentsForDefaultStages($assessments)
+    {
+        return collect($assessments)
+            ->sort(function ($left, $right) {
+                return [
+                    AssessmentInstrumentType::assignmentStageOrderFor($left->instrument_type ?? null),
+                    strtolower(trim((string) ($left->judul ?? ''))),
+                    (int) ($left->id ?? 0),
+                ] <=> [
+                    AssessmentInstrumentType::assignmentStageOrderFor($right->instrument_type ?? null),
+                    strtolower(trim((string) ($right->judul ?? ''))),
+                    (int) ($right->id ?? 0),
+                ];
+            })
+            ->values();
     }
 
     private function countAvailableCombinationsForKetenagaan(AssessmentKetenagaanType $case): int

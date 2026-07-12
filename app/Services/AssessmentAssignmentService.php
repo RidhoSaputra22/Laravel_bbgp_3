@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enum\AssessmentInstrumentType;
 use App\Enum\AssessmentKetenagaanType;
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
 use App\Models\Assessment;
@@ -1169,18 +1170,21 @@ class AssessmentAssignmentService
         ?Collection $assessmentCombinations = null
     ): array {
         if ($assessmentCombinations && $assessmentCombinations->isNotEmpty()) {
-            return $this->extractAssessmentIdsFromCombinations($assessmentCombinations);
+            return $this->orderAssessmentIdsForStageFlow(
+                $this->extractAssessmentIdsFromCombinations($assessmentCombinations)
+            );
         }
 
         if ($targetKetenagaan) {
-            return Assessment::query()
-                ->where('is_active', true)
-                ->where('status', 'publish')
-                ->where('target_ketenagaan', $targetKetenagaan->value)
-                ->orderBy('judul')
-                ->pluck('id')
-                ->map(fn ($assessmentId) => (int) $assessmentId)
-                ->all();
+            return $this->orderAssessmentIdsForStageFlow(
+                Assessment::query()
+                    ->where('is_active', true)
+                    ->where('status', 'publish')
+                    ->where('target_ketenagaan', $targetKetenagaan->value)
+                    ->pluck('id')
+                    ->map(fn ($assessmentId) => (int) $assessmentId)
+                    ->all()
+            );
         }
 
         return $this->normalizeAssessmentIds($payload['assessment_ids'] ?? []);
@@ -1315,6 +1319,50 @@ class AssessmentAssignmentService
     private function normalizeAssessmentIds(array $assessmentIds): array
     {
         return array_values(array_unique(array_map('intval', $assessmentIds)));
+    }
+
+    private function orderAssessmentIdsForStageFlow(array $assessmentIds): array
+    {
+        $normalizedAssessmentIds = $this->normalizeAssessmentIds($assessmentIds);
+
+        if ($normalizedAssessmentIds === []) {
+            return [];
+        }
+
+        $assessmentLookup = Assessment::query()
+            ->whereIn('id', $normalizedAssessmentIds)
+            ->get(['id', 'instrument_type', 'judul'])
+            ->keyBy('id');
+
+        return collect($normalizedAssessmentIds)
+            ->values()
+            ->map(function (int $assessmentId, int $index) use ($assessmentLookup) {
+                $assessment = $assessmentLookup->get($assessmentId);
+
+                return [
+                    'id' => $assessmentId,
+                    'instrument_order' => AssessmentInstrumentType::assignmentStageOrderFor(
+                        $assessment?->instrument_type
+                    ),
+                    'title' => strtolower(trim((string) ($assessment?->judul ?? ''))),
+                    'source_index' => $index,
+                ];
+            })
+            ->sort(function (array $left, array $right) {
+                return [
+                    $left['instrument_order'],
+                    $left['title'],
+                    $left['source_index'],
+                    $left['id'],
+                ] <=> [
+                    $right['instrument_order'],
+                    $right['title'],
+                    $right['source_index'],
+                    $right['id'],
+                ];
+            })
+            ->pluck('id')
+            ->all();
     }
 
     private function resolveAssessmentCombinations(

@@ -34,6 +34,16 @@ enum AssessmentInstrumentType: string
         return $this !== self::PILIHAN_GANDA_KOMPLEKS;
     }
 
+    public function assignmentStageOrder(): int
+    {
+        return match ($this) {
+            self::PORTOFOLIO => 1,
+            self::STUDI_KASUS => 2,
+            self::PILIHAN_GANDA_KOMPLEKS => 3,
+            self::MONITORING_OBSERVASI_EVIDEN => 4,
+        };
+    }
+
     public static function options(): array
     {
         $options = [];
@@ -56,5 +66,10 @@ enum AssessmentInstrumentType: string
         }
 
         return self::tryFrom(trim($value));
+    }
+
+    public static function assignmentStageOrderFor(mixed $value): int
+    {
+        return self::tryFromMixed($value)?->assignmentStageOrder() ?? 99;
     }
 }
