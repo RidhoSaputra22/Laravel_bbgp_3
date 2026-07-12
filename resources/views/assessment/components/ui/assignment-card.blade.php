@@ -89,20 +89,30 @@
                     icon="fas fa-play-circle"
                     class="font-bold"
                 >
-                    Lanjutkan Ujian
+                    {{ $meta['action_label'] ?? 'Lanjutkan Ujian' }}
                 </x-assessment::ui.button>
             @elseif ($meta['status'] === 'ready')
-                <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST">
-                    @csrf
-
+                @if (($meta['action_label'] ?? null) === 'Buka Penugasan')
                     <x-assessment::ui.button
-                        type="submit"
+                        :href="route('assessment.portal.show', $target->id)"
                         icon="fas fa-play-circle"
                         class="font-bold"
                     >
-                        Mulai Ujian
+                        {{ $meta['action_label'] }}
                     </x-assessment::ui.button>
-                </form>
+                @else
+                    <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST">
+                        @csrf
+
+                        <x-assessment::ui.button
+                            type="submit"
+                            icon="fas fa-play-circle"
+                            class="font-bold"
+                        >
+                            {{ $meta['action_label'] ?? 'Mulai Ujian' }}
+                        </x-assessment::ui.button>
+                    </form>
+                @endif
             @else
                 <x-assessment::ui.button
                     variant="muted"

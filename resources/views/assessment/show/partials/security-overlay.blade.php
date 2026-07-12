@@ -6,8 +6,8 @@
     $remainingChances = max(0, $maxSeriousViolations - $seriousViolationCount);
 @endphp
 
-@if ($securityEnabled)
-    <div class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/75 p-4" data-security-overlay>
+@if ($securityEnabled || ($stageFlowEnabled ?? false))
+    <div x-show="currentSecurityEnabled()" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/75 p-4" data-security-overlay>
         <div class="w-full max-w-xl rounded-sm bg-white p-6 shadow-2xl sm:p-7">
             <div class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
                 Guard Ujian

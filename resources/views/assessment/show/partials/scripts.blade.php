@@ -452,6 +452,7 @@
                 formData.append('reason', reason);
                 formData.append('record_trigger', options.recordTrigger ? '1' : '0');
                 formData.append('client_occurred_at', nowIso());
+                formData.append('stage_index', String(Number(component.currentAssessmentIndex ?? config.stageIndex ?? 0)));
                 appendNestedFormValue(formData, 'metadata', options.metadata || {});
 
                 if (options.triggerEvent && typeof options.triggerEvent === 'object') {
@@ -618,6 +619,7 @@
                     message,
                     type,
                     mode: effectiveMode,
+                    stage_index: Number(component.currentAssessmentIndex ?? config.stageIndex ?? 0),
                     client_occurred_at: nowIso(),
                     metadata,
                 };
@@ -1020,6 +1022,7 @@
                 totalAssessments: Number(config.totalAssessments ?? 0),
                 assessmentItems: Array.isArray(config.assessmentItems) ? config.assessmentItems : [],
                 questionItems: Array.isArray(config.questionItems) ? config.questionItems : [],
+                stageFlowEnabled: Boolean(config.stageFlowEnabled ?? false),
                 flaggedFieldIds: [],
                 currentQuestionFieldId: Number(config.initialQuestionFieldId ?? 0),
                 questionStateByFieldId: {},
@@ -1127,8 +1130,7 @@
                         }
 
                         this.startDeadlineWatcher();
-                        this.securityGuard = window.createAssessmentSecurityGuard(this, this.securityConfig);
-                        this.securityGuard.init();
+                        this.refreshSecurityGuard();
                     });
                 },
                 destroy() {
@@ -1137,6 +1139,63 @@
                     }
 
                     this.securityGuard?.destroy?.();
+                },
+                currentStageMeta() {
+                    return this.assessmentItems[this.currentAssessmentIndex]?.stage_meta || {};
+                },
+                currentSecurityConfig() {
+                    const baseConfig = this.securityConfig && typeof this.securityConfig === 'object'
+                        ? { ...this.securityConfig }
+                        : {};
+
+                    if (!this.stageFlowEnabled) {
+                        return {
+                            ...baseConfig,
+                            stageIndex: this.currentAssessmentIndex,
+                        };
+                    }
+
+                    const stageMeta = this.currentStageMeta();
+
+                    if (
+                        stageMeta.is_interactive === false
+                        || stageMeta.requires_start_button === true
+                        || stageMeta.read_only === true
+                    ) {
+                        return {
+                            ...baseConfig,
+                            enabled: false,
+                            requireFullscreen: false,
+                            stageIndex: this.currentAssessmentIndex,
+                        };
+                    }
+
+                    return {
+                        ...baseConfig,
+                        enabled: Boolean(stageMeta.security_enabled),
+                        requireFullscreen: Boolean(stageMeta.require_fullscreen),
+                        maxSeriousViolations: Math.max(
+                            1,
+                            Number(stageMeta.security_max_serious_violations ?? baseConfig.maxSeriousViolations ?? 3),
+                        ),
+                        temporaryLockSeconds: Math.max(
+                            1,
+                            Number(stageMeta.security_temporary_lock_seconds ?? baseConfig.temporaryLockSeconds ?? 2),
+                        ),
+                        fullscreenGraceSeconds: Math.max(
+                            3,
+                            Number(stageMeta.security_fullscreen_grace_seconds ?? baseConfig.fullscreenGraceSeconds ?? 10),
+                        ),
+                        stageIndex: this.currentAssessmentIndex,
+                    };
+                },
+                currentSecurityEnabled() {
+                    return Boolean(this.currentSecurityConfig()?.enabled);
+                },
+                refreshSecurityGuard() {
+                    this.securityGuard?.destroy?.();
+                    this.securityGuard = window.createAssessmentSecurityGuard(this, this.currentSecurityConfig());
+                    this.securityGuard.init();
                 },
                 formElement() {
                     return this.$refs.assessmentExamForm ?? null;
@@ -1805,10 +1864,16 @@
                     return this.isSubmitting || this.deadlineSubmissionTriggered;
                 },
                 openFinishModal() {
+                    if (this.stageFlowEnabled) {
+                        this.submitCurrentStage();
+                        return;
+                    }
+
                     if (this.isBusy()) {
                         return;
                     }
-                     const validation = this.validateAllAssessments();
+
+                    const validation = this.validateAllAssessments();
 
                     if (!validation.valid) {
                         this.showFinishModal = false;
@@ -1829,8 +1894,6 @@
                         return;
                     }
 
-
-
                     const form = this.formElement();
 
                     if (!form) {
@@ -1841,6 +1904,11 @@
                     form.submit();
                 },
                 handleSubmit() {
+                    if (this.stageFlowEnabled) {
+                        this.submitCurrentStage();
+                        return;
+                    }
+
                     if (this.isBusy()) {
                         return;
                     }
@@ -1861,7 +1929,76 @@
                         form_count: 0,
                         question_count: 0,
                         field_ids: [],
+                        stage_meta: {},
                     };
+                },
+                canAccessAssessment(index) {
+                    const assessmentMeta = this.assessmentItems[index] ?? null;
+
+                    if (!assessmentMeta) {
+                        return false;
+                    }
+
+                    if (!this.stageFlowEnabled) {
+                        return true;
+                    }
+
+                    return Boolean(assessmentMeta.stage_meta?.can_access);
+                },
+                canSwitchAwayFromCurrentStage() {
+                    if (!this.stageFlowEnabled) {
+                        return true;
+                    }
+
+                    return this.currentStageMeta().can_switch_away !== false;
+                },
+                currentStageStatus() {
+                    return String(this.currentStageMeta().status || '');
+                },
+                showDraftButton() {
+                    if (!this.stageFlowEnabled) {
+                        return false;
+                    }
+
+                    const stageMeta = this.currentStageMeta();
+
+                    return Boolean(stageMeta.allow_draft)
+                        && stageMeta.requires_start_button !== true
+                        && stageMeta.read_only !== true
+                        && stageMeta.is_interactive !== false;
+                },
+                showStageFinalizeButton() {
+                    if (!this.stageFlowEnabled) {
+                        return this.isLastAssessment();
+                    }
+
+                    const stageMeta = this.currentStageMeta();
+                    const status = this.currentStageStatus();
+
+                    return stageMeta.can_access === true
+                        && stageMeta.requires_start_button !== true
+                        && stageMeta.read_only !== true
+                        && stageMeta.is_interactive !== false
+                        && ['in_progress', 'ready'].includes(status);
+                },
+                currentStageFinalizeLabel() {
+                    if (!this.stageFlowEnabled) {
+                        return 'Selesai Assessment';
+                    }
+
+                    return this.currentStageMeta().finalize_mode === 'auto'
+                        ? 'Selesaikan Tahap'
+                        : 'Simpan Permanen';
+                },
+                canGoPreviousStage() {
+                    return !this.isFirstAssessment() && this.canSwitchAwayFromCurrentStage();
+                },
+                canGoNextStage() {
+                    if (this.isLastAssessment() || !this.canSwitchAwayFromCurrentStage()) {
+                        return false;
+                    }
+
+                    return this.canAccessAssessment(this.currentAssessmentIndex + 1);
                 },
                 isFirstAssessment() {
                     return this.currentAssessmentIndex <= 0;
@@ -1878,6 +2015,93 @@
 
                     return Math.round(((this.currentAssessmentIndex + 1) / this.totalAssessments) * 100);
                 },
+                ensureHiddenInput(name, value) {
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return null;
+                    }
+
+                    let input = form.querySelector(`input[name="${name}"]`);
+
+                    if (!(input instanceof HTMLInputElement)) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = name;
+                        form.appendChild(input);
+                    }
+
+                    input.value = String(value ?? '');
+
+                    return input;
+                },
+                setSubmissionScope(scope = 'attempt') {
+                    this.ensureHiddenInput('submission_scope', scope);
+                    this.ensureHiddenInput('stage_index', this.currentAssessmentIndex);
+                },
+                buildCurrentStageBucket(reason = 'manual_stage_draft') {
+                    const currentMeta = this.currentAssessmentMeta();
+                    const fieldIds = Array.isArray(currentMeta.field_ids) ? currentMeta.field_ids : [];
+
+                    return {
+                        dirtyFieldIds: this.normalizeFieldIdList(fieldIds),
+                        flaggedDirty: true,
+                        hasMutations: fieldIds.length > 0,
+                        startedAt: new Date().toISOString(),
+                        trace: [{
+                            sequence: this.autosaveTraceSequence + 1,
+                            type: reason,
+                            changed: true,
+                            assessment_index: this.currentAssessmentIndex,
+                            client_occurred_at: new Date().toISOString(),
+                        }],
+                    };
+                },
+                async saveDraftForCurrentStage() {
+                    if (!this.stageFlowEnabled || !this.showDraftButton() || this.isBusy()) {
+                        return;
+                    }
+
+                    const result = await this.saveCurrentAssessmentSnapshot({
+                        reason: 'manual_stage_draft',
+                        bucket: this.buildCurrentStageBucket('manual_stage_draft'),
+                    });
+
+                    if (result === 'saved') {
+                        window.alert('Draft tahap berhasil disimpan.');
+                    }
+                },
+                submitCurrentStage() {
+                    if (this.isBusy()) {
+                        return;
+                    }
+
+                    if (!this.stageFlowEnabled) {
+                        this.openFinishModal();
+                        return;
+                    }
+
+                    if (!this.showStageFinalizeButton()) {
+                        return;
+                    }
+
+                    const validation = this.validateAssessment(this.currentAssessmentIndex);
+
+                    if (!validation.valid) {
+                        this.focusFieldById(validation.fieldId);
+                        return;
+                    }
+
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return;
+                    }
+
+                    this.setSubmissionScope('stage');
+                    this.isSubmitting = true;
+                    form.submit();
+                },
                 async goToAssessment(index) {
                     if (this.isInteractionLocked() || this.totalAssessments <= 0) {
                         return;
@@ -1885,7 +2109,11 @@
 
                     const boundedIndex = Math.max(0, Math.min(index, this.totalAssessments - 1));
 
-                    if (boundedIndex === this.currentAssessmentIndex) {
+                    if (boundedIndex === this.currentAssessmentIndex || !this.canAccessAssessment(boundedIndex)) {
+                        return;
+                    }
+
+                    if (!this.canSwitchAwayFromCurrentStage()) {
                         return;
                     }
 
@@ -1921,7 +2149,14 @@
                     const boundedAssessmentIndex = Math.max(0, Math.min(Number(assessmentIndex), this.totalAssessments - 1));
                     const triggerElement = event?.currentTarget ?? event?.target ?? null;
 
-                    if (!normalizedFieldId) {
+                    if (!normalizedFieldId || !this.canAccessAssessment(boundedAssessmentIndex)) {
+                        return;
+                    }
+
+                    if (
+                        boundedAssessmentIndex !== this.currentAssessmentIndex
+                        && !this.canSwitchAwayFromCurrentStage()
+                    ) {
                         return;
                     }
 
@@ -1948,6 +2183,7 @@
                     this.currentAssessmentIndex = index;
                     this.showFinishModal = false;
                     this.currentQuestionFieldId = Number(questionFieldId) || this.firstQuestionFieldId(index);
+                    this.refreshSecurityGuard();
 
                     this.$nextTick(() => {
                         if (this.currentQuestionFieldId) {
@@ -1964,7 +2200,9 @@
                     }
 
                     const reason = String(options.reason || 'autosave_threshold_reached');
-                    const consumedBucket = this.consumeAutosaveBucket();
+                    const consumedBucket = options.bucket
+                        ? this.normalizeAutosaveBucket(options.bucket)
+                        : this.consumeAutosaveBucket();
                     const {
                         savableBucket,
                         deferredBucket

@@ -45,6 +45,19 @@
         'target_ketenagaan',
         $assignment?->target_ketenagaan ?? \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
+    $stageEntryModeOptions = \App\Support\Assessment\AssessmentStageConfig::entryModeOptions();
+    $stageFinalizeModeOptions = \App\Support\Assessment\AssessmentStageConfig::finalizeModeOptions();
+    $initialStageConfigs = collect(old('stage_configs', $assignmentStageConfigs ?? []))
+        ->mapWithKeys(function ($config, $assessmentId) {
+            if (! is_array($config)) {
+                return [];
+            }
+
+            return [
+                (int) $assessmentId => $config,
+            ];
+        })
+        ->all();
     $currentCombinationOptions = collect($combinationOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])
         ->values()
         ->all();
@@ -328,6 +341,15 @@
             vertical-align: middle;
         }
 
+        .auto-summary-table .assessment-summary-row td {
+            vertical-align: top;
+        }
+
+        .auto-summary-table .stage-config-row td {
+            border-top: 0;
+            padding: 0 0 1rem;
+        }
+
         .auto-summary-empty {
             color: #7b8898;
             font-size: 0.9rem;
@@ -335,9 +357,116 @@
             text-align: center;
         }
 
+        .stage-config-shell {
+            padding-top: 0.15rem;
+        }
+
+        .stage-config-header {
+            align-items: flex-start;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .stage-config-card {
+            background: #f8fbfe;
+            border: 1px solid #dbe7f3;
+            border-radius: 0.45rem;
+            padding: 0.9rem;
+        }
+
+        .stage-config-grid {
+            display: grid;
+            gap: 0.75rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .stage-config-grid--wide {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .stage-config-title {
+            color: #23396b;
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 0.55rem;
+        }
+
+        .stage-config-hint {
+            color: #6b7a90;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .stage-config-label {
+            align-items: center;
+            background: #eef3ff;
+            border-radius: 999px;
+            color: #34539d;
+            display: inline-flex;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.28rem 0.72rem;
+            white-space: nowrap;
+        }
+
+        .stage-config-card label {
+            color: #34495e;
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .stage-config-card .form-control {
+            min-height: calc(1.5em + 0.8rem + 2px);
+        }
+
+        .stage-config-switches {
+            display: grid;
+            gap: 0.6rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 0.75rem;
+        }
+
+        .stage-config-switch {
+            align-items: flex-start;
+            background: #fff;
+            border: 1px solid #dbe7f3;
+            border-radius: 0.45rem;
+            display: flex;
+            gap: 0.6rem;
+            margin-bottom: 0;
+            padding: 0.8rem 0.9rem;
+        }
+
+        .stage-config-switch input {
+            margin-top: 0.2rem;
+        }
+
+        .stage-config-switch__text {
+            color: #6b7a90;
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 400;
+            line-height: 1.4;
+            margin-top: 0.15rem;
+        }
+
         @media (max-width: 991.98px) {
             .assignment-ketenagaan-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .stage-config-grid,
+            .stage-config-grid--wide,
+            .stage-config-switches {
+                grid-template-columns: 1fr;
+            }
+
+            .stage-config-header {
+                flex-direction: column;
             }
         }
     </style>
@@ -554,6 +683,10 @@
                                                 </tbody>
                                             </table>
                                         </div>
+                                        <small class="text-muted d-block mt-3">
+                                            Setiap assessment sumber di bawah ini dapat diatur menjadi tahap dengan mode akses, draft,
+                                            submit permanen, timer, dan guard yang berbeda.
+                                        </small>
                                     </div>
 
                                     <div class="card border shadow-none mb-4">
@@ -1019,6 +1152,9 @@
             const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
             const kabupatenOptionsByKetenagaan = @json($kabupatenOptionsByKetenagaan);
             const satuanPendidikanOptionsByKetenagaan = @json($satuanPendidikanOptionsByKetenagaan);
+            const initialStageConfigs = @json($initialStageConfigs);
+            const stageEntryModeOptions = @json($stageEntryModeOptions);
+            const stageFinalizeModeOptions = @json($stageFinalizeModeOptions);
             const sessionCapacity = {{ $sessionCapacity }};
             const defaultDurationHours = {{ $defaultSessionDurationHours }};
             const batchThreshold = {{ $batchThreshold }};
@@ -1692,15 +1828,176 @@
                     return;
                 }
 
-                tbody.innerHTML = items.map((item) => {
+                const normalizeStageConfig = (item, index) => {
+                    const assessmentId = Number(item.id || 0);
+                    const defaultConfig = item.default_stage_config && typeof item.default_stage_config === 'object'
+                        ? item.default_stage_config
+                        : {};
+                    const initialConfig = initialStageConfigs[assessmentId] && typeof initialStageConfigs[assessmentId] === 'object'
+                        ? initialStageConfigs[assessmentId]
+                        : {};
+                    const securityConfig = {
+                        ...(defaultConfig.security || {}),
+                        ...(initialConfig.security || {}),
+                    };
+
+                    return {
+                        enabled: String(initialConfig.enabled ?? defaultConfig.enabled ?? true) === 'true'
+                            || String(initialConfig.enabled ?? defaultConfig.enabled ?? 1) === '1',
+                        entry_mode: initialConfig.entry_mode || defaultConfig.entry_mode || 'direct',
+                        allow_draft: String(initialConfig.allow_draft ?? defaultConfig.allow_draft ?? 0) === 'true'
+                            || String(initialConfig.allow_draft ?? defaultConfig.allow_draft ?? 0) === '1',
+                        finalize_mode: initialConfig.finalize_mode || defaultConfig.finalize_mode || 'manual',
+                        lock_until_previous_stages_completed:
+                            String(
+                                initialConfig.lock_until_previous_stages_completed
+                                    ?? defaultConfig.lock_until_previous_stages_completed
+                                    ?? 0
+                            ) === 'true'
+                            || String(
+                                initialConfig.lock_until_previous_stages_completed
+                                    ?? defaultConfig.lock_until_previous_stages_completed
+                                    ?? 0
+                            ) === '1',
+                        time_limit_minutes: initialConfig.time_limit_minutes ?? defaultConfig.time_limit_minutes ?? '',
+                        security_enabled:
+                            String(initialConfig.security_enabled ?? securityConfig.enabled ?? 0) === 'true'
+                            || String(initialConfig.security_enabled ?? securityConfig.enabled ?? 0) === '1',
+                        security_require_fullscreen:
+                            String(initialConfig.security_require_fullscreen ?? securityConfig.require_fullscreen ?? 0) === 'true'
+                            || String(initialConfig.security_require_fullscreen ?? securityConfig.require_fullscreen ?? 0) === '1',
+                        security_max_serious_violations:
+                            initialConfig.security_max_serious_violations ?? securityConfig.max_serious_violations ?? 3,
+                        security_temporary_lock_seconds:
+                            initialConfig.security_temporary_lock_seconds ?? securityConfig.temporary_lock_seconds ?? 2,
+                        security_fullscreen_grace_seconds:
+                            initialConfig.security_fullscreen_grace_seconds ?? securityConfig.fullscreen_grace_seconds ?? 10,
+                    };
+                };
+
+                const buildOptionMarkup = (options, selectedValue) => {
+                    return Object.entries(options || {}).map(([value, label]) => `
+                        <option value="${escapeHtml(value)}" ${String(selectedValue) === String(value) ? 'selected' : ''}>
+                            ${escapeHtml(label)}
+                        </option>
+                    `).join('');
+                };
+
+                const buildSwitchMarkup = (name, checked, label, hint) => {
                     return `
-                        <tr>
+                        <label class="stage-config-switch">
+                            <input type="hidden" name="${name}" value="0">
+                            <input type="checkbox" name="${name}" value="1" ${checked ? 'checked' : ''}>
+                            <span>
+                                <span class="font-weight-600 text-dark d-block">${escapeHtml(label)}</span>
+                                <span class="stage-config-switch__text">${escapeHtml(hint)}</span>
+                            </span>
+                        </label>
+                    `;
+                };
+
+                tbody.innerHTML = items.map((item) => {
+                    const assessmentId = Number(item.id || 0);
+                    const stageConfig = normalizeStageConfig(item);
+                    const stageNumber = Number(item.stage_order || 0) || items.indexOf(item) + 1;
+                    const baseName = `stage_configs[${assessmentId}]`;
+                    const defaultHint = item.instrument_label
+                        ? `Preset awal mengikuti tipe instrumen ${item.instrument_label}.`
+                        : 'Preset awal mengikuti urutan assessment saat ini.';
+
+                    return `
+                        <tr class="assessment-summary-row">
                             <td class="font-weight-bold">${item.kode || '-'}</td>
                             <td>
                                 <div class="font-weight-600">${item.judul || '-'}</div>
-                                <small class="text-muted">${item.status || '-'}</small>
+                                <small class="text-muted">${item.status || '-'}${item.instrument_label ? ` · ${escapeHtml(item.instrument_label)}` : ''}</small>
                             </td>
                             <td>${Number(item.forms || 0)} form / ${Number(item.fields || 0)} pertanyaan</td>
+                        </tr>
+                        <tr class="stage-config-row">
+                            <td colspan="3">
+                                <div class="stage-config-shell">
+                                    <div class="stage-config-header">
+                                        <div>
+                                            <div class="stage-config-title">Konfigurasi Tahap ${stageNumber}</div>
+                                            <div class="stage-config-hint">${escapeHtml(defaultHint)}</div>
+                                        </div>
+                                        <span class="stage-config-label">Tahap ${stageNumber}</span>
+                                    </div>
+                                <div class="stage-config-card">
+                                    <input type="hidden" name="${baseName}[enabled]" value="${stageConfig.enabled ? '1' : '0'}">
+                                    <div class="stage-config-grid">
+                                        <div>
+                                            <label>Mode Akses</label>
+                                            <select class="form-control form-control-sm" name="${baseName}[entry_mode]">
+                                                ${buildOptionMarkup(stageEntryModeOptions, stageConfig.entry_mode)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label>Mode Selesai</label>
+                                            <select class="form-control form-control-sm" name="${baseName}[finalize_mode]">
+                                                ${buildOptionMarkup(stageFinalizeModeOptions, stageConfig.finalize_mode)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="stage-config-grid stage-config-grid--wide mt-3">
+                                        <div>
+                                            <label>Timer Tahap (menit)</label>
+                                            <input type="number" min="1" max="600" class="form-control form-control-sm"
+                                                name="${baseName}[time_limit_minutes]"
+                                                value="${escapeHtml(stageConfig.time_limit_minutes || '')}"
+                                                placeholder="Kosongkan jika tanpa timer">
+                                        </div>
+                                        <div>
+                                            <label>Batas Pelanggaran</label>
+                                            <input type="number" min="1" max="10" class="form-control form-control-sm"
+                                                name="${baseName}[security_max_serious_violations]"
+                                                value="${escapeHtml(stageConfig.security_max_serious_violations)}">
+                                        </div>
+                                        <div>
+                                            <label>Tenggang Fullscreen (detik)</label>
+                                            <input type="number" min="3" max="60" class="form-control form-control-sm"
+                                                name="${baseName}[security_fullscreen_grace_seconds]"
+                                                value="${escapeHtml(stageConfig.security_fullscreen_grace_seconds)}">
+                                        </div>
+                                    </div>
+                                    <div class="stage-config-grid stage-config-grid--wide mt-3">
+                                        <div>
+                                            <label>Kunci Sementara (detik)</label>
+                                            <input type="number" min="1" max="30" class="form-control form-control-sm"
+                                                name="${baseName}[security_temporary_lock_seconds]"
+                                                value="${escapeHtml(stageConfig.security_temporary_lock_seconds)}">
+                                        </div>
+                                    </div>
+                                    <div class="stage-config-switches">
+                                        ${buildSwitchMarkup(
+                                            `${baseName}[allow_draft]`,
+                                            stageConfig.allow_draft,
+                                            'Aktifkan draft',
+                                            'Peserta boleh menyimpan dan mengedit kembali sebelum permanen.'
+                                        )}
+                                        ${buildSwitchMarkup(
+                                            `${baseName}[lock_until_previous_stages_completed]`,
+                                            stageConfig.lock_until_previous_stages_completed,
+                                            'Kunci sampai tahap sebelumnya selesai',
+                                            'Tahap baru dibuka jika seluruh tahap sebelumnya sudah selesai/permanen.'
+                                        )}
+                                        ${buildSwitchMarkup(
+                                            `${baseName}[security_enabled]`,
+                                            stageConfig.security_enabled,
+                                            'Guard ujian aktif',
+                                            'Pantau shortcut, fokus tab, dan aktivitas pelanggaran.'
+                                        )}
+                                        ${buildSwitchMarkup(
+                                            `${baseName}[security_require_fullscreen]`,
+                                            stageConfig.security_require_fullscreen,
+                                            'Wajib fullscreen',
+                                            'Peserta harus kembali ke fullscreen dalam tenggang yang ditentukan.'
+                                        )}
+                                    </div>
+                                </div>
+                                </div>
+                            </td>
                         </tr>
                     `;
                 }).join('');

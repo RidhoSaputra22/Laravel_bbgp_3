@@ -6,6 +6,7 @@ use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentFormField;
 use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\AssessmentTargetTiming;
 use Illuminate\Support\Collection;
 
@@ -32,6 +33,9 @@ class AssessmentAttemptLifecycleService
 
         if (! $attempt) {
             $snapshot = $this->randomizer->buildSnapshot($target);
+            $progressSnapshot = AssessmentStageProgress::usesStageFlow($snapshot)
+                ? AssessmentStageProgress::buildInitial($snapshot)
+                : null;
             $target->setRelation('attempt', null);
             $initialDeadlineAt = $resolvedStartedAt
                 ? AssessmentTargetTiming::resolveDeadlineAt($target, $resolvedStartedAt->copy())
@@ -41,6 +45,7 @@ class AssessmentAttemptLifecycleService
                 'status' => $shouldCarryStartedAt ? 'in_progress' : 'draft',
                 'structure_snapshot' => $snapshot,
                 'security_config_snapshot' => $securityConfigSnapshot,
+                'progress_snapshot' => $progressSnapshot,
                 'total_questions' => (int) data_get($snapshot, 'meta.total_questions', 0),
                 'required_questions' => (int) data_get($snapshot, 'meta.required_questions', 0),
                 'started_at' => $resolvedStartedAt,
@@ -50,16 +55,27 @@ class AssessmentAttemptLifecycleService
         } else {
             if (empty($attempt->structure_snapshot)) {
                 $snapshot = $this->randomizer->buildSnapshot($target);
+                $progressSnapshot = AssessmentStageProgress::usesStageFlow($snapshot)
+                    ? AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot)
+                    : null;
 
                 $attempt->forceFill([
                     'structure_snapshot' => $snapshot,
                     'security_config_snapshot' => $attempt->security_config_snapshot ?: $securityConfigSnapshot,
+                    'progress_snapshot' => $progressSnapshot,
                     'total_questions' => (int) data_get($snapshot, 'meta.total_questions', 0),
                     'required_questions' => (int) data_get($snapshot, 'meta.required_questions', 0),
                 ])->save();
             } elseif (empty($attempt->security_config_snapshot)) {
                 $attempt->forceFill([
                     'security_config_snapshot' => $securityConfigSnapshot,
+                ])->save();
+            } elseif (
+                AssessmentStageProgress::usesStageFlow($attempt->structure_snapshot ?? [])
+                && empty($attempt->progress_snapshot)
+            ) {
+                $attempt->forceFill([
+                    'progress_snapshot' => AssessmentStageProgress::buildInitial($attempt->structure_snapshot ?? []),
                 ])->save();
             }
 
@@ -112,7 +128,19 @@ class AssessmentAttemptLifecycleService
         }
 
         $attempt = $this->ensureAttempt($target, false);
-        $attempt = $this->attemptService->submitExpired($attempt);
+
+        if (AssessmentStageProgress::usesStageFlow($attempt->structure_snapshot ?? [], $attempt->progress_snapshot)) {
+            $progress = AssessmentStageProgress::normalize(
+                $attempt->progress_snapshot,
+                $attempt->structure_snapshot ?? []
+            );
+            $attempt = $this->attemptService->submitExpiredStage(
+                $attempt,
+                AssessmentStageProgress::resolveCurrentStageIndex($progress)
+            );
+        } else {
+            $attempt = $this->attemptService->submitExpired($attempt);
+        }
 
         return $attempt->target->load([
             'assignment.assessments.forms.fields',
@@ -233,15 +261,33 @@ class AssessmentAttemptLifecycleService
             })
             ->all();
 
-        if (! $wasUpdated) {
+        $updatedAttributes = [];
+
+        if ($wasUpdated) {
+            $updatedAttributes['structure_snapshot'] = $snapshot;
+        }
+
+        if (AssessmentStageProgress::usesStageFlow($snapshot)) {
+            $normalizedProgress = AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot);
+
+            if ($normalizedProgress !== ($attempt->progress_snapshot ?? null)) {
+                $updatedAttributes['progress_snapshot'] = $normalizedProgress;
+            }
+        }
+
+        if ($updatedAttributes === []) {
             return $attempt;
         }
 
-        $attempt->forceFill([
-            'structure_snapshot' => $snapshot,
-        ])->save();
+        $attempt->forceFill($updatedAttributes)->save();
 
-        $attempt->structure_snapshot = $snapshot;
+        if (array_key_exists('structure_snapshot', $updatedAttributes)) {
+            $attempt->structure_snapshot = $snapshot;
+        }
+
+        if (array_key_exists('progress_snapshot', $updatedAttributes)) {
+            $attempt->progress_snapshot = $updatedAttributes['progress_snapshot'];
+        }
 
         return $attempt;
     }

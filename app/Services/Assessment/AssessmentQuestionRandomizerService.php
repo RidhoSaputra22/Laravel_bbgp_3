@@ -7,6 +7,7 @@ use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentFormField;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\AssessmentStructureMetadataResolver;
+use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use Illuminate\Support\Str;
 
@@ -22,15 +23,30 @@ class AssessmentQuestionRandomizerService
         $assignment = $target->assignment;
         $targetId = (int) ($target->getKey() ?? 0);
         $combination = $target->combination ?: $assignment->combination;
+        $stageConfigByAssessmentId = $assignment->assessments
+            ->values()
+            ->mapWithKeys(function ($assessment, int $index) {
+                return [
+                    (int) $assessment->id => AssessmentStageConfig::normalize(
+                        is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
+                        AssessmentStageConfig::defaultForAssessment($assessment->instrument_type, $index)
+                    ),
+                ];
+            })
+            ->all();
 
         if ($combination && ! empty($combination->structure_snapshot)) {
-            return $this->buildSnapshotFromCombination($target, $combination->structure_snapshot);
+            return $this->buildSnapshotFromCombination(
+                $target,
+                $combination->structure_snapshot,
+                $stageConfigByAssessmentId
+            );
         }
 
         $assessments = $assignment->assessments
             ->filter(fn ($assessment) => (bool) $assessment->is_active)
             ->values()
-            ->map(function ($assessment) use ($targetId) {
+            ->map(function ($assessment, int $assessmentIndex) use ($targetId, $stageConfigByAssessmentId) {
                 $instrumentType = AssessmentInstrumentType::tryFromMixed($assessment->instrument_type);
                 $assessmentMeta = $this->metadataResolver->decorateAssessment([
                     'id' => $assessment->id,
@@ -102,6 +118,9 @@ class AssessmentQuestionRandomizerService
 
                 return [
                     'id' => $assessmentMeta['id'],
+                    'stage_index' => $assessmentIndex,
+                    'stage_config' => $stageConfigByAssessmentId[(int) $assessment->id]
+                        ?? AssessmentStageConfig::defaultForAssessment($assessment->instrument_type, $assessmentIndex),
                     'kode_assessment' => $assessmentMeta['kode_assessment'],
                     'judul' => $assessmentMeta['judul'],
                     'deskripsi' => $assessmentMeta['deskripsi'],
@@ -142,14 +161,18 @@ class AssessmentQuestionRandomizerService
 
     private function buildSnapshotFromCombination(
         AssessmentAssignmentTarget $target,
-        array $combinationSnapshot
+        array $combinationSnapshot,
+        array $stageConfigByAssessmentId = []
     ): array {
         $assignment = $target->assignment;
         $targetId = (int) ($target->getKey() ?? 0);
 
         $assessments = collect($combinationSnapshot['assessments'] ?? [])
             ->values()
-            ->map(function (array $assessmentData) use ($targetId) {
+            ->map(function (array $assessmentData, int $assessmentIndex) use (
+                $targetId,
+                $stageConfigByAssessmentId
+            ) {
                 $assessmentMeta = $this->metadataResolver->decorateAssessment($assessmentData);
                 $instrumentType = AssessmentInstrumentType::tryFromMixed($assessmentMeta['instrument_type'] ?? null);
                 $forms = collect($assessmentData['forms'] ?? [])
@@ -196,6 +219,12 @@ class AssessmentQuestionRandomizerService
 
                 return [
                     'id' => $assessmentMeta['id'],
+                    'stage_index' => $assessmentIndex,
+                    'stage_config' => $stageConfigByAssessmentId[(int) ($assessmentMeta['id'] ?? 0)]
+                        ?? AssessmentStageConfig::defaultForAssessment(
+                            $assessmentMeta['instrument_type'] ?? null,
+                            $assessmentIndex
+                        ),
                     'kode_assessment' => $assessmentMeta['kode_assessment'],
                     'judul' => $assessmentMeta['judul'],
                     'deskripsi' => $assessmentMeta['deskripsi'],

@@ -14,6 +14,7 @@ class AssessmentAttempt extends Model
         'status',
         'structure_snapshot',
         'security_config_snapshot',
+        'progress_snapshot',
         'result_summary',
         'scoring_summary',
         'total_questions',
@@ -36,6 +37,7 @@ class AssessmentAttempt extends Model
     protected $casts = [
         'structure_snapshot' => 'array',
         'security_config_snapshot' => 'array',
+        'progress_snapshot' => 'array',
         'result_summary' => 'array',
         'scoring_summary' => 'array',
         'started_at' => 'datetime',

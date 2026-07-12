@@ -13,6 +13,8 @@ use App\Services\Assessment\AssessmentAttemptSecurityService;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
+use App\Support\Assessment\AssessmentStageConfig;
+use App\Support\Assessment\AssessmentStageProgress;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -61,7 +63,7 @@ class PortalController extends Controller
         ]);
     }
 
-    public function start(string $id)
+    public function start(Request $request, string $id)
     {
         $guru = $this->requireGuru();
         $target = $this->portalService->findTargetForGuru($guru, (int) $id);
@@ -80,6 +82,32 @@ class PortalController extends Controller
                 ]);
         }
 
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+
+        if ($this->usesStageFlow($target, $attempt)) {
+            $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
+            $progress = $this->resolveStageProgress($attempt);
+
+            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+                return redirect()
+                    ->route('assessment.portal.show', ['id' => $target->id])
+                    ->withErrors([
+                        'portal' => AssessmentStageProgress::lockReason($progress, $stageIndex)
+                            ?: 'Tahap yang diminta belum bisa diakses.',
+                    ]);
+            }
+
+            $stage = AssessmentStageProgress::stage($progress, $stageIndex);
+
+            if (($stage['status'] ?? null) !== AssessmentStageProgress::STATUS_SUBMITTED) {
+                $attempt = $this->attemptService->markStageStarted($attempt, $stageIndex);
+            }
+
+            return redirect()
+                ->route('assessment.portal.show', ['id' => $target->id, 'stage' => $stageIndex])
+                ->with('assessment_portal_success', 'Tahap assessment dimulai.');
+        }
+
         $this->attemptLifecycleService->ensureAttempt($target, true);
 
         return redirect()
@@ -87,7 +115,7 @@ class PortalController extends Controller
             ->with('assessment_portal_success', 'Assessment dimulai. Timer pengerjaan sudah berjalan.');
     }
 
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
         $guru = $this->requireGuru();
         $target = $this->portalService->findTargetForGuru($guru, (int) $id);
@@ -98,7 +126,9 @@ class PortalController extends Controller
             return redirect()->route('assessment.portal.result', $target->id);
         }
 
-        if ($meta['status'] === 'ready') {
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+
+        if (! $this->usesStageFlow($target, $attempt) && $meta['status'] === 'ready') {
             return redirect()
                 ->route('assessment.portal.dashboard')
                 ->withErrors([
@@ -107,16 +137,43 @@ class PortalController extends Controller
         }
 
         if ($meta['status'] !== 'in_progress') {
-            return redirect()
-                ->route('assessment.portal.dashboard')
-                ->withErrors([
-                    'portal' => $meta['description'],
-                ]);
+            if (! $this->usesStageFlow($target, $attempt) || $meta['status'] !== 'ready') {
+                return redirect()
+                    ->route('assessment.portal.dashboard')
+                    ->withErrors([
+                        'portal' => $meta['description'],
+                    ]);
+            }
         }
 
-        $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        $currentStageIndex = null;
 
-        if ($this->attemptSecurityService->hasReachedSeriousLimit($attempt) && ! $attempt->disqualified_at) {
+        if ($this->usesStageFlow($target, $attempt)) {
+            $progress = $this->resolveStageProgress($attempt);
+            $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
+
+            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+                $stageIndex = AssessmentStageProgress::resolveCurrentStageIndex($progress);
+            }
+
+            $stage = AssessmentStageProgress::stage($progress, $stageIndex);
+            $stageConfig = AssessmentStageProgress::stageConfig($progress, $stageIndex);
+
+            if (
+                $stage
+                && ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
+                && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_DIRECT
+            ) {
+                $attempt = $this->attemptService->markStageStarted($attempt, $stageIndex);
+                $progress = $this->resolveStageProgress($attempt);
+            }
+
+            $currentStageIndex = $stageIndex;
+        } else {
+            $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        }
+
+        if ($this->attemptSecurityService->hasReachedSeriousLimit($attempt, $currentStageIndex) && ! $attempt->disqualified_at) {
             $this->attemptSecurityService->disqualify($attempt, [
                 'reason' => 'Assessment dihentikan karena batas pelanggaran guard ujian telah tercapai.',
                 'record_trigger' => false,
@@ -155,7 +212,7 @@ class PortalController extends Controller
             'attempt' => $freshAttempt,
             'meta' => $this->portalService->buildTargetMeta($freshTarget),
             'answerLookup' => $this->attemptService->buildAnswerLookup($freshAttempt),
-            'securityPayload' => $this->attemptSecurityService->buildClientPayload($freshAttempt),
+            'securityPayload' => $this->attemptSecurityService->buildClientPayload($freshAttempt, $currentStageIndex),
         ]);
     }
 
@@ -182,7 +239,42 @@ class PortalController extends Controller
             ], 422);
         }
 
-        $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+
+        if ($this->usesStageFlow($target, $attempt)) {
+            $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
+            $progress = $this->resolveStageProgress($attempt);
+
+            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+                return response()->json([
+                    'message' => AssessmentStageProgress::lockReason($progress, $stageIndex)
+                        ?: 'Tahap yang diminta belum tersedia.',
+                ], 422);
+            }
+
+            $stage = AssessmentStageProgress::stage($progress, $stageIndex);
+            $stageConfig = AssessmentStageProgress::stageConfig($progress, $stageIndex);
+
+            if (
+                $stage
+                && ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
+                && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_START_BUTTON
+            ) {
+                return response()->json([
+                    'message' => 'Klik tombol Mulai pada tahap ini terlebih dahulu.',
+                ], 422);
+            }
+
+            if (
+                $stage
+                && ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
+                && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_DIRECT
+            ) {
+                $attempt = $this->attemptService->markStageStarted($attempt, $stageIndex);
+            }
+        } else {
+            $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        }
 
         if ($attempt->status === 'submitted') {
             return response()->json([
@@ -192,7 +284,11 @@ class PortalController extends Controller
             ]);
         }
 
-        if ($this->attemptSecurityService->hasReachedSeriousLimit($attempt) && ! $attempt->disqualified_at) {
+        $stageIndex = $this->usesStageFlow($target, $attempt)
+            ? $this->resolveRequestedStageIndex($request, $attempt)
+            : null;
+
+        if ($this->attemptSecurityService->hasReachedSeriousLimit($attempt, $stageIndex) && ! $attempt->disqualified_at) {
             $this->attemptSecurityService->disqualify(
                 $attempt,
                 [
@@ -216,18 +312,33 @@ class PortalController extends Controller
         }
 
         if ($this->attemptLifecycleService->isPastDeadline($target)) {
-            $this->attemptService->submitExpired(
-                $attempt,
-                $request->input('answers', []),
-                $request->file('answers', []),
-                $request->input('flagged_field_ids', []),
-                $request->input('field_ids', [])
-            );
+            if ($stageIndex !== null) {
+                $expiredAttempt = $this->attemptService->submitExpiredStage(
+                    $attempt,
+                    $stageIndex,
+                    $request->input('answers', []),
+                    $request->file('answers', []),
+                    $request->input('flagged_field_ids', [])
+                );
+
+                $redirectUrl = $expiredAttempt->status === 'submitted'
+                    ? route('assessment.portal.result', $target->id)
+                    : route('assessment.portal.show', ['id' => $target->id, 'stage' => $stageIndex]);
+            } else {
+                $this->attemptService->submitExpired(
+                    $attempt,
+                    $request->input('answers', []),
+                    $request->file('answers', []),
+                    $request->input('flagged_field_ids', []),
+                    $request->input('field_ids', [])
+                );
+                $redirectUrl = route('assessment.portal.result', $target->id);
+            }
 
             return response()->json([
                 'status' => 'expired_submitted',
                 'message' => 'Batas waktu berakhir. Jawaban terakhir langsung diproses dan soal kosong diberi skor 0.',
-                'redirect_url' => route('assessment.portal.result', $target->id),
+                'redirect_url' => $redirectUrl,
             ]);
         }
 
@@ -270,7 +381,7 @@ class PortalController extends Controller
                 ]);
         }
 
-        $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
 
         if ($attempt->status === 'submitted') {
             if ($request->expectsJson()) {
@@ -283,6 +394,123 @@ class PortalController extends Controller
 
             return redirect()->route('assessment.portal.result', $target->id);
         }
+
+        if ($this->usesStageFlow($target, $attempt)) {
+            $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
+            $progress = $this->resolveStageProgress($attempt);
+
+            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+                return redirect()
+                    ->route('assessment.portal.show', ['id' => $target->id])
+                    ->withErrors([
+                        'portal' => AssessmentStageProgress::lockReason($progress, $stageIndex)
+                            ?: 'Tahap yang diminta belum tersedia.',
+                    ]);
+            }
+
+            $stage = AssessmentStageProgress::stage($progress, $stageIndex);
+            $stageConfig = AssessmentStageProgress::stageConfig($progress, $stageIndex);
+
+            if (
+                $stage
+                && ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
+                && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_START_BUTTON
+            ) {
+                return redirect()
+                    ->route('assessment.portal.show', ['id' => $target->id, 'stage' => $stageIndex])
+                    ->withErrors([
+                        'portal' => 'Klik tombol Mulai pada tahap ini terlebih dahulu.',
+                    ]);
+            }
+
+            if (
+                $stage
+                && ($stage['status'] ?? null) === AssessmentStageProgress::STATUS_READY
+                && ($stageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_DIRECT
+            ) {
+                $attempt = $this->attemptService->markStageStarted($attempt, $stageIndex);
+            }
+
+            if ($this->attemptSecurityService->hasReachedSeriousLimit($attempt, $stageIndex) && ! $attempt->disqualified_at) {
+                $this->attemptSecurityService->disqualify(
+                    $attempt,
+                    [
+                        'reason' => 'Assessment dihentikan karena batas pelanggaran guard ujian telah tercapai.',
+                        'record_trigger' => false,
+                        'metadata' => [
+                            'source' => 'submit_enforcement',
+                        ],
+                    ],
+                    $request->input('answers', []),
+                    $request->file('answers', []),
+                    $request->input('flagged_field_ids', []),
+                    $request->input('field_ids', [])
+                );
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'status' => 'disqualified',
+                        'message' => 'Assessment dihentikan karena batas pelanggaran guard ujian telah tercapai.',
+                        'redirect_url' => route('assessment.portal.result', $target->id),
+                    ]);
+                }
+
+                return redirect()
+                    ->route('assessment.portal.result', $target->id)
+                    ->with('assessment_portal_warning', 'Assessment dihentikan karena batas pelanggaran guard ujian telah tercapai.');
+            }
+
+            if ($this->attemptLifecycleService->isPastDeadline($target)) {
+                $expiredAttempt = $this->attemptService->submitExpiredStage(
+                    $attempt,
+                    $stageIndex,
+                    $request->input('answers', []),
+                    $request->file('answers', []),
+                    $request->input('flagged_field_ids', [])
+                );
+
+                $redirectUrl = $expiredAttempt->status === 'submitted'
+                    ? route('assessment.portal.result', $target->id)
+                    : route('assessment.portal.show', [
+                        'id' => $target->id,
+                        'stage' => $this->resolveCurrentOrNextStageIndex($expiredAttempt),
+                    ]);
+
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'status' => 'expired_submitted',
+                        'message' => 'Batas waktu berakhir. Jawaban terakhir langsung diproses dan soal kosong diberi skor 0.',
+                        'redirect_url' => $redirectUrl,
+                    ]);
+                }
+
+                return redirect($redirectUrl)
+                    ->with('assessment_portal_warning', 'Batas waktu tahap berakhir. Jawaban terakhir diproses otomatis.');
+            }
+
+            $submittedAttempt = $this->attemptService->submitStage(
+                $attempt,
+                $stageIndex,
+                $request->input('answers', []),
+                $request->file('answers', []),
+                $request->input('flagged_field_ids', [])
+            );
+
+            if ($submittedAttempt->status === 'submitted') {
+                return redirect()
+                    ->route('assessment.portal.result', $target->id)
+                    ->with('assessment_portal_success', 'Semua tahap assessment berhasil dikirim.');
+            }
+
+            return redirect()
+                ->route('assessment.portal.show', [
+                    'id' => $target->id,
+                    'stage' => $this->resolveCurrentOrNextStageIndex($submittedAttempt),
+                ])
+                ->with('assessment_portal_success', 'Tahap assessment berhasil disimpan permanen.');
+        }
+
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
 
         if ($this->attemptSecurityService->hasReachedSeriousLimit($attempt) && ! $attempt->disqualified_at) {
             $this->attemptSecurityService->disqualify(
@@ -385,7 +613,7 @@ class PortalController extends Controller
             ], 422);
         }
 
-        $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
 
         if ($attempt->status === 'submitted') {
             return response()->json([
@@ -395,13 +623,28 @@ class PortalController extends Controller
             ]);
         }
 
+        $stageIndex = $this->usesStageFlow($target, $attempt)
+            ? $this->resolveRequestedStageIndex($request, $attempt)
+            : null;
+
         if ($this->attemptLifecycleService->isPastDeadline($target)) {
-            $this->attemptService->submitExpired($attempt);
+            if ($stageIndex !== null) {
+                $expiredAttempt = $this->attemptService->submitExpiredStage($attempt, $stageIndex);
+                $redirectUrl = $expiredAttempt->status === 'submitted'
+                    ? route('assessment.portal.result', $target->id)
+                    : route('assessment.portal.show', [
+                        'id' => $target->id,
+                        'stage' => $this->resolveCurrentOrNextStageIndex($expiredAttempt),
+                    ]);
+            } else {
+                $this->attemptService->submitExpired($attempt);
+                $redirectUrl = route('assessment.portal.result', $target->id);
+            }
 
             return response()->json([
                 'status' => 'expired_submitted',
                 'message' => 'Batas waktu berakhir. Jawaban terakhir langsung diproses dan soal kosong diberi skor 0.',
-                'redirect_url' => route('assessment.portal.result', $target->id),
+                'redirect_url' => $redirectUrl,
             ]);
         }
 
@@ -420,7 +663,7 @@ class PortalController extends Controller
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
             ]
-        ));
+        ), $stageIndex);
 
         return response()->json(array_merge($state, [
             'redirect_url' => $state['status'] === 'submitted'
@@ -452,20 +695,41 @@ class PortalController extends Controller
             ], 422);
         }
 
-        $attempt = $this->attemptLifecycleService->ensureAttempt($target, true);
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+
+        $stageIndex = $this->usesStageFlow($target, $attempt)
+            ? $this->resolveRequestedStageIndex($request, $attempt)
+            : null;
 
         if ($this->attemptLifecycleService->isPastDeadline($target)) {
-            $this->attemptService->submitExpired(
-                $attempt,
-                $request->input('answers', []),
-                $request->file('answers', []),
-                $request->input('flagged_field_ids', [])
-            );
+            if ($stageIndex !== null) {
+                $expiredAttempt = $this->attemptService->submitExpiredStage(
+                    $attempt,
+                    $stageIndex,
+                    $request->input('answers', []),
+                    $request->file('answers', []),
+                    $request->input('flagged_field_ids', [])
+                );
+                $redirectUrl = $expiredAttempt->status === 'submitted'
+                    ? route('assessment.portal.result', $target->id)
+                    : route('assessment.portal.show', [
+                        'id' => $target->id,
+                        'stage' => $this->resolveCurrentOrNextStageIndex($expiredAttempt),
+                    ]);
+            } else {
+                $this->attemptService->submitExpired(
+                    $attempt,
+                    $request->input('answers', []),
+                    $request->file('answers', []),
+                    $request->input('flagged_field_ids', [])
+                );
+                $redirectUrl = route('assessment.portal.result', $target->id);
+            }
 
             return response()->json([
                 'status' => 'expired_submitted',
                 'message' => 'Batas waktu berakhir. Jawaban terakhir langsung diproses dan soal kosong diberi skor 0.',
-                'redirect_url' => route('assessment.portal.result', $target->id),
+                'redirect_url' => $redirectUrl,
             ]);
         }
 
@@ -503,7 +767,7 @@ class PortalController extends Controller
             'message' => $disqualifiedAttempt->disqualification_reason
                 ?: 'Assessment dihentikan oleh sistem guard karena pelanggaran aturan ujian.',
             'redirect_url' => route('assessment.portal.result', $target->id),
-            'security' => $this->attemptSecurityService->buildClientPayload($disqualifiedAttempt),
+            'security' => $this->attemptSecurityService->buildClientPayload($disqualifiedAttempt, $stageIndex),
         ]);
     }
 
@@ -597,6 +861,68 @@ class PortalController extends Controller
         $decodedBucket = json_decode($rawBucket, true);
 
         return is_array($decodedBucket) ? $decodedBucket : [];
+    }
+
+    private function usesStageFlow(
+        AssessmentAssignmentTarget $target,
+        ?AssessmentAttempt $attempt = null
+    ): bool {
+        $attempt = $attempt ?: $target->attempt;
+
+        if ($attempt) {
+            $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+            $progress = is_array($attempt->progress_snapshot ?? null) ? $attempt->progress_snapshot : null;
+
+            if (AssessmentStageProgress::usesStageFlow($snapshot, $progress)) {
+                return true;
+            }
+        }
+
+        $target->loadMissing('assignment.assessments');
+
+        return $target->assignment->assessments
+            ->values()
+            ->contains(function ($assessment, int $index) {
+                return AssessmentStageConfig::isEnabled(
+                    AssessmentStageConfig::normalize(
+                        is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
+                        AssessmentStageConfig::defaultForAssessment($assessment->instrument_type, $index)
+                    )
+                );
+            });
+    }
+
+    private function resolveStageProgress(AssessmentAttempt $attempt): array
+    {
+        return AssessmentStageProgress::normalize(
+            $attempt->progress_snapshot,
+            is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : []
+        );
+    }
+
+    private function resolveRequestedStageIndex(Request $request, AssessmentAttempt $attempt): int
+    {
+        $progress = $this->resolveStageProgress($attempt);
+        $rawStageIndex = $request->query(
+            'stage',
+            $request->input('stage_index', $request->input('active_assessment_index', -1))
+        );
+
+        return AssessmentStageProgress::resolveCurrentStageIndex(
+            $progress,
+            is_numeric($rawStageIndex) ? (int) $rawStageIndex : -1
+        );
+    }
+
+    private function resolveCurrentOrNextStageIndex(AssessmentAttempt $attempt): int
+    {
+        $progress = $this->resolveStageProgress($attempt);
+
+        return AssessmentStageProgress::resolveCurrentStageIndex(
+            $progress,
+            AssessmentStageProgress::nextStageIndexAfterSubmission($progress)
+                ?? (int) ($progress['current_stage_index'] ?? 0)
+        );
     }
 
     /**

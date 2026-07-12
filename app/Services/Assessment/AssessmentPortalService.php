@@ -5,6 +5,8 @@ namespace App\Services\Assessment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\Guru;
+use App\Support\Assessment\AssessmentStageConfig;
+use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\AssessmentTargetTiming;
 use Illuminate\Support\Collection;
 
@@ -133,14 +135,21 @@ class AssessmentPortalService
         $deadlineAt = AssessmentTargetTiming::resolveDeadlineAt($target);
         $durationMinutes = AssessmentTargetTiming::resolveDurationMinutes($target);
         $completionMode = optional($target->attempt)->completion_mode ?: $target->completion_mode;
+        $stageProgress = $attempt && is_array($attempt->progress_snapshot ?? null)
+            ? AssessmentStageProgress::normalize($attempt->progress_snapshot, $attempt->structure_snapshot ?? [])
+            : null;
+        $assignmentUsesStageFlow = $this->assignmentUsesStageFlow($assignment);
+        $currentStagePreview = $this->resolveCurrentStagePreview($target, $stageProgress);
 
         $meta = [
             'status' => 'ready',
             'label' => 'Siap Dikerjakan',
             'badge' => 'success',
-            'description' => $sessionEnabled
-                ? 'Assessment siap dimulai. Waktu mulai pertama dan timer akan dicatat saat Anda menekan tombol Mulai Ujian.'
-                : 'Assessment siap dimulai. Anda dapat memulai kapan saja selama periode penugasan, lalu timer dicatat saat tombol Mulai Ujian ditekan.',
+            'description' => $assignmentUsesStageFlow
+                ? ($currentStagePreview['description'] ?? 'Buka penugasan untuk mengerjakan tahap assessment yang tersedia.')
+                : ($sessionEnabled
+                    ? 'Assessment siap dimulai. Waktu mulai pertama dan timer akan dicatat saat Anda menekan tombol Mulai Ujian.'
+                    : 'Assessment siap dimulai. Anda dapat memulai kapan saja selama periode penugasan, lalu timer dicatat saat tombol Mulai Ujian ditekan.'),
             'can_open' => true,
             'can_view_result' => false,
             'question_total' => $questionTotal,
@@ -163,6 +172,8 @@ class AssessmentPortalService
             'deadline_at' => $deadlineAt?->toIso8601String(),
             'duration_minutes' => $durationMinutes,
             'completion_mode' => $completionMode,
+            'action_label' => $assignmentUsesStageFlow ? 'Buka Penugasan' : 'Mulai Ujian',
+            'stage_progress' => $currentStagePreview,
         ];
 
         if ($target->status === 'dibatalkan') {
@@ -260,12 +271,17 @@ class AssessmentPortalService
         if ($attempt && $attempt->status === 'in_progress') {
             return array_merge($meta, [
                 'status' => 'in_progress',
-                'label' => 'Sedang Dikerjakan',
+                'label' => $assignmentUsesStageFlow
+                    ? ($currentStagePreview['label'] ?? 'Tahap Sedang Berjalan')
+                    : 'Sedang Dikerjakan',
                 'badge' => 'warning',
-                'description' => $deadlineAt
-                    ? 'Assessment sudah dimulai. Lanjutkan sebelum batas waktu berakhir pada '.$this->formatDateTime($deadlineAt).'.'
-                    : 'Assessment sudah dimulai. Lanjutkan dari halaman ujian.',
+                'description' => $assignmentUsesStageFlow
+                    ? ($currentStagePreview['description'] ?? 'Lanjutkan tahap yang sedang dikerjakan.')
+                    : ($deadlineAt
+                        ? 'Assessment sudah dimulai. Lanjutkan sebelum batas waktu berakhir pada '.$this->formatDateTime($deadlineAt).'.'
+                        : 'Assessment sudah dimulai. Lanjutkan dari halaman ujian.'),
                 'can_open' => true,
+                'action_label' => 'Lanjutkan Penugasan',
             ]);
         }
 
@@ -327,5 +343,69 @@ class AssessmentPortalService
         }
 
         return 'Akses fleksibel kapan saja';
+    }
+
+    private function assignmentUsesStageFlow($assignment): bool
+    {
+        return $assignment->assessments
+            ->contains(function ($assessment, int $index) {
+                return AssessmentStageConfig::isEnabled(
+                    AssessmentStageConfig::normalize(
+                        is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
+                        AssessmentStageConfig::defaultForAssessment($assessment->instrument_type, $index)
+                    )
+                );
+            });
+    }
+
+    private function resolveCurrentStagePreview(
+        AssessmentAssignmentTarget $target,
+        ?array $stageProgress = null
+    ): array {
+        $assignment = $target->assignment;
+
+        if ($stageProgress && AssessmentStageProgress::usesStageFlow($target->attempt?->structure_snapshot ?? [], $stageProgress)) {
+            $stageIndex = AssessmentStageProgress::resolveCurrentStageIndex($stageProgress);
+            $stage = AssessmentStageProgress::stage($stageProgress, $stageIndex);
+
+            if ($stage) {
+                $status = $stage['status'] ?? AssessmentStageProgress::STATUS_READY;
+                $title = trim((string) ($stage['title'] ?? 'Tahap '.($stageIndex + 1)));
+                $prefix = 'Tahap '.($stageIndex + 1).': '.$title;
+
+                return [
+                    'stage_index' => $stageIndex,
+                    'title' => $title,
+                    'status' => $status,
+                    'label' => match ($status) {
+                        AssessmentStageProgress::STATUS_IN_PROGRESS => 'Tahap '.($stageIndex + 1).' Sedang Dikerjakan',
+                        AssessmentStageProgress::STATUS_SUBMITTED => 'Tahap '.($stageIndex + 1).' Selesai',
+                        AssessmentStageProgress::STATUS_LOCKED => 'Tahap '.($stageIndex + 1).' Terkunci',
+                        default => 'Tahap '.($stageIndex + 1).' Siap Dikerjakan',
+                    },
+                    'description' => match ($status) {
+                        AssessmentStageProgress::STATUS_IN_PROGRESS => $prefix.' sedang berjalan. Buka kembali penugasan untuk melanjutkan.',
+                        AssessmentStageProgress::STATUS_SUBMITTED => $prefix.' sudah selesai. Lanjutkan ke tahap berikutnya jika sudah tersedia.',
+                        AssessmentStageProgress::STATUS_LOCKED => $prefix.' masih terkunci sampai tahap sebelumnya selesai atau disimpan permanen.',
+                        default => $prefix.' siap dibuka dari halaman penugasan.',
+                    },
+                ];
+            }
+        }
+
+        $firstStage = $assignment->assessments->values()->first();
+
+        if (! $firstStage) {
+            return [];
+        }
+
+        return [
+            'stage_index' => 0,
+            'title' => trim((string) $firstStage->judul) ?: 'Tahap 1',
+            'status' => AssessmentStageProgress::STATUS_READY,
+            'label' => 'Tahap 1 Siap Dikerjakan',
+            'description' => 'Tahap 1: '.(trim((string) $firstStage->judul) ?: 'Assessment pertama')
+                .' siap dibuka dari halaman penugasan.',
+        ];
     }
 }

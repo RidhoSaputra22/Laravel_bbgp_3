@@ -4,6 +4,7 @@ namespace App\Services\Assessment;
 
 use App\Models\AssessmentAttempt;
 use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Support\Assessment\AssessmentStageProgress;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -13,9 +14,9 @@ class AssessmentAttemptSecurityService
         private readonly AssessmentAttemptService $attemptService
     ) {}
 
-    public function buildClientPayload(AssessmentAttempt $attempt): array
+    public function buildClientPayload(AssessmentAttempt $attempt, ?int $stageIndex = null): array
     {
-        $config = $this->resolveConfig($attempt);
+        $config = $this->resolveConfig($attempt, $stageIndex);
         $seriousViolationCount = (int) ($attempt->serious_violation_count ?? 0);
         $warningViolationCount = (int) ($attempt->warning_violation_count ?? 0);
         $maxSeriousViolations = (int) ($config['max_serious_violations'] ?? 0);
@@ -36,8 +37,20 @@ class AssessmentAttemptSecurityService
         ];
     }
 
-    public function resolveConfig(AssessmentAttempt $attempt): array
+    public function resolveConfig(AssessmentAttempt $attempt, ?int $stageIndex = null): array
     {
+        $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+        $progress = is_array($attempt->progress_snapshot ?? null) ? $attempt->progress_snapshot : null;
+
+        if ($progress && AssessmentStageProgress::usesStageFlow($snapshot, $progress)) {
+            $resolvedStageIndex = $stageIndex ?? (int) ($progress['current_stage_index'] ?? 0);
+            $stageConfig = AssessmentStageProgress::stageConfig($progress, $resolvedStageIndex);
+
+            return AssessmentSecurityConfig::normalize(
+                is_array($stageConfig['security'] ?? null) ? $stageConfig['security'] : []
+            );
+        }
+
         $snapshotConfig = $attempt->security_config_snapshot;
 
         if (is_array($snapshotConfig) && $snapshotConfig !== []) {
@@ -51,9 +64,9 @@ class AssessmentAttemptSecurityService
         );
     }
 
-    public function hasReachedSeriousLimit(AssessmentAttempt $attempt): bool
+    public function hasReachedSeriousLimit(AssessmentAttempt $attempt, ?int $stageIndex = null): bool
     {
-        $config = $this->resolveConfig($attempt);
+        $config = $this->resolveConfig($attempt, $stageIndex);
 
         if (! ($config['enabled'] ?? false)) {
             return false;
@@ -62,13 +75,13 @@ class AssessmentAttemptSecurityService
         return (int) ($attempt->serious_violation_count ?? 0) >= (int) ($config['max_serious_violations'] ?? 0);
     }
 
-    public function registerViolation(AssessmentAttempt $attempt, array $payload): array
+    public function registerViolation(AssessmentAttempt $attempt, array $payload, ?int $stageIndex = null): array
     {
         $attempt->loadMissing('target.assignment');
-        $config = $this->resolveConfig($attempt);
+        $config = $this->resolveConfig($attempt, $stageIndex);
 
         if (! ($config['enabled'] ?? false)) {
-            return array_merge($this->buildClientPayload($attempt), [
+            return array_merge($this->buildClientPayload($attempt, $stageIndex), [
                 'status' => 'disabled',
                 'requires_disqualification' => false,
                 'reason' => null,
@@ -76,7 +89,7 @@ class AssessmentAttemptSecurityService
         }
 
         if ($attempt->status === 'submitted') {
-            return array_merge($this->buildClientPayload($attempt), [
+            return array_merge($this->buildClientPayload($attempt, $stageIndex), [
                 'status' => 'submitted',
                 'requires_disqualification' => false,
                 'reason' => $attempt->disqualification_reason,
@@ -98,8 +111,8 @@ class AssessmentAttemptSecurityService
 
         $attempt = $attempt->fresh(['target.assignment', 'securityEvents']);
 
-        $config = $this->resolveConfig($attempt);
-        $state = $this->buildClientPayload($attempt);
+        $config = $this->resolveConfig($attempt, $stageIndex);
+        $state = $this->buildClientPayload($attempt, $stageIndex);
         $requiresDisqualification = $state['seriousViolationCount'] >= (int) ($config['max_serious_violations'] ?? 0);
 
         return array_merge($state, [

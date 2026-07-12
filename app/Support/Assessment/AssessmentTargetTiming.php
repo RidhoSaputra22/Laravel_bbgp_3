@@ -10,6 +10,15 @@ class AssessmentTargetTiming
 {
     public static function resolveDurationMinutes(AssessmentAssignmentTarget $target): ?int
     {
+        $stageProgress = self::resolveStageProgress($target);
+
+        if ($stageProgress !== null && AssessmentStageProgress::usesStageFlow(
+            optional(self::resolveLoadedAttempt($target))->structure_snapshot ?? [],
+            $stageProgress
+        )) {
+            return AssessmentStageProgress::activeDurationMinutes($stageProgress);
+        }
+
         $sessionDurationHours = (int) (optional($target->session)->durasi_sesi_jam ?: 0);
 
         if ($sessionDurationHours > 0) {
@@ -59,6 +68,19 @@ class AssessmentTargetTiming
 
     public static function resolveStartedAt(AssessmentAssignmentTarget $target): ?Carbon
     {
+        $stageProgress = self::resolveStageProgress($target);
+
+        if ($stageProgress !== null) {
+            $currentStage = AssessmentStageProgress::stage(
+                $stageProgress,
+                (int) ($stageProgress['current_stage_index'] ?? 0)
+            );
+
+            if (filled($currentStage['started_at'] ?? null)) {
+                return Carbon::parse((string) $currentStage['started_at']);
+            }
+        }
+
         if ($target->started_at) {
             return $target->started_at->copy();
         }
@@ -84,6 +106,16 @@ class AssessmentTargetTiming
         AssessmentAssignmentTarget $target,
         ?Carbon $startedAt = null
     ): ?Carbon {
+        $stageProgress = self::resolveStageProgress($target);
+
+        if ($stageProgress !== null) {
+            $activeDeadlineAt = AssessmentStageProgress::activeDeadlineAt($stageProgress);
+
+            if ($activeDeadlineAt) {
+                return $activeDeadlineAt;
+            }
+        }
+
         $storedDeadlineAt = optional(self::resolveLoadedAttempt($target))->deadline_at?->copy()
             ?: $target->deadline_at?->copy();
 
@@ -110,5 +142,16 @@ class AssessmentTargetTiming
         }
 
         return $target->getRelation('attempt');
+    }
+
+    private static function resolveStageProgress(AssessmentAssignmentTarget $target): ?array
+    {
+        $attempt = self::resolveLoadedAttempt($target);
+
+        if (! $attempt || ! is_array($attempt->progress_snapshot ?? null)) {
+            return null;
+        }
+
+        return $attempt->progress_snapshot;
     }
 }

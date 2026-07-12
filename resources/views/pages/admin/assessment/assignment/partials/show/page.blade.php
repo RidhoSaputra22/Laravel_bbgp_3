@@ -1028,6 +1028,7 @@
                                             <th>Judul</th>
                                             <th>Status</th>
                                             <th>Struktur</th>
+                                            <th>Konfig Tahap</th>
                                             <th>Deskripsi</th>
                                         </tr>
                                     </thead>
@@ -1040,6 +1041,15 @@
                                                         : ($assessment->status === 'draft'
                                                             ? 'warning'
                                                             : 'secondary');
+                                                $stageConfig = \App\Support\Assessment\AssessmentStageConfig::normalize(
+                                                    is_array($assessment->pivot?->stage_config ?? null)
+                                                        ? $assessment->pivot->stage_config
+                                                        : [],
+                                                    \App\Support\Assessment\AssessmentStageConfig::defaultForAssessment(
+                                                        $assessment->instrument_type,
+                                                        max($loop->iteration - 1, 0)
+                                                    )
+                                                );
                                             @endphp
                                             <tr>
                                                 <td class="text-center">{{ $loop->iteration }}</td>
@@ -1064,6 +1074,30 @@
                                                     {{ $assessment->forms->count() }} form /
                                                     {{ $assessment->forms->sum(fn($form) => $form->fields->count()) }}
                                                     pertanyaan
+                                                </td>
+                                                <td>
+                                                    <div class="small text-muted">
+                                                        Akses:
+                                                        {{ ($stageConfig['entry_mode'] ?? null) === \App\Support\Assessment\AssessmentStageConfig::ENTRY_START_BUTTON ? 'Tombol mulai' : 'Langsung isi' }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        Draft: {{ $stageConfig['allow_draft'] ? 'Ya' : 'Tidak' }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        Submit:
+                                                        {{ ($stageConfig['finalize_mode'] ?? null) === \App\Support\Assessment\AssessmentStageConfig::FINALIZE_AUTO ? 'Auto saat selesai' : 'Manual / permanen' }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        Timer:
+                                                        {{ $stageConfig['time_limit_minutes'] ? $stageConfig['time_limit_minutes'].' menit' : 'Tanpa timer' }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        Guard:
+                                                        {{ data_get($stageConfig, 'security.enabled', false) ? 'Aktif' : 'Nonaktif' }}
+                                                        /
+                                                        Fullscreen:
+                                                        {{ data_get($stageConfig, 'security.require_fullscreen', false) ? 'Wajib' : 'Opsional' }}
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     {{ \Illuminate\Support\Str::limit($assessment->deskripsi ?: 'Tidak ada deskripsi assessment.', 120) }}

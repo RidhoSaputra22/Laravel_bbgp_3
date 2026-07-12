@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enum\AssessmentInstrumentType;
 use App\Enum\AssessmentKetenagaanType;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
@@ -11,6 +12,7 @@ use App\Models\AssessmentFormField;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
+use App\Support\Assessment\AssessmentStageConfig;
 use App\Services\Assessment\AssessmentMonitoringService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\JsonResponse;
@@ -70,7 +72,7 @@ class AssessmentAssignmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $assignment = AssessmentAssignment::findOrFail($id);
+        $assignment = AssessmentAssignment::with('assessments')->findOrFail($id);
 
         return view(
             'pages.admin.assessment.assignment.create',
@@ -347,6 +349,7 @@ class AssessmentAssignmentController extends Controller
             'submitLabel' => $assignment ? 'Simpan Perubahan' : 'Simpan Penugasan',
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
             'ketenagaanSummaries' => $this->buildKetenagaanSummaries(),
+            'assignmentStageConfigs' => $this->buildAssignmentStageConfigMap($assignment),
             'combinationOptionsByKetenagaan' => $this->buildCombinationOptionsByKetenagaan(),
             'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
             'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
@@ -458,18 +461,54 @@ class AssessmentAssignmentController extends Controller
                         'field_count' => $items->sum(fn ($assessment) => (int) ($assessment->fields_count ?? 0)),
                         'user_count' => (int) ($participantCounts[$case->guruValue()] ?? 0),
                         'assessment_items' => $items
-                            ->map(function ($assessment) {
+                            ->map(function ($assessment, int $index) {
+                                $defaultStageConfig = AssessmentStageConfig::defaultForAssessment(
+                                    $assessment->instrument_type,
+                                    $index
+                                );
+
                                 return [
                                     'id' => (int) $assessment->id,
                                     'kode' => $assessment->kode_assessment,
                                     'judul' => $assessment->judul,
                                     'status' => ucfirst($assessment->status),
+                                    'instrument_type' => $assessment->instrument_type,
+                                    'instrument_label' => AssessmentInstrumentType::tryFromMixed(
+                                        $assessment->instrument_type
+                                    )?->label(),
                                     'forms' => (int) ($assessment->forms_count ?? 0),
                                     'fields' => (int) ($assessment->fields_count ?? 0),
+                                    'default_stage_config' => $defaultStageConfig,
                                 ];
                             })
                             ->all(),
                     ],
+                ];
+            })
+            ->all();
+    }
+
+    private function buildAssignmentStageConfigMap(?AssessmentAssignment $assignment = null): array
+    {
+        if (! $assignment) {
+            return [];
+        }
+
+        $assignment->loadMissing('assessments');
+
+        return $assignment->assessments
+            ->values()
+            ->mapWithKeys(function (Assessment $assessment, int $index) {
+                return [
+                    (int) $assessment->id => AssessmentStageConfig::normalize(
+                        is_array($assessment->pivot?->stage_config ?? null)
+                            ? $assessment->pivot->stage_config
+                            : [],
+                        AssessmentStageConfig::defaultForAssessment(
+                            $assessment->instrument_type,
+                            $index
+                        )
+                    ),
                 ];
             })
             ->all();
@@ -1056,6 +1095,19 @@ class AssessmentAssignmentController extends Controller
                     'integer',
                     Rule::in(AssessmentAssignmentService::SESSION_DURATION_OPTIONS),
                 ],
+                'stage_configs' => 'nullable|array',
+                'stage_configs.*' => 'nullable|array',
+                'stage_configs.*.enabled' => 'nullable|boolean',
+                'stage_configs.*.entry_mode' => 'nullable|string|in:direct,start_button',
+                'stage_configs.*.allow_draft' => 'nullable|boolean',
+                'stage_configs.*.finalize_mode' => 'nullable|string|in:manual,auto',
+                'stage_configs.*.lock_until_previous_stages_completed' => 'nullable|boolean',
+                'stage_configs.*.time_limit_minutes' => 'nullable|integer|min:1|max:600',
+                'stage_configs.*.security_enabled' => 'nullable|boolean',
+                'stage_configs.*.security_require_fullscreen' => 'nullable|boolean',
+                'stage_configs.*.security_max_serious_violations' => 'nullable|integer|min:1|max:10',
+                'stage_configs.*.security_temporary_lock_seconds' => 'nullable|integer|min:1|max:30',
+                'stage_configs.*.security_fullscreen_grace_seconds' => 'nullable|integer|min:3|max:60',
                 'security_enabled' => 'nullable|boolean',
                 'security_require_fullscreen' => 'nullable|boolean',
                 'security_max_serious_violations' => 'nullable|integer|min:1|max:10',

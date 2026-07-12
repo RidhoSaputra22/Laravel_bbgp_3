@@ -14,6 +14,7 @@ use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
+use App\Support\Assessment\AssessmentStageConfig;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -138,7 +139,8 @@ class AssessmentAssignmentService
         $assignmentData = DB::transaction(function () use ($payload, $context, $assignedBy, $shouldBatch) {
             $assessmentSyncData = $this->buildAssessmentSyncData(
                 $context['assessment_ids'],
-                ! $context['uses_combination']
+                ! $context['uses_combination'],
+                $context['stage_configs']
             );
             $totalSessions = $context['session_enabled']
                 ? $this->calculateTotalSessions(count($context['guru_ids']))
@@ -226,7 +228,8 @@ class AssessmentAssignmentService
         ) {
             $assessmentSyncData = $this->buildAssessmentSyncData(
                 $context['assessment_ids'],
-                ! $context['uses_combination']
+                ! $context['uses_combination'],
+                $context['stage_configs']
             );
             $totalSessions = $context['session_enabled']
                 ? $this->calculateTotalSessions(count($context['guru_ids']))
@@ -475,7 +478,12 @@ class AssessmentAssignmentService
                 ? $assessmentCombinations->first()
                 : null,
             'uses_combination' => $assessmentCombinations->isNotEmpty(),
-            'assessment_ids' => $this->resolveAssessmentIds($payload, $targetKetenagaan, $assessmentCombinations),
+            'assessment_ids' => $assessmentIds = $this->resolveAssessmentIds(
+                $payload,
+                $targetKetenagaan,
+                $assessmentCombinations
+            ),
+            'stage_configs' => $this->resolveStageConfigs($assessmentIds, $payload['stage_configs'] ?? []),
             'guru_ids' => $this->resolveGuruIds($payload, $targetKetenagaan),
             'session_duration_hours' => (int) ($payload['durasi_sesi_jam'] ?? self::DEFAULT_SESSION_DURATION_HOURS),
             'start_time' => $startTime,
@@ -1605,7 +1613,11 @@ class AssessmentAssignmentService
         return (int) ceil($totalTargets / self::TARGETS_PER_SESSION);
     }
 
-    private function buildAssessmentSyncData(array $assessmentIds, bool $strict = true): array
+    private function buildAssessmentSyncData(
+        array $assessmentIds,
+        bool $strict = true,
+        array $stageConfigs = []
+    ): array
     {
         if ($assessmentIds === []) {
             return [];
@@ -1633,14 +1645,63 @@ class AssessmentAssignmentService
                 ->all();
         }
 
+        $assessmentConfigLookup = Assessment::query()
+            ->whereIn('id', $usableAssessmentIds)
+            ->get(['id', 'instrument_type'])
+            ->keyBy('id');
+
         return collect($assessmentIds)
             ->values()
             ->filter(fn (int $assessmentId) => in_array($assessmentId, $usableAssessmentIds, true))
             ->mapWithKeys(fn (int $assessmentId, int $index) => [
                 $assessmentId => [
                     'urutan' => $index + 1,
+                    'stage_config' => AssessmentStageConfig::normalize(
+                        is_array($stageConfigs[$assessmentId] ?? null) ? $stageConfigs[$assessmentId] : [],
+                        AssessmentStageConfig::defaultForAssessment(
+                            $assessmentConfigLookup->get($assessmentId)?->instrument_type,
+                            $index
+                        )
+                    ),
                 ],
             ])
+            ->all();
+    }
+
+    private function resolveStageConfigs(array $assessmentIds, mixed $rawStageConfigs): array
+    {
+        $normalizedRawConfigs = is_array($rawStageConfigs) ? $rawStageConfigs : [];
+
+        if ($assessmentIds === []) {
+            return [];
+        }
+
+        $assessmentLookup = Assessment::query()
+            ->whereIn('id', $assessmentIds)
+            ->get(['id', 'instrument_type'])
+            ->keyBy('id');
+
+        return collect($assessmentIds)
+            ->values()
+            ->mapWithKeys(function (int $assessmentId, int $index) use ($assessmentLookup, $normalizedRawConfigs) {
+                $rawConfig = is_array($normalizedRawConfigs[$assessmentId] ?? null)
+                    ? $normalizedRawConfigs[$assessmentId]
+                    : [];
+
+                if (array_key_exists('security_enabled', $rawConfig) || array_key_exists('security_require_fullscreen', $rawConfig)) {
+                    $rawConfig['security'] = AssessmentSecurityConfig::fromRequest($rawConfig);
+                }
+
+                return [
+                    $assessmentId => AssessmentStageConfig::normalize(
+                        $rawConfig,
+                        AssessmentStageConfig::defaultForAssessment(
+                            $assessmentLookup->get($assessmentId)?->instrument_type,
+                            $index
+                        )
+                    ),
+                ];
+            })
             ->all();
     }
 

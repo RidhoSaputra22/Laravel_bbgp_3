@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enum\AssessmentKetenagaanType;
+use App\Models\Pivots\AssessmentAssignmentAssessment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -36,7 +37,8 @@ class Assessment extends Model
     public function assignments()
     {
         return $this->belongsToMany(AssessmentAssignment::class, 'assessment_assignment_assessments')
-            ->withPivot('urutan')
+            ->using(AssessmentAssignmentAssessment::class)
+            ->withPivot('urutan', 'stage_config')
             ->withTimestamps()
             ->orderByDesc('assessment_assignments.id');
     }

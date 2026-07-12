@@ -3,6 +3,14 @@
 @section('content')
     @php
         $snapshot = $attempt->structure_snapshot ?? [];
+        $stageProgress = \App\Support\Assessment\AssessmentStageProgress::normalize(
+            $attempt->progress_snapshot,
+            $snapshot
+        );
+        $stageFlowEnabled = \App\Support\Assessment\AssessmentStageProgress::usesStageFlow(
+            $snapshot,
+            $stageProgress
+        );
         $answerLookup = $answerLookup ?? [];
         $participantAutoFillResolver = app(\App\Support\Assessment\ParticipantAutoFillResolver::class);
         $autoFilledAnswerLookup = [];
@@ -77,6 +85,81 @@
                 ];
             })
             ->all();
+        $stageMetaByIndex = collect($assessmentItems)
+            ->mapWithKeys(function (array $assessmentItem) use ($stageFlowEnabled, $stageProgress, $securityPayload) {
+                $index = (int) ($assessmentItem['index'] ?? 0);
+                $stage = $stageFlowEnabled
+                    ? \App\Support\Assessment\AssessmentStageProgress::stage($stageProgress, $index)
+                    : null;
+                $config = $stageFlowEnabled
+                    ? \App\Support\Assessment\AssessmentStageProgress::stageConfig($stageProgress, $index)
+                    : [
+                        'enabled' => false,
+                        'entry_mode' => 'direct',
+                        'allow_draft' => false,
+                        'finalize_mode' => 'manual',
+                        'lock_until_previous_stages_completed' => false,
+                        'time_limit_minutes' => null,
+                        'security' => [
+                            'enabled' => (bool) data_get($securityPayload ?? [], 'enabled', false),
+                            'require_fullscreen' => (bool) data_get($securityPayload ?? [], 'requireFullscreen', false),
+                        ],
+                    ];
+                $status = $stageFlowEnabled
+                    ? ($stage['status'] ?? \App\Support\Assessment\AssessmentStageProgress::STATUS_READY)
+                    : 'in_progress';
+                $isLocked = $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_LOCKED;
+                $requiresStartButton = $stageFlowEnabled
+                    && $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_READY
+                    && ($config['entry_mode'] ?? null) === \App\Support\Assessment\AssessmentStageConfig::ENTRY_START_BUTTON;
+                $isSubmitted = $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_SUBMITTED;
+                $isInteractive = ! $isLocked && ! $requiresStartButton && ! $isSubmitted;
+
+                return [
+                    $index => [
+                        'index' => $index,
+                        'status' => $status,
+                        'title' => trim((string) data_get($assessmentItem, 'data.judul')) ?: 'Assessment '.($index + 1),
+                        'can_access' => ! $isLocked,
+                        'is_locked' => $isLocked,
+                        'requires_start_button' => $requiresStartButton,
+                        'allow_draft' => (bool) ($config['allow_draft'] ?? false),
+                        'finalize_mode' => (string) ($config['finalize_mode'] ?? 'manual'),
+                        'time_limit_minutes' => $config['time_limit_minutes'],
+                        'security_enabled' => (bool) data_get($config, 'security.enabled', false),
+                        'require_fullscreen' => (bool) data_get($config, 'security.require_fullscreen', false),
+                        'security_max_serious_violations' => (int) data_get(
+                            $config,
+                            'security.max_serious_violations',
+                            3
+                        ),
+                        'security_temporary_lock_seconds' => (int) data_get(
+                            $config,
+                            'security.temporary_lock_seconds',
+                            2
+                        ),
+                        'security_fullscreen_grace_seconds' => (int) data_get(
+                            $config,
+                            'security.fullscreen_grace_seconds',
+                            10
+                        ),
+                        'read_only' => $isSubmitted,
+                        'show_questions' => ! $isLocked && ! $requiresStartButton,
+                        'is_interactive' => $isInteractive,
+                        'can_switch_away' => ! (
+                            $stageFlowEnabled
+                            && $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_IN_PROGRESS
+                            && (bool) data_get($config, 'security.enabled', false)
+                        ),
+                        'started_at' => $stage['started_at'] ?? null,
+                        'submitted_at' => $stage['submitted_at'] ?? null,
+                        'lock_reason' => $isLocked
+                            ? \App\Support\Assessment\AssessmentStageProgress::lockReason($stageProgress, $index)
+                            : null,
+                    ],
+                ];
+            })
+            ->all();
         $rawFlaggedFieldIds = old('flagged_field_ids', data_get($snapshot, 'meta.flagged_field_ids', []));
         $initialFlaggedFieldIds = collect(\Illuminate\Support\Arr::wrap($rawFlaggedFieldIds))
             ->map(fn($fieldId) => (int) $fieldId)
@@ -100,9 +183,16 @@
                 intdiv($durationMinutes, 60) > 0 ? intdiv($durationMinutes, 60) . ' jam' : null,
                 $durationMinutes % 60 > 0 ? $durationMinutes % 60 . ' menit' : null,
             ])->filter()->implode(' ')
-            : 'Tanpa batas durasi';
+            : ($stageFlowEnabled ? 'Tanpa timer tahap' : 'Tanpa batas durasi');
         $countdownTitle = 'Sisa Waktu Pengerjaan';
         $countdownCaption = 'Timer dimulai saat peserta menekan tombol Mulai Ujian dan mengikuti durasi penugasan yang tersimpan.';
+
+        if ($stageFlowEnabled) {
+            $countdownTitle = 'Timer Tahap Aktif';
+            $countdownCaption = $countdownTargetAt
+                ? 'Timer mengikuti konfigurasi tahap yang sedang aktif.'
+                : 'Tahap yang sedang dibuka tidak memakai batas waktu.';
+        }
         $formatDateTime = fn($value) => $value ? $value->format('d M Y H:i') . ' WITA' : '-';
         $sessionDetails = [
             [
@@ -151,8 +241,20 @@
         }
 
         $questionNavigationGroups = collect($assessmentItems)
-            ->map(function ($assessmentItem) use ($answerLookup, $buildDisplayFieldLabel) {
+            ->map(function ($assessmentItem) use ($answerLookup, $buildDisplayFieldLabel, $stageMetaByIndex) {
                 $assessment = $assessmentItem['data'];
+                $stageMeta = $stageMetaByIndex[$assessmentItem['index']] ?? null;
+
+                if ($stageMeta && ! ($stageMeta['show_questions'] ?? true)) {
+                    return [
+                        'assessment_index' => $assessmentItem['index'],
+                        'heading' => 'Tahap '.($assessmentItem['index'] + 1),
+                        'title' => trim((string) ($assessment['judul'] ?? '')) ?: 'Assessment '.($assessmentItem['index'] + 1),
+                        'question_count' => 0,
+                        'questions' => [],
+                    ];
+                }
+
                 $isMultipleChoiceAssessment =
                     ($assessment['instrument_type'] ?? null) ===
                     \App\Enum\AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value;
@@ -209,6 +311,7 @@
                 'form_count' => $assessmentItem['form_count'],
                 'question_count' => $assessmentItem['question_count'],
                 'field_ids' => $assessmentItem['field_ids'],
+                'stage_meta' => $stageMetaByIndex[$assessmentItem['index']] ?? null,
             ])
             ->values()
             ->all();
@@ -224,6 +327,9 @@
 
         $errorAssessmentIndex = $errorFieldId !== null ? $assessmentIndexByFieldId[$errorFieldId] ?? null : null;
         $oldActiveAssessmentIndex = old('active_assessment_index');
+        $stageFlowAssessmentIndex = $stageFlowEnabled
+            ? \App\Support\Assessment\AssessmentStageProgress::resolveCurrentStageIndex($stageProgress)
+            : 0;
         $initialAssessmentIndex =
             $assessmentCount > 0
                 ? max(
@@ -234,7 +340,7 @@
                             ? (int) $errorAssessmentIndex
                             : (is_numeric($oldActiveAssessmentIndex)
                                 ? (int) $oldActiveAssessmentIndex
-                                : 0),
+                                : $stageFlowAssessmentIndex),
                     ),
                 )
                 : 0;
@@ -267,6 +373,7 @@
         totalAssessments: {{ $assessmentCount }},
         assessmentItems: @js($assessmentNavigationItems),
         questionItems: @js($questionNavigationItems),
+        stageFlowEnabled: @js($stageFlowEnabled),
         initialFlaggedFieldIds: @js($initialFlaggedFieldIds),
         initialQuestionFieldId: {{ $initialQuestionFieldId }},
         autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
@@ -300,10 +407,11 @@
                         @include('assessment.show.partials.assessment-item', [
                             'assessmentItem' => $assessmentItem,
                             'assessment' => $assessmentItem['data'],
+                            'stageMeta' => $stageMetaByIndex[$assessmentItem['index']] ?? null,
                         ])
                         @endforeach
 
-                        @if ($assessmentCount > 0)
+                        @if ($assessmentCount > 0 && ! $stageFlowEnabled)
                             @include('assessment.show.partials.finish-modal', [
                                 'assessmentCount' => $assessmentCount,
                                 'totalQuestions' => $totalQuestions,

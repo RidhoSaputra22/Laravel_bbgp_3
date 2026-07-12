@@ -6,6 +6,7 @@ use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
 use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
@@ -187,6 +188,106 @@ class AssessmentAttemptService
         }
 
         return $this->finalizeAttempt($attempt, $answers, $files, $options);
+    }
+
+    public function markStageStarted(
+        AssessmentAttempt $attempt,
+        int $stageIndex,
+        ?Carbon $startedAt = null
+    ): AssessmentAttempt {
+        $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+        $progress = AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot);
+
+        if (! AssessmentStageProgress::usesStageFlow($snapshot, $progress)) {
+            return $this->loadAttemptRelations($attempt);
+        }
+
+        $startedAt = $startedAt ?: now();
+        $progress = AssessmentStageProgress::markStageStarted($progress, $stageIndex, $startedAt);
+        $activeDeadlineAt = AssessmentStageProgress::activeDeadlineAt($progress);
+
+        DB::transaction(function () use ($attempt, $progress, $startedAt, $activeDeadlineAt) {
+            $attempt->forceFill([
+                'status' => $attempt->status === 'submitted' ? 'submitted' : 'in_progress',
+                'progress_snapshot' => $progress,
+                'started_at' => $attempt->started_at ?: $startedAt,
+                'deadline_at' => $activeDeadlineAt,
+            ])->save();
+
+            $target = $attempt->target;
+
+            if (! $target) {
+                return;
+            }
+
+            $target->forceFill([
+                'status' => $target->status === 'selesai' ? 'selesai' : 'dikerjakan',
+                'started_at' => $target->started_at ?: $startedAt,
+                'deadline_at' => $activeDeadlineAt,
+            ])->save();
+        });
+
+        return $this->loadAttemptRelations($attempt->fresh());
+    }
+
+    public function submitStage(
+        AssessmentAttempt $attempt,
+        int $stageIndex,
+        array $answers,
+        array $files,
+        array $flaggedFieldIds = []
+    ): AssessmentAttempt {
+        return $this->finalizeStage($attempt, $stageIndex, $answers, $files, [
+            'flagged_field_ids' => $flaggedFieldIds,
+        ]);
+    }
+
+    public function submitExpiredStage(
+        AssessmentAttempt $attempt,
+        int $stageIndex,
+        array $answers = [],
+        array $files = [],
+        ?array $flaggedFieldIds = null
+    ): AssessmentAttempt {
+        $options = [
+            'force_zero_for_unanswered' => true,
+        ];
+
+        if ($flaggedFieldIds !== null) {
+            $options['flagged_field_ids'] = $flaggedFieldIds;
+        }
+
+        return $this->finalizeStage($attempt, $stageIndex, $answers, $files, $options);
+    }
+
+    public function submitDisqualifiedStage(
+        AssessmentAttempt $attempt,
+        int $stageIndex,
+        array $answers = [],
+        array $files = [],
+        ?string $reason = null,
+        ?array $flaggedFieldIds = null
+    ): AssessmentAttempt {
+        $reason = trim((string) ($reason ?? ''));
+        $options = [
+            'force_zero_for_unanswered' => true,
+            'submission_mode' => 'security_disqualified',
+            'submission_note' => $reason !== ''
+                ? $reason
+                : 'Assessment dihentikan oleh sistem guard karena terdeteksi pelanggaran aturan ujian.',
+            'completion_mode' => null,
+            'timed_out_at' => null,
+            'disqualified_at' => now(),
+            'disqualification_reason' => $reason !== ''
+                ? $reason
+                : 'Assessment dihentikan oleh sistem guard karena terdeteksi pelanggaran aturan ujian.',
+        ];
+
+        if ($flaggedFieldIds !== null) {
+            $options['flagged_field_ids'] = $flaggedFieldIds;
+        }
+
+        return $this->finalizeStage($attempt, $stageIndex, $answers, $files, $options);
     }
 
     public function buildResultSummary(AssessmentAttempt $attempt): array
@@ -402,6 +503,193 @@ class AssessmentAttemptService
                     'submitted_at' => $submittedAt,
                     'completion_mode' => $completionMode,
                     'timed_out_at' => $timedOutAt,
+                ])->save();
+            }
+        });
+
+        return $this->loadAttemptRelations($attempt->fresh());
+    }
+
+    private function finalizeStage(
+        AssessmentAttempt $attempt,
+        int $stageIndex,
+        array $answers,
+        array $files,
+        array $options = []
+    ): AssessmentAttempt {
+        $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+        $progress = AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot);
+
+        if (! AssessmentStageProgress::usesStageFlow($snapshot, $progress)) {
+            return $this->finalizeAttempt($attempt, $answers, $files, $options);
+        }
+
+        $stageFieldIds = AssessmentStageProgress::stageFieldIds($progress, $stageIndex);
+
+        if ($stageFieldIds === []) {
+            return $this->loadAttemptRelations($attempt);
+        }
+
+        $allFields = $this->flattenFields($snapshot);
+        $fields = $this->filterFieldsByIds($allFields, $stageFieldIds);
+        $availableFieldIds = $this->extractFieldIds($fields);
+        $normalizedFlaggedFieldIds = is_array($options['flagged_field_ids'] ?? null)
+            ? $this->syncFlaggedFieldIds(
+                $attempt,
+                $this->extractFieldIds($allFields),
+                $options['flagged_field_ids']
+            )
+            : $this->normalizeFieldIds(data_get($snapshot, 'meta.flagged_field_ids', []));
+        $stageFlaggedFieldIds = array_values(array_intersect($normalizedFlaggedFieldIds, $availableFieldIds));
+        $forceZeroForUnanswered = (bool) ($options['force_zero_for_unanswered'] ?? false);
+        $existingAnswers = $attempt->answers()
+            ->whereIn('assessment_form_field_id', $availableFieldIds)
+            ->get()
+            ->keyBy('assessment_form_field_id');
+        $normalizedAnswers = $this->validateAndNormalizeAnswers(
+            $fields,
+            $answers,
+            $files,
+            $existingAnswers,
+            ! $forceZeroForUnanswered,
+            $stageFlaggedFieldIds,
+            ! $forceZeroForUnanswered
+        );
+        $submittedAt = now();
+        $submissionMode = (string) ($options['submission_mode'] ?? ($forceZeroForUnanswered ? 'deadline_auto' : 'manual'));
+        $submissionNote = $options['submission_note']
+            ?? ($forceZeroForUnanswered
+                ? 'Batas waktu tahap berakhir. Jawaban terakhir yang tersimpan diproses otomatis dan soal kosong diberi skor 0.'
+                : 'Tahap assessment dikirim langsung oleh peserta.');
+        $completionMode = array_key_exists('completion_mode', $options)
+            ? $options['completion_mode']
+            : ($forceZeroForUnanswered ? 'timeout' : 'manual');
+        $timedOutAt = array_key_exists('timed_out_at', $options)
+            ? $options['timed_out_at']
+            : ($forceZeroForUnanswered ? $submittedAt : null);
+        $disqualifiedAt = array_key_exists('disqualified_at', $options)
+            ? $options['disqualified_at']
+            : null;
+        $disqualificationReason = array_key_exists('disqualification_reason', $options)
+            ? $options['disqualification_reason']
+            : null;
+
+        DB::transaction(function () use (
+            $attempt,
+            $snapshot,
+            $progress,
+            $stageIndex,
+            $fields,
+            $availableFieldIds,
+            $normalizedAnswers,
+            $submittedAt,
+            $forceZeroForUnanswered,
+            $submissionMode,
+            $submissionNote,
+            $completionMode,
+            $timedOutAt,
+            $disqualifiedAt,
+            $disqualificationReason
+        ) {
+            $this->persistNormalizedAnswers(
+                $attempt,
+                $normalizedAnswers['answers'],
+                $availableFieldIds,
+                $normalizedAnswers['preserve_existing_answer_field_ids'],
+                $submittedAt
+            );
+
+            $freshAnswers = $attempt->answers()->get();
+            $attempt->setRelation('answers', $freshAnswers);
+            $this->autoScoringService->scoreAttempt($attempt);
+
+            if ($forceZeroForUnanswered) {
+                $this->stampZeroScoreForUnansweredFields($attempt, $fields, $submittedAt);
+            }
+
+            $freshAnswers = $attempt->answers()->get();
+            $attempt->setRelation('answers', $freshAnswers);
+            $summary = $this->buildSummaryFromSnapshot(
+                $snapshot,
+                $freshAnswers,
+                $attempt->started_at ?: $submittedAt,
+                $submittedAt
+            );
+            $updatedProgress = AssessmentStageProgress::markStageStarted($progress, $stageIndex, $submittedAt);
+            $updatedProgress = AssessmentStageProgress::markStageSubmitted(
+                $updatedProgress,
+                $stageIndex,
+                $submittedAt,
+                $completionMode
+            );
+            $allStagesSubmitted = AssessmentStageProgress::isAllSubmitted($updatedProgress);
+            $activeDeadlineAt = AssessmentStageProgress::activeDeadlineAt($updatedProgress);
+
+            if ($allStagesSubmitted || $disqualifiedAt) {
+                $summary['submission_mode'] = $submissionMode;
+                $summary['submission_note'] = $submissionNote;
+                $summary['auto_submitted_at'] = $forceZeroForUnanswered ? $submittedAt->toIso8601String() : null;
+                $summary['disqualified_at'] = $disqualifiedAt?->toIso8601String();
+                $summary['disqualification_reason'] = $disqualificationReason;
+
+                $scoringSummary = $this->scoringService->buildSummary($attempt);
+
+                $attempt->forceFill([
+                    'status' => 'submitted',
+                    'progress_snapshot' => $updatedProgress,
+                    'result_summary' => $summary,
+                    'scoring_summary' => $scoringSummary,
+                    'answered_questions' => (int) $summary['answered_questions'],
+                    'answered_required_questions' => (int) $summary['answered_required_questions'],
+                    'submitted_at' => $submittedAt,
+                    'completion_mode' => $completionMode,
+                    'timed_out_at' => $timedOutAt,
+                    'deadline_at' => $activeDeadlineAt,
+                    'last_answered_at' => $submittedAt,
+                    'disqualified_at' => $disqualifiedAt,
+                    'disqualification_reason' => $disqualificationReason,
+                ])->save();
+
+                $target = $attempt->target;
+
+                if ($target) {
+                    $target->forceFill([
+                        'status' => 'selesai',
+                        'started_at' => $target->started_at ?: $attempt->started_at ?: $submittedAt,
+                        'deadline_at' => $activeDeadlineAt,
+                        'submitted_at' => $submittedAt,
+                        'completion_mode' => $completionMode,
+                        'timed_out_at' => $timedOutAt,
+                    ])->save();
+                }
+
+                return;
+            }
+
+            $attempt->forceFill([
+                'status' => 'in_progress',
+                'progress_snapshot' => $updatedProgress,
+                'result_summary' => null,
+                'scoring_summary' => null,
+                'answered_questions' => (int) $summary['answered_questions'],
+                'answered_required_questions' => (int) $summary['answered_required_questions'],
+                'submitted_at' => null,
+                'completion_mode' => null,
+                'timed_out_at' => null,
+                'deadline_at' => $activeDeadlineAt,
+                'last_answered_at' => $submittedAt,
+            ])->save();
+
+            $target = $attempt->target;
+
+            if ($target) {
+                $target->forceFill([
+                    'status' => 'dikerjakan',
+                    'started_at' => $target->started_at ?: $attempt->started_at ?: $submittedAt,
+                    'deadline_at' => $activeDeadlineAt,
+                    'submitted_at' => null,
+                    'completion_mode' => null,
+                    'timed_out_at' => null,
                 ])->save();
             }
         });
