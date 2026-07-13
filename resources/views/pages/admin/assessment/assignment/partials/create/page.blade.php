@@ -1883,11 +1883,11 @@
                     `).join('');
                 };
 
-                const buildSwitchMarkup = (name, checked, label, hint) => {
+                const buildSwitchMarkup = (name, checked, label, hint, disabled = false) => {
                     return `
                         <label class="stage-config-switch">
                             <input type="hidden" name="${name}" value="0">
-                            <input type="checkbox" name="${name}" value="1" ${checked ? 'checked' : ''}>
+                            <input type="checkbox" name="${name}" value="1" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
                             <span>
                                 <span class="font-weight-600 text-dark d-block">${escapeHtml(label)}</span>
                                 <span class="stage-config-switch__text">${escapeHtml(hint)}</span>
@@ -1904,6 +1904,14 @@
                     const defaultHint = item.instrument_label
                         ? `Preset awal mengikuti tipe instrumen ${item.instrument_label}.`
                         : 'Preset awal mengikuti urutan assessment saat ini.';
+                    const usesAdminGate = stageNumber > 1;
+                    const adminGateChecked = usesAdminGate && stageConfig.lock_until_previous_stages_completed;
+                    const adminGateLabel = usesAdminGate
+                        ? 'Kunci sampai admin membuka'
+                        : 'Tahap pertama selalu terbuka';
+                    const adminGateHint = usesAdminGate
+                        ? 'Tahap baru tetap terkunci sampai admin membuka dari halaman penugasan.'
+                        : 'Tahap pertama langsung tersedia saat penugasan aktif.';
 
                     return `
                         <tr class="assessment-summary-row">
@@ -1978,9 +1986,10 @@
                                         )}
                                         ${buildSwitchMarkup(
                                             `${baseName}[lock_until_previous_stages_completed]`,
-                                            stageConfig.lock_until_previous_stages_completed,
-                                            'Kunci sampai tahap sebelumnya selesai',
-                                            'Tahap baru dibuka jika seluruh tahap sebelumnya sudah selesai/permanen.'
+                                            adminGateChecked,
+                                            adminGateLabel,
+                                            adminGateHint,
+                                            !usesAdminGate
                                         )}
                                         ${buildSwitchMarkup(
                                             `${baseName}[security_enabled]`,

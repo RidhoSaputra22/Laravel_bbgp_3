@@ -75,7 +75,7 @@ class AssessmentStageConfig
                 'entry_mode' => self::ENTRY_DIRECT,
                 'allow_draft' => false,
                 'finalize_mode' => self::FINALIZE_AUTO,
-                'lock_until_previous_stages_completed' => true,
+                'lock_until_previous_stages_completed' => $stageIndex > 0,
                 'time_limit_minutes' => 90,
                 'security' => [
                     'enabled' => true,
@@ -126,6 +126,23 @@ class AssessmentStageConfig
     public static function isEnabled(?array $config = null): bool
     {
         return (bool) (self::normalize($config)['enabled'] ?? false);
+    }
+
+    public static function requiresManualOpening(?array $config = null, int $stageIndex = 0): bool
+    {
+        if ($stageIndex < 1) {
+            return false;
+        }
+
+        return (bool) (self::normalize($config)['lock_until_previous_stages_completed'] ?? false);
+    }
+
+    public static function markOpenedByAdmin(?array $config = null, ?array $fallback = null): array
+    {
+        $normalized = self::normalize($config, $fallback);
+        $normalized['lock_until_previous_stages_completed'] = false;
+
+        return $normalized;
     }
 
     public static function entryModeOptions(): array

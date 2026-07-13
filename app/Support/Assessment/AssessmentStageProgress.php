@@ -43,7 +43,7 @@ class AssessmentStageProgress
                 )
             );
             $stageFieldIds = self::stageFieldIdsFromAssessment($assessment);
-            $isLocked = $index > 0 && (bool) ($config['lock_until_previous_stages_completed'] ?? false);
+            $isLocked = AssessmentStageConfig::requiresManualOpening($config, $index);
 
             $stages[] = [
                 'assessment_id' => (int) ($assessment['id'] ?? 0),
@@ -385,7 +385,7 @@ class AssessmentStageProgress
             return null;
         }
 
-        return 'Tahap ini baru terbuka setelah seluruh tahap sebelumnya selesai atau disimpan permanen.';
+        return 'Tahap ini masih dikunci admin. Lanjutkan setelah admin membuka tahap ini.';
     }
 
     private static function unlockReadyStages(array $progress): array
@@ -407,8 +407,9 @@ class AssessmentStageProgress
             }
 
             $config = AssessmentStageConfig::normalize(is_array($stage['config'] ?? null) ? $stage['config'] : []);
+            $requiresManualOpening = AssessmentStageConfig::requiresManualOpening($config, $index);
 
-            if (! ($config['lock_until_previous_stages_completed'] ?? false)) {
+            if (! $requiresManualOpening) {
                 if ($status === self::STATUS_LOCKED) {
                     $stages[$index]['status'] = self::STATUS_READY;
                 }
@@ -416,15 +417,7 @@ class AssessmentStageProgress
                 continue;
             }
 
-            $previousStages = array_slice($stages, 0, $index);
-            $allPreviousSubmitted = collect($previousStages)
-                ->every(fn (array $previousStage) => ($previousStage['status'] ?? null) === self::STATUS_SUBMITTED);
-
-            if ($allPreviousSubmitted) {
-                if ($status === self::STATUS_LOCKED) {
-                    $stages[$index]['status'] = self::STATUS_READY;
-                }
-
+            if (in_array($status, [self::STATUS_DRAFT, self::STATUS_IN_PROGRESS], true)) {
                 continue;
             }
 

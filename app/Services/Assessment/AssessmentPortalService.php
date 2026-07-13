@@ -514,7 +514,7 @@ class AssessmentPortalService
                         AssessmentStageProgress::STATUS_DRAFT => $prefix.' tersimpan sebagai draft. Buka kembali tahap ini untuk melanjutkan.',
                         AssessmentStageProgress::STATUS_IN_PROGRESS => $prefix.' sedang berjalan. Buka kembali penugasan untuk melanjutkan.',
                         AssessmentStageProgress::STATUS_SUBMITTED => $prefix.' sudah selesai. Lanjutkan ke tahap berikutnya jika sudah tersedia.',
-                        AssessmentStageProgress::STATUS_LOCKED => $prefix.' masih terkunci sampai tahap sebelumnya selesai atau disimpan permanen.',
+                        AssessmentStageProgress::STATUS_LOCKED => $prefix.' masih terkunci sampai admin membuka tahap ini.',
                         default => $prefix.' siap dibuka dari halaman penugasan.',
                     },
                 ];
@@ -570,7 +570,7 @@ class AssessmentPortalService
     ): string {
         return match ($status) {
             AssessmentStageProgress::STATUS_LOCKED => $lockReason
-                ?: 'Tahap ini masih menunggu tahap sebelumnya selesai.',
+                ?: 'Tahap ini masih menunggu admin membuka akses tahap.',
             AssessmentStageProgress::STATUS_DRAFT => $deadlineAt
                 ? 'Draft '.$title.' berhasil disimpan. Lanjutkan kembali sebelum '.$this->formatDateTime($deadlineAt).'.'
                 : 'Draft '.$title.' berhasil disimpan. Buka kembali tahap ini untuk melanjutkan pengerjaan.',

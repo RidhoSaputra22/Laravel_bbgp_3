@@ -54,11 +54,17 @@ class AssessmentAssignmentController extends Controller
                 $assignment->id => $this->assignmentService->buildAssignmentMonitoring($assignment, false),
             ])
             ->all();
+        $stageAccessByAssignmentId = $datas
+            ->mapWithKeys(fn (AssessmentAssignment $assignment) => [
+                $assignment->id => $this->assignmentService->buildStageAccessSummary($assignment),
+            ])
+            ->all();
 
         return view('pages.admin.assessment.assignment.index', [
             'menu' => $this->menu,
             'datas' => $datas,
             'monitoringByAssignmentId' => $monitoringByAssignmentId,
+            'stageAccessByAssignmentId' => $stageAccessByAssignmentId,
         ]);
     }
 
@@ -202,6 +208,7 @@ class AssessmentAssignmentController extends Controller
             'menu' => $this->menu,
             'assignment' => $assignment,
             'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
+            'stageAccess' => $this->assignmentService->buildStageAccessSummary($assignment),
             'monitoringPanel' => $this->assessmentMonitoringService->buildAssignmentDetail($assignment),
             'participantAdditionPanel' => $this->buildParticipantAdditionPanel($assignment),
             'monitoringExplorer' => $this->assessmentMonitoringService->buildAssignmentExplorer(
@@ -446,6 +453,27 @@ class AssessmentAssignmentController extends Controller
         return back()->with('assignment_notice', $this->buildActivationNotice($assignment));
     }
 
+    public function openNextStage(string $id)
+    {
+        $this->authorizeAccess();
+
+        $assignment = AssessmentAssignment::findOrFail($id);
+
+        try {
+            $result = $this->assignmentService->openNextLockedStage($assignment);
+
+            return back()->with('assignment_notice', $this->buildStageOpenNotice($result));
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors([
+                'assignment' => 'Terjadi kesalahan saat membuka tahap berikutnya.',
+            ]);
+        }
+    }
+
     public function destroy(string $id)
     {
         $this->authorizeAccess();
@@ -627,6 +655,24 @@ class AssessmentAssignmentController extends Controller
         }
 
         return 'Penugasan assessment dinonaktifkan. Penugasan tidak lagi tampil di portal peserta, tetapi target, attempt, jawaban, dan histori tetap tersimpan.';
+    }
+
+    private function buildStageOpenNotice(array $result): string
+    {
+        $openedStage = is_array($result['opened_stage'] ?? null) ? $result['opened_stage'] : [];
+        $stageNumber = (int) ($openedStage['stage_number'] ?? 0);
+        $stageTitle = trim((string) ($openedStage['title'] ?? ''));
+        $notice = 'Tahap '.($stageNumber > 0 ? $stageNumber : 'berikutnya').' berhasil dibuka untuk peserta.';
+
+        if ($stageTitle !== '') {
+            $notice .= ' '.$stageTitle.'.';
+        }
+
+        if (($result['synced_attempt_count'] ?? 0) > 0) {
+            $notice .= ' '.($result['synced_attempt_count']).' attempt aktif ikut disinkronkan tanpa reset jawaban.';
+        }
+
+        return $notice;
     }
 
     private function buildAddParticipantsNotice(array $result): string

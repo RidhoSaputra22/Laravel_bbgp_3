@@ -159,6 +159,7 @@
             ->filter(fn($value) => filled($value))
             ->count();
         $participantAdditionPanel = $participantAdditionPanel ?? [];
+        $stageAccess = $stageAccess ?? [];
         $addParticipantsErrors = $errors->getBag('addParticipants');
     @endphp
 
@@ -173,6 +174,17 @@
                     <a href="{{ route('assessment.assignment.edit', $assignment->id) }}" class="btn btn-warning mr-2">
                         <i class="fas fa-edit"></i> Edit
                     </a>
+                    @if ($stageAccess['has_pending_admin_open'] ?? false)
+                        <form action="{{ route('assessment.assignment.open-next-stage', $assignment->id) }}"
+                            method="POST" class="d-inline-block mr-2"
+                            onsubmit="return confirm({{ \Illuminate\Support\Js::from($stageAccess['action_description'] ?? 'Tahap berikutnya akan dibuka untuk peserta.') }});">
+                            @csrf
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-unlock"></i>
+                                {{ $stageAccess['action_label'] ?? 'Buka Tahap' }}
+                            </button>
+                        </form>
+                    @endif
                     <form action="{{ route('assessment.assignment.activation', $assignment->id) }}" method="POST"
                         class="d-inline-block mr-2"
                         onsubmit="return confirm('{{ $assignment->isActive() ? 'Nonaktifkan penugasan ini? Penugasan akan disembunyikan dari portal peserta tetapi histori tetap tersimpan.' : 'Aktifkan kembali penugasan ini agar muncul lagi di portal peserta?' }}');">
@@ -220,6 +232,16 @@
                     <div class="alert alert-warning">
                         Penugasan ini sedang <strong>nonaktif</strong>. Penugasan tidak tampil di portal peserta sampai
                         diaktifkan kembali, tetapi target, attempt, jawaban, dan histori tetap tersimpan.
+                    </div>
+                @endif
+
+                @if ($stageAccess['has_pending_admin_open'] ?? false)
+                    <div
+                        class="alert alert-{{ ($stageAccess['status_tone'] ?? 'success') === 'warning' ? 'warning' : 'success' }}">
+                        <div class="font-weight-bold">{{ $stageAccess['status_label'] ?? 'Semua tahap terbuka' }}</div>
+                        <div class="mb-0">
+                            {{ $stageAccess['action_description'] ?? 'Tahap berikutnya menunggu admin membuka akses.' }}
+                        </div>
                     </div>
                 @endif
 
@@ -1222,6 +1244,10 @@
                                                     <div class="small text-muted">
                                                         Timer:
                                                         {{ $stageConfig['time_limit_minutes'] ? $stageConfig['time_limit_minutes'].' menit' : 'Tanpa timer' }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        Gate admin:
+                                                        {{ \App\Support\Assessment\AssessmentStageConfig::requiresManualOpening($stageConfig, max($loop->iteration - 1, 0)) ? 'Menunggu admin buka' : 'Tahap terbuka' }}
                                                     </div>
                                                     <div class="small text-muted">
                                                         Guard:

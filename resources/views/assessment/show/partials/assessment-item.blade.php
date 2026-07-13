@@ -17,7 +17,7 @@
         <div class="rounded-sm border border-amber-200 bg-amber-50 px-5 py-5 text-sm text-amber-900">
             <div class="text-base font-semibold">Tahap ini masih terkunci</div>
             <p class="mt-2 leading-relaxed">
-                {{ $stageMeta['lock_reason'] ?? 'Tahap ini baru tersedia setelah tahap sebelumnya selesai atau disimpan permanen.' }}
+                {{ $stageMeta['lock_reason'] ?? 'Tahap ini masih dikunci admin dan baru tersedia setelah admin membukanya.' }}
             </p>
         </div>
     @elseif (($stageMeta['requires_start_button'] ?? false) === true)

@@ -17,6 +17,7 @@ use App\Models\Guru;
 use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Support\Assessment\AssessmentStageConfig;
+use App\Support\Assessment\AssessmentStageProgress;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -521,6 +522,97 @@ class AssessmentAssignmentService
         ];
     }
 
+    public function buildStageAccessSummary(AssessmentAssignment $assignment): array
+    {
+        $stages = $this->resolveAssignmentStageStates($assignment);
+        $stageFlowEnabled = $stages->contains(fn (array $stage) => $stage['enabled']);
+        $lockedStages = $stages
+            ->filter(fn (array $stage) => $stage['requires_admin_open'])
+            ->values();
+        $nextLockedStage = $lockedStages->first();
+
+        return [
+            'stage_flow_enabled' => $stageFlowEnabled,
+            'total_stages' => (int) $stages->count(),
+            'locked_stage_total' => (int) $lockedStages->count(),
+            'opened_stage_total' => (int) $stages
+                ->filter(fn (array $stage) => ! $stage['requires_admin_open'])
+                ->count(),
+            'has_pending_admin_open' => $nextLockedStage !== null,
+            'next_locked_stage' => $nextLockedStage,
+            'status_label' => $nextLockedStage
+                ? 'Tahap '.$nextLockedStage['stage_number'].' menunggu dibuka admin'
+                : ($stageFlowEnabled ? 'Semua tahap terbuka' : 'Tanpa penguncian tahap'),
+            'status_tone' => $nextLockedStage ? 'warning' : 'success',
+            'action_label' => $nextLockedStage
+                ? 'Buka Tahap '.$nextLockedStage['stage_number']
+                : null,
+            'action_description' => $nextLockedStage
+                ? 'Tahap '.$nextLockedStage['stage_number'].' - '.$nextLockedStage['title']
+                    .' masih dikunci sampai admin membuka.'
+                : null,
+        ];
+    }
+
+    public function openNextLockedStage(AssessmentAssignment $assignment): array
+    {
+        return DB::transaction(function () use ($assignment) {
+            /** @var \App\Models\AssessmentAssignment $lockedAssignment */
+            $lockedAssignment = AssessmentAssignment::query()
+                ->with('assessments')
+                ->whereKey($assignment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $summary = $this->buildStageAccessSummary($lockedAssignment);
+            $nextLockedStage = is_array($summary['next_locked_stage'] ?? null)
+                ? $summary['next_locked_stage']
+                : null;
+
+            if (! $nextLockedStage) {
+                throw ValidationException::withMessages([
+                    'assignment' => 'Semua tahap pada penugasan ini sudah terbuka.',
+                ]);
+            }
+
+            $assessment = $lockedAssignment->assessments
+                ->firstWhere('id', (int) ($nextLockedStage['assessment_id'] ?? 0));
+
+            if (! $assessment) {
+                throw ValidationException::withMessages([
+                    'assignment' => 'Assessment tahap yang akan dibuka tidak ditemukan.',
+                ]);
+            }
+
+            $stageIndex = (int) ($nextLockedStage['stage_index'] ?? 0);
+            $fallbackConfig = AssessmentStageConfig::defaultForAssessment(
+                $assessment->instrument_type,
+                $stageIndex
+            );
+            $openedConfig = AssessmentStageConfig::markOpenedByAdmin(
+                is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
+                $fallbackConfig
+            );
+
+            $lockedAssignment->assessments()->updateExistingPivot($assessment->id, [
+                'stage_config' => $openedConfig,
+                'updated_at' => now(),
+            ]);
+
+            $syncedAttemptCount = $this->syncAttemptStageConfigsForAssignment($lockedAssignment->id, [
+                (int) $assessment->id => $openedConfig,
+            ]);
+
+            return [
+                'assignment' => $lockedAssignment
+                    ->fresh(['assessments', 'creator', 'sessions', 'combination'])
+                    ->loadCount('targets'),
+                'opened_stage' => $nextLockedStage,
+                'synced_attempt_count' => $syncedAttemptCount,
+            ];
+        });
+    }
+
     public function processTargetChunk(int $assignmentId, array $targetRows): void
     {
         $assignment = AssessmentAssignment::find($assignmentId);
@@ -569,6 +661,135 @@ class AssessmentAssignmentService
                 ? now()
                 : ($resolvedStatus === 'gagal' ? $assignment->processed_at : null),
         ])->save();
+    }
+
+    private function resolveAssignmentStageStates(AssessmentAssignment $assignment): Collection
+    {
+        $assignment->loadMissing('assessments');
+
+        return $assignment->assessments
+            ->values()
+            ->map(function (Assessment $assessment, int $index) {
+                $config = AssessmentStageConfig::normalize(
+                    is_array($assessment->pivot?->stage_config ?? null)
+                        ? $assessment->pivot->stage_config
+                        : [],
+                    AssessmentStageConfig::defaultForAssessment(
+                        $assessment->instrument_type,
+                        $index
+                    )
+                );
+
+                return [
+                    'assessment_id' => (int) $assessment->id,
+                    'stage_index' => $index,
+                    'stage_number' => $index + 1,
+                    'title' => trim((string) ($assessment->judul ?? '')) ?: 'Assessment '.($index + 1),
+                    'enabled' => AssessmentStageConfig::isEnabled($config),
+                    'requires_admin_open' => AssessmentStageConfig::isEnabled($config)
+                        && AssessmentStageConfig::requiresManualOpening($config, $index),
+                    'config' => $config,
+                ];
+            });
+    }
+
+    private function syncAttemptStageConfigsForAssignment(int $assignmentId, array $configByAssessmentId): int
+    {
+        if ($configByAssessmentId === []) {
+            return 0;
+        }
+
+        $syncedAttemptCount = 0;
+
+        AssessmentAttempt::query()
+            ->with('target')
+            ->whereHas('target', function ($query) use ($assignmentId) {
+                $query->where('assessment_assignment_id', $assignmentId);
+            })
+            ->orderBy('id')
+            ->chunkById(self::CHUNK_SIZE, function ($attempts) use ($configByAssessmentId, &$syncedAttemptCount) {
+                foreach ($attempts as $attempt) {
+                    if ($this->syncAttemptStageConfigSnapshot($attempt, $configByAssessmentId)) {
+                        $syncedAttemptCount++;
+                    }
+                }
+            });
+
+        return $syncedAttemptCount;
+    }
+
+    private function syncAttemptStageConfigSnapshot(
+        AssessmentAttempt $attempt,
+        array $configByAssessmentId
+    ): bool {
+        $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+        $snapshotAssessments = collect($snapshot['assessments'] ?? [])
+            ->filter(fn ($assessment) => is_array($assessment))
+            ->values();
+
+        if ($snapshotAssessments->isEmpty()) {
+            return false;
+        }
+
+        $wasUpdated = false;
+        $snapshot['assessments'] = $snapshotAssessments
+            ->map(function (array $assessmentMeta, int $index) use ($configByAssessmentId, &$wasUpdated) {
+                $assessmentId = (int) ($assessmentMeta['id'] ?? 0);
+
+                if ($assessmentId < 1 || ! array_key_exists($assessmentId, $configByAssessmentId)) {
+                    return $assessmentMeta;
+                }
+
+                $fallbackConfig = AssessmentStageConfig::defaultForAssessment(
+                    $assessmentMeta['instrument_type'] ?? null,
+                    $index
+                );
+                $currentConfig = AssessmentStageConfig::normalize(
+                    is_array($assessmentMeta['stage_config'] ?? null) ? $assessmentMeta['stage_config'] : [],
+                    $fallbackConfig
+                );
+                $resolvedConfig = AssessmentStageConfig::normalize(
+                    is_array($configByAssessmentId[$assessmentId] ?? null)
+                        ? $configByAssessmentId[$assessmentId]
+                        : [],
+                    $fallbackConfig
+                );
+
+                if ($currentConfig !== $resolvedConfig) {
+                    $assessmentMeta['stage_config'] = $resolvedConfig;
+                    $wasUpdated = true;
+                }
+
+                return $assessmentMeta;
+            })
+            ->all();
+
+        if (! $wasUpdated) {
+            return false;
+        }
+
+        $progressSnapshot = AssessmentStageProgress::usesStageFlow($snapshot)
+            ? AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot)
+            : null;
+        $activeDeadlineAt = is_array($progressSnapshot)
+            ? AssessmentStageProgress::activeDeadlineAt($progressSnapshot)
+            : null;
+
+        $attempt->forceFill([
+            'structure_snapshot' => $snapshot,
+            'progress_snapshot' => $progressSnapshot,
+            'deadline_at' => $activeDeadlineAt,
+        ])->save();
+
+        $target = $attempt->target;
+
+        if ($target && $attempt->status !== 'submitted') {
+            $target->forceFill([
+                'deadline_at' => $activeDeadlineAt,
+            ])->save();
+        }
+
+        return true;
     }
 
     private function prepareAssignmentContext(array $payload): array

@@ -77,6 +77,7 @@
                                         @foreach ($datas as $data)
                                             @php
                                                 $monitoring = $monitoringByAssignmentId[$data->id] ?? null;
+                                                $stageAccess = $stageAccessByAssignmentId[$data->id] ?? [];
                                                 $statusBadge =
                                                     [
                                                         'draft' => 'secondary',
@@ -117,6 +118,12 @@
                                                             form /
                                                             {{ $assessments->sum(fn($assessment) => $assessment->forms->sum(fn($form) => $form->fields->count())) }}
                                                             soal
+                                                        </small>
+                                                    @endif
+                                                    @if (($stageAccess['total_stages'] ?? 0) > 1)
+                                                        <small
+                                                            class="d-block mt-1 text-{{ ($stageAccess['status_tone'] ?? 'success') === 'warning' ? 'warning' : 'success' }}">
+                                                            {{ $stageAccess['status_label'] ?? 'Semua tahap terbuka' }}
                                                         </small>
                                                     @endif
                                                 </td>
@@ -190,6 +197,17 @@
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
+                                                    @if ($stageAccess['has_pending_admin_open'] ?? false)
+                                                        <form action="{{ route('assessment.assignment.open-next-stage', $data->id) }}"
+                                                            method="POST" class="my-1"
+                                                            onsubmit="return confirm({{ \Illuminate\Support\Js::from($stageAccess['action_description'] ?? 'Tahap berikutnya akan dibuka untuk peserta.') }});">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                                <i class="fas fa-unlock mr-1"></i>
+                                                                {{ $stageAccess['action_label'] ?? 'Buka Tahap' }}
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                     <a href="{{ route('assessment.assignment.show', $data->id) }}"
                                                         class="btn btn-info btn-sm my-1">
                                                         <i class="fas fa-eye mr-1"></i> Detail
