@@ -189,4 +189,97 @@ class AssessmentCertificateLinkHelperTest extends TestCase
 
         $this->assertSame([], $links);
     }
+
+    public function test_collects_certificate_links_from_legacy_text_columns_without_snapshot_metadata(): void
+    {
+        $snapshot = [
+            'assessments' => [
+                [
+                    'judul' => 'Portfolio Guru',
+                    'forms' => [
+                        [
+                            'judul_form' => 'Pengalaman Pelatihan',
+                            'fields' => [
+                                [
+                                    'id' => 401,
+                                    'label' => 'Riwayat Pengalaman Pelatihan',
+                                    'nama_field' => 'pengalaman_pelatihan',
+                                    'tipe_field' => 'repeater',
+                                    'opsi_field' => [
+                                        'columns' => [
+                                            [
+                                                'label' => 'Nama Pelatihan',
+                                                'nama_field' => 'nama_pelatihan',
+                                                'tipe_field' => 'text',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $answerLookup = [
+            401 => [
+                'rows' => [
+                    [
+                        'nama_pelatihan' => 'Bimtek Deep Learning',
+                        'link_google_drive_sertifikat' => 'https://drive.google.com/file/d/sertifikat-legacy/view',
+                    ],
+                ],
+                'columns' => [],
+                'payload' => [],
+            ],
+        ];
+
+        $links = AssessmentCertificateLinkHelper::collectFromSnapshot($snapshot, $answerLookup);
+
+        $this->assertCount(1, $links);
+        $this->assertSame('Bimtek Deep Learning', $links[0]['title']);
+        $this->assertSame('https://drive.google.com/file/d/sertifikat-legacy/view', $links[0]['url']);
+        $this->assertSame('Link Google Drive Sertifikat', $links[0]['link_label']);
+    }
+
+    public function test_collects_certificate_links_from_single_url_fields(): void
+    {
+        $snapshot = [
+            'assessments' => [
+                [
+                    'judul' => 'Portfolio Guru',
+                    'forms' => [
+                        [
+                            'judul_form' => 'Sertifikasi',
+                            'fields' => [
+                                [
+                                    'id' => 501,
+                                    'label' => 'Link Sertifikat Pendidik',
+                                    'nama_field' => 'link_sertifikat_pendidik',
+                                    'tipe_field' => 'url',
+                                    'deskripsi' => 'Tautan sertifikat pendidik',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $answerLookup = [
+            501 => [
+                'text' => 'https://drive.google.com/file/d/sertifikat-pendidik/view',
+                'payload' => [
+                    'value' => 'https://drive.google.com/file/d/sertifikat-pendidik/view',
+                ],
+            ],
+        ];
+
+        $links = AssessmentCertificateLinkHelper::collectFromSnapshot($snapshot, $answerLookup);
+
+        $this->assertCount(1, $links);
+        $this->assertSame('Link Sertifikat Pendidik', $links[0]['title']);
+        $this->assertSame('https://drive.google.com/file/d/sertifikat-pendidik/view', $links[0]['url']);
+    }
 }

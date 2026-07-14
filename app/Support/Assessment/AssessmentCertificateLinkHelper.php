@@ -40,7 +40,7 @@ class AssessmentCertificateLinkHelper
 
                                 return match ($field['tipe_field'] ?? 'text') {
                                     'repeater' => static::collectRepeaterLinks($assessmentTitle, $formTitle, $field, $answer),
-                                    'file' => static::collectFileLink($assessmentTitle, $formTitle, $field, $answer),
+                                    'file', 'url', 'text' => static::collectSingleValueLink($assessmentTitle, $formTitle, $field, $answer),
                                     default => [],
                                 };
                             });
@@ -64,7 +64,7 @@ class AssessmentCertificateLinkHelper
         $columns = AssessmentAnswerViewHelper::resolveRepeaterColumns($field, $answer);
         $rows = AssessmentAnswerViewHelper::resolveRepeaterRows($answer);
 
-        if ($columns === [] || $rows === []) {
+        if ($rows === []) {
             return [];
         }
 
@@ -73,6 +73,10 @@ class AssessmentCertificateLinkHelper
             ->filter(fn (array $column) => static::isCertificateLinkDefinition($column))
             ->values()
             ->all();
+
+        if ($linkColumns === []) {
+            $linkColumns = static::inferLinkColumnsFromRows($rows, $columns);
+        }
 
         if ($linkColumns === []) {
             return [];
@@ -131,7 +135,7 @@ class AssessmentCertificateLinkHelper
      * @param  array<string, mixed>  $answer
      * @return array<int, array<string, string|int|null>>
      */
-    private static function collectFileLink(
+    private static function collectSingleValueLink(
         string $assessmentTitle,
         string $formTitle,
         array $field,
@@ -141,7 +145,14 @@ class AssessmentCertificateLinkHelper
             return [];
         }
 
-        $url = trim((string) (data_get($answer, 'payload.link_url') ?: data_get($answer, 'file_url')));
+        $url = collect([
+            data_get($answer, 'payload.link_url'),
+            data_get($answer, 'file_url'),
+            data_get($answer, 'payload.value'),
+            data_get($answer, 'text'),
+        ])
+            ->map(fn ($value) => trim((string) $value))
+            ->first(fn (string $value) => $value !== '');
 
         if (! static::isValidExternalUrl($url, $field)) {
             return [];
@@ -227,25 +238,95 @@ class AssessmentCertificateLinkHelper
     }
 
     /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @param  array<int, array<string, mixed>>  $columns
+     * @return array<int, array<string, mixed>>
+     */
+    private static function inferLinkColumnsFromRows(array $rows, array $columns): array
+    {
+        $columnsByName = collect($columns)
+            ->filter(fn ($column) => is_array($column))
+            ->mapWithKeys(function (array $column) {
+                $columnName = trim((string) ($column['nama_field'] ?? ''));
+
+                return $columnName !== '' ? [$columnName => $column] : [];
+            })
+            ->all();
+
+        return collect($rows)
+            ->filter(fn ($row) => is_array($row))
+            ->flatMap(fn (array $row) => array_keys($row))
+            ->map(fn ($columnName) => trim((string) $columnName))
+            ->filter(fn (string $columnName) => $columnName !== '')
+            ->unique()
+            ->map(function (string $columnName) use ($columnsByName) {
+                if (! static::isLikelyCertificateLinkKey($columnName)) {
+                    return null;
+                }
+
+                $existingDefinition = $columnsByName[$columnName] ?? [];
+
+                return [
+                    'label' => trim((string) ($existingDefinition['label'] ?? '')) ?: Str::headline(str_replace('_', ' ', $columnName)),
+                    'nama_field' => $columnName,
+                    'tipe_field' => trim((string) ($existingDefinition['tipe_field'] ?? 'url')) ?: 'url',
+                    'validasi' => is_array($existingDefinition['validasi'] ?? null) ? $existingDefinition['validasi'] : [],
+                    'opsi_field' => is_array($existingDefinition['opsi_field'] ?? null) ? $existingDefinition['opsi_field'] : [],
+                    'allowed_domains' => $existingDefinition['allowed_domains'] ?? [],
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
      * @param  array<string, mixed>  $definition
      */
     private static function isCertificateLinkDefinition(array $definition): bool
     {
-        $fieldType = trim((string) ($definition['tipe_field'] ?? ''));
-
-        if (! in_array($fieldType, ['url', 'file'], true)) {
-            return false;
-        }
-
         $label = Str::lower(trim((string) ($definition['label'] ?? '')));
         $fieldName = Str::lower(trim((string) ($definition['nama_field'] ?? '')));
         $combined = trim($label.' '.$fieldName);
 
+        if ($combined === '' || ! static::containsCertificateKeyword($combined)) {
+            return false;
+        }
+
+        $fieldType = trim((string) ($definition['tipe_field'] ?? ''));
+
+        if (in_array($fieldType, ['url', 'file'], true)) {
+            return true;
+        }
+
+        return static::containsLinkKeyword($combined);
+    }
+
+    private static function containsCertificateKeyword(string $combined): bool
+    {
         return str_contains($combined, 'sertifikat')
             || str_contains($combined, 'sertifikasi')
             || str_contains($combined, 'piagam')
             || str_contains($combined, 'surat keputusan')
             || (bool) preg_match('/(^|[\s_\/-])sk($|[\s_\/-])/u', $combined);
+    }
+
+    private static function containsLinkKeyword(string $combined): bool
+    {
+        return str_contains($combined, 'link')
+            || str_contains($combined, 'url')
+            || str_contains($combined, 'tautan')
+            || str_contains($combined, 'drive')
+            || str_contains($combined, 'dokumen');
+    }
+
+    private static function isLikelyCertificateLinkKey(string $value): bool
+    {
+        $normalized = Str::lower(trim($value));
+
+        return $normalized !== ''
+            && static::containsCertificateKeyword($normalized)
+            && static::containsLinkKeyword($normalized);
     }
 
     /**
