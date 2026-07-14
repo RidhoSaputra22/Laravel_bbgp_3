@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Assessment\AuthController as AssessmentPortalAuthController;
+use App\Http\Controllers\Assessment\PortalAttemptController as AssessmentPortalAttemptController;
 use App\Http\Controllers\Assessment\PortalController as AssessmentPortalController;
+use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;
+use App\Http\Controllers\Assessment\PortalSecurityController as AssessmentPortalSecurityController;
 use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
@@ -106,8 +109,8 @@ Route::prefix('assessment')
     ->name('assessment.portal.')
     ->group(function () {
         Route::get('/', [AssessmentPortalController::class, 'landing'])->name('index');
-        Route::get('/result/{id}', [AssessmentPortalController::class, 'result'])->name('result');
-        Route::get('/result/{id}/download', [AssessmentPortalController::class, 'downloadResultPdf'])->name('result.download');
+        Route::get('/result/{id}', [AssessmentPortalResultController::class, 'result'])->name('result');
+        Route::get('/result/{id}/download', [AssessmentPortalResultController::class, 'downloadResultPdf'])->name('result.download');
         Route::get('/auth', [AssessmentPortalAuthController::class, 'showLoginForm'])->name('auth');
         Route::post('/auth', [AssessmentPortalAuthController::class, 'login'])->name('login');
 
@@ -115,10 +118,10 @@ Route::prefix('assessment')
             Route::get('/dashboard', [AssessmentPortalController::class, 'dashboard'])->name('dashboard');
             Route::post('/show/{id}/start', [AssessmentPortalController::class, 'start'])->name('start');
             Route::get('/show/{id}', [AssessmentPortalController::class, 'show'])->name('show');
-            Route::post('/show/{id}/autosave', [AssessmentPortalController::class, 'autosave'])->name('autosave');
-            Route::post('/show/{id}/security/violation', [AssessmentPortalController::class, 'securityViolation'])->name('security.violation');
-            Route::post('/show/{id}/security/disqualify', [AssessmentPortalController::class, 'securityDisqualify'])->name('security.disqualify');
-            Route::post('/show/{id}/submit', [AssessmentPortalController::class, 'submit'])->name('submit');
+            Route::post('/show/{id}/autosave', [AssessmentPortalAttemptController::class, 'autosave'])->name('autosave');
+            Route::post('/show/{id}/security/violation', [AssessmentPortalSecurityController::class, 'securityViolation'])->name('security.violation');
+            Route::post('/show/{id}/security/disqualify', [AssessmentPortalSecurityController::class, 'securityDisqualify'])->name('security.disqualify');
+            Route::post('/show/{id}/submit', [AssessmentPortalAttemptController::class, 'submit'])->name('submit');
             Route::post('/logout', [AssessmentPortalAuthController::class, 'logout'])->name('logout');
         });
     });

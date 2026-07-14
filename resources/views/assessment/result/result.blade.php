@@ -8,7 +8,6 @@
         $backLabel = $backLabel ?? 'Kembali ke Dashboard';
         $isStakeholderDownloadAvailable = $isStakeholderDownloadAvailable ?? false;
         $stakeholderResultDownloadUrl = $stakeholderResultDownloadUrl ?? null;
-        $snapshot = $attempt->structure_snapshot ?? [];
         $startedAt = ($attempt->started_at ?? $target->started_at)?->format('d M Y H:i');
         $submittedAt = $attempt->submitted_at?->format('d M Y H:i');
         $deadlineAt = ($attempt->deadline_at ?? $target->deadline_at)?->format('d M Y H:i');
@@ -57,38 +56,6 @@
             ?: ($isAdminViewer
                 ? 'Hasil pengisian assessment peserta tersimpan dan dapat ditinjau kembali kapan saja.'
                 : 'Hasil pengisian assessment Anda tersimpan dan dapat ditinjau kembali kapan saja pada portal peserta.');
-        $answerHelper = \App\Support\Assessment\AssessmentAnswerViewHelper::class;
-        $normalizeFieldLabel = static function (array $field): string {
-            $fieldLabel = trim((string) ($field['label'] ?? ''));
-
-            if ($fieldLabel === '') {
-                return $fieldLabel;
-            }
-
-            return preg_replace(
-                '/^\s*(?:soal\s*)?\d+\s*[\.\)\-:]?\s*/iu',
-                '',
-                $fieldLabel,
-                1
-            ) ?? $fieldLabel;
-        };
-        $buildDisplayFieldLabel = static function (
-            array $field,
-            ?int $displayQuestionNumber = null,
-            ?string $displayQuestionPrefix = null
-        ) use ($normalizeFieldLabel): string {
-            $normalizedLabel = $normalizeFieldLabel($field);
-
-            if (! $displayQuestionNumber || $normalizedLabel === '') {
-                return $normalizedLabel;
-            }
-
-            $displayLead = filled($displayQuestionPrefix)
-                ? trim($displayQuestionPrefix) . ' ' . $displayQuestionNumber
-                : (string) $displayQuestionNumber;
-
-            return trim($displayLead . '. ' . $normalizedLabel);
-        };
         $seriousViolationCount = (int) ($attempt->serious_violation_count ?? 0);
         $warningViolationCount = (int) ($attempt->warning_violation_count ?? 0);
         $sessionDetails = [
