@@ -7,6 +7,31 @@ use Illuminate\Support\Str;
 class AssessmentCertificateLinkHelper
 {
     /**
+     * Repeater portfolio terbaru memakai kolom link generik untuk bukti dokumen.
+     * Kolom ini tetap perlu diperlakukan sebagai link sertifikat/SK pada konteks field tertentu.
+     *
+     * @var array<int, string>
+     */
+    private const GENERIC_PORTFOLIO_LINK_COLUMNS = [
+        'tautan_link_google_drive',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private const PORTFOLIO_EVIDENCE_REPEATER_FIELDS = [
+        'riwayat_pendidikan_formal',
+        'pengalaman_pelatihan',
+        'pengalaman_pelatihan_relevan',
+        'pengalaman_mengajar',
+        'riwayat_pengalaman_mengajar',
+        'penguasaan_profesional',
+        'contoh_praktik_penguasaan_profesional',
+        'karya_inovasi_best_practice',
+        'karya_inovasi_prestasi_diseminasi',
+    ];
+
+    /**
      * @param  array<string, mixed>  $snapshot
      * @param  array<int, array<string, mixed>>  $answerLookup
      * @return array<int, array<string, string|int|null>>
@@ -70,12 +95,12 @@ class AssessmentCertificateLinkHelper
 
         $linkColumns = collect($columns)
             ->filter(fn ($column) => is_array($column))
-            ->filter(fn (array $column) => static::isCertificateLinkDefinition($column))
+            ->filter(fn (array $column) => static::isCertificateLinkDefinition($column, $field))
             ->values()
             ->all();
 
         if ($linkColumns === []) {
-            $linkColumns = static::inferLinkColumnsFromRows($rows, $columns);
+            $linkColumns = static::inferLinkColumnsFromRows($rows, $columns, $field);
         }
 
         if ($linkColumns === []) {
@@ -91,8 +116,8 @@ class AssessmentCertificateLinkHelper
                 $columns,
                 $linkColumns
             ) {
-                $rowTitle = static::resolveRowTitle($columns, $row, $rowIndex + 1);
-                $rowDetail = static::resolveRowDetail($columns, $row);
+                $rowTitle = static::resolveRowTitle($columns, $row, $rowIndex + 1, $field);
+                $rowDetail = static::resolveRowDetail($columns, $row, $field);
 
                 return collect($linkColumns)
                     ->map(function (array $linkColumn) use (
@@ -173,8 +198,14 @@ class AssessmentCertificateLinkHelper
     /**
      * @param  array<int, array<string, mixed>>  $columns
      * @param  array<string, mixed>  $row
+     * @param  array<string, mixed>|null  $parentField
      */
-    private static function resolveRowTitle(array $columns, array $row, int $rowNumber): string
+    private static function resolveRowTitle(
+        array $columns,
+        array $row,
+        int $rowNumber,
+        ?array $parentField = null
+    ): string
     {
         $preferredNames = [
             'nama_pelatihan',
@@ -195,7 +226,7 @@ class AssessmentCertificateLinkHelper
         }
 
         foreach ($columns as $column) {
-            if (! is_array($column) || static::isCertificateLinkDefinition($column)) {
+            if (! is_array($column) || static::isCertificateLinkDefinition($column, $parentField)) {
                 continue;
             }
 
@@ -213,12 +244,13 @@ class AssessmentCertificateLinkHelper
     /**
      * @param  array<int, array<string, mixed>>  $columns
      * @param  array<string, mixed>  $row
+     * @param  array<string, mixed>|null  $parentField
      */
-    private static function resolveRowDetail(array $columns, array $row): ?string
+    private static function resolveRowDetail(array $columns, array $row, ?array $parentField = null): ?string
     {
         $details = collect($columns)
             ->filter(fn ($column) => is_array($column))
-            ->reject(fn (array $column) => static::isCertificateLinkDefinition($column))
+            ->reject(fn (array $column) => static::isCertificateLinkDefinition($column, $parentField))
             ->map(function (array $column) use ($row) {
                 $columnName = trim((string) ($column['nama_field'] ?? ''));
                 $value = AssessmentAnswerViewHelper::formatRepeaterCell($column, $row[$columnName] ?? null);
@@ -240,9 +272,10 @@ class AssessmentCertificateLinkHelper
     /**
      * @param  array<int, array<string, mixed>>  $rows
      * @param  array<int, array<string, mixed>>  $columns
+     * @param  array<string, mixed>  $field
      * @return array<int, array<string, mixed>>
      */
-    private static function inferLinkColumnsFromRows(array $rows, array $columns): array
+    private static function inferLinkColumnsFromRows(array $rows, array $columns, array $field): array
     {
         $columnsByName = collect($columns)
             ->filter(fn ($column) => is_array($column))
@@ -259,12 +292,12 @@ class AssessmentCertificateLinkHelper
             ->map(fn ($columnName) => trim((string) $columnName))
             ->filter(fn (string $columnName) => $columnName !== '')
             ->unique()
-            ->map(function (string $columnName) use ($columnsByName) {
-                if (! static::isLikelyCertificateLinkKey($columnName)) {
+            ->map(function (string $columnName) use ($columnsByName, $field) {
+                $existingDefinition = $columnsByName[$columnName] ?? [];
+
+                if (! static::isLikelyCertificateLinkKey($columnName, $field, $existingDefinition)) {
                     return null;
                 }
-
-                $existingDefinition = $columnsByName[$columnName] ?? [];
 
                 return [
                     'label' => trim((string) ($existingDefinition['label'] ?? '')) ?: Str::headline(str_replace('_', ' ', $columnName)),
@@ -282,18 +315,27 @@ class AssessmentCertificateLinkHelper
 
     /**
      * @param  array<string, mixed>  $definition
+     * @param  array<string, mixed>|null  $parentField
      */
-    private static function isCertificateLinkDefinition(array $definition): bool
+    private static function isCertificateLinkDefinition(array $definition, ?array $parentField = null): bool
     {
         $label = Str::lower(trim((string) ($definition['label'] ?? '')));
         $fieldName = Str::lower(trim((string) ($definition['nama_field'] ?? '')));
         $combined = trim($label.' '.$fieldName);
 
+        $fieldType = trim((string) ($definition['tipe_field'] ?? ''));
+
+        if (
+            $fieldType === 'url'
+            && static::isGenericPortfolioEvidenceColumn($fieldName, $parentField)
+            && static::containsLinkKeyword($combined)
+        ) {
+            return true;
+        }
+
         if ($combined === '' || ! static::containsCertificateKeyword($combined)) {
             return false;
         }
-
-        $fieldType = trim((string) ($definition['tipe_field'] ?? ''));
 
         if (in_array($fieldType, ['url', 'file'], true)) {
             return true;
@@ -320,13 +362,39 @@ class AssessmentCertificateLinkHelper
             || str_contains($combined, 'dokumen');
     }
 
-    private static function isLikelyCertificateLinkKey(string $value): bool
+    /**
+     * @param  array<string, mixed>  $field
+     * @param  array<string, mixed>  $definition
+     */
+    private static function isLikelyCertificateLinkKey(
+        string $value,
+        array $field,
+        array $definition = []
+    ): bool
     {
         $normalized = Str::lower(trim($value));
 
+        if (static::isGenericPortfolioEvidenceColumn($normalized, $field)) {
+            return true;
+        }
+
         return $normalized !== ''
             && static::containsCertificateKeyword($normalized)
-            && static::containsLinkKeyword($normalized);
+            && static::containsLinkKeyword(trim($normalized.' '.Str::lower(trim((string) ($definition['label'] ?? '')))));
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $parentField
+     */
+    private static function isGenericPortfolioEvidenceColumn(string $columnName, ?array $parentField = null): bool
+    {
+        if (! in_array($columnName, self::GENERIC_PORTFOLIO_LINK_COLUMNS, true)) {
+            return false;
+        }
+
+        $parentFieldName = Str::lower(trim((string) ($parentField['nama_field'] ?? '')));
+
+        return in_array($parentFieldName, self::PORTFOLIO_EVIDENCE_REPEATER_FIELDS, true);
     }
 
     /**

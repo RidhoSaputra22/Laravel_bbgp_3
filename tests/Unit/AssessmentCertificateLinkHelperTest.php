@@ -243,6 +243,70 @@ class AssessmentCertificateLinkHelperTest extends TestCase
         $this->assertSame('Link Google Drive Sertifikat', $links[0]['link_label']);
     }
 
+    public function test_collects_certificate_links_from_generic_portfolio_link_columns(): void
+    {
+        $snapshot = [
+            'assessments' => [
+                [
+                    'judul' => 'Instrumen Portofolio Kompetensi Guru',
+                    'forms' => [
+                        [
+                            'judul_form' => 'Pengalaman Pelatihan',
+                            'fields' => [
+                                [
+                                    'id' => 451,
+                                    'label' => 'Pengalaman Pelatihan Relevan',
+                                    'nama_field' => 'pengalaman_pelatihan_relevan',
+                                    'tipe_field' => 'repeater',
+                                    'opsi_field' => [
+                                        'columns' => [
+                                            [
+                                                'label' => 'Nama Pelatihan',
+                                                'nama_field' => 'nama_pelatihan',
+                                                'tipe_field' => 'text',
+                                            ],
+                                            [
+                                                'label' => 'Penyelenggara',
+                                                'nama_field' => 'penyelenggara',
+                                                'tipe_field' => 'text',
+                                            ],
+                                            [
+                                                'label' => 'Tautan/Link Google Drive',
+                                                'nama_field' => 'tautan_link_google_drive',
+                                                'tipe_field' => 'url',
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $answerLookup = [
+            451 => [
+                'rows' => [
+                    [
+                        'nama_pelatihan' => 'Bimtek Numerasi',
+                        'penyelenggara' => 'BBGTK Sulsel',
+                        'tautan_link_google_drive' => 'https://drive.google.com/file/d/sertifikat-generic/view',
+                    ],
+                ],
+                'columns' => [],
+                'payload' => [],
+            ],
+        ];
+
+        $links = AssessmentCertificateLinkHelper::collectFromSnapshot($snapshot, $answerLookup);
+
+        $this->assertCount(1, $links);
+        $this->assertSame('Bimtek Numerasi', $links[0]['title']);
+        $this->assertSame('https://drive.google.com/file/d/sertifikat-generic/view', $links[0]['url']);
+        $this->assertSame('Tautan/Link Google Drive', $links[0]['link_label']);
+    }
+
     public function test_collects_certificate_links_from_single_url_fields(): void
     {
         $snapshot = [
