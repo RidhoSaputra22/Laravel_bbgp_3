@@ -453,14 +453,14 @@ class AssessmentAssignmentController extends Controller
         return back()->with('assignment_notice', $this->buildActivationNotice($assignment));
     }
 
-    public function openNextStage(string $id)
+    public function openAllStages(string $id)
     {
         $this->authorizeAccess();
 
         $assignment = AssessmentAssignment::findOrFail($id);
 
         try {
-            $result = $this->assignmentService->openNextLockedStage($assignment);
+            $result = $this->assignmentService->openAllLockedStages($assignment);
 
             return back()->with('assignment_notice', $this->buildStageOpenNotice($result));
         } catch (ValidationException $exception) {
@@ -469,7 +469,7 @@ class AssessmentAssignmentController extends Controller
             report($exception);
 
             return back()->withErrors([
-                'assignment' => 'Terjadi kesalahan saat membuka tahap berikutnya.',
+                'assignment' => 'Terjadi kesalahan saat membuka semua tahap.',
             ]);
         }
     }
@@ -659,13 +659,33 @@ class AssessmentAssignmentController extends Controller
 
     private function buildStageOpenNotice(array $result): string
     {
-        $openedStage = is_array($result['opened_stage'] ?? null) ? $result['opened_stage'] : [];
-        $stageNumber = (int) ($openedStage['stage_number'] ?? 0);
-        $stageTitle = trim((string) ($openedStage['title'] ?? ''));
-        $notice = 'Tahap '.($stageNumber > 0 ? $stageNumber : 'berikutnya').' berhasil dibuka untuk peserta.';
+        $openedStages = collect($result['opened_stages'] ?? [])
+            ->filter(fn ($stage) => is_array($stage))
+            ->values();
+        $stageLabels = $openedStages
+            ->map(function (array $stage): ?string {
+                $stageNumber = (int) ($stage['stage_number'] ?? 0);
 
-        if ($stageTitle !== '') {
-            $notice .= ' '.$stageTitle.'.';
+                return $stageNumber > 0 ? 'Tahap '.$stageNumber : null;
+            })
+            ->filter()
+            ->implode(', ');
+
+        if ($openedStages->count() === 1) {
+            $openedStage = $openedStages->first();
+            $stageNumber = (int) ($openedStage['stage_number'] ?? 0);
+            $stageTitle = trim((string) ($openedStage['title'] ?? ''));
+            $notice = 'Tahap '.($stageNumber > 0 ? $stageNumber : 'berikutnya').' berhasil dibuka untuk peserta.';
+
+            if ($stageTitle !== '') {
+                $notice .= ' '.$stageTitle.'.';
+            }
+        } else {
+            $notice = $openedStages->count().' tahap berhasil dibuka untuk peserta.';
+
+            if ($stageLabels !== '') {
+                $notice .= ' '.$stageLabels.'.';
+            }
         }
 
         if (($result['synced_attempt_count'] ?? 0) > 0) {
@@ -799,16 +819,17 @@ class AssessmentAssignmentController extends Controller
         return $assignment->assessments
             ->values()
             ->mapWithKeys(function (Assessment $assessment, int $index) {
+                $storedStageConfig = is_array($assessment->pivot?->stage_config ?? null)
+                    ? $assessment->pivot->stage_config
+                    : [];
+                $normalizedConfig = AssessmentStageConfig::normalizeForAssessment(
+                    $assessment->instrument_type,
+                    $index,
+                    $storedStageConfig
+                );
+
                 return [
-                    (int) $assessment->id => AssessmentStageConfig::normalize(
-                        is_array($assessment->pivot?->stage_config ?? null)
-                            ? $assessment->pivot->stage_config
-                            : [],
-                        AssessmentStageConfig::defaultForAssessment(
-                            $assessment->instrument_type,
-                            $index
-                        )
-                    ),
+                    (int) $assessment->id => $normalizedConfig,
                 ];
             })
             ->all();
@@ -1419,6 +1440,7 @@ class AssessmentAssignmentController extends Controller
                 'stage_configs.*.entry_mode' => 'nullable|string|in:direct,start_button',
                 'stage_configs.*.allow_draft' => 'nullable|boolean',
                 'stage_configs.*.finalize_mode' => 'nullable|string|in:manual,auto',
+                'stage_configs.*.admin_gate_enabled' => 'nullable|boolean',
                 'stage_configs.*.lock_until_previous_stages_completed' => 'nullable|boolean',
                 'stage_configs.*.time_limit_minutes' => 'nullable|integer|min:1|max:600',
                 'stage_configs.*.security_enabled' => 'nullable|boolean',

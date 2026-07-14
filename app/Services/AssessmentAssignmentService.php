@@ -530,31 +530,45 @@ class AssessmentAssignmentService
             ->filter(fn (array $stage) => $stage['requires_admin_open'])
             ->values();
         $nextLockedStage = $lockedStages->first();
+        $lockedStageTotal = (int) $lockedStages->count();
+        $lockedStageLabels = $lockedStages
+            ->map(function (array $stage): ?string {
+                $stageNumber = (int) ($stage['stage_number'] ?? 0);
+
+                return $stageNumber > 0 ? 'Tahap '.$stageNumber : null;
+            })
+            ->filter()
+            ->implode(', ');
 
         return [
             'stage_flow_enabled' => $stageFlowEnabled,
             'total_stages' => (int) $stages->count(),
-            'locked_stage_total' => (int) $lockedStages->count(),
+            'locked_stage_total' => $lockedStageTotal,
             'opened_stage_total' => (int) $stages
                 ->filter(fn (array $stage) => ! $stage['requires_admin_open'])
                 ->count(),
             'has_pending_admin_open' => $nextLockedStage !== null,
             'next_locked_stage' => $nextLockedStage,
+            'locked_stages' => $lockedStages->all(),
             'status_label' => $nextLockedStage
-                ? 'Tahap '.$nextLockedStage['stage_number'].' menunggu dibuka admin'
+                ? ($lockedStageTotal === 1
+                    ? 'Tahap '.$nextLockedStage['stage_number'].' menunggu dibuka admin'
+                    : $lockedStageTotal.' tahap menunggu dibuka admin')
                 : ($stageFlowEnabled ? 'Semua tahap terbuka' : 'Tanpa penguncian tahap'),
             'status_tone' => $nextLockedStage ? 'warning' : 'success',
             'action_label' => $nextLockedStage
-                ? 'Buka Tahap '.$nextLockedStage['stage_number']
+                ? 'Buka Semua Tahap'
                 : null,
             'action_description' => $nextLockedStage
-                ? 'Tahap '.$nextLockedStage['stage_number'].' - '.$nextLockedStage['title']
-                    .' masih dikunci sampai admin membuka.'
+                ? ($lockedStageTotal === 1
+                    ? 'Tahap '.$nextLockedStage['stage_number'].' - '.$nextLockedStage['title']
+                        .' masih dikunci dan akan dibuka untuk peserta.'
+                    : $lockedStageLabels.' masih dikunci dan akan dibuka sekaligus untuk peserta.')
                 : null,
         ];
     }
 
-    public function openNextLockedStage(AssessmentAssignment $assignment): array
+    public function openAllLockedStages(AssessmentAssignment $assignment): array
     {
         return DB::transaction(function () use ($assignment) {
             /** @var \App\Models\AssessmentAssignment $lockedAssignment */
@@ -565,49 +579,56 @@ class AssessmentAssignmentService
                 ->firstOrFail();
 
             $summary = $this->buildStageAccessSummary($lockedAssignment);
-            $nextLockedStage = is_array($summary['next_locked_stage'] ?? null)
-                ? $summary['next_locked_stage']
-                : null;
+            $lockedStages = collect($summary['locked_stages'] ?? [])
+                ->filter(fn ($stage) => is_array($stage))
+                ->values();
 
-            if (! $nextLockedStage) {
+            if ($lockedStages->isEmpty()) {
                 throw ValidationException::withMessages([
                     'assignment' => 'Semua tahap pada penugasan ini sudah terbuka.',
                 ]);
             }
 
-            $assessment = $lockedAssignment->assessments
-                ->firstWhere('id', (int) ($nextLockedStage['assessment_id'] ?? 0));
+            $configByAssessmentId = [];
 
-            if (! $assessment) {
-                throw ValidationException::withMessages([
-                    'assignment' => 'Assessment tahap yang akan dibuka tidak ditemukan.',
+            foreach ($lockedStages as $lockedStage) {
+                $assessment = $lockedAssignment->assessments
+                    ->firstWhere('id', (int) ($lockedStage['assessment_id'] ?? 0));
+
+                if (! $assessment) {
+                    throw ValidationException::withMessages([
+                        'assignment' => 'Assessment tahap yang akan dibuka tidak ditemukan.',
+                    ]);
+                }
+
+                $stageIndex = (int) ($lockedStage['stage_index'] ?? 0);
+                $fallbackConfig = AssessmentStageConfig::defaultForAssessment(
+                    $assessment->instrument_type,
+                    $stageIndex
+                );
+                $openedConfig = AssessmentStageConfig::markOpenedByAdmin(
+                    is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
+                    $fallbackConfig
+                );
+
+                $lockedAssignment->assessments()->updateExistingPivot($assessment->id, [
+                    'stage_config' => $openedConfig,
+                    'updated_at' => now(),
                 ]);
+
+                $configByAssessmentId[(int) $assessment->id] = $openedConfig;
             }
 
-            $stageIndex = (int) ($nextLockedStage['stage_index'] ?? 0);
-            $fallbackConfig = AssessmentStageConfig::defaultForAssessment(
-                $assessment->instrument_type,
-                $stageIndex
+            $syncedAttemptCount = $this->syncAttemptStageConfigsForAssignment(
+                $lockedAssignment->id,
+                $configByAssessmentId
             );
-            $openedConfig = AssessmentStageConfig::markOpenedByAdmin(
-                is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
-                $fallbackConfig
-            );
-
-            $lockedAssignment->assessments()->updateExistingPivot($assessment->id, [
-                'stage_config' => $openedConfig,
-                'updated_at' => now(),
-            ]);
-
-            $syncedAttemptCount = $this->syncAttemptStageConfigsForAssignment($lockedAssignment->id, [
-                (int) $assessment->id => $openedConfig,
-            ]);
 
             return [
                 'assignment' => $lockedAssignment
                     ->fresh(['assessments', 'creator', 'sessions', 'combination'])
                     ->loadCount('targets'),
-                'opened_stage' => $nextLockedStage,
+                'opened_stages' => $lockedStages->all(),
                 'synced_attempt_count' => $syncedAttemptCount,
             ];
         });
@@ -670,14 +691,12 @@ class AssessmentAssignmentService
         return $assignment->assessments
             ->values()
             ->map(function (Assessment $assessment, int $index) {
-                $config = AssessmentStageConfig::normalize(
+                $config = AssessmentStageConfig::normalizeForAssessment(
+                    $assessment->instrument_type,
+                    $index,
                     is_array($assessment->pivot?->stage_config ?? null)
                         ? $assessment->pivot->stage_config
-                        : [],
-                    AssessmentStageConfig::defaultForAssessment(
-                        $assessment->instrument_type,
-                        $index
-                    )
+                        : []
                 );
 
                 return [
@@ -740,19 +759,17 @@ class AssessmentAssignmentService
                     return $assessmentMeta;
                 }
 
-                $fallbackConfig = AssessmentStageConfig::defaultForAssessment(
+                $currentConfig = AssessmentStageConfig::normalizeForAssessment(
                     $assessmentMeta['instrument_type'] ?? null,
-                    $index
+                    $index,
+                    is_array($assessmentMeta['stage_config'] ?? null) ? $assessmentMeta['stage_config'] : []
                 );
-                $currentConfig = AssessmentStageConfig::normalize(
-                    is_array($assessmentMeta['stage_config'] ?? null) ? $assessmentMeta['stage_config'] : [],
-                    $fallbackConfig
-                );
-                $resolvedConfig = AssessmentStageConfig::normalize(
+                $resolvedConfig = AssessmentStageConfig::normalizeForAssessment(
+                    $assessmentMeta['instrument_type'] ?? null,
+                    $index,
                     is_array($configByAssessmentId[$assessmentId] ?? null)
                         ? $configByAssessmentId[$assessmentId]
-                        : [],
-                    $fallbackConfig
+                        : []
                 );
 
                 if ($currentConfig !== $resolvedConfig) {
@@ -2276,12 +2293,10 @@ class AssessmentAssignmentService
             ->mapWithKeys(fn (int $assessmentId, int $index) => [
                 $assessmentId => [
                     'urutan' => $index + 1,
-                    'stage_config' => AssessmentStageConfig::normalize(
-                        is_array($stageConfigs[$assessmentId] ?? null) ? $stageConfigs[$assessmentId] : [],
-                        AssessmentStageConfig::defaultForAssessment(
-                            $assessmentConfigLookup->get($assessmentId)?->instrument_type,
-                            $index
-                        )
+                    'stage_config' => AssessmentStageConfig::normalizeForAssessment(
+                        $assessmentConfigLookup->get($assessmentId)?->instrument_type,
+                        $index,
+                        is_array($stageConfigs[$assessmentId] ?? null) ? $stageConfigs[$assessmentId] : []
                     ),
                 ],
             ])
@@ -2313,12 +2328,10 @@ class AssessmentAssignmentService
                 }
 
                 return [
-                    $assessmentId => AssessmentStageConfig::normalize(
-                        $rawConfig,
-                        AssessmentStageConfig::defaultForAssessment(
-                            $assessmentLookup->get($assessmentId)?->instrument_type,
-                            $index
-                        )
+                    $assessmentId => AssessmentStageConfig::normalizeForAssessment(
+                        $assessmentLookup->get($assessmentId)?->instrument_type,
+                        $index,
+                        $rawConfig
                     ),
                 ];
             })

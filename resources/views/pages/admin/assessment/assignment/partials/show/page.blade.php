@@ -175,13 +175,13 @@
                         <i class="fas fa-edit"></i> Edit
                     </a>
                     @if ($stageAccess['has_pending_admin_open'] ?? false)
-                        <form action="{{ route('assessment.assignment.open-next-stage', $assignment->id) }}"
+                        <form action="{{ route('assessment.assignment.open-all-stages', $assignment->id) }}"
                             method="POST" class="d-inline-block mr-2"
-                            onsubmit="return confirm({{ \Illuminate\Support\Js::from($stageAccess['action_description'] ?? 'Tahap berikutnya akan dibuka untuk peserta.') }});">
+                            onsubmit="return confirm({{ \Illuminate\Support\Js::from($stageAccess['action_description'] ?? 'Semua tahap terkunci akan dibuka untuk peserta.') }});">
                             @csrf
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-unlock"></i>
-                                {{ $stageAccess['action_label'] ?? 'Buka Tahap' }}
+                                {{ $stageAccess['action_label'] ?? 'Buka Semua Tahap' }}
                             </button>
                         </form>
                     @endif
@@ -240,7 +240,7 @@
                         class="alert alert-{{ ($stageAccess['status_tone'] ?? 'success') === 'warning' ? 'warning' : 'success' }}">
                         <div class="font-weight-bold">{{ $stageAccess['status_label'] ?? 'Semua tahap terbuka' }}</div>
                         <div class="mb-0">
-                            {{ $stageAccess['action_description'] ?? 'Tahap berikutnya menunggu admin membuka akses.' }}
+                            {{ $stageAccess['action_description'] ?? 'Masih ada tahap terkunci yang menunggu admin membuka akses.' }}
                         </div>
                     </div>
                 @endif

@@ -135,6 +135,7 @@ class AssessmentAssignmentControllerStageSummaryTest extends TestCase
 
         $this->assertSame([33, 32, 31], array_column($items, 'id'));
         $this->assertTrue((bool) data_get($items, '0.default_stage_config.allow_draft'));
+        $this->assertTrue((bool) data_get($items, '1.default_stage_config.lock_until_previous_stages_completed'));
         $this->assertSame('start_button', data_get($items, '1.default_stage_config.entry_mode'));
         $this->assertTrue((bool) data_get($items, '2.default_stage_config.lock_until_previous_stages_completed'));
         $this->assertSame(90, data_get($items, '2.default_stage_config.time_limit_minutes'));

@@ -361,8 +361,8 @@ Route::group(
                     Route::put('/update/{id}', 'AssessmentAssignmentController@update')->name('assessment.assignment.update');
                     Route::post('/activation/{id}', 'AssessmentAssignmentController@updateActivationStatus')
                         ->name('assessment.assignment.activation');
-                    Route::post('/open-next-stage/{id}', 'AssessmentAssignmentController@openNextStage')
-                        ->name('assessment.assignment.open-next-stage');
+                    Route::post('/open-all-stages/{id}', 'AssessmentAssignmentController@openAllStages')
+                        ->name('assessment.assignment.open-all-stages');
                     Route::post('/hapus/{id}', 'AssessmentAssignmentController@destroy')->name('assessment.assignment.hapus');
                     Route::post('/retry/{id}', 'AssessmentAssignmentController@retry')->name('assessment.assignment.retry');
                     Route::get('/show/{id}', 'AssessmentAssignmentController@show')->name('assessment.assignment.show');

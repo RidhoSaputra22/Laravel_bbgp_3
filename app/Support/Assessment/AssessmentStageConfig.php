@@ -19,6 +19,7 @@ class AssessmentStageConfig
         'entry_mode' => self::ENTRY_DIRECT,
         'allow_draft' => false,
         'finalize_mode' => self::FINALIZE_MANUAL,
+        'admin_gate_enabled' => false,
         'lock_until_previous_stages_completed' => false,
         'time_limit_minutes' => null,
         'security' => [
@@ -45,7 +46,8 @@ class AssessmentStageConfig
                 'entry_mode' => self::ENTRY_DIRECT,
                 'allow_draft' => true,
                 'finalize_mode' => self::FINALIZE_MANUAL,
-                'lock_until_previous_stages_completed' => false,
+                'admin_gate_enabled' => $stageIndex > 0,
+                'lock_until_previous_stages_completed' => $stageIndex > 0,
                 'time_limit_minutes' => null,
                 'security' => [
                     'enabled' => false,
@@ -60,7 +62,8 @@ class AssessmentStageConfig
                 'entry_mode' => self::ENTRY_START_BUTTON,
                 'allow_draft' => false,
                 'finalize_mode' => self::FINALIZE_AUTO,
-                'lock_until_previous_stages_completed' => false,
+                'admin_gate_enabled' => $stageIndex > 0,
+                'lock_until_previous_stages_completed' => $stageIndex > 0,
                 'time_limit_minutes' => null,
                 'security' => [
                     'enabled' => true,
@@ -75,6 +78,7 @@ class AssessmentStageConfig
                 'entry_mode' => self::ENTRY_DIRECT,
                 'allow_draft' => false,
                 'finalize_mode' => self::FINALIZE_AUTO,
+                'admin_gate_enabled' => $stageIndex > 0,
                 'lock_until_previous_stages_completed' => $stageIndex > 0,
                 'time_limit_minutes' => 90,
                 'security' => [
@@ -86,7 +90,22 @@ class AssessmentStageConfig
 
         return self::normalize([
             'enabled' => $stageIndex < 3,
+            'admin_gate_enabled' => $stageIndex > 0,
+            'lock_until_previous_stages_completed' => $stageIndex > 0,
         ]);
+    }
+
+    public static function normalizeForAssessment(
+        mixed $instrumentType,
+        int $stageIndex = 0,
+        ?array $config = null
+    ): array {
+        $fallback = self::defaultForAssessment($instrumentType, $stageIndex);
+
+        return self::normalize(
+            self::repairLegacyAdminGate($config, $fallback),
+            $fallback
+        );
     }
 
     public static function normalize(?array $config = null, ?array $fallback = null): array
@@ -103,9 +122,18 @@ class AssessmentStageConfig
             'finalize_mode' => self::normalizeFinalizeMode(
                 $config['finalize_mode'] ?? $base['finalize_mode'] ?? null
             ),
+            'admin_gate_enabled' => self::toBool(
+                $config['admin_gate_enabled']
+                    ?? $base['admin_gate_enabled']
+                    ?? $config['lock_until_previous_stages_completed']
+                    ?? $base['lock_until_previous_stages_completed']
+                    ?? self::DEFAULTS['admin_gate_enabled']
+            ),
             'lock_until_previous_stages_completed' => self::toBool(
                 $config['lock_until_previous_stages_completed']
                     ?? $base['lock_until_previous_stages_completed']
+                    ?? $config['admin_gate_enabled']
+                    ?? $base['admin_gate_enabled']
                     ?? self::DEFAULTS['lock_until_previous_stages_completed']
             ),
             'time_limit_minutes' => self::toNullableInt(
@@ -128,6 +156,11 @@ class AssessmentStageConfig
         return (bool) (self::normalize($config)['enabled'] ?? false);
     }
 
+    public static function adminGateEnabled(?array $config = null, ?array $fallback = null): bool
+    {
+        return (bool) (self::normalize($config, $fallback)['admin_gate_enabled'] ?? false);
+    }
+
     public static function requiresManualOpening(?array $config = null, int $stageIndex = 0): bool
     {
         if ($stageIndex < 1) {
@@ -139,7 +172,10 @@ class AssessmentStageConfig
 
     public static function markOpenedByAdmin(?array $config = null, ?array $fallback = null): array
     {
-        $normalized = self::normalize($config, $fallback);
+        $normalized = self::normalize(
+            self::repairLegacyAdminGate($config, $fallback),
+            $fallback
+        );
         $normalized['lock_until_previous_stages_completed'] = false;
 
         return $normalized;
@@ -177,6 +213,56 @@ class AssessmentStageConfig
         return in_array($normalized, [self::FINALIZE_MANUAL, self::FINALIZE_AUTO], true)
             ? $normalized
             : self::FINALIZE_MANUAL;
+    }
+
+    private static function repairLegacyAdminGate(?array $config = null, ?array $fallback = null): array
+    {
+        $config = is_array($config) ? $config : [];
+        $fallback = is_array($fallback) ? $fallback : [];
+
+        $requiresAdminGate = self::toBool(
+            $fallback['admin_gate_enabled']
+                ?? $fallback['lock_until_previous_stages_completed']
+                ?? false
+        );
+
+        if (! $requiresAdminGate) {
+            return $config;
+        }
+
+        $hasAdminGate = array_key_exists('admin_gate_enabled', $config);
+        $hasLock = array_key_exists('lock_until_previous_stages_completed', $config);
+        $adminGateEnabled = $hasAdminGate
+            ? self::toBool($config['admin_gate_enabled'])
+            : null;
+        $stageLocked = $hasLock
+            ? self::toBool($config['lock_until_previous_stages_completed'])
+            : null;
+
+        if (($hasAdminGate && $adminGateEnabled) || ($hasLock && $stageLocked)) {
+            return $config;
+        }
+
+        if (! $hasAdminGate && ! $hasLock) {
+            $config['admin_gate_enabled'] = true;
+            $config['lock_until_previous_stages_completed'] = true;
+
+            return $config;
+        }
+
+        if (! $hasAdminGate && $hasLock && $stageLocked === false) {
+            $config['admin_gate_enabled'] = true;
+            $config['lock_until_previous_stages_completed'] = true;
+
+            return $config;
+        }
+
+        if ($hasAdminGate && $adminGateEnabled === false && $hasLock && $stageLocked === false) {
+            $config['admin_gate_enabled'] = true;
+            $config['lock_until_previous_stages_completed'] = true;
+        }
+
+        return $config;
     }
 
     private static function toBool(mixed $value, bool $default = false): bool

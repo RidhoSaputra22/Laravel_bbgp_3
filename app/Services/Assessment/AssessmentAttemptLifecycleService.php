@@ -6,6 +6,7 @@ use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentFormField;
 use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\AssessmentTargetTiming;
 use Illuminate\Support\Collection;
@@ -27,6 +28,7 @@ class AssessmentAttemptLifecycleService
         $shouldCarryStartedAt = $markStarted || (bool) $targetStartedAt;
         $resolvedStartedAt = $markStarted ? $now : $targetStartedAt;
         $target->loadMissing('assignment');
+        $target->loadMissing('assignment.assessments');
         $securityConfigSnapshot = AssessmentSecurityConfig::normalize(
             $target->assignment?->security_config
         );
@@ -87,6 +89,8 @@ class AssessmentAttemptLifecycleService
             }
         }
 
+        $attempt->setRelation('target', $target);
+        $attempt = $this->syncAttemptStageConfigSnapshot($attempt);
         $attempt = $this->syncSnapshotFieldMetadata($attempt);
 
         if ($shouldCarryStartedAt) {
@@ -179,6 +183,109 @@ class AssessmentAttemptLifecycleService
         }
 
         return $this->isPastDeadline($target);
+    }
+
+    private function syncAttemptStageConfigSnapshot(AssessmentAttempt $attempt): AssessmentAttempt
+    {
+        $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
+        $snapshotAssessments = collect($snapshot['assessments'] ?? [])
+            ->filter(fn ($assessment) => is_array($assessment))
+            ->values();
+
+        if ($snapshotAssessments->isEmpty()) {
+            return $attempt;
+        }
+
+        $target = $attempt->target;
+
+        if (! $target) {
+            return $attempt;
+        }
+
+        $target->loadMissing('assignment.assessments');
+        $assignment = $target->assignment;
+
+        if (! $assignment) {
+            return $attempt;
+        }
+
+        $configByAssessmentId = $assignment->assessments
+            ->values()
+            ->mapWithKeys(function ($assessment, int $index) {
+                return [
+                    (int) $assessment->id => AssessmentStageConfig::normalize(
+                        is_array($assessment->pivot?->stage_config ?? null) ? $assessment->pivot->stage_config : [],
+                        AssessmentStageConfig::defaultForAssessment($assessment->instrument_type, $index)
+                    ),
+                ];
+            })
+            ->all();
+
+        if ($configByAssessmentId === []) {
+            return $attempt;
+        }
+
+        $wasUpdated = false;
+        $snapshot['assessments'] = $snapshotAssessments
+            ->map(function (array $assessmentMeta, int $index) use ($configByAssessmentId, &$wasUpdated) {
+                $assessmentId = (int) ($assessmentMeta['id'] ?? 0);
+
+                if ($assessmentId < 1 || ! array_key_exists($assessmentId, $configByAssessmentId)) {
+                    return $assessmentMeta;
+                }
+
+                $fallbackConfig = AssessmentStageConfig::defaultForAssessment(
+                    $assessmentMeta['instrument_type'] ?? null,
+                    $index
+                );
+                $currentConfig = AssessmentStageConfig::normalize(
+                    is_array($assessmentMeta['stage_config'] ?? null) ? $assessmentMeta['stage_config'] : [],
+                    $fallbackConfig
+                );
+                $resolvedConfig = AssessmentStageConfig::normalize(
+                    is_array($configByAssessmentId[$assessmentId] ?? null)
+                        ? $configByAssessmentId[$assessmentId]
+                        : [],
+                    $fallbackConfig
+                );
+
+                if ($currentConfig !== $resolvedConfig) {
+                    $assessmentMeta['stage_config'] = $resolvedConfig;
+                    $wasUpdated = true;
+                }
+
+                return $assessmentMeta;
+            })
+            ->all();
+
+        if (! $wasUpdated) {
+            return $attempt;
+        }
+
+        $progressSnapshot = AssessmentStageProgress::usesStageFlow($snapshot)
+            ? AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot)
+            : null;
+        $activeDeadlineAt = is_array($progressSnapshot)
+            ? AssessmentStageProgress::activeDeadlineAt($progressSnapshot)
+            : null;
+
+        $attempt->forceFill([
+            'structure_snapshot' => $snapshot,
+            'progress_snapshot' => $progressSnapshot,
+            'deadline_at' => $activeDeadlineAt,
+        ])->save();
+
+        $attempt->structure_snapshot = $snapshot;
+        $attempt->progress_snapshot = $progressSnapshot;
+        $attempt->deadline_at = $activeDeadlineAt;
+
+        if ($attempt->status !== 'submitted') {
+            $target->forceFill([
+                'deadline_at' => $activeDeadlineAt,
+            ])->save();
+        }
+
+        return $attempt;
     }
 
     private function syncSnapshotFieldMetadata(AssessmentAttempt $attempt): AssessmentAttempt

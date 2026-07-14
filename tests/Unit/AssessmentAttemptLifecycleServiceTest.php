@@ -4,11 +4,13 @@ namespace Tests\Unit;
 
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
+use App\Models\Assessment;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentFormField;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentQuestionRandomizerService;
+use App\Support\Assessment\AssessmentStageProgress;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -50,12 +52,14 @@ class AssessmentAttemptLifecycleServiceTest extends TestCase
             $table->unsignedBigInteger('assessment_assignment_id');
             $table->unsignedBigInteger('assessment_id');
             $table->unsignedInteger('urutan')->default(1);
+            $table->json('stage_config')->nullable();
             $table->timestamps();
         });
 
         Schema::connection('sqlite')->create('assessments', function (Blueprint $table) {
             $table->id();
             $table->string('judul')->nullable();
+            $table->string('instrument_type')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -104,6 +108,7 @@ class AssessmentAttemptLifecycleServiceTest extends TestCase
             $table->string('status')->default('draft');
             $table->json('structure_snapshot')->nullable();
             $table->json('security_config_snapshot')->nullable();
+            $table->json('progress_snapshot')->nullable();
             $table->unsignedInteger('total_questions')->default(0);
             $table->unsignedInteger('required_questions')->default(0);
             $table->timestamp('started_at')->nullable();
@@ -225,6 +230,105 @@ class AssessmentAttemptLifecycleServiceTest extends TestCase
         );
         $this->assertTrue(
             (bool) data_get($attempt->fresh()->structure_snapshot, 'assessments.0.forms.0.fields.0.validasi.allow_other_input')
+        );
+    }
+
+    public function test_it_refreshes_stage_lock_snapshot_from_latest_assignment_config(): void
+    {
+        $assignment = AssessmentAssignment::query()->create();
+        $stageDefinitions = collect([
+            ['title' => 'Tahap 1', 'order' => 1, 'locked_in_attempt' => false],
+            ['title' => 'Tahap 2', 'order' => 2, 'locked_in_attempt' => true],
+            ['title' => 'Tahap 3', 'order' => 3, 'locked_in_attempt' => true],
+        ]);
+
+        $assessments = $stageDefinitions
+            ->map(function (array $stage) use ($assignment) {
+                $assessment = Assessment::query()->create([
+                    'judul' => $stage['title'],
+                    'instrument_type' => 'portofolio',
+                    'is_active' => true,
+                ]);
+
+                DB::table('assessment_assignment_assessments')->insert([
+                    'assessment_assignment_id' => $assignment->id,
+                    'assessment_id' => $assessment->id,
+                    'urutan' => $stage['order'],
+                    'stage_config' => json_encode([
+                        'enabled' => true,
+                        'entry_mode' => 'direct',
+                        'allow_draft' => true,
+                        'finalize_mode' => 'manual',
+                        'lock_until_previous_stages_completed' => false,
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                return $assessment;
+            })
+            ->values();
+
+        $target = AssessmentAssignmentTarget::query()->create([
+            'assessment_assignment_id' => $assignment->id,
+            'status' => 'ditugaskan',
+        ]);
+
+        $lockedSnapshot = [
+            'meta' => [
+                'total_questions' => 0,
+                'required_questions' => 0,
+            ],
+            'assessments' => $assessments->map(function (Assessment $assessment, int $index) use ($stageDefinitions) {
+                return [
+                    'id' => $assessment->id,
+                    'judul' => $assessment->judul,
+                    'instrument_type' => $assessment->instrument_type,
+                    'stage_index' => $index,
+                    'stage_config' => [
+                        'enabled' => true,
+                        'entry_mode' => 'direct',
+                        'allow_draft' => true,
+                        'finalize_mode' => 'manual',
+                        'lock_until_previous_stages_completed' => (bool) ($stageDefinitions[$index]['locked_in_attempt'] ?? false),
+                    ],
+                    'forms' => [],
+                ];
+            })->all(),
+        ];
+
+        $attempt = AssessmentAttempt::query()->create([
+            'assessment_assignment_target_id' => $target->id,
+            'status' => 'draft',
+            'structure_snapshot' => $lockedSnapshot,
+            'progress_snapshot' => AssessmentStageProgress::buildInitial($lockedSnapshot),
+            'total_questions' => 0,
+            'required_questions' => 0,
+        ]);
+
+        $target->setRelation('attempt', $attempt);
+
+        $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);
+        $randomizer->shouldNotReceive('buildSnapshot');
+
+        $attemptService = Mockery::mock(AssessmentAttemptService::class);
+        $service = new AssessmentAttemptLifecycleService($randomizer, $attemptService);
+
+        $resolvedAttempt = $service->ensureAttempt($target, false);
+
+        $this->assertFalse(
+            (bool) data_get($resolvedAttempt->structure_snapshot, 'assessments.1.stage_config.lock_until_previous_stages_completed')
+        );
+        $this->assertFalse(
+            (bool) data_get($resolvedAttempt->structure_snapshot, 'assessments.2.stage_config.lock_until_previous_stages_completed')
+        );
+        $this->assertSame(
+            AssessmentStageProgress::STATUS_READY,
+            data_get($resolvedAttempt->progress_snapshot, 'stages.1.status')
+        );
+        $this->assertSame(
+            AssessmentStageProgress::STATUS_READY,
+            data_get($resolvedAttempt->progress_snapshot, 'stages.2.status')
         );
     }
 }

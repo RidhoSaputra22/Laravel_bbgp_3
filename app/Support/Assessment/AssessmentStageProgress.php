@@ -35,12 +35,10 @@ class AssessmentStageProgress
         $stages = [];
 
         foreach (self::normalizeAssessments($snapshot) as $index => $assessment) {
-            $config = AssessmentStageConfig::normalize(
-                $assessment['stage_config'] ?? [],
-                AssessmentStageConfig::defaultForAssessment(
-                    $assessment['instrument_type'] ?? null,
-                    $index
-                )
+            $config = AssessmentStageConfig::normalizeForAssessment(
+                $assessment['instrument_type'] ?? null,
+                $index,
+                is_array($assessment['stage_config'] ?? null) ? $assessment['stage_config'] : []
             );
             $stageFieldIds = self::stageFieldIdsFromAssessment($assessment);
             $isLocked = AssessmentStageConfig::requiresManualOpening($config, $index);
@@ -98,8 +96,7 @@ class AssessmentStageProgress
                     ? (string) $storedStage['completion_mode']
                     : null,
                 'config' => AssessmentStageConfig::normalize(
-                    is_array($storedStage['config'] ?? null) ? $storedStage['config'] : ($stage['config'] ?? []),
-                    $stage['config'] ?? []
+                    is_array($stage['config'] ?? null) ? $stage['config'] : []
                 ),
             ];
         }

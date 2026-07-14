@@ -1848,6 +1848,9 @@
                         allow_draft: String(initialConfig.allow_draft ?? defaultConfig.allow_draft ?? 0) === 'true'
                             || String(initialConfig.allow_draft ?? defaultConfig.allow_draft ?? 0) === '1',
                         finalize_mode: initialConfig.finalize_mode || defaultConfig.finalize_mode || 'manual',
+                        admin_gate_enabled:
+                            String(initialConfig.admin_gate_enabled ?? defaultConfig.admin_gate_enabled ?? 0) === 'true'
+                            || String(initialConfig.admin_gate_enabled ?? defaultConfig.admin_gate_enabled ?? 0) === '1',
                         lock_until_previous_stages_completed:
                             String(
                                 initialConfig.lock_until_previous_stages_completed
@@ -1905,7 +1908,8 @@
                         ? `Preset awal mengikuti tipe instrumen ${item.instrument_label}.`
                         : 'Preset awal mengikuti urutan assessment saat ini.';
                     const usesAdminGate = stageNumber > 1;
-                    const adminGateChecked = usesAdminGate && stageConfig.lock_until_previous_stages_completed;
+                    const adminGateEnabled = usesAdminGate && stageConfig.admin_gate_enabled;
+                    const adminGateChecked = adminGateEnabled && stageConfig.lock_until_previous_stages_completed;
                     const adminGateLabel = usesAdminGate
                         ? 'Kunci sampai admin membuka'
                         : 'Tahap pertama selalu terbuka';
@@ -1925,8 +1929,8 @@
                         <tr class="stage-config-row">
                             <td colspan="3">
                                 <div class="stage-config-shell">
-                                    <div class="stage-config-header">
-                                        <div>
+                                <div class="stage-config-header">
+                                    <div>
                                             <div class="stage-config-title">Konfigurasi Tahap ${stageNumber}</div>
                                             <div class="stage-config-hint">${escapeHtml(defaultHint)}</div>
                                         </div>
@@ -1934,6 +1938,7 @@
                                     </div>
                                 <div class="stage-config-card">
                                     <input type="hidden" name="${baseName}[enabled]" value="${stageConfig.enabled ? '1' : '0'}">
+                                    <input type="hidden" name="${baseName}[admin_gate_enabled]" value="${adminGateEnabled ? '1' : '0'}">
                                     <div class="stage-config-grid">
                                         <div>
                                             <label>Mode Akses</label>

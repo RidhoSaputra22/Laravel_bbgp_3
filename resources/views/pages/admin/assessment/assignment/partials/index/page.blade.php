@@ -198,13 +198,13 @@
                                                 </td>
                                                 <td class="text-center">
                                                     @if ($stageAccess['has_pending_admin_open'] ?? false)
-                                                        <form action="{{ route('assessment.assignment.open-next-stage', $data->id) }}"
+                                                        <form action="{{ route('assessment.assignment.open-all-stages', $data->id) }}"
                                                             method="POST" class="my-1"
-                                                            onsubmit="return confirm({{ \Illuminate\Support\Js::from($stageAccess['action_description'] ?? 'Tahap berikutnya akan dibuka untuk peserta.') }});">
+                                                            onsubmit="return confirm({{ \Illuminate\Support\Js::from($stageAccess['action_description'] ?? 'Semua tahap terkunci akan dibuka untuk peserta.') }});">
                                                             @csrf
                                                             <button type="submit" class="btn btn-primary btn-sm">
                                                                 <i class="fas fa-unlock mr-1"></i>
-                                                                {{ $stageAccess['action_label'] ?? 'Buka Tahap' }}
+                                                                {{ $stageAccess['action_label'] ?? 'Buka Semua Tahap' }}
                                                             </button>
                                                         </form>
                                                     @endif
