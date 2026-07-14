@@ -260,6 +260,8 @@ class KegiatanController extends Controller
         $peserta = PesertaKegiatan::where('no_ktp', $nik)->first();
         $instansi = '';
 
+
+
         // jika peserta ada di PesertaKegiatan, maka tambahkan jabatan
         if($peserta != null){
 
@@ -267,13 +269,19 @@ class KegiatanController extends Controller
             $guru = Guru::where('no_ktp', $nik)->first();
             if($guru != null){
                 $instansi = $guru->sekolah->nama_sekolah ?? '';
+                $jabatan = $guru->eksternal_jabatan ?? '';
             }else{
                 // cek apakah peserta ada di tabel pegawai
                 $pegawai = Pegawai::where('no_ktp', $nik)->first();
                 if($pegawai != null){
                     $instansi = $pegawai->instansi ?? '';
+                    $jabatan = $pegawai->jabatan ?? '';
                 }
             }
+
+            $peserta->jabatan = $jabatan ?? '';
+
+
         }
 
         if($peserta == null){
@@ -291,6 +299,8 @@ class KegiatanController extends Controller
         } else {
             $status = true;
         }
+
+        
 
         Session::put('nik', $nik);
         Session::put('dataAda', $status);
