@@ -13,6 +13,7 @@ use App\Services\Assessment\AssessmentAttemptSecurityService;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
+use App\Support\Assessment\AssessmentCertificateLinkHelper;
 use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\AssessmentTrainingSummaryHelper;
@@ -818,6 +819,10 @@ class PortalController extends Controller
             'scoringSummary' => $this->attemptService->buildScoringSummary($attempt),
             'answerLookup' => $answerLookup,
             'trainingSummary' => AssessmentTrainingSummaryHelper::buildAttemptSummaryFromSnapshot(
+                is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [],
+                $answerLookup
+            ),
+            'certificateLinks' => AssessmentCertificateLinkHelper::collectFromSnapshot(
                 is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [],
                 $answerLookup
             ),

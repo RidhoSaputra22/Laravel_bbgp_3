@@ -9,6 +9,8 @@
     'placeholder' => null,
     'required' => false,
     'error' => null,
+    'allowedDomains' => [],
+    'inputTitle' => null,
 ])
 
 @php
@@ -17,6 +19,11 @@
     $errorBag = $errors ?? null;
     $errorMessage = $error ?: ($errorBag ? $errorBag->first($errorKey) : null);
     $inputMode = $type === 'number' ? 'decimal' : null;
+    $allowedDomains = collect($allowedDomains)
+        ->map(fn ($domain) => trim((string) $domain))
+        ->filter()
+        ->values()
+        ->all();
 @endphp
 
 <div {{ $attributes->only('class')->class(['space-y-2 ']) }}>
@@ -39,6 +46,8 @@
 
     <input {{ $attributes->except('class') }} id="{{ $id }}" type="{{ $type }}"
         name="{{ $name }}" value="{{ $value }}" placeholder="{{ $placeholder }}"
+        @if ($allowedDomains !== []) data-url-allowed-domains="{{ implode(',', $allowedDomains) }}" @endif
+        @if ($inputTitle) title="{{ $inputTitle }}" @endif
         @if ($inputMode) inputmode="{{ $inputMode }}" @endif @required($required)
         @class([
             'w-full rounded-sm border bg-white px-4 py-2 text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#1376bd] focus:ring-4 focus:ring-[#1376bd]/15',

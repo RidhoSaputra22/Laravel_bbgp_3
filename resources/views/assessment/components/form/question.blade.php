@@ -14,12 +14,15 @@
         'number' => 'number',
         'date' => 'date',
         'email' => 'email',
+        'url' => 'url',
         default => 'text',
     };
     $isChoiceField = in_array($field['tipe_field'], ['radio', 'checkbox'], true);
     $fileInputMode = in_array(data_get($field, 'opsi_field.input_mode'), ['file', 'link'], true)
         ? data_get($field, 'opsi_field.input_mode')
         : 'file';
+    $urlAllowedDomains = \App\Support\Assessment\AssessmentUrlValidationHelper::allowedDomains($field);
+    $urlInputTitle = \App\Support\Assessment\AssessmentUrlValidationHelper::buildInputTitle($field);
 @endphp
 
 <div class="mb-[18px] rounded-[20px] border p-[22px] last:mb-0 {{ $error ? 'border-red-500/50 bg-red-50/50' : 'border-[#e4edf4] bg-[#fbfdff]' }}">
@@ -76,14 +79,18 @@
             <x-assessment::form.file-input :label="$field['label']" :description="$field['deskripsi']" :hint="$field['bantuan']"
                 :name="$answerName" :required="(bool) $field['is_required']" :error="$error"
                 :mode="$fileInputMode" :value="$fileInputMode === 'link' ? $oldValue : null"
-                :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'" />
+                :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'"
+                :allowed-domains="$fileInputMode === 'link' ? $urlAllowedDomains : []"
+                :input-title="$fileInputMode === 'link' ? $urlInputTitle : null" />
         @break
 
         @default
             <x-assessment::form.input :label="$field['label']" :description="$field['deskripsi']" :hint="$field['bantuan']"
                 :type="$inputType" :name="$answerName" :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Masukkan jawaban Anda'"
-                :required="(bool) $field['is_required']" :error="$error" />
+                :required="(bool) $field['is_required']" :error="$error"
+                :allowed-domains="$field['tipe_field'] === 'url' ? $urlAllowedDomains : []"
+                :input-title="$field['tipe_field'] === 'url' ? $urlInputTitle : null" />
     @endswitch
 
     @if ($error)

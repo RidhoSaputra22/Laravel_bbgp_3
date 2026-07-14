@@ -41,6 +41,30 @@ class AssessmentResultViewTest extends TestCase
         $response->assertDontSee(route('assessment.portal.result.download', 42, absolute: false));
     }
 
+    public function test_result_view_shows_certificate_link_cards_when_available(): void
+    {
+        $viewData = $this->buildViewData(AssessmentKetenagaanType::TENAGA_PENDIDIK->value);
+        $viewData['certificateLinks'] = [
+            [
+                'assessment_title' => 'Portfolio Guru',
+                'form_title' => 'Pengalaman Pelatihan',
+                'field_label' => 'Riwayat Pengalaman Pelatihan',
+                'link_label' => 'Link Google Drive Sertifikat',
+                'title' => 'Bimtek Numerasi',
+                'detail' => 'Penyelenggara: BBGTK Sulsel • Tahun: 2026',
+                'url' => 'https://drive.google.com/file/d/sertifikat-1/view',
+                'row_number' => 1,
+            ],
+        ];
+
+        $response = $this->view('assessment.result.result', $viewData);
+
+        $response->assertSee('Link Sertifikasi Peserta');
+        $response->assertSee('Bimtek Numerasi');
+        $response->assertSee('Lihat Sertifikat');
+        $response->assertSee('https://drive.google.com/file/d/sertifikat-1/view');
+    }
+
     public function test_stakeholder_pdf_view_renders_question_answers(): void
     {
         $viewData = $this->buildViewData(AssessmentKetenagaanType::STAKEHOLDER->value);
@@ -218,6 +242,7 @@ class AssessmentResultViewTest extends TestCase
             ],
             'scoringSummary' => [],
             'answerLookup' => [],
+            'certificateLinks' => [],
             'viewerMode' => 'participant',
             'backUrl' => route('assessment.portal.dashboard'),
             'backLabel' => 'Kembali ke Dashboard',

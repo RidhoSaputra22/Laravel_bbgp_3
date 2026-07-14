@@ -361,6 +361,10 @@
                     @endif
                 </x-assessment::ui.card>
             @endif
+
+             @include('assessment.result.partials.certificate-links', [
+                'certificateLinks' => $certificateLinks ?? [],
+            ])
         </div>
 
         <aside class="min-w-0 self-start space-y-4 xl:sticky xl:top-6">

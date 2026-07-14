@@ -7,6 +7,7 @@ use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
 use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\AssessmentUrlValidationHelper;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
@@ -868,6 +869,15 @@ class AssessmentAttemptService
                         continue;
                     }
 
+                    if (! $this->matchesExternalUrlDefinition($linkValue, $field)) {
+                        $messages[$fieldKey] = $this->invalidExternalUrlMessage(
+                            "Link file untuk pertanyaan {$fieldLabel}",
+                            $field
+                        );
+
+                        continue;
+                    }
+
                     $normalized[(int) $fieldId] = [
                         'assessment_id' => $field['assessment_id'],
                         'assessment_form_id' => $field['assessment_form_id'],
@@ -1082,6 +1092,23 @@ class AssessmentAttemptService
 
                 if (! $date || $date->format('Y-m-d') !== $textValue) {
                     $messages[$fieldKey] = "Format tanggal pada pertanyaan {$fieldLabel} tidak valid.";
+
+                    continue;
+                }
+            }
+
+            if ($fieldType === 'url') {
+                if (! $this->isValidExternalUrl($textValue)) {
+                    $messages[$fieldKey] = "Jawaban pada pertanyaan {$fieldLabel} harus berupa URL yang valid.";
+
+                    continue;
+                }
+
+                if (! $this->matchesExternalUrlDefinition($textValue, $field)) {
+                    $messages[$fieldKey] = $this->invalidExternalUrlMessage(
+                        "Jawaban pada pertanyaan {$fieldLabel}",
+                        $field
+                    );
 
                     continue;
                 }
@@ -1326,6 +1353,17 @@ class AssessmentAttemptService
                             'message' => "Kolom {$column['label']} pada baris ".($rowIndex + 1)." untuk pertanyaan {$field['label']} harus berupa URL yang valid.",
                         ];
                     }
+
+                    if ($column['tipe_field'] === 'url' && ! $this->matchesExternalUrlDefinition($columnValue, $column)) {
+                        return [
+                            'rows' => [],
+                            'columns' => $columns,
+                            'message' => $this->invalidExternalUrlMessage(
+                                "Kolom {$column['label']} pada baris ".($rowIndex + 1)." untuk pertanyaan {$field['label']}",
+                                $column
+                            ),
+                        ];
+                    }
                 }
 
                 $normalizedRow[$columnName] = $columnValue;
@@ -1520,15 +1558,23 @@ class AssessmentAttemptService
 
     private function isValidExternalUrl(string $value): bool
     {
-        $value = trim($value);
+        return AssessmentUrlValidationHelper::isValidHttpUrl($value);
+    }
 
-        if ($value === '' || ! filter_var($value, FILTER_VALIDATE_URL)) {
-            return false;
-        }
+    /**
+     * @param  array<string, mixed>  $definition
+     */
+    private function matchesExternalUrlDefinition(string $value, array $definition): bool
+    {
+        return AssessmentUrlValidationHelper::matchesDefinition($value, $definition);
+    }
 
-        $scheme = parse_url($value, PHP_URL_SCHEME);
-
-        return in_array(strtolower((string) $scheme), ['http', 'https'], true);
+    /**
+     * @param  array<string, mixed>  $definition
+     */
+    private function invalidExternalUrlMessage(string $context, array $definition): string
+    {
+        return AssessmentUrlValidationHelper::buildInvalidMessage($context, $definition);
     }
 
     private function buildSummaryFromSnapshot(

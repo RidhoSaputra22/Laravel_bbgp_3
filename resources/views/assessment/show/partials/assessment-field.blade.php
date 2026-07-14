@@ -72,6 +72,8 @@
         ? (string) ($fileFieldConfig['input_mode'] ?? 'file')
         : 'file';
     $isRequired = (bool) ($field['is_required'] ?? false);
+    $urlAllowedDomains = \App\Support\Assessment\AssessmentUrlValidationHelper::allowedDomains($field);
+    $urlInputTitle = \App\Support\Assessment\AssessmentUrlValidationHelper::buildInputTitle($field);
     $existingFileUrl = $savedAnswer['file_url'] ?? null;
     $existingFileName = $savedPayload['original_name'] ?? ($savedAnswer['text'] ?? null);
     $existingLinkUrl = trim((string) ($savedPayload['link_url'] ?? ($fileInputMode === 'link' ? ($savedAnswer['text'] ?? '') : '')));
@@ -92,6 +94,7 @@
         'number' => 'number',
         'date' => 'date',
         'email' => 'email',
+        'url' => 'url',
         default => 'text',
     };
 @endphp
@@ -108,6 +111,7 @@
     data-allow-other-input="{{ $selectAllowsOtherInput ? '1' : '0' }}"
     data-select-other-option-value="{{ $selectOptionValue }}"
     data-file-input-mode="{{ $fileInputMode }}"
+    data-url-allowed-domains="{{ implode(',', $urlAllowedDomains) }}"
     data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
     <div class="mb-3 flex items-start justify-between gap-4">
         <div class="min-w-0">
@@ -214,7 +218,9 @@
             <x-assessment::form.file-input :id="$inputId" :label="null" :description="null" :name="$answerName"
                 :required="$isRequired" :error="$fieldError" :mode="$fileInputMode"
                 :value="$fileInputMode === 'link' ? $oldFileLinkValue : null"
-                :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'" />
+                :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'"
+                :allowed-domains="$fileInputMode === 'link' ? $urlAllowedDomains : []"
+                :input-title="$fileInputMode === 'link' ? $urlInputTitle : null" />
 
             @if ($hasExistingFile)
                 <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-3 text-sm text-slate-600">
@@ -283,6 +289,12 @@
                                 @php
                                     $columnName = $column['nama_field'] ?? 'kolom';
                                     $columnType = $column['tipe_field'] ?? 'text';
+                                    $columnUrlAllowedDomains = $columnType === 'url'
+                                        ? \App\Support\Assessment\AssessmentUrlValidationHelper::allowedDomains($column)
+                                        : [];
+                                    $columnUrlInputTitle = $columnType === 'url'
+                                        ? \App\Support\Assessment\AssessmentUrlValidationHelper::buildInputTitle($column)
+                                        : null;
                                 @endphp
                                 <div class="{{ $columnType === 'textarea' ? 'md:col-span-2' : '' }}">
                                     <label class="mb-2 block text-sm font-medium text-slate-700">
@@ -332,6 +344,8 @@
                                             :name="fieldName(rowIndex, '{{ $columnName }}')"
                                             x-model="row['{{ $columnName }}']"
                                             placeholder="{{ $column['placeholder'] ?? '' }}"
+                                            @if ($columnUrlAllowedDomains !== []) data-url-allowed-domains="{{ implode(',', $columnUrlAllowedDomains) }}" @endif
+                                            @if ($columnUrlInputTitle) title="{{ $columnUrlInputTitle }}" @endif
                                             data-repeater-required="{{ !empty($column['is_required']) ? '1' : '0' }}"
                                             data-repeater-label="{{ $column['label'] ?? $columnName }}"
                                         >
@@ -362,7 +376,9 @@
             <x-assessment::form.input :id="$inputId" :label="null" :description="null" :type="$inputType"
                 :name="$answerName" :value="$oldValue"
                 :placeholder="$field['placeholder'] ?: 'Masukkan jawaban Anda'"
-                :required="$isRequired" :error="$fieldError" />
+                :required="$isRequired" :error="$fieldError"
+                :allowed-domains="$fieldType === 'url' ? $urlAllowedDomains : []"
+                :input-title="$fieldType === 'url' ? $urlInputTitle : null" />
     @endswitch
 
     @if ($fieldError)

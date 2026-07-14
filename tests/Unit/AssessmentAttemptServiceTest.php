@@ -85,9 +85,11 @@ class AssessmentAttemptServiceTest extends TestCase
             $table->id();
             $table->unsignedBigInteger('assessment_form_id');
             $table->string('label');
+            $table->string('nama_field')->nullable();
             $table->string('autofill_source')->nullable();
             $table->string('lookup_source')->nullable();
             $table->string('tipe_field')->default('text');
+            $table->string('placeholder')->nullable();
             $table->json('opsi_field')->nullable();
             $table->json('validasi')->nullable();
             $table->unsignedInteger('urutan')->default(1);
@@ -447,9 +449,47 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
-    public function test_submit_accepts_file_field_in_link_mode_with_valid_url(): void
+    public function test_submit_accepts_file_field_in_link_mode_with_supported_google_domains(): void
+    {
+        $urls = [
+            'https://drive.google.com/file/d/sertifikat/view',
+            'https://docs.google.com/document/d/sertifikat/view',
+            'https://sheets.google.com/sheet/d/sertifikat/view',
+            'https://slides.google.com/presentation/d/sertifikat/view',
+        ];
+
+        foreach ($urls as $url) {
+            ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+                'tipe_field' => 'file',
+                'opsi_field' => [
+                    'input_mode' => 'link',
+                    'max_size_kb' => 2048,
+                    'max_files' => 1,
+                ],
+            ]);
+
+            $submittedAttempt = $this->makeService()->submit(
+                $attempt,
+                [$field->id => $url],
+                []
+            );
+
+            $answer = $submittedAttempt->answers->firstWhere('assessment_form_field_id', $field->id);
+
+            $this->assertNotNull($answer);
+            $this->assertSame($url, $answer->answer_text);
+            $this->assertSame('link', data_get($answer->answer_payload, 'input_mode'));
+            $this->assertSame($url, data_get($answer->answer_payload, 'link_url'));
+            $this->assertNull($answer->answer_file_path);
+        }
+    }
+
+    public function test_submit_rejects_file_link_mode_url_outside_google_drive_domain_when_required(): void
     {
         ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'label' => 'Link Google Drive Sertifikat',
+            'nama_field' => 'link_google_drive_sertifikat',
+            'placeholder' => 'https://drive.google.com/...',
             'tipe_field' => 'file',
             'opsi_field' => [
                 'input_mode' => 'link',
@@ -458,19 +498,19 @@ class AssessmentAttemptServiceTest extends TestCase
             ],
         ]);
 
-        $submittedAttempt = $this->makeService()->submit(
-            $attempt,
-            [$field->id => 'https://drive.google.com/file/d/sertifikat/view'],
-            []
-        );
-
-        $answer = $submittedAttempt->answers->firstWhere('assessment_form_field_id', $field->id);
-
-        $this->assertNotNull($answer);
-        $this->assertSame('https://drive.google.com/file/d/sertifikat/view', $answer->answer_text);
-        $this->assertSame('link', data_get($answer->answer_payload, 'input_mode'));
-        $this->assertSame('https://drive.google.com/file/d/sertifikat/view', data_get($answer->answer_payload, 'link_url'));
-        $this->assertNull($answer->answer_file_path);
+        try {
+            $this->makeService()->submit(
+                $attempt,
+                [$field->id => 'https://example.com/sertifikat.pdf'],
+                []
+            );
+            $this->fail('Submit should reject non-Google Drive links when the field requires Google Drive.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Link file untuk pertanyaan Link Google Drive Sertifikat harus menggunakan URL yang valid pada domain drive.google.com, docs.google.com, sheets.google.com, slides.google.com.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
     }
 
     public function test_submit_accepts_select_other_input_when_enabled(): void
@@ -547,6 +587,77 @@ class AssessmentAttemptServiceTest extends TestCase
         } catch (ValidationException $exception) {
             $this->assertSame(
                 ['Kolom Link Sertifikat pada baris 1 untuk pertanyaan Pertanyaan Reflektif harus berupa URL yang valid.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
+    }
+
+    public function test_submit_rejects_repeater_google_drive_url_column_outside_google_drive_domain(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'repeater',
+            'opsi_field' => [
+                'min_rows' => 0,
+                'max_rows' => 10,
+                'columns' => [
+                    [
+                        'label' => 'Pengalaman',
+                        'nama_field' => 'pengalaman',
+                        'tipe_field' => 'text',
+                        'is_required' => true,
+                    ],
+                    [
+                        'label' => 'Link Google Drive Sertifikat / SK',
+                        'nama_field' => 'link_google_drive_sertifikat_sk',
+                        'tipe_field' => 'url',
+                        'placeholder' => 'https://drive.google.com/...',
+                        'is_required' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        try {
+            $this->makeService()->submit(
+                $attempt,
+                [
+                    $field->id => [
+                        [
+                            'pengalaman' => 'Guru Mata Pelajaran IPA',
+                            'link_google_drive_sertifikat_sk' => 'https://example.com/sk.pdf',
+                        ],
+                    ],
+                ],
+                []
+            );
+            $this->fail('Submit should reject non-Google Drive repeater URL columns when the column requires Google Drive.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Kolom Link Google Drive Sertifikat / SK pada baris 1 untuk pertanyaan Pertanyaan Reflektif harus menggunakan URL yang valid pada domain drive.google.com, docs.google.com, sheets.google.com, slides.google.com.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
+    }
+
+    public function test_submit_rejects_top_level_google_drive_url_field_outside_google_drive_domain(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'label' => 'Link Google Drive Bukti Dukung',
+            'nama_field' => 'link_google_drive_bukti_dukung',
+            'placeholder' => 'https://drive.google.com/...',
+            'tipe_field' => 'url',
+        ]);
+
+        try {
+            $this->makeService()->submit(
+                $attempt,
+                [$field->id => 'https://example.com/bukti.pdf'],
+                []
+            );
+            $this->fail('Submit should reject non-Google Drive top-level URL fields when the field requires Google Drive.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Jawaban pada pertanyaan Link Google Drive Bukti Dukung harus menggunakan URL yang valid pada domain drive.google.com, docs.google.com, sheets.google.com, slides.google.com.'],
                 $exception->errors()['answers.'.$field->id] ?? []
             );
         }
@@ -677,8 +788,10 @@ class AssessmentAttemptServiceTest extends TestCase
     {
         ['attempt' => $attempt, 'fields' => [$field]] = $this->createAttemptScenarioWithFields([
             [
-                'label' => 'Pertanyaan Reflektif',
+                'label' => $fieldOverrides['label'] ?? 'Pertanyaan Reflektif',
+                'nama_field' => $fieldOverrides['nama_field'] ?? null,
                 'tipe_field' => $fieldOverrides['tipe_field'] ?? 'text',
+                'placeholder' => $fieldOverrides['placeholder'] ?? null,
                 'opsi_field' => $fieldOverrides['opsi_field'] ?? [],
                 'validasi' => $fieldOverrides['validasi'] ?? [],
                 'is_required' => $fieldOverrides['is_required'] ?? true,
@@ -711,7 +824,9 @@ class AssessmentAttemptServiceTest extends TestCase
                 return AssessmentFormField::query()->create([
                     'assessment_form_id' => $form->id,
                     'label' => $fieldDefinition['label'] ?? 'Pertanyaan '.($index + 1),
+                    'nama_field' => $fieldDefinition['nama_field'] ?? null,
                     'tipe_field' => $fieldDefinition['tipe_field'] ?? 'text',
+                    'placeholder' => $fieldDefinition['placeholder'] ?? null,
                     'opsi_field' => $fieldDefinition['opsi_field'] ?? [],
                     'validasi' => $fieldDefinition['validasi'] ?? [],
                     'urutan' => $index + 1,
@@ -743,7 +858,9 @@ class AssessmentAttemptServiceTest extends TestCase
                     'assessment_id' => $assessment->id,
                     'assessment_form_id' => $form->id,
                     'label' => $field->label,
+                    'nama_field' => $field->nama_field,
                     'tipe_field' => $field->tipe_field,
+                    'placeholder' => $field->placeholder,
                     'opsi_field' => $field->opsi_field ?? [],
                     'validasi' => $field->validasi ?? [],
                     'is_required' => (bool) $field->is_required,

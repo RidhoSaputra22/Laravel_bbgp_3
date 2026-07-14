@@ -9,6 +9,8 @@
     'mode' => 'file',
     'value' => null,
     'placeholder' => null,
+    'allowedDomains' => [],
+    'inputTitle' => null,
 ])
 
 @php
@@ -17,6 +19,11 @@
     $errorBag = $errors ?? null;
     $errorMessage = $error ?: ($errorBag ? $errorBag->first($errorKey) : null);
     $mode = in_array(trim((string) $mode), ['file', 'link'], true) ? trim((string) $mode) : 'file';
+    $allowedDomains = collect($allowedDomains)
+        ->map(fn ($domain) => trim((string) $domain))
+        ->filter()
+        ->values()
+        ->all();
 @endphp
 
 <div {{ $attributes->only('class')->class(['space-y-2']) }}>
@@ -41,6 +48,8 @@
         <input {{ $attributes->except('class') }} id="{{ $id }}" type="url" name="{{ $name }}"
             value="{{ old($errorKey, $value) }}"
             placeholder="{{ $placeholder ?: 'https://drive.google.com/file/d/.../view' }}"
+            @if ($allowedDomains !== []) data-url-allowed-domains="{{ implode(',', $allowedDomains) }}" @endif
+            @if ($inputTitle) title="{{ $inputTitle }}" @endif
             @required($required)
             @class([
                 'block w-full rounded-sm border bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-[#1376bd] focus:ring-4 focus:ring-[#1376bd]/15',

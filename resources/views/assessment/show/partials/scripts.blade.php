@@ -97,6 +97,46 @@
             }
         };
 
+        window.assessmentResolveAllowedDomains = function(value) {
+            return String(value || '')
+                .split(',')
+                .map((domain) => String(domain || '').trim().toLowerCase().replace(/\.+$/, ''))
+                .filter((domain) => domain !== '');
+        };
+
+        window.assessmentMatchesAllowedDomains = function(value, allowedDomains) {
+            if (!Array.isArray(allowedDomains) || allowedDomains.length === 0) {
+                return true;
+            }
+
+            const normalizedValue = String(value || '').trim();
+
+            if (!window.assessmentIsValidHttpUrl(normalizedValue)) {
+                return false;
+            }
+
+            try {
+                const parsedUrl = new URL(normalizedValue);
+                const hostname = String(parsedUrl.hostname || '').trim().toLowerCase().replace(/\.+$/, '');
+
+                return allowedDomains.includes(hostname);
+            } catch (error) {
+                return false;
+            }
+        };
+
+        window.assessmentBuildUrlValidationMessage = function(contextLabel, allowedDomains) {
+            if (!Array.isArray(allowedDomains) || allowedDomains.length === 0) {
+                return `${contextLabel} harus berupa URL yang valid.`;
+            }
+
+            if (allowedDomains.length === 1 && allowedDomains[0] === 'drive.google.com') {
+                return `${contextLabel} harus menggunakan URL Google Drive dengan domain drive.google.com.`;
+            }
+
+            return `${contextLabel} harus menggunakan URL yang valid pada domain ${allowedDomains.join(', ')}.`;
+        };
+
         window.createAssessmentSecurityGuard = function(component, securityConfig) {
             const config = securityConfig && typeof securityConfig === 'object' ? securityConfig : null;
 
@@ -2515,6 +2555,7 @@
                         }
                     } else if (fieldType === 'file') {
                         const fileInputMode = fieldWrapper.dataset.fileInputMode || 'file';
+                        const allowedDomains = window.assessmentResolveAllowedDomains(fieldWrapper.dataset.urlAllowedDomains);
 
                         if (fileInputMode === 'link') {
                             const input = fieldWrapper.querySelector('input[type="url"]');
@@ -2524,6 +2565,11 @@
                                 message = `Link file untuk pertanyaan ${fieldLabel} wajib diisi.`;
                             } else if (linkValue && !window.assessmentIsValidHttpUrl(linkValue)) {
                                 message = `Link file untuk pertanyaan ${fieldLabel} harus berupa URL yang valid.`;
+                            } else if (linkValue && !window.assessmentMatchesAllowedDomains(linkValue, allowedDomains)) {
+                                message = window.assessmentBuildUrlValidationMessage(
+                                    `Link file untuk pertanyaan ${fieldLabel}`,
+                                    allowedDomains
+                                );
                             }
                         } else {
                             const input = fieldWrapper.querySelector('input[type="file"]');
@@ -2588,15 +2634,26 @@
                                 }
 
                                 const invalidUrlInput = inputs.find((input) => {
+                                    const allowedDomains = window.assessmentResolveAllowedDomains(input?.dataset?.urlAllowedDomains);
+
                                     return input instanceof HTMLInputElement
                                         && input.type === 'url'
                                         && String(input.value || '').trim() !== ''
-                                        && !window.assessmentIsValidHttpUrl(input.value || '');
+                                        && (
+                                            !window.assessmentIsValidHttpUrl(input.value || '')
+                                            || !window.assessmentMatchesAllowedDomains(input.value || '', allowedDomains)
+                                        );
                                 });
 
                                 if (invalidUrlInput) {
                                     const columnLabel = invalidUrlInput.dataset.repeaterLabel || 'Kolom';
-                                    message = `Kolom ${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel} harus berupa URL yang valid.`;
+                                    const allowedDomains = window.assessmentResolveAllowedDomains(invalidUrlInput.dataset.urlAllowedDomains);
+                                    const contextLabel = `Kolom ${columnLabel} pada baris ${Number(index) + 1} untuk pertanyaan ${fieldLabel}`;
+
+                                    message = !window.assessmentIsValidHttpUrl(invalidUrlInput.value || '')
+                                        ? `${contextLabel} harus berupa URL yang valid.`
+                                        : window.assessmentBuildUrlValidationMessage(contextLabel, allowedDomains);
+
                                     break;
                                 }
                             }
@@ -2618,6 +2675,7 @@
                         const rawValue = typeof input.value === 'string' ? input.value : '';
                         const value = rawValue.trim();
                         const allowsOtherInput = fieldWrapper.dataset.allowOtherInput === '1';
+                        const allowedDomains = window.assessmentResolveAllowedDomains(fieldWrapper.dataset.urlAllowedDomains);
                         const selectOtherOptionValue = String(fieldWrapper.dataset.selectOtherOptionValue || '').trim();
                         const selectOtherInput = fieldType === 'select' && allowsOtherInput
                             ? fieldWrapper.querySelector('input[name^="answers["][name$="[other_text]"]')
@@ -2641,6 +2699,13 @@
                             message = `Jawaban pada pertanyaan ${fieldLabel} harus berupa angka.`;
                         } else if (fieldType === 'date' && value !== '' && !this.isValidDate(value)) {
                             message = `Format tanggal pada pertanyaan ${fieldLabel} tidak valid.`;
+                        } else if (fieldType === 'url' && value !== '' && !window.assessmentIsValidHttpUrl(value)) {
+                            message = `Jawaban pada pertanyaan ${fieldLabel} harus berupa URL yang valid.`;
+                        } else if (fieldType === 'url' && value !== '' && !window.assessmentMatchesAllowedDomains(value, allowedDomains)) {
+                            message = window.assessmentBuildUrlValidationMessage(
+                                `Jawaban pada pertanyaan ${fieldLabel}`,
+                                allowedDomains
+                            );
                         }
                     }
 
