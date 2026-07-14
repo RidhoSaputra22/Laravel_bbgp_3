@@ -259,14 +259,29 @@ class KegiatanController extends Controller
         $title = 'Peserta';
         $peserta = PesertaKegiatan::where('no_ktp', $nik)->first();
         $instansi = '';
-        // dd($peserta == null);
-        if ($peserta == null) {
-            $peserta = Pegawai::where('no_ktp', $nik)->first();
+
+        // jika peserta ada di PesertaKegiatan, maka tambahkan jabatan
+        if($peserta != null){
+
+            // cek apakah peserta ada di tabel guru
+            $guru = Guru::where('no_ktp', $nik)->first();
+            if($guru != null){
+                $instansi = $guru->sekolah->nama_sekolah ?? '';
+            }else{
+                // cek apakah peserta ada di tabel pegawai
+                $pegawai = Pegawai::where('no_ktp', $nik)->first();
+                if($pegawai != null){
+                    $instansi = $pegawai->instansi ?? '';
+                }
+            }
+        }
+
+        if($peserta == null){
             $title = 'Pegawai';
-            $instansi = 'Kantor BBGTK SulSel';
+            $peserta = Pegawai::where('no_ktp', $nik)->first();
+            $instansi = $peserta->instansi ?? '';
 
             if ($peserta == null) {
-
                 $title = 'Eksternal';
                 $peserta = Guru::where('no_ktp', $nik)->first();
                 $instansi = $peserta->sekolah->nama_sekolah ?? '';
@@ -274,11 +289,8 @@ class KegiatanController extends Controller
 
             $status = false;
         } else {
-
             $status = true;
         }
-        // dump($instansi);
-        // dd($peserta);
 
         Session::put('nik', $nik);
         Session::put('dataAda', $status);
