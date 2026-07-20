@@ -270,6 +270,32 @@
 
         }
 
+        .assessment-insert-divider {
+            align-items: center;
+            display: flex;
+            gap: 0.75rem;
+            margin: -0.35rem 0 1rem;
+        }
+
+        .assessment-insert-divider::before,
+        .assessment-insert-divider::after {
+            background: #dfe7f7;
+            content: "";
+            flex: 1 1 auto;
+            height: 1px;
+        }
+
+        .assessment-insert-divider .btn {
+            background: #fff;
+            border-style: dashed;
+            box-shadow: 0 6px 14px rgba(103, 119, 239, 0.08);
+            white-space: nowrap;
+        }
+
+        .assessment-field-insert-divider {
+            margin: -0.1rem 0 1rem;
+        }
+
         .auto-field-name-hint code {
             background: #f4f7fb;
             border-radius: 0.25rem;
@@ -2361,15 +2387,23 @@
                 const fileFieldConfig = parseFileFieldConfigJson(fieldData.raw_opsi_field_json || '');
                 const resolvedFileInputMode = normalizeFileInputMode(fieldData.file_input_mode || fileFieldConfig.input_mode);
                 const resolvedAllowOtherInput = supportsSelectOtherInput(fieldType) && normalizeChecked(fieldData.allow_other_input);
-                const resolvedAutofillSource = fieldData.autofill_source || resolveSuggestedParticipantAutofillSource(
+                const autofillSourceUserTouched = normalizeChecked(fieldData._autofill_source_user_touched);
+                const lookupSourceUserTouched = normalizeChecked(fieldData._lookup_source_user_touched);
+                const suggestedAutofillSource = resolveSuggestedParticipantAutofillSource(
                     fieldData.label || '',
                     fieldData.nama_field || ''
                 );
-                const resolvedLookupSource = fieldData.lookup_source || resolveSuggestedFieldLookupSource(
+                const suggestedLookupSource = resolveSuggestedFieldLookupSource(
                     fieldData.label || '',
                     fieldData.nama_field || '',
                     resolveSelectedTargetKetenagaanValue()
                 );
+                const resolvedAutofillSource = autofillSourceUserTouched
+                    ? (fieldData.autofill_source || '')
+                    : (fieldData.autofill_source || suggestedAutofillSource);
+                const resolvedLookupSource = lookupSourceUserTouched
+                    ? (fieldData.lookup_source || '')
+                    : (fieldData.lookup_source || suggestedLookupSource);
                 const fieldPrefix = `forms[${formIndex}][fields][${fieldIndex}]`;
                 const fieldIdName = `${fieldPrefix}[id]`;
                 const labelName = `${fieldPrefix}[label]`;
@@ -2518,6 +2552,7 @@
                                         <label>Auto-fill dari Data Peserta</label>
                                         <select class="${getInputClass(autofillSourceName, 'form-control field-autofill-source-select')}"
                                             name="${autofillSourceName}"
+                                            data-user-touched="${autofillSourceUserTouched ? '1' : '0'}"
                                             ${supportsParticipantAutofill(fieldType) ? '' : 'disabled'}>
                                             ${buildParticipantAutofillOptions(resolvedAutofillSource)}
                                         </select>
@@ -2576,7 +2611,8 @@
                                     <label>Lookup Opsi dari Database</label>
                                     <select class="${getInputClass(lookupSourceName, 'form-control field-lookup-source-select')}"
                                         name="${lookupSourceName}"
-                                        data-suggested-default="${fieldData.lookup_source ? '0' : '1'}"
+                                        data-suggested-default="${fieldData.lookup_source || lookupSourceUserTouched ? '0' : '1'}"
+                                        data-user-touched="${lookupSourceUserTouched ? '1' : '0'}"
                                         ${supportsFieldLookup(fieldType) ? '' : 'disabled'}>
                                         ${buildFieldLookupSourceOptions(resolvedLookupSource)}
                                     </select>
@@ -3180,6 +3216,162 @@
                 `;
             };
 
+            const createDefaultFieldData = (fieldIndex = 0) => ({
+                id: null,
+                label: '',
+                nama_field: '',
+                deskripsi: '',
+                tipe_field: 'text',
+                placeholder: '',
+                bantuan: '',
+                autofill_source: '',
+                lookup_source: '',
+                allow_other_input: false,
+                file_input_mode: 'file',
+                opsi_field_text: '',
+                opsi_score_text: '',
+                repeater_config_text: null,
+                raw_opsi_field_json: '',
+                radio_options: [],
+                scoring: {
+                    enabled: false,
+                    method: resolveDefaultScoringMethod('text'),
+                },
+                lebar_kolom: 'col-md-12',
+                urutan: fieldIndex + 1,
+                is_required: false,
+                is_active: true,
+            });
+
+            const createDefaultFormData = (formIndex = 0) => ({
+                id: null,
+                judul_form: '',
+                kode_form: '',
+                deskripsi: '',
+                kompetensi: '',
+                indikator_kode: '',
+                indikator_label: '',
+                scoring: {},
+                is_scoreable: true,
+                urutan: formIndex + 1,
+                is_active: true,
+                fields: [createDefaultFieldData(0)],
+            });
+
+            const normalizeBuilderOrder = (formsPayload = []) => {
+                return (Array.isArray(formsPayload) ? formsPayload : []).map((form, formIndex) => {
+                    const normalizedForm = {
+                        ...createDefaultFormData(formIndex),
+                        ...(form || {}),
+                        urutan: formIndex + 1,
+                    };
+                    const rawFields = Array.isArray(form?.fields)
+                        ? form.fields
+                        : createDefaultFormData(formIndex).fields;
+
+                    normalizedForm.fields = rawFields.map((field, fieldIndex) => ({
+                        ...createDefaultFieldData(fieldIndex),
+                        ...(field || {}),
+                        urutan: fieldIndex + 1,
+                    }));
+
+                    return normalizedForm;
+                });
+            };
+
+            const buildFormInsertDivider = (afterIndex) => `
+                <div class="assessment-insert-divider assessment-form-insert-divider" data-insert-after-index="${afterIndex}">
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-insert-form-after"
+                        data-insert-after-index="${afterIndex}">
+                        <i class="fas fa-plus"></i> Sisipkan Form
+                    </button>
+                </div>
+            `;
+
+            const buildFieldInsertDivider = (afterIndex) => `
+                <div class="assessment-insert-divider assessment-field-insert-divider" data-insert-after-index="${afterIndex}">
+                    <button type="button" class="btn btn-outline-primary btn-sm btn-insert-field-after"
+                        data-insert-after-index="${afterIndex}">
+                        <i class="fas fa-plus"></i> Sisipkan Field
+                    </button>
+                </div>
+            `;
+
+            const renderFormInsertControls = () => {
+                const $list = $('#form-builder-list');
+                $list.children('.assessment-form-insert-divider').remove();
+
+                const $forms = $list.children('.assessment-form-card');
+                $forms.each(function(index) {
+                    if (index >= $forms.length - 1) {
+                        return;
+                    }
+
+                    $(this).after(buildFormInsertDivider(index));
+                });
+            };
+
+            const renderFieldInsertControls = ($formCard) => {
+                const $fieldList = $formCard.find('.assessment-field-list').first();
+                $fieldList.children('.assessment-field-insert-divider').remove();
+
+                const $fields = $fieldList.children('.assessment-field-card');
+                $fields.each(function(index) {
+                    if (index >= $fields.length - 1) {
+                        return;
+                    }
+
+                    $(this).after(buildFieldInsertDivider(index));
+                });
+            };
+
+            const renderInsertControls = () => {
+                renderFormInsertControls();
+
+                $('#form-builder-list').children('.assessment-form-card').each(function() {
+                    renderFieldInsertControls($(this));
+                });
+            };
+
+            const resolveFormDomIndex = ($formCard) => {
+                return $('#form-builder-list').children('.assessment-form-card').index($formCard);
+            };
+
+            const resolveFieldDomIndex = ($fieldCard) => {
+                return $fieldCard.closest('.assessment-field-list').children('.assessment-field-card').index($fieldCard);
+            };
+
+            const focusFormAt = (formIndex) => {
+                const $formCard = $('#form-builder-list').children('.assessment-form-card').eq(formIndex);
+
+                if (!$formCard.length) {
+                    return;
+                }
+
+                $('html, body').animate({
+                    scrollTop: Math.max($formCard.offset().top - 90, 0),
+                }, 250);
+
+                $formCard.find('input[name$="[judul_form]"]').first().trigger('focus');
+            };
+
+            const focusFieldAt = (formIndex, fieldIndex) => {
+                const $formCard = $('#form-builder-list').children('.assessment-form-card').eq(formIndex);
+                const $fieldCard = $formCard.find('.assessment-field-list').first()
+                    .children('.assessment-field-card').eq(fieldIndex);
+
+                if (!$fieldCard.length) {
+                    focusFormAt(formIndex);
+                    return;
+                }
+
+                $('html, body').animate({
+                    scrollTop: Math.max($fieldCard.offset().top - 90, 0),
+                }, 250);
+
+                $fieldCard.find('.field-label-input').first().trigger('focus');
+            };
+
             const appendField = ($formCard, fieldData = {}, options = {}) => {
                 const formIndex = Number($formCard.data('form-index'));
                 const fieldIndex = Number($formCard.attr('data-field-counter'));
@@ -3196,6 +3388,10 @@
                 updateFileInputModeState($fieldCard);
                 syncRepeaterConfigState($fieldCard);
 
+                if (!options.skipInsertControls) {
+                    renderFieldInsertControls($formCard);
+                }
+
                 if (!options.skipSummary) {
                     renderBuilderSummary();
                 }
@@ -3205,17 +3401,146 @@
                 const formIndex = formIndexCounter++;
 
                 $('#form-builder-list').append(buildFormCard(formIndex, formData));
-                const $formCard = $('.assessment-form-card').last();
-                const fields = Array.isArray(formData.fields) && formData.fields.length ? formData.fields : [{}];
+                const $formCard = $('#form-builder-list').children('.assessment-form-card').last();
+                const fields = Array.isArray(formData.fields) ? formData.fields : [{}];
 
                 fields.forEach((field) => appendField($formCard, field, {
                     skipSummary: true,
+                    skipInsertControls: true,
                 }));
                 toggleEmptyState();
+                renderFieldInsertControls($formCard);
+
+                if (!options.skipInsertControls) {
+                    renderFormInsertControls();
+                }
 
                 if (!options.skipSummary) {
                     renderBuilderSummary();
                 }
+            };
+
+            const renderBuilderFromPayload = (formsPayload = [], options = {}) => {
+                const normalizedForms = normalizeBuilderOrder(formsPayload);
+
+                $('#form-builder-list').empty();
+                formIndexCounter = 0;
+
+                normalizedForms.forEach((form) => {
+                    appendForm(form, {
+                        skipSummary: true,
+                        skipInsertControls: true,
+                    });
+                });
+
+                renderInsertControls();
+                toggleEmptyState();
+                renderBuilderSummary();
+
+                if (Number.isInteger(options.focusFormIndex)) {
+                    scheduleAfterPaint(() => {
+                        if (Number.isInteger(options.focusFieldIndex)) {
+                            focusFieldAt(options.focusFormIndex, options.focusFieldIndex);
+                            return;
+                        }
+
+                        focusFormAt(options.focusFormIndex);
+                    });
+                }
+            };
+
+            const addFormAtEnd = () => {
+                const forms = normalizeBuilderOrder(collectBuilderPayload());
+                const insertIndex = forms.length;
+
+                forms.push(createDefaultFormData(insertIndex));
+                renderBuilderFromPayload(forms, {
+                    focusFormIndex: insertIndex,
+                });
+                schedulePreviewRender();
+            };
+
+            const insertFormAfter = (afterIndex) => {
+                const forms = normalizeBuilderOrder(collectBuilderPayload());
+                const insertIndex = Math.min(Math.max(Number(afterIndex) + 1, 0), forms.length);
+
+                forms.splice(insertIndex, 0, createDefaultFormData(insertIndex));
+                renderBuilderFromPayload(forms, {
+                    focusFormIndex: insertIndex,
+                });
+                schedulePreviewRender();
+            };
+
+            const removeFormAt = (formIndex) => {
+                const forms = normalizeBuilderOrder(collectBuilderPayload());
+
+                if (formIndex < 0 || formIndex >= forms.length) {
+                    return;
+                }
+
+                forms.splice(formIndex, 1);
+                renderBuilderFromPayload(forms, {
+                    focusFormIndex: Math.min(formIndex, forms.length - 1),
+                });
+                schedulePreviewRender();
+            };
+
+            const addFieldAtEnd = ($formCard) => {
+                const forms = normalizeBuilderOrder(collectBuilderPayload());
+                const formIndex = resolveFormDomIndex($formCard);
+
+                if (formIndex < 0 || !forms[formIndex]) {
+                    return;
+                }
+
+                const fields = Array.isArray(forms[formIndex].fields) ? forms[formIndex].fields : [];
+                const insertIndex = fields.length;
+
+                fields.push(createDefaultFieldData(insertIndex));
+                forms[formIndex].fields = fields;
+                renderBuilderFromPayload(forms, {
+                    focusFormIndex: formIndex,
+                    focusFieldIndex: insertIndex,
+                });
+                schedulePreviewRender();
+            };
+
+            const insertFieldAfter = ($formCard, afterIndex) => {
+                const forms = normalizeBuilderOrder(collectBuilderPayload());
+                const formIndex = resolveFormDomIndex($formCard);
+
+                if (formIndex < 0 || !forms[formIndex]) {
+                    return;
+                }
+
+                const fields = Array.isArray(forms[formIndex].fields) ? forms[formIndex].fields : [];
+                const insertIndex = Math.min(Math.max(Number(afterIndex) + 1, 0), fields.length);
+
+                fields.splice(insertIndex, 0, createDefaultFieldData(insertIndex));
+                forms[formIndex].fields = fields;
+                renderBuilderFromPayload(forms, {
+                    focusFormIndex: formIndex,
+                    focusFieldIndex: insertIndex,
+                });
+                schedulePreviewRender();
+            };
+
+            const removeFieldAt = ($fieldCard) => {
+                const $formCard = $fieldCard.closest('.assessment-form-card');
+                const forms = normalizeBuilderOrder(collectBuilderPayload());
+                const formIndex = resolveFormDomIndex($formCard);
+                const fieldIndex = resolveFieldDomIndex($fieldCard);
+
+                if (formIndex < 0 || fieldIndex < 0 || !forms[formIndex]) {
+                    return;
+                }
+
+                forms[formIndex].fields.splice(fieldIndex, 1);
+                renderBuilderFromPayload(forms, {
+                    focusFormIndex: formIndex,
+                    focusFieldIndex: Math.min(fieldIndex, forms[formIndex].fields.length - 1),
+                });
+                schedulePreviewRender();
             };
 
             const appendRadioOption = ($fieldCard, optionData = {}) => {
@@ -3610,6 +3935,8 @@
                 const fileInputMode = fieldType === fileFieldType
                     ? normalizeFileInputMode($fieldCard.find('select[name$="[file_input_mode]"]').val() || 'file')
                     : '';
+                const $autofillSourceSelect = $fieldCard.find('select[name$="[autofill_source]"]');
+                const $lookupSourceSelect = $fieldCard.find('select[name$="[lookup_source]"]');
 
                 return {
                     id: fieldId > 0 ? fieldId : null,
@@ -3620,11 +3947,13 @@
                     placeholder: $fieldCard.find('input[name$="[placeholder]"]').val()?.trim() || '',
                     bantuan: $fieldCard.find('textarea[name$="[bantuan]"]').val()?.trim() || '',
                     autofill_source: supportsParticipantAutofill(fieldType)
-                        ? ($fieldCard.find('select[name$="[autofill_source]"]').val()?.trim() || '')
+                        ? ($autofillSourceSelect.val()?.trim() || '')
                         : '',
+                    _autofill_source_user_touched: normalizeChecked($autofillSourceSelect.data('userTouched')),
                     lookup_source: supportsFieldLookup(fieldType)
-                        ? ($fieldCard.find('select[name$="[lookup_source]"]').val()?.trim() || '')
+                        ? ($lookupSourceSelect.val()?.trim() || '')
                         : '',
+                    _lookup_source_user_touched: normalizeChecked($lookupSourceSelect.data('userTouched')),
                     allow_other_input: supportsSelectOtherInput(fieldType)
                         ? $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked')
                         : false,
@@ -4240,18 +4569,26 @@
             };
 
             $('#btn-add-form').on('click', function() {
-                appendForm();
-                schedulePreviewRender();
+                addFormAtEnd();
             });
 
             $('#btn-sidebar-add-form').on('click', function() {
-                appendForm();
-                schedulePreviewRender();
+                addFormAtEnd();
             });
 
             $(document).on('click', '.btn-add-field', function() {
-                appendField($(this).closest('.assessment-form-card'));
-                schedulePreviewRender();
+                addFieldAtEnd($(this).closest('.assessment-form-card'));
+            });
+
+            $(document).on('click', '.btn-insert-form-after', function() {
+                insertFormAfter(Number($(this).data('insert-after-index')));
+            });
+
+            $(document).on('click', '.btn-insert-field-after', function() {
+                insertFieldAfter(
+                    $(this).closest('.assessment-form-card'),
+                    Number($(this).data('insert-after-index'))
+                );
             });
 
             $(document).on('click', '.btn-add-radio-option', function() {
@@ -4261,16 +4598,11 @@
             });
 
             $(document).on('click', '.btn-remove-form', function() {
-                $(this).closest('.assessment-form-card').remove();
-                toggleEmptyState();
-                renderBuilderSummary();
-                schedulePreviewRender();
+                removeFormAt(resolveFormDomIndex($(this).closest('.assessment-form-card')));
             });
 
             $(document).on('click', '.btn-remove-field', function() {
-                $(this).closest('.assessment-field-card').remove();
-                renderBuilderSummary();
-                schedulePreviewRender();
+                removeFieldAt($(this).closest('.assessment-field-card'));
             });
 
             $(document).on('click', '.btn-remove-radio-option', function() {
@@ -4485,6 +4817,7 @@
                     formsToRender.slice(renderedForms, renderedForms + batchSize).forEach((form) => {
                         appendForm(form, {
                             skipSummary: true,
+                            skipInsertControls: true,
                         });
                     });
 
@@ -4497,6 +4830,7 @@
                     }
 
                     toggleEmptyState();
+                    renderInsertControls();
                     renderBuilderSummary();
                     updatePreviewToggleButton();
                     setBuilderLoadingState(false);
