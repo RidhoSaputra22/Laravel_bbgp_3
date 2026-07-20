@@ -354,6 +354,41 @@ class AssessmentAttemptServiceTest extends TestCase
         $this->assertSame('Jawaban snapshot peserta', optional($savedAttempt->answers->first())->answer_text);
     }
 
+    public function test_build_answer_lookup_uses_public_disk_url_for_uploaded_file_answers(): void
+    {
+        config()->set('filesystems.disks.public.url', 'http://localhost/upload');
+
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'file',
+        ]);
+
+        AssessmentAttemptAnswer::query()->create([
+            'assessment_attempt_id' => $attempt->id,
+            'assessment_id' => data_get($attempt->structure_snapshot, 'assessments.0.id'),
+            'assessment_form_id' => data_get($attempt->structure_snapshot, 'assessments.0.forms.0.id'),
+            'assessment_form_field_id' => $field->id,
+            'answer_text' => 'bukti.png',
+            'answer_payload' => [
+                'type' => 'file',
+                'input_mode' => 'file',
+                'original_name' => 'bukti.png',
+                'mime_type' => 'image/png',
+                'size' => 1234,
+                'path' => 'assessment/attempts/1/bukti.png',
+            ],
+            'answer_file_path' => 'assessment/attempts/1/bukti.png',
+            'answered_at' => now(),
+        ]);
+
+        $lookup = $this->makeService()->buildAnswerLookup($attempt->fresh('answers'));
+
+        $this->assertSame(
+            'http://localhost/upload/assessment/attempts/1/bukti.png',
+            $lookup[$field->id]['file_url'] ?? null
+        );
+        $this->assertSame('image/png', data_get($lookup[$field->id] ?? [], 'payload.mime_type'));
+    }
+
     public function test_save_snapshot_marks_stage_as_draft_for_manual_stage_draft_request(): void
     {
         ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario();

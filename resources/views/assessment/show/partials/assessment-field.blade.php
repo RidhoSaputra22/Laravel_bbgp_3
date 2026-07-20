@@ -220,41 +220,12 @@
                 :value="$fileInputMode === 'link' ? $oldFileLinkValue : null"
                 :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'"
                 :allowed-domains="$fileInputMode === 'link' ? $urlAllowedDomains : []"
-                :input-title="$fileInputMode === 'link' ? $urlInputTitle : null" />
-
-            @if ($hasExistingFile)
-                <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] px-4 py-3 text-sm text-slate-600">
-                    @if ($fileInputMode === 'link')
-                        <div class="font-semibold text-slate-800">Link bukti tersimpan</div>
-                        <div class="mt-1 break-all">
-                            {{ $existingLinkUrl ?: 'Tautan tersimpan' }}
-                        </div>
-                        @if ($existingLinkUrl !== '')
-                            <a href="{{ $existingLinkUrl }}" target="_blank" rel="noopener"
-                                class="mt-2 inline-flex items-center text-[#1376bd] hover:underline">
-                                Buka link saat ini
-                            </a>
-                        @endif
-                        <div class="mt-2 text-xs text-slate-500">
-                            Isi link baru hanya jika ingin mengganti tautan yang sudah tersimpan.
-                        </div>
-                    @else
-                        <div class="font-semibold text-slate-800">File snapshot tersimpan</div>
-                        <div class="mt-1">
-                            {{ $existingFileName ?: 'Lampiran tersimpan' }}
-                        </div>
-                        @if ($existingFileUrl)
-                            <a href="{{ $existingFileUrl }}" target="_blank" rel="noopener"
-                                class="mt-2 inline-flex items-center text-[#1376bd] hover:underline">
-                                Lihat file saat ini
-                            </a>
-                        @endif
-                        <div class="mt-2 text-xs text-slate-500">
-                            Pilih file baru hanya jika ingin mengganti lampiran yang sudah tersimpan.
-                        </div>
-                    @endif
-                </div>
-            @endif
+                :input-title="$fileInputMode === 'link' ? $urlInputTitle : null"
+                :existing-file-url="$existingFileUrl"
+                :existing-file-name="$existingFileName"
+                :existing-file-mime="$savedPayload['mime_type'] ?? null"
+                :existing-file-size="$savedPayload['size'] ?? null"
+                :existing-link-url="$existingLinkUrl" />
         @break
 
         @case('repeater')

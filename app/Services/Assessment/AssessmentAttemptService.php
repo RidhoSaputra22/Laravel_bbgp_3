@@ -15,6 +15,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class AssessmentAttemptService
@@ -364,7 +365,7 @@ class AssessmentAttemptService
             ->mapWithKeys(function (AssessmentAttemptAnswer $answer) {
                 $payload = is_array($answer->answer_payload ?? null) ? $answer->answer_payload : [];
                 $resolvedFileUrl = $answer->answer_file_path
-                    ? asset('storage/'.$answer->answer_file_path)
+                    ? Storage::disk('public')->url($answer->answer_file_path)
                     : (trim((string) ($payload['link_url'] ?? '')) ?: null);
 
                 return [
@@ -930,6 +931,8 @@ class AssessmentAttemptService
                         'type' => 'file',
                         'input_mode' => 'file',
                         'original_name' => $uploadedFile->getClientOriginalName(),
+                        'mime_type' => $uploadedFile->getClientMimeType(),
+                        'size' => $uploadedFile->getSize(),
                     ],
                     'answer_file_path' => null,
                     'uploaded_file' => $uploadedFile,
