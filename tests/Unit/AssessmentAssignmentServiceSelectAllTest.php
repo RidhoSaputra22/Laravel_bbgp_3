@@ -7,8 +7,11 @@ use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
+use App\Models\AssessmentCombination;
+use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
+use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -52,8 +55,23 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             $table->timestamps();
         });
 
+        Schema::connection('sqlite')->create('assessment_combination_generations', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_generate')->unique();
+            $table->string('target_ketenagaan')->nullable();
+            $table->unsignedInteger('total_kombinasi')->default(1);
+            $table->text('selection_config')->nullable();
+            $table->string('status')->default('selesai');
+            $table->string('job_batch_id')->nullable();
+            $table->unsignedBigInteger('generated_by')->nullable();
+            $table->timestamp('processed_at')->nullable();
+            $table->timestamps();
+        });
+
         Schema::connection('sqlite')->create('assessment_combinations', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('assessment_combination_generation_id')->nullable();
+            $table->unsignedInteger('generation_sequence')->nullable();
             $table->string('kode_kombinasi')->nullable();
             $table->string('judul')->nullable();
             $table->string('target_ketenagaan')->nullable();
@@ -177,6 +195,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_assessments');
         Schema::connection('sqlite')->dropIfExists('assessment_assignments');
         Schema::connection('sqlite')->dropIfExists('assessment_combinations');
+        Schema::connection('sqlite')->dropIfExists('assessment_combination_generations');
         Schema::connection('sqlite')->dropIfExists('gurus');
         Schema::connection('sqlite')->dropIfExists('assessments');
 
@@ -771,6 +790,99 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         Storage::disk('public')->assertMissing($storedFile);
     }
 
+    public function test_delete_assignments_for_combination_generation_removes_all_related_assignments(): void
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => 'ASM-050',
+            'judul' => 'Assessment Hapus Riwayat',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+        $generation = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-ASM-TEST-0050',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 2,
+            'status' => 'selesai',
+        ]);
+        $otherGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-ASM-TEST-OTHER',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'status' => 'selesai',
+        ]);
+        $combination = $this->createCombinationForGeneration($generation, 'KMB-ASM-050-A');
+        $secondCombination = $this->createCombinationForGeneration($generation, 'KMB-ASM-050-B');
+        $unrelatedCombination = $this->createCombinationForGeneration($otherGeneration, 'KMB-ASM-OTHER');
+        $firstGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Riwayat A',
+            'email' => 'riwayat.a@example.test',
+        ]);
+        $secondGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Riwayat B',
+            'email' => 'riwayat.b@example.test',
+        ]);
+        $otherGuru = $this->createGuru([
+            'nama_lengkap' => 'Guru Riwayat Lain',
+            'email' => 'riwayat.lain@example.test',
+        ]);
+        $directAssignment = $this->createAssignmentForDeletion('PNG-RWY-001', $assessment, $combination->id);
+        $targetOnlyAssignment = $this->createAssignmentForDeletion('PNG-RWY-002', $assessment, null);
+        $unrelatedAssignment = $this->createAssignmentForDeletion('PNG-RWY-003', $assessment, $unrelatedCombination->id);
+
+        AssessmentAssignmentTarget::query()->create([
+            'assessment_assignment_id' => $directAssignment->id,
+            'assessment_combination_id' => $combination->id,
+            'guru_id' => $firstGuru->id,
+            'status' => 'ditugaskan',
+            'assigned_at' => now(),
+        ]);
+        AssessmentAssignmentTarget::query()->create([
+            'assessment_assignment_id' => $targetOnlyAssignment->id,
+            'assessment_combination_id' => $secondCombination->id,
+            'guru_id' => $secondGuru->id,
+            'status' => 'ditugaskan',
+            'assigned_at' => now(),
+        ]);
+        AssessmentAssignmentTarget::query()->create([
+            'assessment_assignment_id' => $unrelatedAssignment->id,
+            'assessment_combination_id' => $unrelatedCombination->id,
+            'guru_id' => $otherGuru->id,
+            'status' => 'ditugaskan',
+            'assigned_at' => now(),
+        ]);
+
+        $this->assertSame(
+            2,
+            app(AssessmentAssignmentService::class)->countAssignmentsForCombinationGeneration($generation)
+        );
+
+        $result = app(AssessmentAssignmentService::class)
+            ->deleteAssignmentsForCombinationGeneration($generation->fresh('combinations'));
+
+        $this->assertSame(2, $result['combination_count']);
+        $this->assertSame(2, $result['deleted_assignment_count']);
+        $this->assertSame(2, $result['deleted_target_count']);
+        $this->assertDatabaseMissing('assessment_assignments', ['id' => $directAssignment->id]);
+        $this->assertDatabaseMissing('assessment_assignments', ['id' => $targetOnlyAssignment->id]);
+        $this->assertDatabaseHas('assessment_assignments', ['id' => $unrelatedAssignment->id]);
+        $this->assertDatabaseHas('assessment_assignment_targets', [
+            'assessment_assignment_id' => $unrelatedAssignment->id,
+            'assessment_combination_id' => $unrelatedCombination->id,
+        ]);
+
+        app(AssessmentCombinationGenerationService::class)->deleteGenerationHistory($generation->fresh());
+
+        $this->assertDatabaseMissing('assessment_combination_generations', ['id' => $generation->id]);
+        $this->assertDatabaseHas('assessment_combination_generations', ['id' => $otherGeneration->id]);
+        $this->assertDatabaseMissing('assessment_combinations', ['id' => $combination->id]);
+        $this->assertDatabaseMissing('assessment_combinations', ['id' => $secondCombination->id]);
+        $this->assertDatabaseHas('assessment_combinations', [
+            'id' => $unrelatedCombination->id,
+            'assessment_combination_generation_id' => $otherGeneration->id,
+        ]);
+    }
+
     public function test_retry_assignment_resumes_only_missing_targets_from_failed_job_payload(): void
     {
         $assessment = Assessment::query()->create([
@@ -903,6 +1015,51 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    private function createCombinationForGeneration(
+        AssessmentCombinationGeneration $generation,
+        string $code
+    ): AssessmentCombination {
+        return AssessmentCombination::query()->create([
+            'assessment_combination_generation_id' => $generation->id,
+            'kode_kombinasi' => $code,
+            'judul' => $code,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'structure_snapshot' => [],
+            'total_assessments' => 1,
+            'total_forms' => 1,
+            'total_questions' => 1,
+            'generated_at' => now(),
+            'is_active' => true,
+        ]);
+    }
+
+    private function createAssignmentForDeletion(
+        string $code,
+        Assessment $assessment,
+        ?int $combinationId
+    ): AssessmentAssignment {
+        $assignment = AssessmentAssignment::query()->create([
+            'kode_penugasan' => $code,
+            'judul_penugasan' => $code,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'assessment_combination_id' => $combinationId,
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'kapasitas_per_sesi' => 41,
+            'durasi_sesi_jam' => 3,
+            'total_sesi' => 0,
+            'status_distribusi' => 'selesai',
+            'total_target' => 1,
+            'total_ditugaskan' => 1,
+        ]);
+
+        $assignment->assessments()->sync([
+            $assessment->id => ['urutan' => 1],
+        ]);
+
+        return $assignment;
     }
 
     private function createGuru(array $overrides = []): Guru

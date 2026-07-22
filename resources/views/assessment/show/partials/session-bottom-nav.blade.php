@@ -38,15 +38,24 @@
 
                 <div class="flex flex-col gap-3 sm:flex-row justify-end">
                     <x-assessment::ui.button type="button" variant="outline" icon="fas fa-arrow-left"
-                        x-show="stageFlowEnabled" x-bind:disabled="isBusy()"
+                        x-show="showAssessmentOverviewButton()" x-bind:disabled="isBusy()"
+                        style="display: none;"
                         @click="goToAssessmentOverview()">
                         Kembali ke Assessment
                     </x-assessment::ui.button>
 
-                    <x-assessment::ui.button type="button" variant="outline" icon="fas fa-save"
+                    <x-assessment::ui.button type="button" variant="outline" class="min-w-[132px]"
                         x-show="showDraftButton()" x-bind:disabled="isBusy()"
-                        @click="saveDraftForCurrentStage()">
-                        Simpan Draft
+                        x-bind:aria-busy="isSavingDraft.toString()" @click="saveDraftForCurrentStage()">
+                        <span x-show="!isSavingDraft" class="inline-flex items-center">
+                            <i class="fas fa-save mr-2"></i>
+                            Simpan Draft
+                        </span>
+
+                        <span x-show="isSavingDraft" class="inline-flex items-center" style="display: none;">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>
+                            Menyimpan...
+                        </span>
                     </x-assessment::ui.button>
 
                     <x-assessment::ui.button type="button" icon="fas fa-paper-plane"

@@ -88,6 +88,22 @@ class AssessmentCombinationGenerationService
         ];
     }
 
+    public function deleteGenerationHistory(AssessmentCombinationGeneration $generation): void
+    {
+        $this->cancelGenerationBatch($generation->job_batch_id);
+        $this->purgeGenerationQueueArtifacts($generation->id);
+
+        DB::transaction(function () use ($generation) {
+            AssessmentCombination::query()
+                ->where('assessment_combination_generation_id', $generation->id)
+                ->delete();
+
+            AssessmentCombinationGeneration::query()
+                ->whereKey($generation->id)
+                ->delete();
+        });
+    }
+
     public function buildGenerationMonitoring(
         AssessmentCombinationGeneration $generation,
         bool $includeFailedJobs = true

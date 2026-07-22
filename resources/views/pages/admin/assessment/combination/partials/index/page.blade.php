@@ -141,6 +141,7 @@
                                         @foreach ($generations as $generation)
                                             @php
                                                 $monitoring = $generationMonitoring[$generation->id] ?? [];
+                                                $assignmentUsageCount = (int) ($generationAssignmentUsage[$generation->id] ?? 0);
                                                 $statusMeta = $generation->status_meta;
                                             @endphp
                                             <tr>
@@ -159,6 +160,9 @@
                                                     </small>
                                                     <small class="text-muted d-block">
                                                         {{ $generation->total_kombinasi }} kombinasi diminta
+                                                    </small>
+                                                    <small class="text-muted d-block">
+                                                        {{ $assignmentUsageCount }} penugasan terkait
                                                     </small>
                                                 </td>
                                                 <td>
@@ -201,6 +205,14 @@
                                                             </button>
                                                         </form>
                                                     @endif
+                                                    <form action="{{ route('assessment.combination.generation.hapus', $generation->id) }}"
+                                                        method="POST" class="d-inline-block my-1"
+                                                        onsubmit="return confirm(@js('Hapus riwayat '.$generation->kode_generate.' beserta semua kombinasi soal dan penugasan assessment terkait?'))">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="fas fa-trash mr-1"></i> Hapus Riwayat
+                                                        </button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         @endforeach

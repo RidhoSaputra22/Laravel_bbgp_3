@@ -729,6 +729,7 @@ class AssessmentShowViewTest extends TestCase
         $response->assertSee('Tahap ini sudah disimpan permanen dan ditampilkan dalam mode baca.');
         $response->assertSee('data-assessment-panel="0"', false);
         $response->assertSee('Kembali ke Assessment');
+        $response->assertSee('x-show="showAssessmentOverviewButton()"', false);
         $response->assertSee('goToAssessmentOverview()', false);
         $response->assertDontSee('Assessment Sebelumnya');
         $response->assertDontSee('Next Assessment');

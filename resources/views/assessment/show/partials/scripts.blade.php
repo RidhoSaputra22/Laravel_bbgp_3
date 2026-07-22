@@ -1078,6 +1078,7 @@
                 showFinishModal: false,
                 isSubmitting: false,
                 isAutosaving: false,
+                isSavingDraft: false,
                 autosaveActionThreshold: Math.max(1, Number(config.autosaveActionThreshold ?? 3)),
                 autosaveActionCount: 0,
                 autosaveBucket: null,
@@ -2028,6 +2029,17 @@
                 currentStageStatus() {
                     return String(this.currentStageMeta().status || '');
                 },
+                showAssessmentOverviewButton() {
+                    if (!this.stageFlowEnabled) {
+                        return false;
+                    }
+
+                    const stageMeta = this.currentStageMeta();
+
+                    return this.currentStageStatus() === 'submitted'
+                        || stageMeta.read_only === true
+                        || Boolean(stageMeta.submitted_at);
+                },
                 showDraftButton() {
                     if (!this.stageFlowEnabled) {
                         return false;
@@ -2135,14 +2147,30 @@
                         return;
                     }
 
-                    const result = await this.saveCurrentAssessmentSnapshot({
-                        reason: 'manual_stage_draft',
-                        bucket: this.buildCurrentStageBucket('manual_stage_draft'),
-                        followRedirectOnSuccess: true,
-                    });
+                    this.isSavingDraft = true;
+                    let shouldKeepLoading = false;
 
-                    if (result === 'saved') {
-                        window.location.href = this.overviewUrl || window.location.pathname;
+                    try {
+                        const result = await this.saveCurrentAssessmentSnapshot({
+                            reason: 'manual_stage_draft',
+                            bucket: this.buildCurrentStageBucket('manual_stage_draft'),
+                            followRedirectOnSuccess: true,
+                        });
+
+                        if (result === 'saved') {
+                            shouldKeepLoading = true;
+                            window.location.href = this.overviewUrl || window.location.pathname;
+
+                            return;
+                        }
+
+                        if (['redirected', 'expired'].includes(result)) {
+                            shouldKeepLoading = true;
+                        }
+                    } finally {
+                        if (!shouldKeepLoading) {
+                            this.isSavingDraft = false;
+                        }
                     }
                 },
                 submitCurrentStage() {

@@ -341,6 +341,7 @@ Route::group(
                     Route::post('/store', 'AssessmentCombinationController@store')->name('assessment.combination.store');
                     Route::get('/proses/show/{id}', 'AssessmentCombinationController@generationShow')->name('assessment.combination.generation.show');
                     Route::post('/proses/retry/{id}', 'AssessmentCombinationController@retryGeneration')->name('assessment.combination.generation.retry');
+                    Route::post('/proses/hapus/{id}', 'AssessmentCombinationController@destroyGeneration')->name('assessment.combination.generation.hapus');
                     Route::get('/show/{id}', 'AssessmentCombinationController@show')->name('assessment.combination.show');
                     Route::post('/hapus/{id}', 'AssessmentCombinationController@destroy')->name('assessment.combination.hapus');
                 });

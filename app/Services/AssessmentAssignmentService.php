@@ -18,6 +18,7 @@ use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -444,6 +445,50 @@ class AssessmentAssignmentService
             'deleted_answer_count' => $cleanupSummary['answer_count'],
             'deleted_file_count' => $cleanupSummary['file_count'],
         ];
+    }
+
+    public function countAssignmentsForCombinationGeneration(AssessmentCombinationGeneration $generation): int
+    {
+        $combinationIds = $this->resolveCombinationIdsForGeneration($generation);
+
+        if ($combinationIds === []) {
+            return 0;
+        }
+
+        return (int) $this->buildAssignmentsForCombinationIdsQuery($combinationIds)->count();
+    }
+
+    public function deleteAssignmentsForCombinationGeneration(AssessmentCombinationGeneration $generation): array
+    {
+        $combinationIds = $this->resolveCombinationIdsForGeneration($generation);
+        $summary = [
+            'combination_count' => count($combinationIds),
+            'deleted_assignment_count' => 0,
+            'deleted_target_count' => 0,
+            'deleted_attempt_count' => 0,
+            'deleted_answer_count' => 0,
+            'deleted_file_count' => 0,
+        ];
+
+        if ($combinationIds === []) {
+            return $summary;
+        }
+
+        $assignments = $this->buildAssignmentsForCombinationIdsQuery($combinationIds)
+            ->orderBy('id')
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            $result = $this->deleteAssignment($assignment);
+
+            $summary['deleted_assignment_count']++;
+            $summary['deleted_target_count'] += (int) ($result['deleted_target_count'] ?? 0);
+            $summary['deleted_attempt_count'] += (int) ($result['deleted_attempt_count'] ?? 0);
+            $summary['deleted_answer_count'] += (int) ($result['deleted_answer_count'] ?? 0);
+            $summary['deleted_file_count'] += (int) ($result['deleted_file_count'] ?? 0);
+        }
+
+        return $summary;
     }
 
     public function retryAssignment(AssessmentAssignment $assignment): array
@@ -1253,6 +1298,47 @@ class AssessmentAssignmentService
             'file_count' => count($filePaths),
             'file_paths' => $filePaths,
         ];
+    }
+
+    private function resolveCombinationIdsForGeneration(AssessmentCombinationGeneration $generation): array
+    {
+        if ($generation->relationLoaded('combinations')) {
+            return $generation->combinations
+                ->pluck('id')
+                ->filter(fn ($id) => filled($id))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        if (! Schema::hasTable('assessment_combinations')) {
+            return [];
+        }
+
+        return AssessmentCombination::query()
+            ->where('assessment_combination_generation_id', $generation->id)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    private function buildAssignmentsForCombinationIdsQuery(array $combinationIds): Builder
+    {
+        $normalizedIds = collect($combinationIds)
+            ->filter(fn ($id) => filled($id))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        return AssessmentAssignment::query()
+            ->where(function (Builder $query) use ($normalizedIds) {
+                $query->whereIn('assessment_combination_id', $normalizedIds)
+                    ->orWhereHas('targets', function (Builder $targetQuery) use ($normalizedIds) {
+                        $targetQuery->whereIn('assessment_combination_id', $normalizedIds);
+                    });
+            });
     }
 
     private function purgeAssignmentHistory(int $assignmentId): void

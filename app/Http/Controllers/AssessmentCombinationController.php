@@ -8,6 +8,7 @@ use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\Assessment\AssessmentCombinationService;
+use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,8 @@ class AssessmentCombinationController extends Controller
 
     public function __construct(
         private readonly AssessmentCombinationService $combinationService,
-        private readonly AssessmentCombinationGenerationService $generationService
+        private readonly AssessmentCombinationGenerationService $generationService,
+        private readonly AssessmentAssignmentService $assignmentService
     ) {}
 
     public function index()
@@ -42,12 +44,20 @@ class AssessmentCombinationController extends Controller
                 ];
             })
             ->all();
+        $generationAssignmentUsage = $generations
+            ->mapWithKeys(function (AssessmentCombinationGeneration $generation) {
+                return [
+                    $generation->id => $this->assignmentService->countAssignmentsForCombinationGeneration($generation),
+                ];
+            })
+            ->all();
 
         return view('pages.admin.assessment.combination.index', [
             'menu' => $this->menu,
             'datas' => $datas,
             'generations' => $generations,
             'generationMonitoring' => $generationMonitoring,
+            'generationAssignmentUsage' => $generationAssignmentUsage,
         ]);
     }
 
@@ -150,6 +160,32 @@ class AssessmentCombinationController extends Controller
                     'combination' => $exception->getMessage() !== ''
                         ? $exception->getMessage()
                         : 'Terjadi kesalahan saat menjalankan retry generate kombinasi soal.',
+                ]);
+        }
+    }
+
+    public function destroyGeneration(string $id)
+    {
+        $this->authorizeAccess();
+
+        $generation = AssessmentCombinationGeneration::query()
+            ->with('combinations:id,assessment_combination_generation_id,kode_kombinasi')
+            ->findOrFail($id);
+
+        try {
+            $result = $this->assignmentService->deleteAssignmentsForCombinationGeneration($generation);
+            $this->generationService->deleteGenerationHistory($generation);
+
+            return redirect()
+                ->route('assessment.combination.index')
+                ->with('combination_notice', $this->buildGenerationDeleteNotice($generation, $result));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('assessment.combination.index')
+                ->withErrors([
+                    'combination' => 'Terjadi kesalahan saat menghapus riwayat generate.',
                 ]);
         }
     }
@@ -338,5 +374,43 @@ class AssessmentCombinationController extends Controller
             .' dijalankan untuk '
             .($result['resumed_count'] ?? 0)
             .' kombinasi melalui batch job.';
+    }
+
+    private function buildGenerationDeleteNotice(
+        AssessmentCombinationGeneration $generation,
+        array $result
+    ): string {
+        $deletedAssignmentCount = (int) ($result['deleted_assignment_count'] ?? 0);
+        $parts = [
+            'Riwayat generate '.$generation->kode_generate.' berhasil dihapus.',
+        ];
+
+        if ($deletedAssignmentCount < 1) {
+            $parts[] = 'Kombinasi soal dari riwayat tersebut ikut dihapus.';
+
+            return implode(' ', $parts);
+        }
+
+        $parts[] = $deletedAssignmentCount.' penugasan assessment terkait dihapus permanen.';
+
+        if (($result['deleted_target_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_target_count'].' target penugasan dibersihkan.';
+        }
+
+        if (($result['deleted_attempt_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_attempt_count'].' riwayat pengerjaan dihapus.';
+        }
+
+        if (($result['deleted_answer_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_answer_count'].' jawaban peserta dihapus.';
+        }
+
+        if (($result['deleted_file_count'] ?? 0) > 0) {
+            $parts[] = $result['deleted_file_count'].' file unggahan ikut dihapus.';
+        }
+
+        $parts[] = 'Kombinasi soal dari riwayat tersebut ikut dihapus.';
+
+        return implode(' ', $parts);
     }
 }
