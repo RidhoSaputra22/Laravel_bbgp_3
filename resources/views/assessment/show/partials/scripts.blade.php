@@ -2350,6 +2350,12 @@
                         });
                         const payload = await this.parseJsonResponse(response);
 
+                        if (!response.ok && payload?.redirect_url) {
+                            window.location.href = payload.redirect_url;
+
+                            return 'redirected';
+                        }
+
                         if (!response.ok) {
                             if (response.status === 422 && payload?.errors) {
                                 this.applyServerErrors(payload.errors);
