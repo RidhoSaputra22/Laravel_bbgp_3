@@ -21,6 +21,17 @@
 
         <div class="mt-4 space-y-3">
             @foreach ($certificateLinks as $certificateLink)
+                @php
+                    $preview = \App\Support\Assessment\AssessmentAttachmentPreviewHelper::resolve(
+                        $certificateLink['url'] ?? '',
+                        $certificateLink['title'] ?? '',
+                        null,
+                        'external_link',
+                    );
+                    $previewType = $certificateLink['preview_type'] ?? $preview['preview_type'];
+                    $previewUrl = trim((string) ($certificateLink['preview_url'] ?? $preview['preview_url']));
+                    $isEmbeddable = (bool) ($certificateLink['is_embeddable'] ?? $preview['is_embeddable']);
+                @endphp
                 <div class="rounded-sm border border-[#dce8f1] bg-[#f8fbfe] p-4">
                     <div class="flex flex-col gap-4">
                         <div class="min-w-0">
@@ -46,6 +57,25 @@
                                 {{ \Illuminate\Support\Str::limit($certificateLink['url'], 90) }}
                             </div>
                         </div>
+
+                        @if ($isEmbeddable && $previewType === 'image' && $previewUrl !== '')
+                            <a href="{{ $certificateLink['url'] }}" target="_blank" rel="noopener noreferrer"
+                                class="block overflow-hidden rounded-sm border border-[#dce8f1] bg-white">
+                                <img src="{{ $previewUrl }}" alt="{{ $certificateLink['title'] }}"
+                                    class="h-64 w-full object-contain">
+                            </a>
+                        @elseif ($isEmbeddable && $previewUrl !== '')
+                            <div class="overflow-hidden rounded-sm border border-[#dce8f1] bg-white">
+                                <iframe src="{{ $previewUrl }}" title="{{ $certificateLink['title'] }}"
+                                    loading="lazy"
+                                    class="h-72 w-full border-0 bg-white"></iframe>
+                            </div>
+                        @else
+                            <div class="rounded-sm border border-[#dce8f1] bg-white px-4 py-4 text-sm text-slate-600">
+                                <i class="{{ $certificateLink['icon_class'] ?? $preview['icon_class'] }} mr-2 text-[#1376BD]"></i>
+                                Pratinjau langsung tidak tersedia. Buka tautan untuk melihat file.
+                            </div>
+                        @endif
 
                         <div>
                             <x-assessment::ui.button

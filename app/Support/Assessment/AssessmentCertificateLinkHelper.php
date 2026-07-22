@@ -145,7 +145,7 @@ class AssessmentCertificateLinkHelper
                             'detail' => $rowDetail,
                             'url' => $url,
                             'row_number' => $rowIndex + 1,
-                        ];
+                        ] + static::buildLinkPreviewMetadata($url, $rowTitle);
                     })
                     ->filter()
                     ->values()
@@ -183,16 +183,18 @@ class AssessmentCertificateLinkHelper
             return [];
         }
 
+        $title = static::resolveDefinitionLabel($field, 'Dokumen Sertifikat');
+
         return [[
             'assessment_title' => $assessmentTitle !== '' ? $assessmentTitle : 'Assessment',
             'form_title' => $formTitle !== '' ? $formTitle : 'Form',
             'field_label' => static::resolveDefinitionLabel($field, 'Pertanyaan'),
             'link_label' => static::resolveDefinitionLabel($field, 'Link Sertifikat'),
-            'title' => static::resolveDefinitionLabel($field, 'Dokumen Sertifikat'),
+            'title' => $title,
             'detail' => trim((string) ($field['deskripsi'] ?? '')) ?: null,
             'url' => $url,
             'row_number' => 1,
-        ]];
+        ] + static::buildLinkPreviewMetadata($url, $title)];
     }
 
     /**
@@ -205,8 +207,7 @@ class AssessmentCertificateLinkHelper
         array $row,
         int $rowNumber,
         ?array $parentField = null
-    ): string
-    {
+    ): string {
         $preferredNames = [
             'nama_pelatihan',
             'nama_prestasi',
@@ -370,8 +371,7 @@ class AssessmentCertificateLinkHelper
         string $value,
         array $field,
         array $definition = []
-    ): bool
-    {
+    ): bool {
         $normalized = Str::lower(trim($value));
 
         if (static::isGenericPortfolioEvidenceColumn($normalized, $field)) {
@@ -414,6 +414,11 @@ class AssessmentCertificateLinkHelper
         }
 
         return $fallback;
+    }
+
+    private static function buildLinkPreviewMetadata(string $url, string $title): array
+    {
+        return AssessmentAttachmentPreviewHelper::resolve($url, $title, null, 'external_link');
     }
 
     /**

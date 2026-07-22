@@ -9,6 +9,7 @@ use App\Models\AssessmentAttempt;
 use App\Models\Guru;
 use App\Support\Assessment\AssessmentAnswerViewHelper;
 use App\Support\Assessment\AssessmentCertificateLinkHelper;
+use App\Support\Assessment\AssessmentFileAttachmentHelper;
 use App\Support\Assessment\AssessmentPdfPreviewImageHelper;
 use App\Support\Assessment\AssessmentTrainingSummaryHelper;
 use Illuminate\Http\RedirectResponse;
@@ -117,6 +118,10 @@ class AssessmentPortalResultService
             'scoringSummary' => $this->attemptService->buildScoringSummary($attempt),
             'answerLookup' => $answerLookup,
             'trainingSummary' => AssessmentTrainingSummaryHelper::buildAttemptSummaryFromSnapshot(
+                $structureSnapshot,
+                $answerLookup
+            ),
+            'fileAttachments' => AssessmentFileAttachmentHelper::collectFromSnapshot(
                 $structureSnapshot,
                 $answerLookup
             ),

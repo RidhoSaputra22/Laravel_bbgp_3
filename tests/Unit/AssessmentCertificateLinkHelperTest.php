@@ -74,6 +74,8 @@ class AssessmentCertificateLinkHelperTest extends TestCase
         $this->assertSame('Bimtek Numerasi', $links[0]['title']);
         $this->assertSame('Pengalaman Pelatihan', $links[0]['form_title']);
         $this->assertSame('https://drive.google.com/file/d/sertifikat-1/view', $links[0]['url']);
+        $this->assertSame('embed', $links[0]['preview_type']);
+        $this->assertSame('https://drive.google.com/file/d/sertifikat-1/preview', $links[0]['preview_url']);
         $this->assertSame('Workshop Literasi', $links[1]['title']);
         $this->assertSame('https://docs.google.com/document/d/sertifikat-2/view', $links[1]['url']);
         $this->assertStringContainsString('Penyelenggara: P4TK', (string) $links[1]['detail']);

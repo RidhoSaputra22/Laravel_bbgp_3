@@ -62,6 +62,37 @@ class AssessmentResultViewTest extends TestCase
         $response->assertSee('https://drive.google.com/file/d/sertifikat-1/view');
     }
 
+    public function test_result_view_shows_file_attachment_previews_when_available(): void
+    {
+        $viewData = $this->buildViewData(AssessmentKetenagaanType::TENAGA_PENDIDIK->value);
+        $viewData['fileAttachments'] = [
+            [
+                'assessment_title' => 'Assessment Bukti',
+                'form_title' => 'Dokumentasi',
+                'field_label' => 'Foto Kegiatan',
+                'description' => 'Unggah foto kegiatan.',
+                'url' => '/storage/assessment/attempts/42/foto.png',
+                'file_name' => 'foto.png',
+                'mime_type' => 'image/png',
+                'size_text' => '2.0 KB',
+                'source_label' => 'File upload',
+                'host_label' => '',
+                'answered_at' => '11 Jul 2026 06:25',
+                'preview_type' => 'image',
+                'preview_url' => '/storage/assessment/attempts/42/foto.png',
+                'is_embeddable' => true,
+                'icon_class' => 'fa-regular fa-file-image',
+            ],
+        ];
+
+        $response = $this->view('assessment.result.result', $viewData);
+
+        $response->assertSee('File Unggahan Assessment');
+        $response->assertSee('Foto Kegiatan');
+        $response->assertSee('/storage/assessment/attempts/42/foto.png');
+        $response->assertSee('Buka File');
+    }
+
     public function test_stakeholder_pdf_view_renders_question_answers(): void
     {
         $viewData = $this->buildViewData(AssessmentKetenagaanType::STAKEHOLDER->value);
@@ -208,6 +239,7 @@ class AssessmentResultViewTest extends TestCase
             ],
             'scoringSummary' => [],
             'answerLookup' => [],
+            'fileAttachments' => [],
             'certificateLinks' => [],
             'viewerMode' => 'participant',
             'backUrl' => route('assessment.portal.dashboard'),

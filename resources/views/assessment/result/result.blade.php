@@ -329,7 +329,11 @@
                 </x-assessment::ui.card>
             @endif
 
-             @include('assessment.result.partials.certificate-links', [
+            @include('assessment.result.partials.file-attachments', [
+                'fileAttachments' => $fileAttachments ?? [],
+            ])
+
+            @include('assessment.result.partials.certificate-links', [
                 'certificateLinks' => $certificateLinks ?? [],
             ])
         </div>
