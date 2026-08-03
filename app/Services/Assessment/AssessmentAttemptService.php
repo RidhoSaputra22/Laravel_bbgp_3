@@ -9,6 +9,7 @@ use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\AssessmentUrlValidationHelper;
 use App\Support\Assessment\AssessmentStageProgress;
+use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
@@ -1117,8 +1118,14 @@ class AssessmentAttemptService
                 }
             }
 
-            if ($fieldType === 'radio') {
-                $matchedOption = collect(ChoiceOptionNormalizer::normalizeMany($field['opsi_field'] ?? []))
+            if (in_array($fieldType, ['radio', LikertScale::FIELD_TYPE], true)) {
+                $optionSource = $field['opsi_field'] ?? [];
+
+                if ($fieldType === LikertScale::FIELD_TYPE && (! is_array($optionSource) || $optionSource === [])) {
+                    $optionSource = LikertScale::defaultOptions();
+                }
+
+                $matchedOption = collect(ChoiceOptionNormalizer::normalizeMany($optionSource))
                     ->first(function (array $option) use ($textValue) {
                         $aliases = collect($option['aliases'] ?? [])
                             ->map(fn ($value) => trim((string) $value))
@@ -1141,10 +1148,13 @@ class AssessmentAttemptService
                     'assessment_form_id' => $field['assessment_form_id'],
                     'answer_text' => $textValue,
                     'answer_payload' => array_filter([
-                        'type' => 'radio',
+                        'type' => $fieldType,
                         'value' => $textValue,
                         'label' => trim((string) ($matchedOption['label'] ?? '')) ?: null,
                         'score' => is_numeric($matchedOption['score'] ?? null) ? (float) $matchedOption['score'] : null,
+                        'is_negative_statement' => $fieldType === LikertScale::FIELD_TYPE
+                            ? (bool) data_get($field, 'scoring_config.is_negative_statement', false)
+                            : null,
                         'level_kompetensi' => $matchedOption['level_kompetensi'] ?? null,
                         'level_kompetensi_label' => $matchedOption['level_kompetensi_label'] ?? null,
                     ], static fn ($value) => $value !== null && $value !== ''),

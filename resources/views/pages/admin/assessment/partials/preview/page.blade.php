@@ -168,9 +168,11 @@
                                     @php
                                         $fieldWidth = $field->lebar_kolom ?: 'col-md-12';
                                         $fieldLabelId = 'preview-field-' . $form->id . '-' . $field->id;
-                                        $normalizedOptions = in_array($field->tipe_field, ['select', 'radio', 'checkbox'], true)
-                                            ? $normalizeChoiceOptions($field->opsi_field)
-                                            : [];
+                                        $normalizedOptions = $field->tipe_field === \App\Support\Assessment\LikertScale::FIELD_TYPE
+                                            ? $normalizeChoiceOptions($field->opsi_field ?: \App\Support\Assessment\LikertScale::defaultOptions())
+                                            : (in_array($field->tipe_field, ['select', 'radio', 'checkbox'], true)
+                                                ? $normalizeChoiceOptions($field->opsi_field)
+                                                : []);
                                     @endphp
                                     <div class="{{ $fieldWidth }}">
                                         <div class="form-group">
@@ -213,6 +215,28 @@
                                                         <input type="text" class="form-control mt-2"
                                                             placeholder="Tulis jawaban lainnya" disabled>
                                                     @endif
+                                                @break
+
+                                                @case('likert')
+                                                    <div class="row">
+                                                        @forelse ($normalizedOptions as $option)
+                                                            @php
+                                                                $optionId = $fieldLabelId . '-' . $loop->index;
+                                                            @endphp
+                                                            <div class="col-md mb-2">
+                                                                <label for="{{ $optionId }}"
+                                                                    class="d-block h-100 rounded border bg-white px-3 py-3">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <input type="radio" class="mr-2"
+                                                                            id="{{ $optionId }}" name="{{ $field->nama_field }}">
+                                                                        <span>{{ $option['label'] }}</span>
+                                                                    </div>
+                                                                </label>
+                                                            </div>
+                                                        @empty
+                                                            <div class="col-12 text-muted">Belum ada opsi.</div>
+                                                        @endforelse
+                                                    </div>
                                                 @break
 
                                                 @case('radio')

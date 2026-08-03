@@ -1,5 +1,7 @@
 @php
     $overallScore = data_get($scoringSummary, 'overall.formatted_score', '-');
+    $overallIndex = data_get($scoringSummary, 'overall.formatted_index_score', '-');
+    $overallCategory = data_get($scoringSummary, 'overall.likert_category.label', data_get($scoringSummary, 'overall.level.short_label', 'Belum ada kategori'));
     $overallLevel = data_get($scoringSummary, 'overall.level.short_label', 'Belum ada level');
     $statusLabel = data_get($scoringSummary, 'status_label', 'Belum Ada Skor');
     $statusDescription = data_get($scoringSummary, 'status_description', '-');
@@ -27,6 +29,7 @@
         return [
             'label' => $dataset['label'] ?? 'Kompetensi',
             'score' => $dataset['formatted_score'] ?? null,
+            'index_score' => $dataset['formatted_index_score'] ?? null,
             'is_available' => (bool) ($dataset['is_available'] ?? false),
             'outer_x' => round($outerX, 2),
             'outer_y' => round($outerY, 2),
@@ -65,7 +68,7 @@
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <x-assessment::ui.card>
             <div class="text-sm font-medium text-slate-500">
-                Skor Umum Guru
+                Skor Rata-rata
             </div>
             <div class="mt-2 text-[30px] font-bold leading-none text-[#0d3557]">
                 {{ $overallScore }}
@@ -74,19 +77,19 @@
 
         <x-assessment::ui.card>
             <div class="text-sm font-medium text-slate-500">
-                Level Umum
+                Indeks 0-100
             </div>
             <div class="mt-2 text-[30px] font-bold leading-none text-[#0d3557]">
-                {{ $overallLevel }}
+                {{ $overallIndex }}
             </div>
         </x-assessment::ui.card>
 
         <x-assessment::ui.card>
             <div class="text-sm font-medium text-slate-500">
-                Status Penilaian
+                Kategori
             </div>
             <div class="mt-2 text-xl font-bold leading-tight text-[#0d3557]">
-                {{ $statusLabel }}
+                {{ $overallCategory }}
             </div>
         </x-assessment::ui.card>
 
@@ -159,6 +162,9 @@
                                 <div class="mt-1 text-lg font-bold text-[#1376bd]">
                                     {{ $dataset['formatted_score'] ?: '-' }}
                                 </div>
+                                <div class="text-xs text-slate-500">
+                                    Indeks {{ $dataset['formatted_index_score'] ?: '-' }}
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -192,11 +198,11 @@
                                         :tone="$loop->first ? 'warning' : 'primary'"
                                         class="rounded-sm px-2.5 py-1"
                                     >
-                                        {{ $recommendation['category'] }}
+                                        {{ data_get($recommendation, 'likert_category.label', $recommendation['category']) }}
                                     </x-assessment::ui.status-badge>
                                 </div>
                                 <p class="mt-2 text-sm leading-relaxed text-slate-500">
-                                    {{ $recommendation['description'] }}
+                                    {{ data_get($recommendation, 'likert_category.recommendation', $recommendation['description']) }}
                                 </p>
                             </div>
                         @empty

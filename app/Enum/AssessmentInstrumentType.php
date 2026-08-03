@@ -6,6 +6,7 @@ enum AssessmentInstrumentType: string
 {
     case PORTOFOLIO = 'portofolio';
     case PILIHAN_GANDA_KOMPLEKS = 'pilihan_ganda_kompleks';
+    case SKALA_LIKERT = 'skala_likert';
     case STUDI_KASUS = 'studi_kasus';
     case MONITORING_OBSERVASI_EVIDEN = 'monitoring_observasi_eviden';
 
@@ -14,6 +15,7 @@ enum AssessmentInstrumentType: string
         return match ($this) {
             self::PORTOFOLIO => 'Portofolio',
             self::PILIHAN_GANDA_KOMPLEKS => 'Pilihan Ganda Kompleks',
+            self::SKALA_LIKERT => 'Skala Likert',
             self::STUDI_KASUS => 'Studi Kasus',
             self::MONITORING_OBSERVASI_EVIDEN => 'Monitoring / Observasi / Eviden',
         };
@@ -24,6 +26,7 @@ enum AssessmentInstrumentType: string
         return match ($this) {
             self::PORTOFOLIO => 0.30,
             self::PILIHAN_GANDA_KOMPLEKS => 0.40,
+            self::SKALA_LIKERT => 1.00,
             self::STUDI_KASUS => 0.30,
             self::MONITORING_OBSERVASI_EVIDEN => 0.20,
         };
@@ -31,7 +34,7 @@ enum AssessmentInstrumentType: string
 
     public function requiresManualReview(): bool
     {
-        return $this !== self::PILIHAN_GANDA_KOMPLEKS;
+        return ! in_array($this, [self::PILIHAN_GANDA_KOMPLEKS, self::SKALA_LIKERT], true);
     }
 
     public function assignmentStageOrder(): int
@@ -41,6 +44,7 @@ enum AssessmentInstrumentType: string
             self::STUDI_KASUS => 2,
             self::PILIHAN_GANDA_KOMPLEKS => 3,
             self::MONITORING_OBSERVASI_EVIDEN => 4,
+            self::SKALA_LIKERT => 5,
         };
     }
 

@@ -6,6 +6,7 @@ use App\Models\AssessmentAttemptAnswer;
 use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\FuzzyMembership;
+use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\ScoringConfigNormalizer;
 use App\Support\Assessment\TextSimilarityAnalyzer;
 
@@ -34,6 +35,7 @@ class FieldAutoScoringEngine
 
         return match ($config['method']) {
             'choice_option_score', 'choice_option_average', 'choice_option_sum', 'choice_option_max' => $this->scoreChoice($field, $answer, $config),
+            LikertScale::SCORING_METHOD => $this->scoreLikert($field, $answer, $config),
             'numeric_threshold', 'numeric_range' => $this->scoreNumeric($answer, $config),
             'semantic_similarity', 'keyword_coverage' => $this->scoreSemanticText($field, $answer, $config),
             'repeater_completeness' => $this->scoreRepeater($field, $answer, $config),
@@ -141,6 +143,61 @@ class FieldAutoScoringEngine
             ],
             false,
             'auto_choice_option'
+        );
+    }
+
+    private function scoreLikert(array $field, AssessmentAttemptAnswer $answer, array $config): array
+    {
+        $selectedValue = trim((string) data_get($answer->answer_payload ?? [], 'value', $answer->answer_text));
+
+        if ($selectedValue === '') {
+            return $this->emptyResult($config, 'Jawaban skala Likert belum tersedia.');
+        }
+
+        $normalizedOptions = ChoiceOptionNormalizer::normalizeMany(
+            is_array($field['opsi_field'] ?? null) && ($field['opsi_field'] ?? []) !== []
+                ? $field['opsi_field']
+                : LikertScale::defaultOptions()
+        );
+        $selectedOption = collect($normalizedOptions)
+            ->first(fn (array $option) => in_array($selectedValue, $option['aliases'] ?? [], true));
+        $rawScore = data_get($answer->answer_payload ?? [], 'score');
+
+        if (! is_numeric($rawScore) && is_array($selectedOption)) {
+            $rawScore = is_numeric($selectedOption['score'] ?? null)
+                ? $selectedOption['score']
+                : ($selectedOption['value'] ?? null);
+        }
+
+        if (! is_numeric($rawScore) && is_numeric($selectedValue)) {
+            $rawScore = $selectedValue;
+        }
+
+        $isNegativeStatement = (bool) ($config['is_negative_statement'] ?? false);
+        $correctedScore = LikertScale::correctedScore($rawScore, $isNegativeStatement);
+
+        if (! is_numeric($correctedScore)) {
+            return $this->emptyResult($config, 'Skor jawaban Likert tidak valid untuk dihitung.', true);
+        }
+
+        return $this->finalizeResult(
+            $config,
+            $correctedScore,
+            0.99,
+            $isNegativeStatement
+                ? 'Skor Likert dibalik dengan rumus 6 - X karena pertanyaan ditandai negatif.'
+                : 'Skor Likert dihitung dari jawaban peserta pada skala 1 sampai 5.',
+            [
+                'method' => LikertScale::SCORING_METHOD,
+                'selected_value' => $selectedValue,
+                'selected_label' => is_array($selectedOption) ? ($selectedOption['label'] ?? null) : null,
+                'raw_score' => is_numeric($rawScore) ? (float) $rawScore : null,
+                'corrected_score' => (float) $correctedScore,
+                'is_negative_statement' => $isNegativeStatement,
+                'formula' => $isNegativeStatement ? '6 - X' : 'X',
+            ],
+            false,
+            'auto_likert_scale'
         );
     }
 

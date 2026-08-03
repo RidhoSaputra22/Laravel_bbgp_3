@@ -11,12 +11,13 @@ use App\Services\Assessment\Engine\PilihanGandaKompleksScoringEngine;
 use App\Services\Assessment\Engine\PortofolioScoringEngine;
 use App\Services\Assessment\Engine\StudiKasusScoringEngine;
 use App\Support\Assessment\AssessmentStructureMetadataResolver;
+use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\ScoringConfigNormalizer;
 use Illuminate\Support\Collection;
 
 class AssessmentScoringService
 {
-    private const SUMMARY_VERSION = 2;
+    private const SUMMARY_VERSION = 3;
 
     public function __construct(
         private readonly AssessmentStructureMetadataResolver $metadataResolver,
@@ -103,6 +104,9 @@ class AssessmentScoringService
                     'display_score' => $displayScore,
                     'formatted_score' => $this->formatScore($score),
                     'display_formatted_score' => $this->formatScore($displayScore),
+                    'index_score' => $this->likertIndex($score),
+                    'formatted_index_score' => $this->formatIndexScore($this->likertIndex($score)),
+                    'likert_category' => $this->serializeLikertCategory($score),
                     'level' => $this->serializeLevel($score),
                     'form_weight' => (float) data_get($engineSummary, 'form_config.weight', 1),
                     'answered_items' => $answeredItems,
@@ -176,6 +180,8 @@ class AssessmentScoringService
                         'label' => $kompetensi->label(),
                         'score' => $summary['score'] ?? 0.0,
                         'formatted_score' => $summary['formatted_score'] ?? null,
+                        'index_score' => $summary['index_score'] ?? null,
+                        'formatted_index_score' => $summary['formatted_index_score'] ?? null,
                         'is_available' => $summary['score'] !== null,
                     ];
                 })->all(),
@@ -213,6 +219,9 @@ class AssessmentScoringService
                     'display_score' => $displayScore,
                     'formatted_score' => $this->formatScore($score),
                     'display_formatted_score' => $this->formatScore($displayScore),
+                    'index_score' => $this->likertIndex($score),
+                    'formatted_index_score' => $this->formatIndexScore($this->likertIndex($score)),
+                    'likert_category' => $this->serializeLikertCategory($score),
                     'level' => $this->serializeLevel($score),
                     'forms' => $forms->values()->all(),
                     'aggregation_weight' => round((float) $aggregationWeight, 2),
@@ -254,6 +263,9 @@ class AssessmentScoringService
                     'display_score' => $displayScore,
                     'formatted_score' => $this->formatScore($score),
                     'display_formatted_score' => $this->formatScore($displayScore),
+                    'index_score' => $this->likertIndex($score),
+                    'formatted_index_score' => $this->formatIndexScore($this->likertIndex($score)),
+                    'likert_category' => $this->serializeLikertCategory($score),
                     'level' => $this->serializeLevel($score),
                     'indicators' => $indicators->values()->all(),
                     'pending_manual_items' => (int) $indicators->sum('pending_manual_items'),
@@ -295,6 +307,9 @@ class AssessmentScoringService
                     'score' => $weightedScore !== null ? round((float) $weightedScore, 2) : null,
                     'formatted_score' => $this->formatScore($weightedScore),
                     'percent_score' => $weightedScore !== null ? round((((float) $weightedScore) / 5) * 100, 2) : null,
+                    'index_score' => $this->likertIndex($weightedScore),
+                    'formatted_index_score' => $this->formatIndexScore($this->likertIndex($weightedScore)),
+                    'likert_category' => $this->serializeLikertCategory($weightedScore),
                     'level' => $this->serializeLevel($weightedScore),
                     'active_weight_total' => $activeWeightTotal > 0 ? round($activeWeightTotal, 2) : 0.0,
                     'active_weight_percent' => $activeWeightTotal > 0 ? (int) round($activeWeightTotal * 100) : 0,
@@ -337,6 +352,9 @@ class AssessmentScoringService
             'score' => $overallScore,
             'formatted_score' => $this->formatScore($overallScore),
             'percent_score' => $overallScore !== null ? round(($overallScore / 5) * 100, 2) : null,
+            'index_score' => $this->likertIndex($overallScore),
+            'formatted_index_score' => $this->formatIndexScore($this->likertIndex($overallScore)),
+            'likert_category' => $this->serializeLikertCategory($overallScore),
             'level' => $this->serializeLevel($overallScore),
             'available_competencies' => count($availableScores),
         ];
@@ -353,6 +371,8 @@ class AssessmentScoringService
                     'label' => $item['label'],
                     'score' => $item['score'],
                     'formatted_score' => $item['formatted_score'],
+                    'formatted_index_score' => $item['formatted_index_score'] ?? null,
+                    'likert_category' => $item['likert_category'] ?? null,
                     'category' => $item['recommendation_category'],
                     'focus' => $item['recommendation_focus'],
                     'support' => $item['recommendation_support'],
@@ -380,7 +400,8 @@ class AssessmentScoringService
             ->values();
         $lowest = $availableCompetencies->first();
         $highest = $availableCompetencies->last();
-        $overallLevel = $overallSummary['level']['short_label'] ?? 'Belum terpetakan';
+        $overallLevel = data_get($overallSummary, 'likert_category.label')
+            ?? ($overallSummary['level']['short_label'] ?? 'Belum terpetakan');
         $overallScore = $overallSummary['formatted_score'] ?? '-';
         $parts = [
             "Secara umum profil kompetensi guru berada pada {$overallLevel} dengan skor {$overallScore}.",
@@ -611,6 +632,25 @@ class AssessmentScoringService
         return number_format((float) $score, 2);
     }
 
+    private function likertIndex(float|int|string|null $score): ?float
+    {
+        return LikertScale::indexFromMean($score);
+    }
+
+    private function formatIndexScore(float|int|string|null $score): ?string
+    {
+        if (! is_numeric($score)) {
+            return null;
+        }
+
+        return number_format((float) $score, 2);
+    }
+
+    private function serializeLikertCategory(float|int|string|null $score): ?array
+    {
+        return LikertScale::categoryFromMean($score);
+    }
+
     /**
      * @param  array<int, float|int>  $scores
      */
@@ -655,6 +695,7 @@ class AssessmentScoringService
             AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS => $this->pilihanGandaKompleksScoringEngine,
             AssessmentInstrumentType::STUDI_KASUS => $this->studiKasusScoringEngine,
             AssessmentInstrumentType::PORTOFOLIO,
+            AssessmentInstrumentType::SKALA_LIKERT,
             AssessmentInstrumentType::MONITORING_OBSERVASI_EVIDEN => $this->portofolioScoringEngine,
         };
     }

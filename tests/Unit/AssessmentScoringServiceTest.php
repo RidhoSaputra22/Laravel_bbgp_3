@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
 use App\Services\Assessment\AssessmentScoringService;
+use App\Support\Assessment\LikertScale;
 use Illuminate\Support\Collection;
 use Tests\TestCase;
 
@@ -306,6 +307,87 @@ class AssessmentScoringServiceTest extends TestCase
         $this->assertSame(0.0, (float) $form['score']);
         $this->assertNull(data_get($form, 'level.short_label'));
         $this->assertStringContainsString('skor otomatis menjadi 0', (string) data_get($form, 'items.0.auto_reason'));
+    }
+
+    public function test_it_scores_likert_negative_statements_with_reverse_formula(): void
+    {
+        $attempt = new AssessmentAttempt([
+            'structure_snapshot' => [
+                'assessments' => [
+                    [
+                        'id' => 101,
+                        'kode_assessment' => 'ASM-LIKERT',
+                        'judul' => 'Refleksi Kompetensi Guru',
+                        'instrument_type' => 'skala_likert',
+                        'forms' => [
+                            [
+                                'id' => 201,
+                                'judul_form' => 'Refleksi Pedagogik',
+                                'kode_form' => 'LIKERT-PED',
+                                'kompetensi' => 'pedagogik',
+                                'indikator_kode' => 'P1',
+                                'indikator_label' => 'Refleksi Pedagogik',
+                                'is_scoreable' => true,
+                                'fields' => [
+                                    [
+                                        'id' => 301,
+                                        'label' => 'Saya menyusun pembelajaran sesuai kebutuhan peserta didik.',
+                                        'tipe_field' => LikertScale::FIELD_TYPE,
+                                        'opsi_field' => LikertScale::defaultOptions(),
+                                        'scoring_config' => [
+                                            'enabled' => true,
+                                            'method' => LikertScale::SCORING_METHOD,
+                                        ],
+                                    ],
+                                    [
+                                        'id' => 302,
+                                        'label' => 'Saya jarang menyesuaikan pembelajaran dengan kondisi kelas.',
+                                        'tipe_field' => LikertScale::FIELD_TYPE,
+                                        'opsi_field' => LikertScale::defaultOptions(),
+                                        'scoring_config' => [
+                                            'enabled' => true,
+                                            'method' => LikertScale::SCORING_METHOD,
+                                            'is_negative_statement' => true,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $attempt->setRelation('answers', new Collection([
+            new AssessmentAttemptAnswer([
+                'assessment_form_field_id' => 301,
+                'answer_text' => '4',
+                'answer_payload' => [
+                    'type' => LikertScale::FIELD_TYPE,
+                    'value' => '4',
+                    'label' => 'Setuju',
+                    'score' => 4,
+                ],
+            ]),
+            new AssessmentAttemptAnswer([
+                'assessment_form_field_id' => 302,
+                'answer_text' => '4',
+                'answer_payload' => [
+                    'type' => LikertScale::FIELD_TYPE,
+                    'value' => '4',
+                    'label' => 'Setuju',
+                    'score' => 4,
+                ],
+            ]),
+        ]));
+
+        $summary = $this->makeService()->buildSummary($attempt);
+
+        $this->assertSame('3.00', data_get($summary, 'forms.0.formatted_score'));
+        $this->assertSame(4.0, data_get($summary, 'forms.0.items.0.score'));
+        $this->assertSame(2.0, data_get($summary, 'forms.0.items.1.score'));
+        $this->assertSame('6 - X', data_get($summary, 'forms.0.items.1.auto_metadata.formula'));
+        $this->assertSame('50.00', data_get($summary, 'overall.formatted_index_score'));
+        $this->assertSame('Sedang', data_get($summary, 'overall.likert_category.label'));
     }
 
     private function makeService(): AssessmentScoringService

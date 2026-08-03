@@ -17,7 +17,7 @@
         'url' => 'url',
         default => 'text',
     };
-    $isChoiceField = in_array($field['tipe_field'], ['radio', 'checkbox'], true);
+    $isChoiceField = in_array($field['tipe_field'], ['radio', 'likert', 'checkbox'], true);
     $fileInputMode = in_array(data_get($field, 'opsi_field.input_mode'), ['file', 'link'], true)
         ? data_get($field, 'opsi_field.input_mode')
         : 'file';
@@ -67,6 +67,11 @@
 
         @case('radio')
             <x-assessment::form.radio-group :name="$answerName" :options="$field['opsi_field'] ?? []"
+                :selected="\Illuminate\Support\Arr::wrap($oldValue)" :id-prefix="'field-' . $field['id']" />
+        @break
+
+        @case('likert')
+            <x-assessment::form.likert-scale :name="$answerName" :options="$field['opsi_field'] ?? []"
                 :selected="\Illuminate\Support\Arr::wrap($oldValue)" :id-prefix="'field-' . $field['id']" />
         @break
 

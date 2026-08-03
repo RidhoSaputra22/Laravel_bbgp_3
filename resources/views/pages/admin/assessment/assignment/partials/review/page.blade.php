@@ -5,6 +5,8 @@
         $snapshot = $attempt->structure_snapshot ?? [];
         $overallLevel = data_get($scoringSummary, 'overall.level.short_label');
         $overallScore = data_get($scoringSummary, 'overall.formatted_score', '-');
+        $overallIndex = data_get($scoringSummary, 'overall.formatted_index_score', '-');
+        $overallCategory = data_get($scoringSummary, 'overall.likert_category.label', $overallLevel ?: '-');
         $systemScoredItems = (int) data_get($scoringSummary, 'system_scoring.completed_items', 0);
         $statusLabel = data_get($scoringSummary, 'status_label', 'Belum Ada Skor');
         $statusDescription = data_get($scoringSummary, 'status_description', '-');
@@ -40,7 +42,7 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Skor Umum</h4>
+                                    <h4>Skor Rata-rata</h4>
                                 </div>
                                 <div class="card-body">
                                     {{ $overallScore }}
@@ -55,10 +57,10 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Level Umum</h4>
+                                    <h4>Indeks 0-100</h4>
                                 </div>
                                 <div class="card-body">
-                                    {{ $overallLevel ?: '-' }}
+                                    {{ $overallIndex }}
                                 </div>
                             </div>
                         </div>
@@ -70,10 +72,10 @@
                             </div>
                             <div class="card-wrap">
                                 <div class="card-header">
-                                    <h4>Status Penilaian</h4>
+                                    <h4>Kategori</h4>
                                 </div>
                                 <div class="card-body" style="font-size: 0.95rem;">
-                                    {{ $statusLabel }}
+                                    {{ $overallCategory }}
                                 </div>
                             </div>
                         </div>
@@ -325,6 +327,34 @@
                                                                     @endforeach
                                                                 @break
 
+                                                                @case('likert')
+                                                                    @php
+                                                                        $likertReviewOptions = \App\Support\Assessment\ChoiceOptionNormalizer::normalizeMany(
+                                                                            is_array($field['opsi_field'] ?? null) && ($field['opsi_field'] ?? []) !== []
+                                                                                ? $field['opsi_field']
+                                                                                : \App\Support\Assessment\LikertScale::defaultOptions(),
+                                                                        );
+                                                                    @endphp
+                                                                    <div class="row">
+                                                                        @foreach ($likertReviewOptions as $option)
+                                                                            @php
+                                                                                $optionValue = (string) ($option['value'] ?? '');
+                                                                            @endphp
+                                                                            <div class="col-md mb-2">
+                                                                                <div class="custom-control custom-radio border rounded bg-light px-3 py-2 h-100">
+                                                                                    <input type="radio" class="custom-control-input"
+                                                                                        id="review-likert-{{ $fieldId }}-{{ $loop->index }}"
+                                                                                        @checked(($selectedValues[0] ?? '') === $optionValue) disabled>
+                                                                                    <label class="custom-control-label"
+                                                                                        for="review-likert-{{ $fieldId }}-{{ $loop->index }}">
+                                                                                        {{ $option['label'] }}
+                                                                                    </label>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @break
+
                                                                 @case('checkbox')
                                                                     @foreach ($field['opsi_field'] ?? [] as $option)
                                                                         @php
@@ -445,13 +475,13 @@
                                             <div>
                                                 <div class="font-weight-bold">{{ $competency['label'] }}</div>
                                                 <small class="text-muted">
-                                                    {{ $competency['recommendation_category'] ?: 'Belum ada rekomendasi' }}
+                                                    {{ data_get($competency, 'likert_category.label', $competency['recommendation_category'] ?: 'Belum ada rekomendasi') }}
                                                 </small>
                                             </div>
                                             <div class="text-right">
                                                 <div class="font-weight-bold">{{ $competency['formatted_score'] ?: '-' }}</div>
                                                 <small class="text-muted">
-                                                    {{ data_get($competency, 'level.short_label', 'Belum ada level') }}
+                                                    Indeks {{ data_get($competency, 'formatted_index_score', '-') }}
                                                 </small>
                                             </div>
                                         </div>

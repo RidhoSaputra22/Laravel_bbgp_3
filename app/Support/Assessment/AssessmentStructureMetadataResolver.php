@@ -49,6 +49,7 @@ class AssessmentStructureMetadataResolver
         ]));
 
         return match (true) {
+            Str::contains($haystack, ['likert', 'skala likert', 'refleksi kompetensi']) => AssessmentInstrumentType::SKALA_LIKERT,
             Str::contains($haystack, ['pilihan ganda', 'pg kompleks', 'soal situasional']) => AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS,
             Str::contains($haystack, ['studi kasus', 'kasus']) => AssessmentInstrumentType::STUDI_KASUS,
             Str::contains($haystack, ['monitoring', 'observasi', 'eviden lapangan', 'eviden']) => AssessmentInstrumentType::MONITORING_OBSERVASI_EVIDEN,

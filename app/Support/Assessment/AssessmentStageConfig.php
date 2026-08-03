@@ -88,6 +88,22 @@ class AssessmentStageConfig
             ]);
         }
 
+        if ($resolvedType === AssessmentInstrumentType::SKALA_LIKERT) {
+            return self::normalize([
+                'enabled' => true,
+                'entry_mode' => self::ENTRY_DIRECT,
+                'allow_draft' => false,
+                'finalize_mode' => self::FINALIZE_AUTO,
+                'admin_gate_enabled' => $stageIndex > 0,
+                'lock_until_previous_stages_completed' => $stageIndex > 0,
+                'time_limit_minutes' => null,
+                'security' => [
+                    'enabled' => false,
+                    'require_fullscreen' => false,
+                ],
+            ]);
+        }
+
         return self::normalize([
             'enabled' => $stageIndex < 3,
             'admin_gate_enabled' => $stageIndex > 0,

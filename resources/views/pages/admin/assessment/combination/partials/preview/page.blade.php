@@ -163,6 +163,37 @@
                                                                 @endif
                                                             @break
 
+                                                            @case('likert')
+                                                                @php
+                                                                    $likertOptions = \App\Support\Assessment\ChoiceOptionNormalizer::normalizeMany(
+                                                                        is_array($field['opsi_field'] ?? null) && ($field['opsi_field'] ?? []) !== []
+                                                                            ? $field['opsi_field']
+                                                                            : \App\Support\Assessment\LikertScale::defaultOptions(),
+                                                                    );
+                                                                @endphp
+                                                                <div class="row">
+                                                                    @forelse ($likertOptions as $option)
+                                                                        @php
+                                                                            $optionId = $fieldLabelId . '-' . $loop->index;
+                                                                        @endphp
+                                                                        <div class="col-md mb-2">
+                                                                            <label for="{{ $optionId }}"
+                                                                                class="d-block h-100 rounded border bg-white px-3 py-3">
+                                                                                <div class="d-flex align-items-center">
+                                                                                    <input type="radio" class="mr-2"
+                                                                                        id="{{ $optionId }}"
+                                                                                        name="{{ $field['nama_field'] ?? 'field_' . ($field['id'] ?? $loop->index) }}"
+                                                                                        disabled>
+                                                                                    <span>{{ $option['label'] }}</span>
+                                                                                </div>
+                                                                            </label>
+                                                                        </div>
+                                                                    @empty
+                                                                        <div class="col-12 text-muted">Belum ada opsi.</div>
+                                                                    @endforelse
+                                                                </div>
+                                                            @break
+
                                                             @case('radio')
                                                                 @forelse (($field['opsi_field'] ?? []) as $option)
                                                                     @php

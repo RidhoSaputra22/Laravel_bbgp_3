@@ -36,6 +36,7 @@
         'portofolio' => 'Portofolio',
         'study_case_default' => 'Studi Kasus',
         'pilihan_ganda_kompleks' => 'Pilihan Ganda Kompleks',
+        'skala_likert' => 'Skala Likert',
     ];
     $fieldScoringMethods = [
         'presence' => 'Nilai saat ada jawaban',
@@ -43,6 +44,7 @@
         'choice_option_average' => 'Rata-rata opsi terpilih',
         'choice_option_sum' => 'Jumlahkan skor opsi',
         'choice_option_max' => 'Ambil skor opsi tertinggi',
+        'likert_scale' => 'Skala Likert 1-5',
         'numeric_threshold' => 'Nilai berdasarkan target angka',
         'numeric_range' => 'Nilai berdasarkan rentang ideal',
         'semantic_similarity' => 'Analisis isi jawaban',
@@ -969,6 +971,8 @@
             const validationErrors = @json($validationErrors);
             const textOptionFieldTypes = ['select', 'checkbox'];
             const multipleChoiceFieldType = 'radio';
+            const likertFieldType = @js(\App\Support\Assessment\LikertScale::FIELD_TYPE);
+            const defaultLikertOptions = @json(\App\Support\Assessment\LikertScale::defaultOptions());
             const repeaterFieldType = 'repeater';
             const fileFieldType = 'file';
             const selectOtherOptionValue = @js(\App\Support\Assessment\ChoiceFieldOtherOption::VALUE);
@@ -1291,6 +1295,10 @@
                 `;
             };
             const resolvePreviewChoiceOptions = (field) => {
+                if ((field.tipe_field || '') === likertFieldType) {
+                    return defaultLikertOptions;
+                }
+
                 if ((field.tipe_field || '') === 'select' && (field.lookup_source || '')) {
                     const previewItems = resolveFieldLookupPreviewMeta(field.lookup_source)?.preview || [];
 
@@ -1391,6 +1399,10 @@
             };
 
             const resolveDefaultScoringMethod = (fieldType) => {
+                if (fieldType === likertFieldType) {
+                    return 'likert_scale';
+                }
+
                 if (fieldType === multipleChoiceFieldType || fieldType === 'select') {
                     return 'choice_option_score';
                 }
@@ -1416,6 +1428,8 @@
 
             const resolveAllowedScoringMethods = (fieldType) => {
                 switch (fieldType) {
+                    case likertFieldType:
+                        return ['likert_scale', 'presence'];
                     case multipleChoiceFieldType:
                     case 'select':
                         return ['choice_option_score', 'presence'];
@@ -1455,15 +1469,18 @@
             };
 
             const normalizeFieldScoringConfig = (config = {}, fieldType = 'text') => {
+                const hasExplicitEnabled = Object.prototype.hasOwnProperty.call(config || {}, 'enabled');
+
                 return {
-                    enabled: normalizeChecked(config?.enabled),
+                    enabled: hasExplicitEnabled ? normalizeChecked(config?.enabled) : fieldType === likertFieldType,
                     profile: String(config?.profile || '').trim(),
                     method: String(config?.method || resolveDefaultScoringMethod(fieldType)).trim(),
                     rubric_code: String(config?.rubric_code || '').trim(),
                     weight: config?.weight ?? '',
+                    is_negative_statement: normalizeChecked(config?.is_negative_statement),
                     score_if_answered: config?.score_if_answered ?? '',
-                    scale_min: config?.scale_min ?? '',
-                    scale_max: config?.scale_max ?? '',
+                    scale_min: config?.scale_min ?? (fieldType === likertFieldType ? '1' : ''),
+                    scale_max: config?.scale_max ?? (fieldType === likertFieldType ? '5' : ''),
                     reference_answer: String(config?.reference_answer || '').trim(),
                     keyword_groups_text: String(config?.keyword_groups_text || '').trim(),
                     synonym_map_text: String(config?.synonym_map_text || '').trim(),
@@ -1834,6 +1851,10 @@
                     return 'Isi batas angka minimum, target, dan maksimum. Sistem akan mengubahnya menjadi nilai secara otomatis.';
                 }
 
+                if (fieldType === likertFieldType && method === 'likert_scale') {
+                    return 'Pilihan skala tetap 1 sampai 5. Jika pertanyaan negatif aktif, skor akan dibalik saat pengolahan dengan rumus 6 - X.';
+                }
+
                 if (fieldType === repeaterFieldType) {
                     return 'Tuliskan gambaran isi tabel yang baik. Sistem akan menilai kelengkapan baris, kolom wajib, dan mutu isi tabel.';
                 }
@@ -1870,6 +1891,12 @@
 
                 if (['radio', 'select', 'checkbox'].includes(fieldType) && method !== 'presence') {
                     summaryPills.push('Skor mengikuti opsi jawaban');
+                }
+
+                if (fieldType === likertFieldType && method === 'likert_scale') {
+                    const isNegativeStatement = $fieldCard.find('.field-likert-negative-statement').is(':checked');
+                    summaryPills.push(isNegativeStatement ? 'Pernyataan negatif: skor 6 - X' : 'Pernyataan positif');
+                    summaryPills.push('Indeks: (rata-rata - 1) / 4 x 100');
                 }
 
                 if (fieldType === 'number' && method !== 'presence') {
@@ -2381,6 +2408,7 @@
                 const fieldType = fieldData.tipe_field || 'text';
                 const showTextOptions = textOptionFieldTypes.includes(fieldType);
                 const showMultipleChoiceOptions = fieldType === multipleChoiceFieldType;
+                const showLikertOptions = fieldType === likertFieldType;
                 const repeaterConfig = normalizeRepeaterConfigData(fieldData.repeater_config_text);
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
@@ -2428,6 +2456,7 @@
                 const scoringMethodName = `${scoringPrefix}[method]`;
                 const scoringRubricCodeName = `${scoringPrefix}[rubric_code]`;
                 const scoringWeightName = `${scoringPrefix}[weight]`;
+                const scoringNegativeStatementName = `${scoringPrefix}[is_negative_statement]`;
                 const scoringPresenceName = `${scoringPrefix}[score_if_answered]`;
                 const scoringScaleMinName = `${scoringPrefix}[scale_min]`;
                 const scoringScaleMaxName = `${scoringPrefix}[scale_max]`;
@@ -2470,6 +2499,10 @@
                 const multipleChoiceWrapperClass = joinClasses(
                     'multiple-choice-wrapper',
                     showMultipleChoiceOptions ? '' : 'd-none',
+                );
+                const likertWrapperClass = joinClasses(
+                    'likert-option-wrapper',
+                    showLikertOptions ? '' : 'd-none',
                 );
                 const repeaterWrapperClass = joinClasses(
                     'form-group',
@@ -2685,6 +2718,22 @@
 
                             </div>
 
+                            <div class="${likertWrapperClass}">
+                                <div class="alert alert-light border mb-3">
+                                    <div class="font-weight-bold mb-2">Pilihan Skala Likert</div>
+                                    <div class="d-flex flex-wrap" style="gap:0.5rem;">
+                                        ${defaultLikertOptions.map((option) => `
+                                            <span class="badge badge-light border px-3 py-2">
+                                                ${escapeHtml(option.label)} = ${escapeHtml(option.score)}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        Urutan pilihan jawaban tetap sama untuk peserta. Pembalikan skor hanya dilakukan saat pengolahan data.
+                                    </small>
+                                </div>
+                            </div>
+
                             <div class="${repeaterWrapperClass}">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
@@ -2783,6 +2832,27 @@
                                         <div class="alert alert-light border mb-0">
                                             Nilai utama untuk pertanyaan pilihan diambil dari skor pada masing-masing opsi jawaban di atas.
                                         </div>
+                                    </div>
+
+                                    <div class="scoring-likert-wrapper d-none mb-3">
+                                        <div class="alert alert-light border mb-3">
+                                            Skor dasar Likert: Sangat Setuju 5, Setuju 4, Cukup Setuju 3, Tidak Setuju 2, Sangat Tidak Setuju 1.
+                                        </div>
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input field-likert-negative-statement"
+                                                id="field-likert-negative-${formIndex}-${fieldIndex}"
+                                                name="${scoringNegativeStatementName}"
+                                                value="1" ${scoringData.is_negative_statement ? 'checked' : ''}>
+                                            <label class="custom-control-label"
+                                                for="field-likert-negative-${formIndex}-${fieldIndex}">
+                                                Pernyataan negatif
+                                            </label>
+                                        </div>
+                                        ${buildInvalidFeedback(scoringNegativeStatementName)}
+                                        <small class="text-muted d-block mt-2">
+                                            Jika aktif, skor akhir dibalik dengan rumus <code>6 - X</code>. Contoh: Setuju bernilai 2 dan Sangat Tidak Setuju bernilai 5.
+                                            Pada instrumen refleksi, butir negatif biasanya berada pada urutan ke-3 dan ke-6 dalam setiap kelompok tujuh butir.
+                                        </small>
                                     </div>
 
                                     <div class="scoring-presence-wrapper d-none">
@@ -3627,6 +3697,7 @@
                 const selectedType = $fieldCard.find('.field-type-select').val();
                 const showTextOptions = textOptionFieldTypes.includes(selectedType);
                 const showMultipleChoiceOptions = selectedType === multipleChoiceFieldType;
+                const showLikertOptions = selectedType === likertFieldType;
                 const showRepeaterOptions = selectedType === repeaterFieldType;
                 const showFileOptions = selectedType === fileFieldType;
                 const showAllowOtherInput = supportsSelectOtherInput(selectedType);
@@ -3657,6 +3728,8 @@
                     .toggleClass('d-none', !showMultipleChoiceOptions)
                     .find('input, select')
                     .prop('disabled', !showMultipleChoiceOptions);
+                $fieldCard.find('.likert-option-wrapper')
+                    .toggleClass('d-none', !showLikertOptions);
 
                 $fieldCard.find('.repeater-option-wrapper')
                     .toggleClass('d-none', !showRepeaterOptions)
@@ -3752,6 +3825,28 @@
                 toggleOptionWrapper($fieldCard);
             };
 
+            const applyLikertScoringDefaults = ($fieldCard) => {
+                const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
+
+                if (selectedType !== likertFieldType) {
+                    return;
+                }
+
+                $fieldCard.find('.field-scoring-enabled').prop('checked', true);
+                $fieldCard.find('.field-scoring-method').val('likert_scale');
+
+                const $scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]');
+                const $scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]');
+
+                if (!$scaleMin.val()) {
+                    $scaleMin.val('1');
+                }
+
+                if (!$scaleMax.val()) {
+                    $scaleMax.val('5');
+                }
+            };
+
             const toggleScoringWrapper = ($fieldCard) => {
                 const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
                 const $methodSelect = $fieldCard.find('.field-scoring-method');
@@ -3765,9 +3860,24 @@
                 const showConfidenceConfig = showTextConfig;
                 const showPresenceConfig = normalizedMethod === 'presence';
                 const showChoiceConfig = ['radio', 'select', 'checkbox'].includes(selectedType) && !showPresenceConfig;
+                const showLikertConfig = selectedType === likertFieldType && normalizedMethod === 'likert_scale';
                 const advancedPanelVisible = !$fieldCard.find('.scoring-advanced-panel').hasClass('d-none');
 
                 $methodSelect.html(buildFieldScoringMethodOptions(selectedType, normalizedMethod)).val(normalizedMethod);
+
+                if (showLikertConfig) {
+                    const $scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]');
+                    const $scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]');
+
+                    if (!$scaleMin.val()) {
+                        $scaleMin.val('1');
+                    }
+
+                    if (!$scaleMax.val()) {
+                        $scaleMax.val('5');
+                    }
+                }
+
                 $fieldCard.find('.scoring-config-body').toggleClass('d-none', !scoringEnabled);
                 $fieldCard.find('.scoring-main-guidance').text(resolveScoringSummaryMessage(selectedType, normalizedMethod));
                 $fieldCard.find('.scoring-default-summary-content').html(buildScoringSummaryHtml($fieldCard, selectedType, normalizedMethod));
@@ -3775,6 +3885,10 @@
                 $fieldCard.find('.scoring-text-wrapper').toggleClass('d-none', !showTextConfig);
                 $fieldCard.find('.scoring-presence-wrapper').toggleClass('d-none', !showPresenceConfig);
                 $fieldCard.find('.scoring-choice-wrapper').toggleClass('d-none', !showChoiceConfig);
+                $fieldCard.find('.scoring-likert-wrapper')
+                    .toggleClass('d-none', !showLikertConfig)
+                    .find('input')
+                    .prop('disabled', !showLikertConfig);
                 $fieldCard.find('.scoring-confidence-wrapper').toggleClass('d-none', !showConfidenceConfig);
                 $fieldCard.find('.scoring-synonym-wrapper').toggleClass('d-none', !showTextConfig);
                 $fieldCard.find('.scoring-numeric-score-wrapper').toggleClass('d-none', !showNumericConfig);
@@ -3975,6 +4089,9 @@
                         method: scoringMethod,
                         rubric_code: $fieldCard.find('input[name$="[scoring][rubric_code]"]').val()?.trim() || '',
                         weight: $fieldCard.find('input[name$="[scoring][weight]"]').val()?.trim() || '',
+                        is_negative_statement: fieldType === likertFieldType
+                            ? $fieldCard.find('input[name$="[scoring][is_negative_statement]"]').is(':checked')
+                            : false,
                         score_if_answered: $fieldCard.find('input[name$="[scoring][score_if_answered]"]').val()?.trim() || '',
                         scale_min: $fieldCard.find('input[name$="[scoring][scale_min]"]').val()?.trim() || '',
                         scale_max: $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '',
@@ -4278,6 +4395,34 @@
                                 placeholder="Tulis jawaban ${escapeHtml(selectOtherOptionLabel.toLowerCase())}"
                                 disabled>
                         ` : ''}
+                    `;
+                } else if (field.type === likertFieldType) {
+                    const options = field.options.length ? field.options : defaultLikertOptions;
+
+                    inputHtml = `
+                        <div class="row">
+                            ${options.map((option, index) => {
+                                const normalizedOption = option && typeof option === 'object' ? option : {
+                                    label: String(option || ''),
+                                    value: String(option || ''),
+                                };
+                                const inputId = `${sanitizePreviewKey(previewKey)}-${index}`;
+
+                                return `
+                                    <div class="col-md mb-2">
+                                        <label for="${inputId}" class="d-block h-100 rounded border bg-white px-3 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <input type="radio" class="mr-2"
+                                                    id="${inputId}"
+                                                    name="${sanitizePreviewKey(previewKey)}"
+                                                    value="${escapeHtml(normalizedOption.value || '')}">
+                                                <span>${escapeHtml(normalizedOption.label || normalizedOption.value || '')}</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
                     `;
                 } else if (field.type === 'radio') {
                     const options = field.options.length ? field.options : [{
@@ -4690,6 +4835,7 @@
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
                 updateFileInputModeState($fieldCard);
+                applyLikertScoringDefaults($fieldCard);
                 toggleScoringWrapper($fieldCard);
                 syncRepeaterConfigState($fieldCard);
                 schedulePreviewRender();

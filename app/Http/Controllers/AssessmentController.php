@@ -11,6 +11,7 @@ use App\Models\AssessmentForm;
 use App\Services\Assessment\AssessmentCombinationService;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\ParticipantAutoFillResolver;
 use App\Support\Assessment\ScoringGuidanceAssistant;
 use Illuminate\Http\Request;
@@ -234,6 +235,7 @@ class AssessmentController extends Controller
             'date' => 'Tanggal',
             'select' => 'Daftar Pilihan',
             'radio' => 'Pilihan Ganda',
+            LikertScale::FIELD_TYPE => 'Skala Likert',
             'checkbox' => 'Kotak Centang',
             'file' => 'Unggah File',
             'repeater' => 'Tabel Berulang',
@@ -341,6 +343,7 @@ class AssessmentController extends Controller
                         'choice_option_average',
                         'choice_option_sum',
                         'choice_option_max',
+                        LikertScale::SCORING_METHOD,
                         'numeric_threshold',
                         'numeric_range',
                         'semantic_similarity',
@@ -350,6 +353,7 @@ class AssessmentController extends Controller
                 ],
                 'forms.*.fields.*.scoring.rubric_code' => 'nullable|string|max:100',
                 'forms.*.fields.*.scoring.weight' => 'nullable|numeric|min:0',
+                'forms.*.fields.*.scoring.is_negative_statement' => 'nullable|boolean',
                 'forms.*.fields.*.scoring.score_if_answered' => 'nullable|numeric|min:0|max:5',
                 'forms.*.fields.*.scoring.scale_min' => 'nullable|numeric|min:0|max:5',
                 'forms.*.fields.*.scoring.scale_max' => 'nullable|numeric|min:0|max:5',
@@ -724,8 +728,12 @@ class AssessmentController extends Controller
             return $this->parseFileFieldOptions($fieldData);
         }
 
-        if (! in_array($fieldType, ['select', 'radio', 'checkbox', 'repeater'], true)) {
+        if (! in_array($fieldType, ['select', 'radio', LikertScale::FIELD_TYPE, 'checkbox', 'repeater'], true)) {
             return null;
+        }
+
+        if ($fieldType === LikertScale::FIELD_TYPE) {
+            return LikertScale::defaultOptions();
         }
 
         if ($fieldType === 'radio') {
@@ -1046,6 +1054,7 @@ class AssessmentController extends Controller
             'method' => trim((string) ($rawConfig['method'] ?? '')) ?: null,
             'rubric_code' => trim((string) ($rawConfig['rubric_code'] ?? '')) ?: null,
             'weight' => is_numeric($rawConfig['weight'] ?? null) ? (float) $rawConfig['weight'] : null,
+            'is_negative_statement' => (bool) ($rawConfig['is_negative_statement'] ?? false),
             'score_if_answered' => is_numeric($rawConfig['score_if_answered'] ?? null) ? (float) $rawConfig['score_if_answered'] : null,
             'scale_min' => is_numeric($rawConfig['scale_min'] ?? null) ? (float) $rawConfig['scale_min'] : null,
             'scale_max' => is_numeric($rawConfig['scale_max'] ?? null) ? (float) $rawConfig['scale_max'] : null,
@@ -1064,6 +1073,15 @@ class AssessmentController extends Controller
             'max_score' => is_numeric($rawConfig['max_score'] ?? null) ? (float) $rawConfig['max_score'] : null,
             'advanced_rules_text' => trim((string) ($rawConfig['advanced_rules_text'] ?? '')) ?: null,
         ];
+
+        if ($fieldType === LikertScale::FIELD_TYPE) {
+            $config['enabled'] = array_key_exists('enabled', $rawConfig)
+                ? (bool) $rawConfig['enabled']
+                : true;
+            $config['method'] = LikertScale::SCORING_METHOD;
+            $config['scale_min'] = $config['scale_min'] ?? LikertScale::SCALE_MIN;
+            $config['scale_max'] = $config['scale_max'] ?? LikertScale::SCALE_MAX;
+        }
 
         if (in_array($fieldType, ['radio', 'select', 'checkbox'], true) && empty($config['method'])) {
             $config['method'] = $fieldType === 'checkbox' ? 'choice_option_average' : 'choice_option_score';
@@ -1086,6 +1104,7 @@ class AssessmentController extends Controller
         $config = array_filter($config, function ($value, $key) {
             return match ($key) {
                 'enabled', 'manual_review_below_confidence' => $key === 'enabled',
+                'is_negative_statement' => (bool) $value,
                 default => $value !== null && $value !== '',
             };
         }, ARRAY_FILTER_USE_BOTH);
@@ -1286,6 +1305,7 @@ class AssessmentController extends Controller
         $instrumentPrefix = match (AssessmentInstrumentType::tryFromMixed($instrumentType)) {
             AssessmentInstrumentType::PORTOFOLIO => 'PORTOFOLIO',
             AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS => 'PG',
+            AssessmentInstrumentType::SKALA_LIKERT => 'LIKERT',
             AssessmentInstrumentType::STUDI_KASUS => 'STUDI-KASUS',
             AssessmentInstrumentType::MONITORING_OBSERVASI_EVIDEN => 'MOE',
             default => null,
@@ -1392,6 +1412,7 @@ class AssessmentController extends Controller
                             'method' => data_get($field->scoring_config, 'method'),
                             'rubric_code' => data_get($field->scoring_config, 'rubric_code'),
                             'weight' => data_get($field->scoring_config, 'weight'),
+                            'is_negative_statement' => (bool) data_get($field->scoring_config, 'is_negative_statement', false),
                             'score_if_answered' => data_get($field->scoring_config, 'score_if_answered'),
                             'scale_min' => data_get($field->scoring_config, 'scale_min'),
                             'scale_max' => data_get($field->scoring_config, 'scale_max'),
@@ -1447,7 +1468,7 @@ class AssessmentController extends Controller
 
     private function formatRawFieldOptionsJsonForBuilder(?string $fieldType, mixed $rawOptions): ?string
     {
-        if (in_array($fieldType, ['select', 'radio', 'checkbox', 'repeater'], true) || ! is_array($rawOptions)) {
+        if (in_array($fieldType, ['select', 'radio', LikertScale::FIELD_TYPE, 'checkbox', 'repeater'], true) || ! is_array($rawOptions)) {
             return null;
         }
 

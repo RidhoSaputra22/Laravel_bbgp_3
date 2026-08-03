@@ -55,6 +55,7 @@ class ScoringConfigNormalizer
             'profile' => trim((string) ($config['profile'] ?? $formConfig['profile'] ?? 'generic')) ?: 'generic',
             'method' => trim((string) ($config['method'] ?? $this->defaultMethodFor($fieldType, $formConfig['profile'] ?? 'generic'))),
             'weight' => max($this->toFloat($config['weight'] ?? $config['field_weight'] ?? 1, 1), 0.01),
+            'is_negative_statement' => (bool) ($config['is_negative_statement'] ?? $config['negative_statement'] ?? false),
             'scale' => [
                 'min' => min($scaleMin, $scaleMax),
                 'max' => max($scaleMin, $scaleMax),
@@ -218,6 +219,7 @@ class ScoringConfigNormalizer
     private function defaultMethodFor(string $fieldType, string $profile): string
     {
         return match ($fieldType) {
+            LikertScale::FIELD_TYPE => LikertScale::SCORING_METHOD,
             'radio', 'select' => 'choice_option_score',
             'checkbox' => 'choice_option_average',
             'number' => 'numeric_threshold',

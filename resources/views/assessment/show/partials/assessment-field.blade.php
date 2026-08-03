@@ -115,7 +115,7 @@
     data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
     <div class="mb-3 flex items-start justify-between gap-4">
         <div class="min-w-0">
-            <label @if (!in_array($fieldType, ['radio', 'checkbox', 'repeater'], true)) for="{{ $inputId }}" @endif
+            <label @if (!in_array($fieldType, ['radio', 'likert', 'checkbox', 'repeater'], true)) for="{{ $inputId }}" @endif
                 class="block text-sm font-semibold text-slate-700">
                 {{ $displayLabel }}
                 @if ($isRequired)
@@ -200,6 +200,14 @@
 
         @case('radio')
             <x-assessment::form.radio-group :label="null" :description="null" :name="$answerName" :options="$field['opsi_field'] ?? []"
+                :selected="\Illuminate\Support\Arr::wrap($oldValue)" :id-prefix="'field-' . $field['id']"
+                :required="$isRequired" />
+
+
+        @break
+
+        @case('likert')
+            <x-assessment::form.likert-scale :label="null" :description="null" :name="$answerName" :options="$field['opsi_field'] ?? []"
                 :selected="\Illuminate\Support\Arr::wrap($oldValue)" :id-prefix="'field-' . $field['id']"
                 :required="$isRequired" />
 

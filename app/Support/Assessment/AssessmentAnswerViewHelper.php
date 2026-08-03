@@ -8,9 +8,15 @@ class AssessmentAnswerViewHelper
 {
     public static function resolveOptionMap(array $field): array
     {
+        $rawOptions = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+
+        if (($field['tipe_field'] ?? null) === LikertScale::FIELD_TYPE && $rawOptions === []) {
+            $rawOptions = LikertScale::defaultOptions();
+        }
+
         $options = ChoiceFieldOtherOption::appendOption(
             $field,
-            is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []
+            $rawOptions
         );
 
         return collect($options)
@@ -70,7 +76,7 @@ class AssessmentAnswerViewHelper
                 ->implode(', ');
         }
 
-        if (in_array($fieldType, ['radio', 'select'], true)) {
+        if (in_array($fieldType, ['radio', 'select', LikertScale::FIELD_TYPE], true)) {
             if (ChoiceFieldOtherOption::isSelected($answer)) {
                 return ChoiceFieldOtherOption::resolveText($answer) ?: ChoiceFieldOtherOption::LABEL;
             }
