@@ -53,10 +53,12 @@ class AssessmentAssignmentService
             return collect();
         }
 
+        $selectColumns = $this->combinationPoolSelectColumns();
         $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
 
         if ($latestGenerationId) {
             $generatedCombinations = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
+                ->select($selectColumns)
                 ->where('assessment_combination_generation_id', $latestGenerationId)
                 ->reorder()
                 ->orderBy('generation_sequence')
@@ -68,7 +70,10 @@ class AssessmentAssignmentService
             }
         }
 
-        return $this->buildCombinationPoolBaseQuery($targetKetenagaan)->get()->values();
+        return $this->buildCombinationPoolBaseQuery($targetKetenagaan)
+            ->select($selectColumns)
+            ->get()
+            ->values();
     }
 
     public function getAvailableCombinationOptionSummariesForKetenagaan(
@@ -1763,6 +1768,31 @@ class AssessmentAssignmentService
 
     private function extractAssessmentIdsFromCombinations(Collection $assessmentCombinations): array
     {
+        $combinationIds = $assessmentCombinations
+            ->pluck('id')
+            ->map(fn ($combinationId) => (int) $combinationId)
+            ->filter(fn (int $combinationId) => $combinationId > 0)
+            ->unique()
+            ->values();
+
+        if ($combinationIds->isNotEmpty() && Schema::hasTable('assessment_combination_items')) {
+            $assessmentIds = DB::table('assessment_combination_items')
+                ->whereIn('assessment_combination_id', $combinationIds->all())
+                ->whereNotNull('assessment_id')
+                ->orderBy('assessment_order')
+                ->orderBy('assessment_id')
+                ->pluck('assessment_id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->filter(fn (int $assessmentId) => $assessmentId > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($assessmentIds !== []) {
+                return $assessmentIds;
+            }
+        }
+
         return $assessmentCombinations
             ->flatMap(fn (AssessmentCombination $assessmentCombination) => $this->extractAssessmentIdsFromCombination($assessmentCombination))
             ->unique()
@@ -1772,10 +1802,49 @@ class AssessmentAssignmentService
 
     private function extractAssessmentIdsFromCombination(AssessmentCombination $assessmentCombination): array
     {
-        return collect(data_get($assessmentCombination->structure_snapshot, 'assessments', []))
+        $snapshot = $assessmentCombination->structure_snapshot;
+
+        if (
+            ! is_array($snapshot)
+            && Schema::hasColumn('assessment_combinations', 'structure_snapshot')
+            && $assessmentCombination->getKey()
+        ) {
+            $rawSnapshot = AssessmentCombination::query()
+                ->whereKey($assessmentCombination->getKey())
+                ->value('structure_snapshot');
+            $decodedSnapshot = is_string($rawSnapshot) ? json_decode($rawSnapshot, true) : $rawSnapshot;
+            $snapshot = is_array($decodedSnapshot) ? $decodedSnapshot : [];
+        }
+
+        return collect(data_get($snapshot, 'assessments', []))
             ->pluck('id')
             ->map(fn ($assessmentId) => (int) $assessmentId)
             ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->values()
+            ->all();
+    }
+
+    private function combinationPoolSelectColumns(): array
+    {
+        $availableColumns = array_flip(Schema::getColumnListing('assessment_combinations'));
+        $candidateColumns = [
+            'id',
+            'assessment_combination_generation_id',
+            'generation_sequence',
+            'kode_kombinasi',
+            'judul',
+            'target_ketenagaan',
+            'total_assessments',
+            'total_forms',
+            'total_questions',
+            'generated_at',
+            'is_active',
+            'created_at',
+            'updated_at',
+        ];
+
+        return collect($candidateColumns)
+            ->filter(fn (string $column) => isset($availableColumns[$column]))
             ->values()
             ->all();
     }

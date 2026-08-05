@@ -65,12 +65,7 @@
                 $inputId = $idPrefix . '-' . $option['index'];
                 $checked = $selectedValue !== null && in_array($selectedValue, $option['match_values'], true);
             @endphp
-            <label for="{{ $inputId }}" @class([
-                'flex min-h-[76px] cursor-pointer items-center rounded-sm border bg-white px-3 py-3 text-sm font-semibold text-slate-700 transition',
-                'border-[#1376bd] ring-2 ring-[#1376bd]/15' => $checked,
-                'border-[#dce8f1] hover:border-[#1376bd]/60' => !$checked && !$disabled,
-                'cursor-not-allowed bg-slate-50 opacity-80' => $disabled,
-            ])>
+            <label for="{{ $inputId }}" >
                 <input id="{{ $inputId }}" type="radio" name="{{ $name }}" value="{{ $option['value'] }}"
                     @checked($checked) @required($required) @disabled($disabled)
                     class="mr-3 h-4 w-4 border-slate-300 text-[#1376bd] focus:ring-[#1376bd]/30">

@@ -3,6 +3,7 @@
 namespace App\Services\Assessment;
 
 use App\Enum\AssessmentKetenagaanType;
+use App\Enum\AssessmentInstrumentType;
 use App\Enum\KompetensiGuru;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
@@ -217,12 +218,22 @@ class AssessmentCombinationService
                 $ketenagaan,
                 fn ($query) => $query->where('target_ketenagaan', $ketenagaan->value)
             )
-            ->orderBy('judul')
             ->get()
             ->filter(function (Assessment $assessment) {
                 return $assessment->forms
                     ->filter(fn (AssessmentForm $form) => $form->fields->isNotEmpty())
                     ->isNotEmpty();
+            })
+            ->sort(function (Assessment $left, Assessment $right) {
+                return [
+                    AssessmentInstrumentType::assignmentStageOrderFor($left->instrument_type),
+                    strtolower(trim((string) $left->judul)),
+                    (int) $left->id,
+                ] <=> [
+                    AssessmentInstrumentType::assignmentStageOrderFor($right->instrument_type),
+                    strtolower(trim((string) $right->judul)),
+                    (int) $right->id,
+                ];
             })
             ->values();
     }

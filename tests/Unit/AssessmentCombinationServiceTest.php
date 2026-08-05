@@ -231,6 +231,41 @@ class AssessmentCombinationServiceTest extends TestCase
         $this->assertSame(2, count($snapshotIdentityForm['fields'] ?? []));
     }
 
+    public function test_it_orders_combination_snapshot_by_stage_flow_instead_of_title(): void
+    {
+        $likert = $this->createSingleFieldAssessment(
+            'ASM-LIKERT',
+            'A. Angket Kompetensi Guru',
+            'skala_likert'
+        );
+        $pilihanGanda = $this->createSingleFieldAssessment(
+            'ASM-PGK',
+            'B. Tes Pilihan Ganda Kompleks',
+            'pilihan_ganda_kompleks'
+        );
+        $studiKasus = $this->createSingleFieldAssessment(
+            'ASM-SK',
+            'C. Studi Kasus Kompetensi Guru',
+            'studi_kasus'
+        );
+        $portofolio = $this->createSingleFieldAssessment(
+            'ASM-PORT',
+            'Z. Instrumen Portofolio',
+            'portofolio'
+        );
+
+        $combination = app(AssessmentCombinationService::class)->createCombination([
+            'target_ketenagaan' => 'tenaga_pendidik',
+        ]);
+
+        $this->assertSame(
+            [$portofolio->id, $studiKasus->id, $pilihanGanda->id, $likert->id],
+            collect(data_get($combination->structure_snapshot, 'assessments', []))
+                ->pluck('id')
+                ->all()
+        );
+    }
+
     private function createAssessmentFixture(): Assessment
     {
         $assessment = Assessment::query()->create([
@@ -290,6 +325,34 @@ class AssessmentCombinationServiceTest extends TestCase
         $this->createField($kepribadian->id, 'Kepribadian 1', 'kepribadian_1', 1);
         $this->createField($identity->id, 'Nama Lengkap', 'nama_lengkap', 1);
         $this->createField($identity->id, 'Nomor Induk', 'nomor_induk', 2);
+
+        return $assessment;
+    }
+
+    private function createSingleFieldAssessment(string $code, string $title, string $instrumentType): Assessment
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => $code,
+            'judul' => $title,
+            'deskripsi' => 'Assessment test.',
+            'petunjuk' => 'Isi seluruh bagian.',
+            'instrument_type' => $instrumentType,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'status' => 'publish',
+            'is_active' => true,
+        ]);
+
+        $form = AssessmentForm::query()->create([
+            'assessment_id' => $assessment->id,
+            'judul_form' => $title.' Form',
+            'kode_form' => $code.'-FORM',
+            'kompetensi' => 'pedagogik',
+            'is_scoreable' => true,
+            'urutan' => 1,
+            'is_active' => true,
+        ]);
+
+        $this->createField($form->id, $title.' Item', strtolower($code).'_item', 1);
 
         return $assessment;
     }
