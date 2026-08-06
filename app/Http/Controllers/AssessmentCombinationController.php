@@ -28,12 +28,17 @@ class AssessmentCombinationController extends Controller
         $this->authorizeAccess();
 
         $datas = AssessmentCombination::query()
-            ->with(['generator', 'generation'])
+            ->select($this->indexCombinationSelectColumns())
+            ->with([
+                'generator:id,name',
+                'generation:id,kode_generate',
+            ])
             ->withCount(['items', 'assignments', 'assignmentTargets'])
             ->orderByDesc('id')
             ->get();
         $generations = AssessmentCombinationGeneration::query()
-            ->with('generator')
+            ->select($this->indexGenerationSelectColumns())
+            ->with('generator:id,name')
             ->withCount('combinations')
             ->orderByDesc('id')
             ->get();
@@ -65,11 +70,10 @@ class AssessmentCombinationController extends Controller
     {
         $this->authorizeAccess();
 
-        return view('pages.admin.assessment.combination.create', [
-            'menu' => $this->menu,
-            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
-            'assessmentCatalogByKetenagaan' => $this->combinationService->buildAssessmentCatalogByKetenagaan(),
-        ]);
+        return view(
+            'pages.admin.assessment.combination.create',
+            $this->buildFormViewData()
+        );
     }
 
     public function store(Request $request)
@@ -119,10 +123,12 @@ class AssessmentCombinationController extends Controller
         $this->authorizeAccess();
 
         $generation = AssessmentCombinationGeneration::query()
+            ->select($this->generationShowSelectColumns())
             ->with([
-                'generator',
+                'generator:id,name',
                 'combinations' => function ($query) {
-                    $query->with(['generator'])
+                    $query->select($this->generationShowCombinationSelectColumns())
+                        ->with(['generator:id,name'])
                         ->withCount(['items', 'assignments', 'assignmentTargets']);
                 },
             ])
@@ -134,6 +140,18 @@ class AssessmentCombinationController extends Controller
             'generation' => $generation,
             'monitoring' => $this->generationService->buildGenerationMonitoring($generation),
         ]);
+    }
+
+    public function editGeneration(string $id)
+    {
+        $this->authorizeAccess();
+
+        $generation = AssessmentCombinationGeneration::query()->findOrFail($id);
+
+        return view(
+            'pages.admin.assessment.combination.create',
+            $this->buildFormViewData($generation)
+        );
     }
 
     public function retryGeneration(string $id)
@@ -160,6 +178,69 @@ class AssessmentCombinationController extends Controller
                     'combination' => $exception->getMessage() !== ''
                         ? $exception->getMessage()
                         : 'Terjadi kesalahan saat menjalankan retry generate kombinasi soal.',
+                ]);
+        }
+    }
+
+    public function resetGeneration(Request $request, string $id)
+    {
+        $this->authorizeAccess();
+
+        $generation = AssessmentCombinationGeneration::query()
+            ->with('combinations:id,assessment_combination_generation_id,kode_kombinasi')
+            ->findOrFail($id);
+        $validated = $this->validatePayload($request);
+        $replacementGeneration = null;
+        $generationHistoryReset = false;
+        $cleanupResult = $this->emptyGenerationCleanupSummary();
+
+        try {
+            $replacementGeneration = $this->generationService->createGenerationRecord(
+                $validated,
+                session('user_id') ? (int) session('user_id') : null
+            );
+            $cleanupResult = $this->assignmentService->deleteAssignmentsForCombinationGeneration($generation);
+            $this->generationService->deleteGenerationHistory($generation);
+            $generationHistoryReset = true;
+            $replacementGeneration = $this->generationService->dispatchGeneration($replacementGeneration->fresh());
+
+            return redirect()
+                ->route('assessment.combination.generation.show', $replacementGeneration->id)
+                ->with(
+                    'combination_notice',
+                    $this->buildGenerationResetNotice($generation, $replacementGeneration, $cleanupResult)
+                );
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            if ($replacementGeneration && ! $generationHistoryReset) {
+                try {
+                    $this->generationService->deleteGenerationHistory($replacementGeneration->fresh());
+                } catch (\Throwable $cleanupException) {
+                    report($cleanupException);
+                }
+            }
+
+            if ($replacementGeneration && $generationHistoryReset) {
+                return redirect()
+                    ->route('assessment.combination.generation.show', $replacementGeneration->id)
+                    ->with(
+                        'combination_notice',
+                        $this->buildGenerationResetPartialNotice(
+                            $generation,
+                            $replacementGeneration,
+                            $cleanupResult
+                        )
+                    )
+                    ->withErrors([
+                        'combination' => 'Riwayat lama sudah direset, tetapi generate baru gagal dijalankan otomatis. Periksa proses baru ini dan gunakan retry jika diperlukan.',
+                    ]);
+            }
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'combination' => 'Terjadi kesalahan saat mereset pengaturan generate kombinasi soal.',
                 ]);
         }
     }
@@ -219,6 +300,135 @@ class AssessmentCombinationController extends Controller
             in_array(session('role'), ['admin', 'superadmin', 'kepala', 'database'], true),
             403
         );
+    }
+
+    private function buildFormViewData(?AssessmentCombinationGeneration $generation = null): array
+    {
+        return [
+            'menu' => $this->menu,
+            'generation' => $generation,
+            'isEditMode' => $generation !== null,
+            'pageTitle' => $generation ? 'Edit & Reset Generate Kombinasi' : 'Buat Kombinasi Soal',
+            'formAction' => $generation
+                ? route('assessment.combination.generation.reset', $generation->id)
+                : route('assessment.combination.store'),
+            'formMethod' => 'POST',
+            'submitLabel' => $generation ? 'Reset dan Generate Ulang' : 'Kirim ke Antrean Generate',
+            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
+            'assessmentCatalogByKetenagaan' => $this->combinationService->buildAssessmentCatalogByKetenagaan(),
+            'initialFormData' => $this->buildInitialFormDataFromGeneration($generation),
+            'relatedAssignmentUsageCount' => $generation
+                ? $this->assignmentService->countAssignmentsForCombinationGeneration($generation)
+                : 0,
+        ];
+    }
+
+    private function indexCombinationSelectColumns(): array
+    {
+        return [
+            'id',
+            'assessment_combination_generation_id',
+            'generation_sequence',
+            'kode_kombinasi',
+            'target_ketenagaan',
+            'total_assessments',
+            'total_forms',
+            'total_questions',
+            'generated_by',
+            'generated_at',
+            'is_active',
+            'created_at',
+        ];
+    }
+
+    private function indexGenerationSelectColumns(): array
+    {
+        return [
+            'id',
+            'kode_generate',
+            'target_ketenagaan',
+            'total_kombinasi',
+            'status',
+            'job_batch_id',
+            'generated_by',
+            'created_at',
+        ];
+    }
+
+    private function generationShowSelectColumns(): array
+    {
+        return [
+            'id',
+            'kode_generate',
+            'target_ketenagaan',
+            'total_kombinasi',
+            'status',
+            'job_batch_id',
+            'generated_by',
+            'created_at',
+            'processed_at',
+        ];
+    }
+
+    private function generationShowCombinationSelectColumns(): array
+    {
+        return [
+            'id',
+            'assessment_combination_generation_id',
+            'generation_sequence',
+            'kode_kombinasi',
+            'total_assessments',
+            'total_forms',
+            'total_questions',
+            'generated_by',
+            'generated_at',
+            'created_at',
+        ];
+    }
+
+    private function buildInitialFormDataFromGeneration(
+        ?AssessmentCombinationGeneration $generation
+    ): array {
+        $selectionConfig = is_array($generation?->selection_config ?? null)
+            ? $generation->selection_config
+            : [];
+        $includedAssessmentIds = $this->normalizeAssessmentIds(
+            $selectionConfig['included_assessment_ids'] ?? []
+        );
+
+        return [
+            'target_ketenagaan' => $selectionConfig['target_ketenagaan']
+                ?? $generation?->target_ketenagaan
+                ?? AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+            'total_kombinasi' => max(
+                (int) ($selectionConfig['total_kombinasi'] ?? $generation?->total_kombinasi ?? 1),
+                1
+            ),
+            'included_assessment_ids' => $includedAssessmentIds !== [] ? $includedAssessmentIds : null,
+            'competency_selection_modes' => $this->normalizeGenerationAssessmentConfigMap(
+                $selectionConfig['competency_selection_modes'] ?? []
+            ),
+            'competency_take_counts' => $this->normalizeGenerationAssessmentConfigMap(
+                $selectionConfig['competency_take_counts'] ?? []
+            ),
+        ];
+    }
+
+    private function normalizeGenerationAssessmentConfigMap(mixed $config): array
+    {
+        return collect((array) $config)
+            ->mapWithKeys(function ($value, $assessmentId) {
+                $normalizedAssessmentId = (int) $assessmentId;
+
+                if ($normalizedAssessmentId < 1) {
+                    return [];
+                }
+
+                return [
+                    $normalizedAssessmentId => is_array($value) ? $value : [],
+                ];
+            })
+            ->all();
     }
 
     private function validatePayload(Request $request): array
@@ -460,5 +670,69 @@ class AssessmentCombinationController extends Controller
         $parts[] = 'Kombinasi soal dari riwayat tersebut ikut dihapus.';
 
         return implode(' ', $parts);
+    }
+
+    private function buildGenerationResetNotice(
+        AssessmentCombinationGeneration $generation,
+        AssessmentCombinationGeneration $replacementGeneration,
+        array $result
+    ): string {
+        $parts = [
+            'Pengaturan '.$generation->kode_generate.' berhasil direset.',
+            'Proses baru '.$replacementGeneration->kode_generate.' dikirim ke antrean batch.',
+        ];
+
+        if (($result['deleted_assignment_count'] ?? 0) > 0) {
+            $parts[] = ($result['deleted_assignment_count']).' penugasan assessment terkait dihapus permanen.';
+        }
+
+        if (($result['deleted_target_count'] ?? 0) > 0) {
+            $parts[] = ($result['deleted_target_count']).' target penugasan dibersihkan.';
+        }
+
+        if (($result['deleted_attempt_count'] ?? 0) > 0) {
+            $parts[] = ($result['deleted_attempt_count']).' riwayat pengerjaan dihapus.';
+        }
+
+        if (($result['deleted_answer_count'] ?? 0) > 0) {
+            $parts[] = ($result['deleted_answer_count']).' jawaban peserta dihapus.';
+        }
+
+        if (($result['deleted_file_count'] ?? 0) > 0) {
+            $parts[] = ($result['deleted_file_count']).' file unggahan ikut dihapus.';
+        }
+
+        $parts[] = 'Kombinasi lama dibersihkan sebelum generate ulang.';
+
+        return implode(' ', $parts);
+    }
+
+    private function buildGenerationResetPartialNotice(
+        AssessmentCombinationGeneration $generation,
+        AssessmentCombinationGeneration $replacementGeneration,
+        array $result
+    ): string {
+        $parts = [
+            'Riwayat '.$generation->kode_generate.' sudah dibersihkan.',
+            'Proses baru '.$replacementGeneration->kode_generate.' sudah dibuat, tetapi antreannya belum berjalan penuh.',
+        ];
+
+        if (($result['deleted_assignment_count'] ?? 0) > 0) {
+            $parts[] = ($result['deleted_assignment_count']).' penugasan assessment terkait sudah dihapus.';
+        }
+
+        return implode(' ', $parts);
+    }
+
+    private function emptyGenerationCleanupSummary(): array
+    {
+        return [
+            'combination_count' => 0,
+            'deleted_assignment_count' => 0,
+            'deleted_target_count' => 0,
+            'deleted_attempt_count' => 0,
+            'deleted_answer_count' => 0,
+            'deleted_file_count' => 0,
+        ];
     }
 }

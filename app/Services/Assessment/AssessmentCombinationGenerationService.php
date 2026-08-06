@@ -25,7 +25,16 @@ class AssessmentCombinationGenerationService
 
     public function createGeneration(array $payload, ?int $generatedBy = null): AssessmentCombinationGeneration
     {
-        $generation = DB::transaction(function () use ($payload, $generatedBy) {
+        $generation = $this->createGenerationRecord($payload, $generatedBy);
+
+        return $this->dispatchGeneration($generation);
+    }
+
+    public function createGenerationRecord(
+        array $payload,
+        ?int $generatedBy = null
+    ): AssessmentCombinationGeneration {
+        return DB::transaction(function () use ($payload, $generatedBy) {
             return AssessmentCombinationGeneration::query()->create([
                 'kode_generate' => $this->generateUniqueCode(),
                 'target_ketenagaan' => (string) ($payload['target_ketenagaan'] ?? ''),
@@ -36,7 +45,11 @@ class AssessmentCombinationGenerationService
                 'processed_at' => null,
             ]);
         });
+    }
 
+    public function dispatchGeneration(
+        AssessmentCombinationGeneration $generation
+    ): AssessmentCombinationGeneration {
         $this->dispatchBatch($generation, $this->resolveSequenceNumbers($generation));
 
         return $generation->fresh(['generator'])->loadCount('combinations');

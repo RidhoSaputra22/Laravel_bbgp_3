@@ -195,6 +195,10 @@
                                                         class="btn btn-info btn-sm my-1">
                                                         <i class="fas fa-eye mr-1"></i> Detail Proses
                                                     </a>
+                                                    <a href="{{ route('assessment.combination.generation.edit', $generation->id) }}"
+                                                        class="btn btn-warning btn-sm my-1">
+                                                        <i class="fas fa-edit mr-1"></i> Edit & Reset
+                                                    </a>
                                                     @if ($monitoring['retry_available'] ?? false)
                                                         <form action="{{ route('assessment.combination.generation.retry', $generation->id) }}"
                                                             method="POST" class="d-inline-block my-1">

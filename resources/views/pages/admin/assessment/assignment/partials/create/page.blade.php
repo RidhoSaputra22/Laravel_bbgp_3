@@ -61,6 +61,15 @@
     $currentCombinationOptions = collect($combinationOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])
         ->values()
         ->all();
+    $currentCombinationGroupCount = collect($currentCombinationOptions)
+        ->map(function ($item) {
+            $signature = trim((string) ($item['parent_assessment_signature'] ?? ''));
+
+            return $signature !== '' ? $signature : 'kombinasi:'.(string) ($item['id'] ?? '');
+        })
+        ->filter(fn (string $signature) => $signature !== 'kombinasi:')
+        ->unique()
+        ->count();
     $selectedTargetJabatan = collect((array) old('target_jabatan', $assignment?->target_jabatan ?? []))
         ->filter(fn ($jabatan) => filled($jabatan))
         ->map(fn ($jabatan) => trim((string) $jabatan))
@@ -703,15 +712,15 @@
                                                     <div class="mb-3">
                                                         <div class="text-muted small">Pool Kombinasi Aktif</div>
                                                         <div class="font-weight-bold" id="auto-combination-summary-title">
-                                                            {{ count($currentCombinationOptions) > 0 ? count($currentCombinationOptions) . ' kombinasi siap dibagikan otomatis' : 'Belum ada kombinasi aktif untuk ketenagaan ini' }}
+                                                            {{ count($currentCombinationOptions) > 0 ? count($currentCombinationOptions) . ' kombinasi dalam ' . max($currentCombinationGroupCount, 1) . ' grup parent assessment' : 'Belum ada kombinasi aktif untuk ketenagaan ini' }}
                                                         </div>
                                                         <small class="text-muted d-block" id="auto-combination-summary-code">
-                                                            Acak kabupaten dengan urutan acak stabil.
+                                                            Kombinasi aktif terbaru dikelompokkan per parent assessment lalu dibagikan otomatis per kabupaten.
                                                         </small>
                                                     </div>
                                                     <div class="mb-3 text-right">
                                                         <span class="auto-summary-pill" id="auto-combination-summary-count">
-                                                            {{ count($currentCombinationOptions) }} kombinasi
+                                                            {{ max($currentCombinationGroupCount, 0) }} grup / {{ count($currentCombinationOptions) }} kombinasi
                                                         </span>
                                                         <span class="auto-summary-pill" id="auto-combination-summary-assessments">
                                                             0 assessment
@@ -730,7 +739,7 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>Kode Kombinasi</th>
-                                                                <th>Assessment Sumber</th>
+                                                                <th>Grup Parent Assessment</th>
                                                                 <th>Struktur</th>
                                                             </tr>
                                                         </thead>
@@ -742,7 +751,18 @@
                                                                             {{ $combinationOption['kode'] ?: '-' }}
                                                                         </td>
                                                                         <td>
-                                                                            {{ $combinationOption['total_assessments'] ?? 0 }} assessment sumber
+                                                                            <div class="font-weight-bold">
+                                                                                {{ $combinationOption['parent_assessment_label'] ?? 'Tanpa grup parent assessment' }}
+                                                                            </div>
+                                                                            @if (!empty($combinationOption['source_assessments']))
+                                                                                <small class="text-muted d-block">
+                                                                                    {{ collect($combinationOption['source_assessments'])
+                                                                                        ->map(fn ($assessment) => trim((string) ($assessment['kode'] ?? $assessment['judul'] ?? '-')) .
+                                                                                            ' (' . (int) ($assessment['form_count'] ?? 0) . ' form / ' .
+                                                                                            (int) ($assessment['question_count'] ?? 0) . ' soal)')
+                                                                                        ->implode(' | ') }}
+                                                                                </small>
+                                                                            @endif
                                                                         </td>
                                                                         <td>
                                                                             {{ $combinationOption['total_forms'] ?? 0 }} form /
@@ -2036,11 +2056,34 @@
                     return;
                 }
 
+                const renderSourceAssessments = (item) => {
+                    const sourceAssessments = Array.isArray(item.source_assessments) ? item.source_assessments : [];
+
+                    if (sourceAssessments.length === 0) {
+                        return '';
+                    }
+
+                    return `
+                        <div class="text-muted small mt-1">
+                            ${sourceAssessments.map((assessment) => {
+                                const code = assessment && (assessment.kode || assessment.judul || '-');
+                                const formCount = Number((assessment && assessment.form_count) || 0);
+                                const questionCount = Number((assessment && assessment.question_count) || 0);
+
+                                return `${escapeHtml(code)} (${formCount} form / ${questionCount} soal)`;
+                            }).join(' | ')}
+                        </div>
+                    `;
+                };
+
                 tbody.innerHTML = orderedCombinations.map((item) => {
                     return `
                         <tr>
                             <td class="font-weight-bold">${escapeHtml(item.kode || '-')}</td>
-                            <td>${Number(item.total_assessments || 0)} assessment sumber</td>
+                            <td>
+                                <div class="font-weight-bold">${escapeHtml(item.parent_assessment_label || 'Tanpa grup parent assessment')}</div>
+                                ${renderSourceAssessments(item)}
+                            </td>
                             <td>${Number(item.total_forms || 0)} form / ${Number(item.total_questions || 0)} soal</td>
                         </tr>
                     `;
@@ -2090,11 +2133,22 @@
                             <td>${Number(row.schoolCount || 0)} satuan pendidikan</td>
                             <td>
                                 <div class="font-weight-600">${escapeHtml(row.combination && row.combination.kode || '-')}</div>
+                                <div class="text-muted small">${escapeHtml(row.combination && row.combination.parent_assessment_label || 'Tanpa grup parent assessment')}</div>
                             </td>
                             <td>${Number(row.userCount || 0)} user</td>
                         </tr>
                     `;
                 }).join('');
+            }
+
+            function buildCombinationGroupCount(combinationOptions) {
+                return new Set(
+                    combinationOptions.map((item) => {
+                        const signature = item && item.parent_assessment_signature ? String(item.parent_assessment_signature) : '';
+
+                        return signature !== '' ? signature : `kombinasi:${item && item.id ? item.id : ''}`;
+                    }).filter((signature) => signature !== '')
+                ).size;
             }
 
             function updateAutoSummaryPanel() {
@@ -2124,6 +2178,7 @@
                 const combinationAssessmentsNode = document.getElementById('auto-combination-summary-assessments');
                 const combinationFormsNode = document.getElementById('auto-combination-summary-forms');
                 const combinationQuestionsNode = document.getElementById('auto-combination-summary-questions');
+                const combinationGroupCount = buildCombinationGroupCount(combinationOptions);
 
                 const assessmentCount = summary ? Number(summary.assessment_count || 0) : 0;
                 const userCount = selectedSatuanPendidikanItems.reduce((total, item) => {
@@ -2174,18 +2229,18 @@
 
                 if (combinationTitleNode) {
                     combinationTitleNode.textContent = combinationOptions.length > 0
-                        ? `${combinationOptions.length} kombinasi siap dibagikan otomatis`
+                        ? `${combinationOptions.length} kombinasi dalam ${combinationGroupCount || 1} grup parent assessment`
                         : 'Belum ada kombinasi aktif untuk ketenagaan ini';
                 }
 
                 if (combinationCodeNode) {
                     combinationCodeNode.textContent = combinationOptions.length > 0
-                        ? 'Urutan kombinasi diacak stabil dari judul penugasan + target jabatan/kabupaten/satuan pendidikan.'
+                        ? `${combinationGroupCount || 1} grup parent assessment aktif diacak stabil dari judul penugasan + target jabatan/kabupaten/satuan pendidikan.`
                         : 'Acak per kabupaten dengan urutan acak stabil.';
                 }
 
                 if (combinationCountNode) {
-                    combinationCountNode.textContent = combinationOptions.length + ' kombinasi';
+                    combinationCountNode.textContent = `${combinationGroupCount || 0} grup / ${combinationOptions.length} kombinasi`;
                 }
 
                 if (combinationAssessmentsNode) {
@@ -2270,6 +2325,7 @@
                 const assessmentCount = buildMetricValue(combinationOptions, 'total_assessments');
                 const formCount = buildMetricValue(combinationOptions, 'total_forms');
                 const fieldCount = buildMetricValue(combinationOptions, 'total_questions');
+                const combinationGroupCount = buildCombinationGroupCount(combinationOptions);
                 const userCount = selectedSatuanPendidikanItems.reduce((total, item) => {
                     return total + Number((item.payload && item.payload.user_count) || 0);
                 }, 0);
@@ -2306,7 +2362,7 @@
 
                 if (summaryCombinationTitle) {
                     summaryCombinationTitle.textContent = combinationOptions.length > 0
-                        ? `${combinationOptions.length} kombinasi / round robin`
+                        ? `${combinationGroupCount || 1} grup / ${combinationOptions.length} kombinasi`
                         : 'Belum tersedia';
                 }
 

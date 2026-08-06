@@ -25,6 +25,10 @@
                     <a href="{{ route('assessment.combination.create') }}" class="btn btn-primary mr-2">
                         <i class="fas fa-plus"></i> Buat Permintaan Baru
                     </a>
+                    <a href="{{ route('assessment.combination.generation.edit', $generation->id) }}"
+                        class="btn btn-warning mr-2">
+                        <i class="fas fa-edit"></i> Edit & Reset
+                    </a>
                     @if ($monitoring['retry_available'] ?? false)
                         <form action="{{ route('assessment.combination.generation.retry', $generation->id) }}" method="POST"
                             class="d-inline-block">

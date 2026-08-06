@@ -1,12 +1,23 @@
-@extends('layouts.app', ['title' => 'Buat Kombinasi Soal'])
+@extends('layouts.app', ['title' => $pageTitle ?? 'Buat Kombinasi Soal'])
 
 @php
+    $pageTitle = $pageTitle ?? 'Buat Kombinasi Soal';
+    $formAction = $formAction ?? route('assessment.combination.store');
+    $formMethod = strtoupper((string) ($formMethod ?? 'POST'));
+    $submitLabel = $submitLabel ?? 'Kirim ke Antrean Generate';
+    $isEditMode = (bool) ($isEditMode ?? false);
+    $generation = $generation ?? null;
+    $initialFormData = is_array($initialFormData ?? null) ? $initialFormData : [];
+    $relatedAssignmentUsageCount = max((int) ($relatedAssignmentUsageCount ?? 0), 0);
     $selectedTargetKetenagaan = old(
         'target_ketenagaan',
-        \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+        $initialFormData['target_ketenagaan'] ?? \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
-    $initialTotalKombinasi = max((int) old('total_kombinasi', 1), 1);
-    $initialSelectionModes = collect((array) old('competency_selection_modes', []))
+    $initialTotalKombinasi = max((int) old('total_kombinasi', $initialFormData['total_kombinasi'] ?? 1), 1);
+    $initialSelectionModes = collect((array) old(
+        'competency_selection_modes',
+        $initialFormData['competency_selection_modes'] ?? [],
+    ))
         ->mapWithKeys(function ($modes, $assessmentId) {
             return [
                 (int) $assessmentId => collect((array) $modes)
@@ -15,7 +26,10 @@
             ];
         })
         ->all();
-    $initialTakeCounts = collect((array) old('competency_take_counts', []))
+    $initialTakeCounts = collect((array) old(
+        'competency_take_counts',
+        $initialFormData['competency_take_counts'] ?? [],
+    ))
         ->mapWithKeys(function ($counts, $assessmentId) {
             return [
                 (int) $assessmentId => collect((array) $counts)
@@ -24,7 +38,7 @@
             ];
         })
         ->all();
-    $oldIncludedAssessmentIds = old('included_assessment_ids');
+    $oldIncludedAssessmentIds = old('included_assessment_ids', $initialFormData['included_assessment_ids'] ?? null);
     $hasInitialIncludedAssessmentSelection = $oldIncludedAssessmentIds !== null;
     $initialEnabledAssessmentIds = collect((array) $oldIncludedAssessmentIds)
         ->map(fn ($assessmentId) => (int) $assessmentId)
@@ -280,7 +294,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Buat Kombinasi Soal</h1>
+                <h1>{{ $pageTitle }}</h1>
                 <div class="section-header-breadcrumb">
                     <a href="{{ route('assessment.combination.index') }}" class="btn btn-light">
                         <i class="fas fa-arrow-left"></i> Kembali
@@ -307,8 +321,28 @@
                     </div>
                 @endif
 
-                <form action="{{ route('assessment.combination.store') }}" method="POST" id="combination-form">
+                @if ($isEditMode && $generation)
+                    <div class="alert alert-warning border">
+                        <div class="font-weight-bold mb-2">
+                            Mode edit/reset untuk proses {{ $generation->kode_generate }}
+                        </div>
+                        <div class="mb-2">
+                            Form ini memuat ulang pengaturan lama agar bisa Anda ubah sebelum generate ulang.
+                        </div>
+                        <div class="mb-0">
+                            Saat disimpan, batch lama akan dibatalkan bila masih berjalan, riwayat generate lama akan
+                            dihapus, dan
+                            {{ $relatedAssignmentUsageCount }}
+                            penugasan assessment terkait akan ikut dibersihkan sebelum proses baru dibuat.
+                        </div>
+                    </div>
+                @endif
+
+                <form action="{{ $formAction }}" method="POST" id="combination-form">
                     @csrf
+                    @if ($formMethod !== 'POST')
+                        @method($formMethod)
+                    @endif
 
                     <div class="row">
                         <div class="col-lg-8">
@@ -422,7 +456,9 @@
                                     <h6 class="text-primary mb-3">Ringkasan Kombinasi</h6>
                                     <div class="mb-3">
                                         <div class="text-muted small">Kode Proses</div>
-                                        <div class="font-weight-bold">Otomatis saat masuk antrean</div>
+                                        <div class="font-weight-bold">
+                                            {{ $isEditMode && $generation ? $generation->kode_generate . ' akan diganti proses baru' : 'Otomatis saat masuk antrean' }}
+                                        </div>
                                     </div>
                                     <div class="mb-3">
                                         <div class="text-muted small">Banyak Kombinasi</div>
@@ -470,10 +506,10 @@
                                 <div class="combination-summary-panel mb-4">
                                     <div class="text-muted small mb-2">Info Penting</div>
                                     <div class="font-weight-bold mb-2" id="current-source-title">
-                                        Pilih ketenagaan untuk melihat sumber assessment.
+                                        {{ $isEditMode ? 'Perbarui pengaturan sebelum reset generate' : 'Pilih ketenagaan untuk melihat sumber assessment.' }}
                                     </div>
                                     <div class="text-muted small mb-0" id="current-source-description">
-                                        Setelah submit, Anda akan diarahkan ke halaman monitoring progres generate kombinasi.
+                                        {{ $isEditMode ? 'Setelah submit, proses lama dibersihkan lalu Anda diarahkan ke monitoring generate baru.' : 'Setelah submit, Anda akan diarahkan ke halaman monitoring progres generate kombinasi.' }}
                                     </div>
                                 </div>
 
@@ -482,8 +518,11 @@
                                         <h4>Aksi</h4>
                                     </div>
                                     <div class="card-body">
-                                        <button type="submit" class="btn btn-primary btn-block" id="combination-submit-button">
-                                            <i class="fas fa-layer-group"></i> Kirim ke Antrean Generate
+                                        <button type="{{ $isEditMode ? 'button' : 'submit' }}"
+                                            class="btn btn-{{ $isEditMode ? 'warning' : 'primary' }} btn-block"
+                                            id="combination-submit-button">
+                                            <i class="fas fa-{{ $isEditMode ? 'sync-alt' : 'layer-group' }}"></i>
+                                            {{ $submitLabel }}
                                         </button>
                                         <a href="{{ route('assessment.combination.index') }}" class="btn btn-light btn-block">
                                             Batal
@@ -498,6 +537,47 @@
         </section>
     </div>
 @endsection
+
+@if ($isEditMode && $generation)
+    @push('modals')
+        <div class="modal fade" id="combinationEditWarningModal" tabindex="-1" role="dialog"
+            aria-labelledby="combinationEditWarningModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title text-dark" id="combinationEditWarningModalLabel">
+                            Reset Riwayat Generate
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-3">
+                            Menyimpan perubahan untuk <strong>{{ $generation->kode_generate }}</strong> akan mereset proses
+                            generate ini dari nol.
+                        </p>
+                        <ul class="pl-3 mb-3">
+                            <li>Batch lama akan dibatalkan jika masih berjalan.</li>
+                            <li>Seluruh kombinasi dari riwayat ini akan dihapus dan diganti proses baru.</li>
+                            <li>{{ $relatedAssignmentUsageCount }} penugasan assessment terkait akan ikut dihapus permanen.</li>
+                            <li>Peserta yang terkait dengan penugasan lama harus diproses ulang dari hasil generate baru.</li>
+                        </ul>
+                        <div class="alert alert-warning mb-0">
+                            Lanjutkan hanya jika pengaturan lama memang harus dibersihkan dan dibuat ulang.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-warning" id="combination-edit-confirm-button">
+                            Ya, Reset dan Generate Ulang
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endpush
+@endif
 
 @push('scripts')
     <script>
@@ -514,6 +594,9 @@
             const applyAllModeAllButton = document.getElementById('apply-all-mode-all');
             const totalCombinationInput = document.getElementById('total_kombinasi');
             const submitButton = document.getElementById('combination-submit-button');
+            const combinationForm = document.getElementById('combination-form');
+            const editConfirmButton = document.getElementById('combination-edit-confirm-button');
+            const isEditMode = @json($isEditMode);
             const selectionModesState = Object.assign({}, initialSelectionModes);
             const takeCountsState = Object.assign({}, initialTakeCounts);
             const enabledAssessmentsState = {};
@@ -1109,6 +1192,20 @@
             if (totalCombinationInput) {
                 totalCombinationInput.addEventListener('input', updateSummary);
                 totalCombinationInput.addEventListener('change', updateSummary);
+            }
+
+            if (isEditMode && submitButton) {
+                submitButton.addEventListener('click', () => {
+                    $('#combinationEditWarningModal').modal('show');
+                });
+            }
+
+            if (isEditMode && editConfirmButton && combinationForm) {
+                editConfirmButton.addEventListener('click', () => {
+                    editConfirmButton.disabled = true;
+                    $('#combinationEditWarningModal').modal('hide');
+                    combinationForm.submit();
+                });
             }
 
             renderAssessmentPanels();

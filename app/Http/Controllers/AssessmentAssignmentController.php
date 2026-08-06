@@ -838,15 +838,22 @@ class AssessmentAssignmentController extends Controller
 
     private function availableAssessmentsQuery()
     {
-        return Assessment::query()
+        $query = Assessment::query()
             ->select([
                 'assessments.id',
                 'assessments.kode_assessment',
                 'assessments.judul',
-                'assessments.instrument_type',
                 'assessments.status',
                 'assessments.target_ketenagaan',
-            ])
+            ]);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('assessments', 'instrument_type')) {
+            $query->addSelect('assessments.instrument_type');
+        } else {
+            $query->selectRaw('null as instrument_type');
+        }
+
+        return $query
             ->selectSub(
                 AssessmentForm::query()
                     ->selectRaw('count(*)')
@@ -968,6 +975,20 @@ class AssessmentAssignmentController extends Controller
                     ->getAvailableCombinationOptionSummariesForKetenagaan($case)
                     ->values()
                     ->map(function (AssessmentCombination $combination) {
+                        $sourceAssessments = collect($combination->getAttribute('source_assessments') ?? [])
+                            ->filter(fn ($assessment) => is_array($assessment))
+                            ->values()
+                            ->map(function (array $assessment) {
+                                return [
+                                    'id' => (int) ($assessment['id'] ?? 0),
+                                    'kode' => $assessment['kode'] ?? null,
+                                    'judul' => $assessment['judul'] ?? null,
+                                    'form_count' => (int) ($assessment['form_count'] ?? 0),
+                                    'question_count' => (int) ($assessment['question_count'] ?? 0),
+                                ];
+                            })
+                            ->all();
+
                         return [
                             'id' => (int) $combination->id,
                             'kode' => $combination->kode_kombinasi,
@@ -980,6 +1001,9 @@ class AssessmentAssignmentController extends Controller
                             'total_assessments' => (int) $combination->total_assessments,
                             'total_forms' => (int) $combination->total_forms,
                             'total_questions' => (int) $combination->total_questions,
+                            'parent_assessment_signature' => (string) ($combination->getAttribute('parent_assessment_signature') ?? ''),
+                            'parent_assessment_label' => (string) ($combination->getAttribute('parent_assessment_label') ?? ''),
+                            'source_assessments' => $sourceAssessments,
                         ];
                     })
                     ->all();

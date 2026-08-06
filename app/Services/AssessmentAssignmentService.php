@@ -53,27 +53,7 @@ class AssessmentAssignmentService
             return collect();
         }
 
-        $selectColumns = $this->combinationPoolSelectColumns();
-        $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
-
-        if ($latestGenerationId) {
-            $generatedCombinations = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
-                ->select($selectColumns)
-                ->where('assessment_combination_generation_id', $latestGenerationId)
-                ->reorder()
-                ->orderBy('generation_sequence')
-                ->orderByDesc('id')
-                ->get();
-
-            if ($generatedCombinations->isNotEmpty()) {
-                return $generatedCombinations->values();
-            }
-        }
-
-        return $this->buildCombinationPoolBaseQuery($targetKetenagaan)
-            ->select($selectColumns)
-            ->get()
-            ->values();
+        return $this->resolveAssignableCombinationPool($targetKetenagaan);
     }
 
     public function getAvailableCombinationOptionSummariesForKetenagaan(
@@ -83,37 +63,7 @@ class AssessmentAssignmentService
             return collect();
         }
 
-        $selectColumns = [
-            'id',
-            'kode_kombinasi',
-            'total_assessments',
-            'total_forms',
-            'total_questions',
-            'assessment_combination_generation_id',
-            'generation_sequence',
-        ];
-        $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
-
-        if ($latestGenerationId) {
-            $generatedCombinations = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
-                ->select($selectColumns)
-                ->where('assessment_combination_generation_id', $latestGenerationId)
-                ->reorder()
-                ->orderBy('generation_sequence')
-                ->orderByDesc('id')
-                ->get();
-
-            if ($generatedCombinations->isNotEmpty()) {
-                return $generatedCombinations->values();
-            }
-        }
-
-        return $this->buildCombinationPoolBaseQuery($targetKetenagaan)
-            ->select($selectColumns)
-            ->reorder()
-            ->orderByDesc('id')
-            ->get()
-            ->values();
+        return $this->resolveAssignableCombinationPool($targetKetenagaan);
     }
 
     public function countAvailableCombinationsForKetenagaan(
@@ -123,22 +73,7 @@ class AssessmentAssignmentService
             return 0;
         }
 
-        $latestGenerationId = $this->resolveLatestFinishedCombinationGenerationId($targetKetenagaan);
-
-        if ($latestGenerationId) {
-            $latestGenerationCount = (clone $this->buildCombinationPoolBaseQuery($targetKetenagaan))
-                ->reorder()
-                ->where('assessment_combination_generation_id', $latestGenerationId)
-                ->count();
-
-            if ($latestGenerationCount > 0) {
-                return $latestGenerationCount;
-            }
-        }
-
-        return (clone $this->buildCombinationPoolBaseQuery($targetKetenagaan))
-            ->reorder()
-            ->count();
+        return $this->resolveAssignableCombinationPool($targetKetenagaan)->count();
     }
 
     public function buildAssignableParticipantQueryForAssignment(AssessmentAssignment $assignment)
@@ -1766,6 +1701,190 @@ class AssessmentAssignmentService
         return $query->firstOrFail();
     }
 
+    private function resolveAssignableCombinationPool(
+        AssessmentKetenagaanType $targetKetenagaan
+    ): Collection {
+        $selectColumns = $this->combinationPoolSelectColumns();
+        $availableCombinationsQuery = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
+            ->select($selectColumns)
+            ->reorder();
+
+        if (Schema::hasColumn('assessment_combinations', 'generated_at')) {
+            $availableCombinationsQuery->orderByDesc('generated_at');
+        }
+
+        $availableCombinations = $availableCombinationsQuery
+            ->orderByDesc('id')
+            ->get();
+
+        if ($availableCombinations->isEmpty()) {
+            return collect();
+        }
+
+        $snapshotsByCombinationId = $this->loadCombinationSnapshotsById(
+            $availableCombinations
+                ->pluck('id')
+                ->map(fn ($combinationId) => (int) $combinationId)
+                ->filter(fn (int $combinationId) => $combinationId > 0)
+                ->values()
+                ->all()
+        );
+
+        return $availableCombinations
+            ->map(function (AssessmentCombination $combination) use ($snapshotsByCombinationId) {
+                $combination->setAttribute(
+                    'structure_snapshot',
+                    $snapshotsByCombinationId[(int) $combination->id] ?? []
+                );
+
+                $groupMeta = $this->resolveCombinationParentAssessmentGroupMeta($combination);
+
+                $combination->setAttribute('parent_assessment_signature', $groupMeta['signature']);
+                $combination->setAttribute('parent_assessment_label', $groupMeta['label']);
+                $combination->setAttribute('parent_assessment_codes', $groupMeta['codes']);
+                $combination->setAttribute('source_assessments', $groupMeta['assessments']);
+                $combination->setAttribute('parent_assessment_sort_key', $groupMeta['sort_key']);
+
+                return $combination;
+            })
+            ->groupBy(fn (AssessmentCombination $combination) => (string) $combination->getAttribute('parent_assessment_signature'))
+            ->map(function (Collection $groupedCombinations) {
+                $latestGenerationId = $groupedCombinations
+                    ->pluck('assessment_combination_generation_id')
+                    ->filter(fn ($generationId) => filled($generationId))
+                    ->map(fn ($generationId) => (int) $generationId)
+                    ->max();
+
+                $manualCombinations = $groupedCombinations
+                    ->filter(fn (AssessmentCombination $combination) => ! filled($combination->assessment_combination_generation_id));
+
+                $latestGeneratedCombinations = $latestGenerationId
+                    ? $groupedCombinations
+                        ->where('assessment_combination_generation_id', $latestGenerationId)
+                    : collect();
+
+                return $latestGeneratedCombinations
+                    ->merge($manualCombinations)
+                    ->sort(function (AssessmentCombination $left, AssessmentCombination $right) {
+                        return [
+                            (int) ($left->generation_sequence ?? PHP_INT_MAX),
+                            strtolower(trim((string) ($left->kode_kombinasi ?? ''))),
+                            (int) $left->id,
+                        ] <=> [
+                            (int) ($right->generation_sequence ?? PHP_INT_MAX),
+                            strtolower(trim((string) ($right->kode_kombinasi ?? ''))),
+                            (int) $right->id,
+                        ];
+                    })
+                    ->values();
+            })
+            ->sortBy(function (Collection $groupedCombinations) {
+                /** @var AssessmentCombination|null $firstCombination */
+                $firstCombination = $groupedCombinations->first();
+
+                return $firstCombination?->getAttribute('parent_assessment_sort_key') ?: '';
+            })
+            ->values()
+            ->flatten(1)
+            ->values();
+    }
+
+    private function loadCombinationSnapshotsById(array $combinationIds): array
+    {
+        if (
+            $combinationIds === []
+            || ! Schema::hasColumn('assessment_combinations', 'structure_snapshot')
+        ) {
+            return [];
+        }
+
+        return AssessmentCombination::query()
+            ->whereIn('id', $combinationIds)
+            ->get(['id', 'structure_snapshot'])
+            ->mapWithKeys(function (AssessmentCombination $combination) {
+                return [
+                    (int) $combination->id => is_array($combination->structure_snapshot)
+                        ? $combination->structure_snapshot
+                        : [],
+                ];
+            })
+            ->all();
+    }
+
+    private function resolveCombinationParentAssessmentGroupMeta(
+        AssessmentCombination $combination
+    ): array {
+        $snapshotAssessments = collect(data_get($combination->structure_snapshot, 'assessments', []))
+            ->filter(fn ($assessment) => is_array($assessment))
+            ->values();
+        $sourceAssessmentRows = $snapshotAssessments
+            ->map(function (array $assessment) {
+                $forms = collect($assessment['forms'] ?? [])
+                    ->filter(fn ($form) => is_array($form))
+                    ->values();
+                $questionCount = (int) $forms->sum(function (array $form) {
+                    return collect($form['fields'] ?? [])
+                        ->filter(fn ($field) => is_array($field))
+                        ->count();
+                });
+
+                return [
+                    'id' => (int) ($assessment['id'] ?? 0),
+                    'kode' => trim((string) ($assessment['kode_assessment'] ?? '')),
+                    'judul' => trim((string) ($assessment['judul'] ?? '')),
+                    'form_count' => (int) $forms->count(),
+                    'question_count' => $questionCount,
+                ];
+            })
+            ->filter(fn (array $assessment) => $assessment['id'] > 0)
+            ->values();
+
+        $orderedAssessmentIds = $this->orderAssessmentIdsForStageFlow(
+            $sourceAssessmentRows
+                ->pluck('id')
+                ->all()
+        );
+        $rowsByAssessmentId = $sourceAssessmentRows
+            ->keyBy(fn (array $assessment) => (int) $assessment['id']);
+        $orderedAssessmentRows = collect($orderedAssessmentIds)
+            ->map(fn (int $assessmentId) => $rowsByAssessmentId->get($assessmentId))
+            ->filter()
+            ->values();
+
+        if ($orderedAssessmentRows->isEmpty()) {
+            $fallbackSignature = 'kombinasi:'.(int) $combination->id;
+
+            return [
+                'signature' => $fallbackSignature,
+                'label' => trim((string) ($combination->kode_kombinasi ?? '')) ?: $fallbackSignature,
+                'codes' => [],
+                'assessments' => [],
+                'sort_key' => $fallbackSignature,
+            ];
+        }
+
+        $codes = $orderedAssessmentRows
+            ->pluck('kode')
+            ->filter(fn (string $kode) => $kode !== '')
+            ->values()
+            ->all();
+        $label = $codes !== []
+            ? implode(' + ', $codes)
+            : $orderedAssessmentRows
+                ->pluck('judul')
+                ->filter(fn (string $judul) => $judul !== '')
+                ->implode(' + ');
+        $signature = implode('|', $orderedAssessmentRows->pluck('id')->all());
+
+        return [
+            'signature' => $signature !== '' ? $signature : 'kombinasi:'.(int) $combination->id,
+            'label' => $label !== '' ? $label : ('Grup '.((int) $combination->id)),
+            'codes' => $codes,
+            'assessments' => $orderedAssessmentRows->all(),
+            'sort_key' => implode('|', $codes !== [] ? $codes : $orderedAssessmentRows->pluck('judul')->all()),
+        ];
+    }
+
     private function extractAssessmentIdsFromCombinations(Collection $assessmentCombinations): array
     {
         $combinationIds = $assessmentCombinations
@@ -1861,29 +1980,6 @@ class AssessmentAssignmentService
         }
 
         return $query->orderByDesc('id');
-    }
-
-    private function resolveLatestFinishedCombinationGenerationId(
-        AssessmentKetenagaanType $targetKetenagaan
-    ): ?int {
-        if (
-            ! Schema::hasTable('assessment_combination_generations') ||
-            ! Schema::hasColumn('assessment_combinations', 'assessment_combination_generation_id')
-        ) {
-            return null;
-        }
-
-        $generation = AssessmentCombinationGeneration::query()
-            ->where('target_ketenagaan', $targetKetenagaan->value)
-            ->where('status', 'selesai')
-            ->whereHas('combinations', function ($query) {
-                $query->where('is_active', true);
-            })
-            ->orderByDesc('processed_at')
-            ->orderByDesc('id')
-            ->first();
-
-        return $generation ? (int) $generation->id : null;
     }
 
     private function buildCombinationSeedKey(

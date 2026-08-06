@@ -14,6 +14,7 @@ use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -585,6 +586,133 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertSame([1, 2], $kabupatenCountByCombination);
     }
 
+    public function test_get_available_combinations_for_assignment_uses_latest_active_generation_per_parent_assessment_group(): void
+    {
+        $portofolio = Assessment::query()->create([
+            'kode_assessment' => 'ASM-PORT-001',
+            'judul' => 'Assessment Portofolio',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+        $pilihanGanda = Assessment::query()->create([
+            'kode_assessment' => 'ASM-PGK-001',
+            'judul' => 'Assessment Pilihan Ganda',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+        $likert = Assessment::query()->create([
+            'kode_assessment' => 'ASM-LIKERT-001',
+            'judul' => 'Assessment Likert',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $oldLikertGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-OLD-LIKERT',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 2,
+            'status' => 'selesai',
+        ]);
+        $this->createCombinationForGeneration($oldLikertGeneration, 'KMB-LIKERT-OLD-A', [$likert->id]);
+        $this->createCombinationForGeneration($oldLikertGeneration, 'KMB-LIKERT-OLD-B', [$likert->id]);
+
+        $latestLikertGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-LATEST-LIKERT',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'status' => 'selesai',
+        ]);
+        $latestLikertCombination = $this->createCombinationForGeneration(
+            $latestLikertGeneration,
+            'KMB-LIKERT-LATEST',
+            [$likert->id]
+        );
+
+        $pgkLikertGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-PGK-LIKERT',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 2,
+            'status' => 'selesai',
+        ]);
+        $pgkLikertCombinationA = $this->createCombinationForGeneration(
+            $pgkLikertGeneration,
+            'KMB-PGK-LIKERT-A',
+            [$pilihanGanda->id, $likert->id]
+        );
+        $pgkLikertCombinationB = $this->createCombinationForGeneration(
+            $pgkLikertGeneration,
+            'KMB-PGK-LIKERT-B',
+            [$pilihanGanda->id, $likert->id]
+        );
+
+        $portPgkGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-PORT-PGK',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'status' => 'selesai',
+        ]);
+        $portPgkCombination = $this->createCombinationForGeneration(
+            $portPgkGeneration,
+            'KMB-PORT-PGK-A',
+            [$portofolio->id, $pilihanGanda->id]
+        );
+
+        $availableCombinations = app(AssessmentAssignmentService::class)
+            ->getAvailableCombinationsForKetenagaan(\App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK);
+        $availableCodes = $availableCombinations
+            ->pluck('kode_kombinasi')
+            ->sort()
+            ->values()
+            ->all();
+        $groupedBySignature = $availableCombinations
+            ->groupBy(fn (AssessmentCombination $combination) => (string) $combination->getAttribute('parent_assessment_signature'));
+
+        $this->assertSame(
+            [
+                'KMB-LIKERT-LATEST',
+                'KMB-PGK-LIKERT-A',
+                'KMB-PGK-LIKERT-B',
+                'KMB-PORT-PGK-A',
+            ],
+            $availableCodes
+        );
+        $this->assertSame(4, app(AssessmentAssignmentService::class)->countAvailableCombinationsForKetenagaan(
+            \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK
+        ));
+        $this->assertCount(3, $groupedBySignature);
+        $this->assertSame(
+            [$latestLikertCombination->id],
+            $groupedBySignature
+                ->first(fn (Collection $group) => $group->contains('id', $latestLikertCombination->id), collect())
+                ->pluck('id')
+                ->map(fn ($combinationId) => (int) $combinationId)
+                ->values()
+                ->all()
+        );
+        $this->assertSame(
+            [$pgkLikertCombinationA->id, $pgkLikertCombinationB->id],
+            $groupedBySignature
+                ->first(fn (Collection $group) => $group->contains('id', $pgkLikertCombinationA->id), collect())
+                ->pluck('id')
+                ->map(fn ($combinationId) => (int) $combinationId)
+                ->sort()
+                ->values()
+                ->all()
+        );
+        $this->assertSame(
+            [$portPgkCombination->id],
+            $groupedBySignature
+                ->first(fn (Collection $group) => $group->contains('id', $portPgkCombination->id), collect())
+                ->pluck('id')
+                ->map(fn ($combinationId) => (int) $combinationId)
+                ->values()
+                ->all()
+        );
+    }
+
     public function test_update_assignment_resets_existing_history_and_forces_targets_to_restart_from_zero(): void
     {
         Storage::fake('public');
@@ -1019,15 +1147,30 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
 
     private function createCombinationForGeneration(
         AssessmentCombinationGeneration $generation,
-        string $code
+        string $code,
+        array $assessmentIds = []
     ): AssessmentCombination {
+        $snapshotAssessments = Assessment::query()
+            ->whereIn('id', $assessmentIds)
+            ->orderBy('id')
+            ->get(['id', 'kode_assessment', 'judul'])
+            ->map(fn (Assessment $assessment) => [
+                'id' => (int) $assessment->id,
+                'kode_assessment' => $assessment->kode_assessment,
+                'judul' => $assessment->judul,
+                'forms' => [],
+            ])
+            ->all();
+
         return AssessmentCombination::query()->create([
             'assessment_combination_generation_id' => $generation->id,
             'kode_kombinasi' => $code,
             'judul' => $code,
             'target_ketenagaan' => 'tenaga_pendidik',
-            'structure_snapshot' => [],
-            'total_assessments' => 1,
+            'structure_snapshot' => [
+                'assessments' => $snapshotAssessments,
+            ],
+            'total_assessments' => max(count($snapshotAssessments), 1),
             'total_forms' => 1,
             'total_questions' => 1,
             'generated_at' => now(),
