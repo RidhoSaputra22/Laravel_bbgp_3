@@ -16,21 +16,25 @@
         <div class="flex flex-wrap gap-2 text-xs">
             <span
                 class="inline-flex items-center rounded-sm bg-[#eaf5fb] px-3 py-1 text-xs font-semibold text-[#0d5f98]">
-                <span x-text="answeredQuestionCount(currentAssessmentIndex)"></span>&nbsp;terjawab
+                <span data-question-nav-count="answered" x-text="answeredQuestionCount(currentAssessmentIndex)"></span>&nbsp;terjawab
             </span>
             <span
                 class="inline-flex items-center rounded-sm bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                <span x-text="unansweredQuestionCount(currentAssessmentIndex)"></span>&nbsp;belum
+                <span data-question-nav-count="unanswered" x-text="unansweredQuestionCount(currentAssessmentIndex)"></span>&nbsp;belum
             </span>
             <span class="inline-flex items-center rounded-sm bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                <span x-text="flaggedQuestionCount(currentAssessmentIndex)"></span>&nbsp;flag
+                <span data-question-nav-count="flagged" x-text="flaggedQuestionCount(currentAssessmentIndex)"></span>&nbsp;flag
             </span>
         </div>
     </div>
 
     <div class="flex flex-wrap gap-3 text-xs text-slate-500">
         <span class="inline-flex items-center gap-2">
-            <span class="h-3 w-3 rounded-sm border border-[#1376bd] bg-[#1376bd]"></span>
+            <span class="h-3 w-3 rounded-sm border border-[#0d5f98] bg-[#1376bd]"></span>
+            Soal aktif
+        </span>
+        <span class="inline-flex items-center gap-2">
+            <span class="h-3 w-3 rounded-sm border border-[#9cc9ea] bg-[#eaf5fb]"></span>
             Terjawab
         </span>
         <span class="inline-flex items-center gap-2">
@@ -67,10 +71,13 @@
                         <button type="button"
                             class="relative flex h-10 w-full items-center justify-center rounded-sm border text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-[#0d5f98]/30"
                             data-question-nav-field="{{ $question['field_id'] }}"
+                            data-question-nav-assessment-index="{{ $group['assessment_index'] }}"
                             x-bind:class="questionButtonClass({{ $question['field_id'] }},
                                 {{ $group['assessment_index'] }})"
+                            x-bind:aria-current="isCurrentQuestion({{ $question['field_id'] }},
+                                {{ $group['assessment_index'] }}) ? 'step' : null"
                             x-bind:title="questionButtonTitle({{ $question['field_id'] }})"
-                            @click="goToQuestion({{ $question['field_id'] }}, {{ $group['assessment_index'] }}, $event)">
+                            @click="goToQuestion({{ $question['field_id'] }}, {{ $group['assessment_index'] }})">
                             <span>{{ $question['number'] }}</span>
 
                         </button>

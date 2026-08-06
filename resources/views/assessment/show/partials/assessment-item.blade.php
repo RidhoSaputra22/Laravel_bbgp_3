@@ -30,13 +30,10 @@
                     </p>
                 </div>
 
-                <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST" class="shrink-0">
-                    @csrf
-                    <input type="hidden" name="stage_index" value="{{ $assessmentItem['index'] }}">
-                    <x-assessment::ui.button type="submit" icon="fas fa-play-circle" class="font-bold">
-                        Mulai Tahap {{ $assessmentItem['index'] + 1 }}
-                    </x-assessment::ui.button>
-                </form>
+                <x-assessment::ui.button type="submit" icon="fas fa-play-circle" class="shrink-0 font-bold"
+                    form="assessment-stage-start-form-{{ $assessmentItem['index'] }}">
+                    Mulai Tahap {{ $assessmentItem['index'] + 1 }}
+                </x-assessment::ui.button>
             </div>
         </div>
     @else

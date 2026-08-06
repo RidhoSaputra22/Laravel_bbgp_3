@@ -8,10 +8,13 @@ use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class AssessmentAssignment extends Model
 {
     use HasFactory;
+
+    public const PREVIEW_CODE_PREFIX = 'PREVIEW-ADM-';
 
     protected $fillable = [
         'kode_penugasan',
@@ -65,12 +68,38 @@ class AssessmentAssignment extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where($this->qualifyColumn('is_active'), true);
+        return $query
+            ->withoutPreview()
+            ->where($this->qualifyColumn('is_active'), true);
     }
 
     public function scopeInactive(Builder $query): Builder
     {
-        return $query->where($this->qualifyColumn('is_active'), false);
+        return $query
+            ->withoutPreview()
+            ->where($this->qualifyColumn('is_active'), false);
+    }
+
+    public function scopeWithoutPreview(Builder $query): Builder
+    {
+        return $query->where(function (Builder $builder) {
+            $builder
+                ->whereNull($this->qualifyColumn('kode_penugasan'))
+                ->orWhere(
+                    $this->qualifyColumn('kode_penugasan'),
+                    'not like',
+                    self::PREVIEW_CODE_PREFIX.'%'
+                );
+        });
+    }
+
+    public function scopePreviewOnly(Builder $query): Builder
+    {
+        return $query->where(
+            $this->qualifyColumn('kode_penugasan'),
+            'like',
+            self::PREVIEW_CODE_PREFIX.'%'
+        );
     }
 
     public function assessments()
@@ -177,5 +206,10 @@ class AssessmentAssignment extends Model
             ->filter(fn (string $label) => $label !== '')
             ->values()
             ->all();
+    }
+
+    public function isPreview(): bool
+    {
+        return Str::startsWith((string) $this->kode_penugasan, self::PREVIEW_CODE_PREFIX);
     }
 }

@@ -96,11 +96,14 @@ class AssessmentCombinationCreateViewTest extends TestCase
         $response->assertSee('Input Soal Per Assessment');
         $response->assertSee('Gunakan Semua Soal');
         $response->assertSee('Form Tanpa Kompetensi');
+        $response->assertSee('Gunakan toggle pada setiap assessment');
         $response->assertSee('Banyak Kombinasi Yang Ingin Dibuat');
         $response->assertSee('Otomatis saat masuk antrean');
         $response->assertSee('Kirim ke Antrean Generate');
         $response->assertSee('name="target_ketenagaan"', false);
         $response->assertSee('name="total_kombinasi"', false);
+        $response->assertSee('included_assessment_ids[]', false);
+        $response->assertSee('js-assessment-toggle', false);
         $response->assertSee('competency_selection_modes[${assessmentId}][${competencyKey}]', false);
         $response->assertSee('competency_take_counts[${assessmentId}][${competencyKey}]', false);
         $response->assertDontSee('name="judul"', false);

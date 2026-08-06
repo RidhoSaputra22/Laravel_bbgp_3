@@ -114,6 +114,15 @@ class AssessmentCombinationService
         }
 
         $sourceAssessments = $this->getSourceAssessments($targetKetenagaan);
+        $selectedSourceAssessments = $this->resolveSelectedSourceAssessments(
+            $sourceAssessments,
+            $payload['included_assessment_ids'] ?? []
+        );
+
+        if ($selectedSourceAssessments->isEmpty()) {
+            throw new InvalidArgumentException('Pilih minimal satu assessment sumber.');
+        }
+
         $competencySelections = $this->normalizeCompetencySelections(
             $payload['competency_selection_modes'] ?? [],
             $payload['competency_take_counts'] ?? [],
@@ -128,7 +137,7 @@ class AssessmentCombinationService
             $selectionAttempts++;
             $randomSeed = Str::upper(Str::random(16));
             [$selectedRows, $selectionConfigAssessments] = $this->buildSelectionRows(
-                $sourceAssessments,
+                $selectedSourceAssessments,
                 $competencySelections,
                 $randomSeed
             );
@@ -148,6 +157,11 @@ class AssessmentCombinationService
         $kodeKombinasi = $this->generateUniqueCode();
         $selectionConfig = [
             'target_ketenagaan' => $targetKetenagaan->value,
+            'included_assessment_ids' => $selectedSourceAssessments
+                ->pluck('id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->values()
+                ->all(),
             'assessments' => $selectionConfigAssessments,
         ];
 
@@ -235,6 +249,23 @@ class AssessmentCombinationService
                     (int) $right->id,
                 ];
             })
+            ->values();
+    }
+
+    private function resolveSelectedSourceAssessments(
+        Collection $sourceAssessments,
+        mixed $includedAssessmentIds
+    ): Collection {
+        $normalizedIncludedIds = $this->normalizeAssessmentIds($includedAssessmentIds);
+
+        if ($normalizedIncludedIds === []) {
+            return $sourceAssessments->values();
+        }
+
+        $includedLookup = array_fill_keys($normalizedIncludedIds, true);
+
+        return $sourceAssessments
+            ->filter(fn (Assessment $assessment) => isset($includedLookup[(int) $assessment->id]))
             ->values();
     }
 
@@ -534,6 +565,16 @@ class AssessmentCombinationService
         }
 
         return $normalized;
+    }
+
+    private function normalizeAssessmentIds(mixed $assessmentIds): array
+    {
+        return collect((array) $assessmentIds)
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function buildSelectionRows(Collection $assessments, array $competencySelections, string $randomSeed): array

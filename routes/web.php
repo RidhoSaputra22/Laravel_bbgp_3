@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Assessment\AuthController as AssessmentPortalAuthController;
+use App\Http\Controllers\Assessment\AdminPreviewController as AssessmentAdminPreviewController;
 use App\Http\Controllers\Assessment\PortalAttemptController as AssessmentPortalAttemptController;
 use App\Http\Controllers\Assessment\PortalController as AssessmentPortalController;
 use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;
@@ -334,6 +335,22 @@ Route::group(
                 Route::get('/edit/{id}', 'AssessmentController@edit')->name('assessment.edit');
                 Route::put('/update/{id}', 'AssessmentController@update')->name('assessment.update');
                 Route::post('/hapus/{id}', 'AssessmentController@destroy')->name('assessment.hapus');
+                Route::post('/preview/{assessment}/launch', [AssessmentAdminPreviewController::class, 'launch'])
+                    ->name('assessment.preview.launch');
+                Route::get('/preview/session/{id}', [AssessmentAdminPreviewController::class, 'show'])
+                    ->name('assessment.preview.show');
+                Route::post('/preview/session/{id}/start', [AssessmentAdminPreviewController::class, 'start'])
+                    ->name('assessment.preview.start');
+                Route::post('/preview/session/{id}/autosave', [AssessmentAdminPreviewController::class, 'autosave'])
+                    ->name('assessment.preview.autosave');
+                Route::post('/preview/session/{id}/security/violation', [AssessmentAdminPreviewController::class, 'securityViolation'])
+                    ->name('assessment.preview.security.violation');
+                Route::post('/preview/session/{id}/security/disqualify', [AssessmentAdminPreviewController::class, 'securityDisqualify'])
+                    ->name('assessment.preview.security.disqualify');
+                Route::post('/preview/session/{id}/submit', [AssessmentAdminPreviewController::class, 'submit'])
+                    ->name('assessment.preview.submit');
+                Route::get('/preview/session/{id}/result', [AssessmentAdminPreviewController::class, 'result'])
+                    ->name('assessment.preview.result');
 
                 Route::prefix('kombinasi')->group(function () {
                     Route::get('/', 'AssessmentCombinationController@index')->name('assessment.combination.index');

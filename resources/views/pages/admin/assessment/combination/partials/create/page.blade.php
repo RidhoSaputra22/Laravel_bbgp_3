@@ -24,6 +24,40 @@
             ];
         })
         ->all();
+    $oldIncludedAssessmentIds = old('included_assessment_ids');
+    $hasInitialIncludedAssessmentSelection = $oldIncludedAssessmentIds !== null;
+    $initialEnabledAssessmentIds = collect((array) $oldIncludedAssessmentIds)
+        ->map(fn ($assessmentId) => (int) $assessmentId)
+        ->filter(fn (int $assessmentId) => $assessmentId > 0)
+        ->unique()
+        ->values()
+        ->all();
+    $initialEnabledAssessmentIdsByKetenagaan = collect($assessmentCatalogByKetenagaan)
+        ->mapWithKeys(function ($assessments, $ketenagaan) use (
+            $hasInitialIncludedAssessmentSelection,
+            $initialEnabledAssessmentIds,
+            $selectedTargetKetenagaan
+        ) {
+            $assessmentIds = collect((array) $assessments)
+                ->pluck('assessment_id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->filter(fn (int $assessmentId) => $assessmentId > 0)
+                ->values();
+
+            if ($hasInitialIncludedAssessmentSelection && $ketenagaan === $selectedTargetKetenagaan) {
+                return [
+                    $ketenagaan => $assessmentIds
+                        ->filter(fn (int $assessmentId) => in_array($assessmentId, $initialEnabledAssessmentIds, true))
+                        ->values()
+                        ->all(),
+                ];
+            }
+
+            return [
+                $ketenagaan => $assessmentIds->all(),
+            ];
+        })
+        ->all();
     $competencyErrorMap = collect($errors->getMessages())
         ->mapWithKeys(function ($messages, $key) {
             if (preg_match('/^competency_(?:take_counts|selection_modes)\.(\d+)\.([a-z_]+)$/', $key, $matches) !== 1) {
@@ -155,6 +189,11 @@
             overflow: hidden;
         }
 
+        .combination-assessment-card--disabled {
+            border-color: #dce4f1;
+            opacity: 0.82;
+        }
+
         .combination-assessment-card__header {
             background: #f8fbff;
             border-bottom: 1px solid #e6ebf5;
@@ -163,6 +202,10 @@
 
         .combination-assessment-card__body {
             padding: 1rem 1.1rem 1.15rem;
+        }
+
+        .combination-assessment-card__body--disabled {
+            background: #fbfcfe;
         }
 
         .combination-assessment-meta {
@@ -202,6 +245,27 @@
             border: 1px dashed #d9e1ef;
             border-radius: 0.25rem;
             padding: 0.85rem 0.95rem;
+        }
+
+        .combination-assessment-toggle {
+            padding-left: 2.25rem;
+        }
+
+        .combination-assessment-toggle .custom-control-label {
+            color: #334155;
+            font-size: 0.82rem;
+            font-weight: 600;
+            min-height: 1.35rem;
+            padding-top: 0.08rem;
+        }
+
+        .combination-assessment-toggle-note {
+            background: #f8fafc;
+            border: 1px dashed #cfd8ea;
+            border-radius: 0.25rem;
+            color: #64748b;
+            font-size: 0.82rem;
+            padding: 0.8rem 0.9rem;
         }
 
         @media (max-width: 991.98px) {
@@ -331,6 +395,18 @@
                                     </div>
                                 </div>
                                 <div class="card-body">
+                                    <div class="alert alert-light border mb-4">
+                                        Gunakan toggle pada setiap assessment untuk menentukan mana yang ikut batch
+                                        kombinasi ini. Saat ada assessment baru, Anda bisa menyalakan hanya assessment
+                                        tersebut tanpa perlu mengulang seluruh sumber yang lama.
+                                    </div>
+
+                                    @error('included_assessment_ids')
+                                        <div class="alert alert-danger">
+                                            {{ $message }}
+                                        </div>
+                                    @enderror
+
                                     <div id="combination-assessment-panels">
                                         <div class="combination-empty-state">
                                             Memuat data assessment...
@@ -406,7 +482,7 @@
                                         <h4>Aksi</h4>
                                     </div>
                                     <div class="card-body">
-                                        <button type="submit" class="btn btn-primary btn-block">
+                                        <button type="submit" class="btn btn-primary btn-block" id="combination-submit-button">
                                             <i class="fas fa-layer-group"></i> Kirim ke Antrean Generate
                                         </button>
                                         <a href="{{ route('assessment.combination.index') }}" class="btn btn-light btn-block">
@@ -430,14 +506,17 @@
             const ketenagaanOptions = @json($ketenagaanOptions);
             const initialSelectionModes = @json($initialSelectionModes);
             const initialTakeCounts = @json($initialTakeCounts);
+            const initialEnabledAssessmentIdsByKetenagaan = @json($initialEnabledAssessmentIdsByKetenagaan);
             const competencyErrorMap = @json($competencyErrorMap);
             const assessmentPanelsNode = document.getElementById('combination-assessment-panels');
             const applyAllInput = document.getElementById('apply-all-count');
             const applyAllButton = document.getElementById('apply-all-button');
             const applyAllModeAllButton = document.getElementById('apply-all-mode-all');
             const totalCombinationInput = document.getElementById('total_kombinasi');
+            const submitButton = document.getElementById('combination-submit-button');
             const selectionModesState = Object.assign({}, initialSelectionModes);
             const takeCountsState = Object.assign({}, initialTakeCounts);
+            const enabledAssessmentsState = {};
 
             function escapeHtml(value) {
                 const node = document.createElement('div');
@@ -458,6 +537,16 @@
                 return target && Array.isArray(assessmentCatalogByKetenagaan[target]) ? assessmentCatalogByKetenagaan[target] : [];
             }
 
+            function getInitialEnabledAssessmentIds(targetKetenagaan) {
+                if (!targetKetenagaan || !Array.isArray(initialEnabledAssessmentIdsByKetenagaan[targetKetenagaan])) {
+                    return [];
+                }
+
+                return initialEnabledAssessmentIdsByKetenagaan[targetKetenagaan]
+                    .map((assessmentId) => Number(assessmentId || 0))
+                    .filter((assessmentId) => assessmentId > 0);
+            }
+
             function getTotalKombinasi() {
                 const rawValue = totalCombinationInput ? Number(totalCombinationInput.value || 0) : {{ $initialTotalKombinasi }};
                 const total = Math.max(Math.floor(rawValue || 0), 1);
@@ -469,8 +558,21 @@
                 return total;
             }
 
+            function setAssessmentEnabled(assessmentId, value) {
+                enabledAssessmentsState[assessmentId] = Boolean(value);
+            }
+
+            function isAssessmentEnabled(assessmentId) {
+                return enabledAssessmentsState[assessmentId] === true;
+            }
+
             function ensureAssessmentState(assessment) {
                 const assessmentId = Number(assessment.assessment_id || 0);
+                const initialEnabledIds = getInitialEnabledAssessmentIds(getSelectedKetenagaan());
+
+                if (typeof enabledAssessmentsState[assessmentId] !== 'boolean') {
+                    setAssessmentEnabled(assessmentId, initialEnabledIds.includes(assessmentId));
+                }
 
                 if (!selectionModesState[assessmentId] || typeof selectionModesState[assessmentId] !== 'object') {
                     selectionModesState[assessmentId] = {};
@@ -496,6 +598,14 @@
                     takeCountsState[assessmentId][key] = currentValue > 0
                         ? Math.min(currentValue, available)
                         : Math.min(10, available);
+                });
+            }
+
+            function getEnabledAssessments(assessments = getAssessmentsForSelectedKetenagaan()) {
+                return assessments.filter((assessment) => {
+                    ensureAssessmentState(assessment);
+
+                    return isAssessmentEnabled(Number(assessment.assessment_id || 0));
                 });
             }
 
@@ -561,6 +671,8 @@
                     ensureAssessmentState(assessment);
 
                     const assessmentId = Number(assessment.assessment_id || 0);
+                    const assessmentToggleId = `combination-assessment-toggle-${assessmentId}`;
+                    const isEnabled = isAssessmentEnabled(assessmentId);
                     const competencies = Array.isArray(assessment.competencies) ? assessment.competencies : [];
                     const autoIncludedForms = Array.isArray(assessment.auto_included_forms) ? assessment.auto_included_forms : [];
                     const competencyRows = competencies.map((competency, competencyIndex) => {
@@ -580,7 +692,7 @@
                         }
 
                         return `
-                            <tr class="${available < 1 ? 'combination-row-disabled' : ''} ${rowError ? 'combination-row-error' : ''}">
+                            <tr class="${!isEnabled || available < 1 ? 'combination-row-disabled' : ''} ${rowError ? 'combination-row-error' : ''}">
                                 <td>
                                     <div class="font-weight-bold">${competencyIndex + 1}. ${escapeHtml(competency.kompetensi_label || '-')}</div>
                                     <small class="text-muted">
@@ -600,7 +712,7 @@
                                         data-assessment-id="${assessmentId}"
                                         data-competency-key="${escapeHtml(competencyKey)}"
                                         data-available="${available}"
-                                        ${available < 1 ? 'disabled' : ''}
+                                        ${!isEnabled || available < 1 ? 'disabled' : ''}
                                     >
                                         <option value="count" ${mode === 'count' ? 'selected' : ''}>Jumlah soal</option>
                                         <option value="all" ${mode === 'all' ? 'selected' : ''}>Semua soal</option>
@@ -618,7 +730,7 @@
                                         data-assessment-id="${assessmentId}"
                                         data-competency-key="${escapeHtml(competencyKey)}"
                                         data-available="${available}"
-                                        ${available < 1 ? 'disabled' : ''}
+                                        ${!isEnabled || available < 1 ? 'disabled' : ''}
                                         ${mode === 'all' ? 'readonly' : ''}
                                     >
                                     ${rowError ? `<div class="invalid-feedback d-block">${escapeHtml(rowError)}</div>` : ''}
@@ -656,7 +768,9 @@
                                                         <span class="badge badge-light border">${Number(form.available_question_count || 0)} soal</span>
                                                     </td>
                                                     <td class="text-center">
-                                                        <span class="badge badge-info">Semua ikut</span>
+                                                        <span class="badge badge-${isEnabled ? 'info' : 'secondary'}">
+                                                            ${isEnabled ? 'Semua ikut' : 'Tidak ikut'}
+                                                        </span>
                                                     </td>
                                                 </tr>
                                             `).join('')}
@@ -666,9 +780,17 @@
                             </div>
                         `
                         : '';
+                    const disabledNoticeHtml = !isEnabled
+                        ? `
+                            <div class="combination-assessment-toggle-note mb-3">
+                                Assessment ini tidak ikut generate kombinasi saat ini. Nyalakan toggle jika ingin
+                                menyertakannya tanpa mengubah assessment lain.
+                            </div>
+                        `
+                        : '';
 
                     return `
-                        <div class="combination-assessment-card">
+                        <div class="combination-assessment-card ${!isEnabled ? 'combination-assessment-card--disabled' : ''}">
                             <div class="combination-assessment-card__header">
                                 <div class="d-flex justify-content-between align-items-start flex-wrap">
                                     <div>
@@ -678,17 +800,37 @@
                                             ${escapeHtml(assessment.assessment_code || '-')} | ${escapeHtml(assessment.instrument_label || 'Tanpa instrumen')}
                                         </div>
                                     </div>
-                                    <div class="text-muted small mt-2 mt-md-0">
-                                        ${Number(assessment.total_forms || 0)} form | ${Number(assessment.total_questions || 0)} soal sumber
+                                    <div class="d-flex flex-column align-items-md-end mt-2 mt-md-0">
+                                        <div class="custom-control custom-switch combination-assessment-toggle mb-2">
+                                            <input
+                                                type="checkbox"
+                                                class="custom-control-input js-assessment-toggle"
+                                                id="${assessmentToggleId}"
+                                                name="included_assessment_ids[]"
+                                                value="${assessmentId}"
+                                                data-assessment-id="${assessmentId}"
+                                                ${isEnabled ? 'checked' : ''}
+                                            >
+                                            <label class="custom-control-label" for="${assessmentToggleId}">
+                                                ${isEnabled ? 'Assessment ikut batch ini' : 'Assessment dimatikan'}
+                                            </label>
+                                        </div>
+                                        <div class="text-muted small">
+                                            ${Number(assessment.total_forms || 0)} form | ${Number(assessment.total_questions || 0)} soal sumber
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="combination-assessment-meta">
                                     <span class="badge badge-primary">${competencies.filter((item) => Number(item.available_question_count || 0) > 0).length} kompetensi aktif</span>
                                     <span class="badge badge-light border">${Number(assessment.auto_included_form_count || 0)} form auto</span>
                                     <span class="badge badge-light border">${Number(assessment.auto_included_question_count || 0)} soal auto</span>
+                                    <span class="badge badge-${isEnabled ? 'success' : 'secondary'}">
+                                        ${isEnabled ? 'Masuk kombinasi' : 'Dikecualikan'}
+                                    </span>
                                 </div>
                             </div>
-                            <div class="combination-assessment-card__body">
+                            <div class="combination-assessment-card__body ${!isEnabled ? 'combination-assessment-card__body--disabled' : ''}">
+                                ${disabledNoticeHtml}
                                 <div class="table-responsive">
                                     <table class="table table-striped combination-competency-table mb-0">
                                         <thead>
@@ -716,6 +858,15 @@
             }
 
             function bindAssessmentInputs() {
+                document.querySelectorAll('.js-assessment-toggle').forEach((input) => {
+                    input.addEventListener('change', () => {
+                        const assessmentId = Number(input.dataset.assessmentId || 0);
+
+                        setAssessmentEnabled(assessmentId, input.checked);
+                        renderAssessmentPanels();
+                    });
+                });
+
                 document.querySelectorAll('.js-competency-mode').forEach((input) => {
                     input.addEventListener('change', () => {
                         const assessmentId = Number(input.dataset.assessmentId || 0);
@@ -760,13 +911,16 @@
 
             function updateSummary() {
                 const assessments = getAssessmentsForSelectedKetenagaan();
+                const enabledAssessments = getEnabledAssessments(assessments);
                 const selectedKetenagaan = getSelectedKetenagaan();
-                const totalForms = assessments.reduce((total, assessment) => total + Number(assessment.total_forms || 0), 0);
-                const sourceQuestionCount = assessments.reduce((total, assessment) => total + Number(assessment.total_questions || 0), 0);
-                const autoFormCount = assessments.reduce((total, assessment) => total + Number(assessment.auto_included_form_count || 0), 0);
-                const autoQuestionCount = assessments.reduce((total, assessment) => total + Number(assessment.auto_included_question_count || 0), 0);
+                const availableAssessmentCount = assessments.length;
+                const enabledAssessmentCount = enabledAssessments.length;
+                const totalForms = enabledAssessments.reduce((total, assessment) => total + Number(assessment.total_forms || 0), 0);
+                const sourceQuestionCount = enabledAssessments.reduce((total, assessment) => total + Number(assessment.total_questions || 0), 0);
+                const autoFormCount = enabledAssessments.reduce((total, assessment) => total + Number(assessment.auto_included_form_count || 0), 0);
+                const autoQuestionCount = enabledAssessments.reduce((total, assessment) => total + Number(assessment.auto_included_question_count || 0), 0);
                 const totalKombinasi = getTotalKombinasi();
-                const selectedQuestionCount = assessments.reduce((total, assessment) => {
+                const selectedQuestionCount = enabledAssessments.reduce((total, assessment) => {
                     ensureAssessmentState(assessment);
 
                     const assessmentId = Number(assessment.assessment_id || 0);
@@ -792,7 +946,7 @@
 
                     return total + competencySelectedCount + Number(assessment.auto_included_question_count || 0);
                 }, 0);
-                const activeCompetencyCount = assessments.reduce((total, assessment) => {
+                const activeCompetencyCount = enabledAssessments.reduce((total, assessment) => {
                     return total + (assessment.competencies || []).filter((competency) => Number(competency.available_question_count || 0) > 0).length;
                 }, 0);
                 const estimatedStoredQuestions = selectedQuestionCount * totalKombinasi;
@@ -817,7 +971,11 @@
                 }
 
                 if (summaryAssessments) {
-                    summaryAssessments.textContent = String(assessments.length);
+                    summaryAssessments.textContent = availableAssessmentCount < 1
+                        ? '0'
+                        : (enabledAssessmentCount === availableAssessmentCount
+                            ? String(enabledAssessmentCount)
+                            : `${enabledAssessmentCount} dari ${availableAssessmentCount}`);
                 }
 
                 if (summaryForms) {
@@ -837,26 +995,58 @@
                 }
 
                 if (summaryNote) {
-                    summaryNote.textContent = autoFormCount > 0
-                        ? `${activeCompetencyCount} kompetensi dipetakan manual, ${autoFormCount} form tanpa kompetensi ikut otomatis (${autoQuestionCount} soal), lalu batch membuat ${totalKombinasi} kombinasi.`
-                        : `Semua child soal berasal dari pemetaan kompetensi assessment yang dipilih, lalu batch membuat ${totalKombinasi} kombinasi.`;
+                    if (availableAssessmentCount < 1) {
+                        summaryNote.textContent = 'Belum ada assessment aktif pada ketenagaan ini yang bisa dijadikan sumber kombinasi.';
+                    } else if (enabledAssessmentCount < 1) {
+                        summaryNote.textContent = 'Belum ada assessment yang dipilih. Nyalakan minimal satu toggle assessment untuk mengirim generate.';
+                    } else {
+                        summaryNote.textContent = autoFormCount > 0
+                            ? `${activeCompetencyCount} kompetensi dipetakan manual, ${autoFormCount} form tanpa kompetensi ikut otomatis (${autoQuestionCount} soal), lalu batch membuat ${totalKombinasi} kombinasi.`
+                            : `Semua child soal berasal dari ${enabledAssessmentCount} assessment yang dipilih, lalu batch membuat ${totalKombinasi} kombinasi.`;
+                    }
                 }
 
                 if (currentSourceTitle) {
-                    currentSourceTitle.textContent = assessments.length > 0
-                        ? `${assessments.length} assessment sumber untuk ${ketenagaanOptions[selectedKetenagaan] || 'ketenagaan ini'}`
-                        : 'Belum ada assessment sumber aktif';
+                    if (availableAssessmentCount < 1) {
+                        currentSourceTitle.textContent = 'Belum ada assessment sumber aktif';
+                    } else if (enabledAssessmentCount < 1) {
+                        currentSourceTitle.textContent = 'Belum ada assessment yang dipilih untuk batch ini';
+                    } else {
+                        currentSourceTitle.textContent = enabledAssessmentCount === availableAssessmentCount
+                            ? `${enabledAssessmentCount} assessment dipakai untuk ${ketenagaanOptions[selectedKetenagaan] || 'ketenagaan ini'}`
+                            : `${enabledAssessmentCount} dari ${availableAssessmentCount} assessment dipakai untuk ${ketenagaanOptions[selectedKetenagaan] || 'ketenagaan ini'}`;
+                    }
                 }
 
                 if (currentSourceDescription) {
-                    currentSourceDescription.textContent = assessments.length > 0
-                        ? `${activeCompetencyCount} kompetensi aktif dipetakan, ${autoFormCount} form tanpa kompetensi ikut penuh, ${sourceQuestionCount} soal sumber tersedia, dan antrean akan membuat ${totalKombinasi} kombinasi.`
-                        : 'Silakan lengkapi assessment aktif pada ketenagaan ini terlebih dahulu.';
+                    if (availableAssessmentCount < 1) {
+                        currentSourceDescription.textContent = 'Silakan lengkapi assessment aktif pada ketenagaan ini terlebih dahulu.';
+                    } else if (enabledAssessmentCount < 1) {
+                        currentSourceDescription.textContent = 'Semua assessment sedang dimatikan. Aktifkan minimal satu assessment agar proses generate bisa dikirim.';
+                    } else {
+                        currentSourceDescription.textContent = `${activeCompetencyCount} kompetensi aktif dipetakan, ${autoFormCount} form tanpa kompetensi ikut penuh, ${sourceQuestionCount} soal sumber tersedia, dan antrean akan membuat ${totalKombinasi} kombinasi.`;
+                    }
+                }
+
+                if (applyAllButton) {
+                    applyAllButton.disabled = enabledAssessmentCount < 1;
+                }
+
+                if (applyAllModeAllButton) {
+                    applyAllModeAllButton.disabled = enabledAssessmentCount < 1;
+                }
+
+                if (applyAllInput) {
+                    applyAllInput.disabled = enabledAssessmentCount < 1;
+                }
+
+                if (submitButton) {
+                    submitButton.disabled = enabledAssessmentCount < 1;
                 }
             }
 
             function applyToAllCompetencies() {
-                const assessments = getAssessmentsForSelectedKetenagaan();
+                const assessments = getEnabledAssessments();
                 const desiredCount = Math.max(Number(applyAllInput ? applyAllInput.value : 10), 1);
 
                 assessments.forEach((assessment) => {
@@ -881,7 +1071,7 @@
             }
 
             function applyAllModeAll() {
-                const assessments = getAssessmentsForSelectedKetenagaan();
+                const assessments = getEnabledAssessments();
 
                 assessments.forEach((assessment) => {
                     ensureAssessmentState(assessment);

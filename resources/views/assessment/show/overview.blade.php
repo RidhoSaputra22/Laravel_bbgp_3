@@ -26,6 +26,13 @@
                 ->filter()
                 ->implode(' ');
         }
+        $portalUrls = array_merge([
+            'dashboard' => route('assessment.portal.dashboard'),
+            'show' => route('assessment.portal.show', $target->id),
+            'start' => route('assessment.portal.start', $target->id),
+            'result' => route('assessment.portal.result', $target->id),
+        ], $portalUrls ?? []);
+        $dashboardLabel = $dashboardLabel ?? 'Kembali ke Dashboard';
     @endphp
 
     <div>
@@ -71,8 +78,8 @@
                             {{ $meta['label'] }}
                         </x-assessment::ui.status-badge>
 
-                        <x-assessment::ui.button :href="route('assessment.portal.dashboard')" variant="outline" icon="fas fa-arrow-left">
-                            Kembali ke Dashboard
+                        <x-assessment::ui.button :href="$portalUrls['dashboard']" variant="outline" icon="fas fa-arrow-left">
+                            {{ $dashboardLabel }}
                         </x-assessment::ui.button>
                     </div>
                 </div>
@@ -172,7 +179,7 @@
 
                             <div class="flex flex-wrap gap-2">
                                 @if ($stage['action_mode'] === 'start')
-                                    <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST">
+                                    <form action="{{ $portalUrls['start'] }}" method="POST">
                                         @csrf
                                         <input type="hidden" name="stage_index" value="{{ $stage['index'] }}">
 
@@ -181,10 +188,7 @@
                                         </x-assessment::ui.button>
                                     </form>
                                 @elseif ($stage['action_mode'] === 'open')
-                                    <x-assessment::ui.button :href="route('assessment.portal.show', [
-                                        'id' => $target->id,
-                                        'stage' => $stage['index'],
-                                    ])" icon="fas fa-play-circle" class="font-bold">
+                                    <x-assessment::ui.button :href="$portalUrls['show'].'?stage='.$stage['index']" icon="fas fa-play-circle" class="font-bold">
                                         {{ $stage['action_label'] }}
                                     </x-assessment::ui.button>
                                 @else
@@ -225,7 +229,7 @@
 
                     <div class="mt-5 flex flex-wrap gap-2">
                         @if ($currentStage['action_mode'] === 'start')
-                            <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST">
+                            <form action="{{ $portalUrls['start'] }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="stage_index" value="{{ $currentStage['index'] }}">
 
@@ -234,10 +238,7 @@
                                 </x-assessment::ui.button>
                             </form>
                         @elseif ($currentStage['action_mode'] === 'open')
-                            <x-assessment::ui.button :href="route('assessment.portal.show', [
-                                'id' => $target->id,
-                                'stage' => $currentStage['index'],
-                            ])" icon="fas fa-play-circle" class="font-bold">
+                            <x-assessment::ui.button :href="$portalUrls['show'].'?stage='.$currentStage['index']" icon="fas fa-play-circle" class="font-bold">
                                 {{ $currentStage['action_label'] }}
                             </x-assessment::ui.button>
                         @else
@@ -253,7 +254,10 @@
                 @endif
             </x-assessment::ui.card>
 
-            @include('assessment.partials.participant-profile-card', ['guru' => $guru])
+            @include('assessment.partials.participant-profile-card', [
+                'guru' => $guru,
+                'participantAction' => $participantAction ?? null,
+            ])
         </aside>
     </section>
 @endsection

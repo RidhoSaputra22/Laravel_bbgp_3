@@ -46,6 +46,7 @@ class AssessmentAssignmentController extends Controller
             'creator',
             'combination',
         ])
+            ->withoutPreview()
             ->newestFirst()
             ->get();
 

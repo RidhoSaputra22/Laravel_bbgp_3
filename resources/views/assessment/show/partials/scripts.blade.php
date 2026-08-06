@@ -1066,6 +1066,7 @@
                 flaggedFieldIds: [],
                 currentQuestionFieldId: Number(config.initialQuestionFieldId ?? 0),
                 questionStateByFieldId: {},
+                questionStateVersion: 0,
                 autosaveUrl: typeof config.autosaveUrl === 'string' ? config.autosaveUrl : '',
                 overviewUrl: typeof config.overviewUrl === 'string' ? config.overviewUrl : '',
                 resultUrl: typeof config.resultUrl === 'string' ? config.resultUrl : '',
@@ -1087,6 +1088,10 @@
                 autosaveQueuedReason: null,
                 deadlineWatcherId: null,
                 deadlineSubmissionTriggered: false,
+                questionViewportSyncRafId: null,
+                questionViewportLockUntil: 0,
+                handleWindowQuestionViewportSync: null,
+                questionViewportObserver: null,
 
                 init() {
                     this.flaggedFieldIds = this.normalizeFieldIdList(config.initialFlaggedFieldIds ?? []);
@@ -1164,6 +1169,16 @@
                             this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
                         });
 
+                        form.addEventListener('click', (event) => {
+                            const fieldWrapper = event.target?.closest('[data-assessment-field]');
+
+                            if (!fieldWrapper) {
+                                return;
+                            }
+
+                            this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
+                        }, true);
+
                         this.refreshAllTextareaWordCounters();
                         this.refreshAllQuestionStates();
 
@@ -1171,6 +1186,16 @@
                             this.currentQuestionFieldId = this.firstQuestionFieldId(this.currentAssessmentIndex);
                         }
 
+                        this.handleWindowQuestionViewportSync = () => {
+                            this.scheduleCurrentQuestionViewportSync();
+                        };
+                        window.addEventListener('scroll', this.handleWindowQuestionViewportSync, {
+                            passive: true,
+                        });
+                        window.addEventListener('resize', this.handleWindowQuestionViewportSync);
+                        this.bindQuestionViewportObserver();
+
+                        this.scheduleCurrentQuestionViewportSync();
                         this.startDeadlineWatcher();
                         this.refreshSecurityGuard();
                     });
@@ -1180,6 +1205,16 @@
                         clearInterval(this.deadlineWatcherId);
                     }
 
+                    if (this.questionViewportSyncRafId) {
+                        cancelAnimationFrame(this.questionViewportSyncRafId);
+                    }
+
+                    if (this.handleWindowQuestionViewportSync) {
+                        window.removeEventListener('scroll', this.handleWindowQuestionViewportSync);
+                        window.removeEventListener('resize', this.handleWindowQuestionViewportSync);
+                    }
+
+                    this.disconnectQuestionViewportObserver();
                     this.securityGuard?.destroy?.();
                 },
                 currentStageMeta() {
@@ -1792,11 +1827,106 @@
                 setCurrentQuestion(fieldId) {
                     const normalizedFieldId = Number(fieldId);
 
-                    if (!normalizedFieldId) {
+                    if (!normalizedFieldId || normalizedFieldId === Number(this.currentQuestionFieldId)) {
                         return;
                     }
 
                     this.currentQuestionFieldId = normalizedFieldId;
+                },
+                scheduleCurrentQuestionViewportSync() {
+                    if (this.questionViewportSyncRafId) {
+                        return;
+                    }
+
+                    this.questionViewportSyncRafId = window.requestAnimationFrame(() => {
+                        this.questionViewportSyncRafId = null;
+                        this.syncCurrentQuestionFromViewport();
+                    });
+                },
+                bindQuestionViewportObserver() {
+                    this.disconnectQuestionViewportObserver();
+
+                    if (!('IntersectionObserver' in window)) {
+                        return;
+                    }
+
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return;
+                    }
+
+                    this.questionViewportObserver = new IntersectionObserver(() => {
+                        this.scheduleCurrentQuestionViewportSync();
+                    }, {
+                        root: null,
+                        rootMargin: '-120px 0px -45% 0px',
+                        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+                    });
+
+                    form.querySelectorAll('[data-assessment-field][data-field-id]').forEach((fieldWrapper) => {
+                        this.questionViewportObserver.observe(fieldWrapper);
+                    });
+                },
+                disconnectQuestionViewportObserver() {
+                    if (!this.questionViewportObserver) {
+                        return;
+                    }
+
+                    this.questionViewportObserver.disconnect();
+                    this.questionViewportObserver = null;
+                },
+                syncCurrentQuestionFromViewport(options = {}) {
+                    const force = options.force === true;
+
+                    if (!force && Date.now() < this.questionViewportLockUntil) {
+                        return;
+                    }
+
+                    const panel = this.getAssessmentPanel(this.currentAssessmentIndex);
+
+                    if (!panel) {
+                        return;
+                    }
+
+                    const fieldWrappers = Array.from(panel.querySelectorAll('[data-assessment-field][data-field-id]'))
+                        .filter((fieldWrapper) => fieldWrapper instanceof HTMLElement);
+
+                    if (fieldWrappers.length === 0) {
+                        return;
+                    }
+
+                    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+                    const anchorTop = Math.min(180, Math.max(96, Math.round(viewportHeight * 0.2)));
+                    const visibleItems = fieldWrappers
+                        .map((fieldWrapper) => {
+                            const rect = fieldWrapper.getBoundingClientRect();
+
+                            return {
+                                fieldWrapper,
+                                top: rect.top,
+                                bottom: rect.bottom,
+                            };
+                        })
+                        .filter((item) => item.bottom > 0 && item.top < viewportHeight);
+                    let activeFieldWrapper = visibleItems.find((item) => {
+                        return item.top <= anchorTop && item.bottom > anchorTop;
+                    })?.fieldWrapper ?? null;
+
+                    if (!activeFieldWrapper) {
+                        const itemsAboveAnchor = visibleItems.filter((item) => item.top <= anchorTop);
+                        activeFieldWrapper = itemsAboveAnchor[itemsAboveAnchor.length - 1]?.fieldWrapper
+                            ?? visibleItems.find((item) => item.top > anchorTop)?.fieldWrapper
+                            ?? null;
+                    }
+
+                    const nextFieldId = Number(activeFieldWrapper?.dataset?.fieldId ?? 0);
+
+                    if (!nextFieldId || nextFieldId === Number(this.currentQuestionFieldId)) {
+                        return;
+                    }
+
+                    this.currentQuestionFieldId = nextFieldId;
                 },
                 isFieldFlagged(fieldId) {
                     return this.flaggedFieldIds.includes(Number(fieldId));
@@ -1818,14 +1948,14 @@
                         this.flaggedFieldIds = [...this.flaggedFieldIds, normalizedFieldId];
                     }
 
-                    this.setCurrentQuestion(normalizedFieldId);
-                    this.syncQuestionState(normalizedFieldId);
-
                     const fieldWrapper = this.getFieldWrapper(normalizedFieldId);
 
                     if (fieldWrapper) {
                         this.clearFieldError(fieldWrapper);
                     }
+
+                    this.setCurrentQuestion(normalizedFieldId);
+                    this.syncQuestionState(normalizedFieldId);
 
                     this.markFlagMutation(normalizedFieldId);
                     await this.registerAutosaveAction('flag_toggle', {
@@ -1833,13 +1963,42 @@
                         assessmentIndex: Number(fieldWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
                     });
                 },
-                questionState(fieldId) {
-                    return this.questionStateByFieldId[String(Number(fieldId))] ?? {
-                        answered: false,
-                        hasAnswer: false,
-                        invalid: false,
-                        flagged: this.isFieldFlagged(fieldId),
+                buildQuestionState(fieldId) {
+                    const normalizedFieldId = Number(fieldId);
+                    const fieldWrapper = this.getFieldWrapper(normalizedFieldId);
+
+                    if (!normalizedFieldId || !fieldWrapper) {
+                        return {
+                            answered: false,
+                            hasAnswer: false,
+                            invalid: false,
+                            flagged: this.isFieldFlagged(normalizedFieldId),
+                            assessmentIndex: 0,
+                        };
+                    }
+
+                    const hasAnswer = this.fieldHasContent(fieldWrapper);
+                    const hasVisibleError = this.fieldHasVisibleError(fieldWrapper);
+                    const validation = hasAnswer
+                        ? this.resolveFieldValidation(fieldWrapper)
+                        : {
+                            valid: true,
+                            fieldId: normalizedFieldId,
+                            message: null,
+                        };
+
+                    return {
+                        answered: hasAnswer && validation.valid && !hasVisibleError,
+                        hasAnswer,
+                        invalid: hasVisibleError || (hasAnswer && !validation.valid),
+                        flagged: this.isFieldFlagged(normalizedFieldId),
+                        assessmentIndex: Number(fieldWrapper.dataset.assessmentIndex ?? 0),
                     };
+                },
+                questionState(fieldId) {
+                    this.questionStateVersion;
+
+                    return this.questionStateByFieldId[String(Number(fieldId))] ?? this.buildQuestionState(fieldId);
                 },
                 answeredQuestionCount(assessmentIndex = null) {
                     return this.questionItemsForAssessment(assessmentIndex).filter((item) => {
@@ -1865,12 +2024,31 @@
                 isQuestionNavigationGroupVisible(assessmentIndex) {
                     return Number(assessmentIndex) === Number(this.currentAssessmentIndex);
                 },
+                isCurrentQuestion(fieldId, assessmentIndex) {
+                    return Number(this.currentQuestionFieldId) === Number(fieldId)
+                        && Number(this.currentAssessmentIndex) === Number(assessmentIndex);
+                },
                 questionButtonClass(fieldId, assessmentIndex) {
-                    const isAnswered = Boolean(this.questionState(fieldId).answered);
+                    const state = this.questionState(fieldId);
+                    const isAnswered = Boolean(state?.answered);
                     const isFlagged = this.isFieldFlagged(fieldId);
-                    const isCurrentQuestion = Number(this.currentQuestionFieldId) === Number(fieldId);
                     const isCurrentAssessment = Number(this.currentAssessmentIndex) === Number(assessmentIndex);
                     const classes = [];
+
+                    if (this.isCurrentQuestion(fieldId, assessmentIndex)) {
+                        if (isFlagged) {
+                            classes.push(
+                                isAnswered
+                                    ? 'border-amber-500 bg-amber-500 text-white hover:bg-amber-600'
+                                    : 'border-amber-300 bg-amber-200 text-amber-900 hover:bg-amber-300',
+                                'ring-2 ring-amber-500 ring-offset-2 shadow-md shadow-amber-200',
+                            );
+                        } else {
+                            classes.push('border-[#0d5f98] bg-[#1376bd] text-white hover:bg-[#0d5f98] ring-2 ring-[#0d5f98] ring-offset-2 shadow-md shadow-[#1376bd]/20');
+                        }
+
+                        return classes.join(' ');
+                    }
 
                     if (isFlagged) {
                         if (isAnswered) {
@@ -1879,7 +2057,7 @@
                             classes.push('border-amber-300 bg-amber-200 text-amber-900 hover:bg-amber-300');
                         }
                     } else if (isAnswered) {
-                        classes.push('border-[#1376bd] bg-[#1376bd] text-white hover:bg-[#0d5f98]');
+                        classes.push('border-[#9cc9ea] bg-[#eaf5fb] text-[#0d5f98] hover:border-[#1376bd] hover:bg-[#d7edf9]');
                     } else {
                         classes.push('border-[#d7e3ee] bg-white text-slate-700 hover:border-[#1376bd] hover:text-[#1376bd]');
                     }
@@ -1888,17 +2066,10 @@
                         classes.push('shadow-sm');
                     }
 
-                    if (isCurrentQuestion) {
-                        classes.push('ring-2 ring-[#0d5f98] ring-offset-2');
-                    }
-
                     return classes.join(' ');
                 },
                 fieldWrapperClass(fieldId, assessmentIndex) {
-                    const isCurrentQuestion = Number(this.currentQuestionFieldId) === Number(fieldId);
-                    const isCurrentAssessment = Number(this.currentAssessmentIndex) === Number(assessmentIndex);
-
-                    if (!isCurrentQuestion || !isCurrentAssessment) {
+                    if (!this.isCurrentQuestion(fieldId, assessmentIndex)) {
                         return '';
                     }
 
@@ -2239,29 +2410,13 @@
                         toAssessmentIndex: boundedIndex,
                     });
                 },
-                closeQuestionNavigationPanel(trigger) {
-                    const detailsElement = trigger?.closest?.('details');
-
-                    if (!(detailsElement instanceof HTMLDetailsElement) || !detailsElement.open) {
-                        return Promise.resolve();
-                    }
-
-                    detailsElement.open = false;
-
-                    return new Promise((resolve) => {
-                        window.requestAnimationFrame(() => {
-                            window.requestAnimationFrame(resolve);
-                        });
-                    });
-                },
-                async goToQuestion(fieldId, assessmentIndex, event = null) {
+                goToQuestion(fieldId, assessmentIndex) {
                     if (this.isInteractionLocked()) {
                         return;
                     }
 
                     const normalizedFieldId = Number(fieldId);
                     const boundedAssessmentIndex = Math.max(0, Math.min(Number(assessmentIndex), this.totalAssessments - 1));
-                    const triggerElement = event?.currentTarget ?? event?.target ?? null;
 
                     if (!normalizedFieldId || !this.canAccessAssessment(boundedAssessmentIndex)) {
                         return;
@@ -2274,17 +2429,8 @@
                         return;
                     }
 
-                    if (
-                        boundedAssessmentIndex === this.currentAssessmentIndex
-                        && normalizedFieldId === Number(this.currentQuestionFieldId)
-                    ) {
-                        void this.closeQuestionNavigationPanel(triggerElement);
-                        return;
-                    }
-
                     const previousAssessmentIndex = this.currentAssessmentIndex;
 
-                    void this.closeQuestionNavigationPanel(triggerElement);
                     this.switchToAssessment(boundedAssessmentIndex, normalizedFieldId);
                     void this.registerAutosaveAction('navigate_question', {
                         fieldId: normalizedFieldId,
@@ -2297,6 +2443,7 @@
                     this.currentAssessmentIndex = index;
                     this.showFinishModal = false;
                     this.currentQuestionFieldId = Number(questionFieldId) || this.firstQuestionFieldId(index);
+                    this.questionViewportLockUntil = Date.now() + 700;
                     this.refreshSecurityGuard();
 
                     this.$nextTick(() => {
@@ -2561,7 +2708,7 @@
                 resolveFieldValidation(fieldWrapper, options = {}) {
 
                     const fieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
-                    const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
+                    const fieldType = String(fieldWrapper.dataset.fieldType ?? 'text').toLowerCase();
                     const fieldLabel = fieldWrapper.dataset.fieldLabel ?? 'field ini';
                     const isRequired = fieldWrapper.dataset.required === '1';
                     const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
@@ -2573,7 +2720,7 @@
                         || (enforceFlagged && this.isFieldFlagged(fieldId));
                     let message = null;
 
-                    if (fieldType === 'radio') {
+                    if (fieldType === 'radio' || fieldType === 'likert') {
                         const inputs = Array.from(fieldWrapper.querySelectorAll('input[type="radio"]'));
                         const hasSelection = inputs.some((input) => input.checked);
 
@@ -2866,9 +3013,18 @@
                         return;
                     }
 
-                    form.querySelectorAll('[data-assessment-field]').forEach((fieldWrapper) => {
-                        this.syncQuestionState(fieldWrapper.dataset.fieldId);
-                    });
+                    this.questionStateByFieldId = Array.from(
+                        form.querySelectorAll('[data-assessment-field][data-field-id]')
+                    ).reduce((states, fieldWrapper) => {
+                        const fieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
+
+                        if (fieldId) {
+                            states[String(fieldId)] = this.buildQuestionState(fieldId);
+                        }
+
+                        return states;
+                    }, {});
+                    this.questionStateVersion += 1;
                 },
                 syncQuestionState(fieldId) {
                     const normalizedFieldId = Number(fieldId);
@@ -2877,30 +3033,19 @@
                     if (!normalizedFieldId || !fieldWrapper) {
                         return;
                     }
+                    const nextQuestionState = this.buildQuestionState(normalizedFieldId);
 
-                    const hasAnswer = this.fieldHasContent(fieldWrapper);
-                    const hasVisibleError = this.fieldHasVisibleError(fieldWrapper);
-                    const validation = hasAnswer
-                        ? this.resolveFieldValidation(fieldWrapper)
-                        : {
-                            valid: true,
-                            fieldId: normalizedFieldId,
-                            message: null,
-                        };
-
-                    this.questionStateByFieldId[String(normalizedFieldId)] = {
-                        answered: hasAnswer && validation.valid && !hasVisibleError,
-                        hasAnswer,
-                        invalid: hasVisibleError || (hasAnswer && !validation.valid),
-                        flagged: this.isFieldFlagged(normalizedFieldId),
-                        assessmentIndex: Number(fieldWrapper.dataset.assessmentIndex ?? 0),
+                    this.questionStateByFieldId = {
+                        ...this.questionStateByFieldId,
+                        [String(normalizedFieldId)]: nextQuestionState,
                     };
+                    this.questionStateVersion += 1;
                 },
                 fieldHasContent(fieldWrapper) {
-                    const fieldType = fieldWrapper.dataset.fieldType ?? 'text';
+                    const fieldType = String(fieldWrapper.dataset.fieldType ?? 'text').toLowerCase();
                     const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
 
-                    if (fieldType === 'radio') {
+                    if (fieldType === 'radio' || fieldType === 'likert') {
                         return Array.from(fieldWrapper.querySelectorAll('input[type="radio"]')).some((input) => input.checked);
                     }
 
@@ -3039,12 +3184,19 @@
                     this.scrollToElement(topAnchor, 24);
                 },
                 scrollToElement(element, offset = 120) {
+                    this.questionViewportLockUntil = Date.now() + 700;
                     const top = element.getBoundingClientRect().top + window.scrollY - offset;
 
                     window.scrollTo({
                         top: Math.max(top, 0),
                         behavior: 'smooth',
                     });
+
+                    window.setTimeout(() => {
+                        this.syncCurrentQuestionFromViewport({
+                            force: true,
+                        });
+                    }, 750);
                 },
                 isValidEmail(value) {
                     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);

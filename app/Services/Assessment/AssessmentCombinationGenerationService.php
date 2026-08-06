@@ -219,6 +219,7 @@ class AssessmentCombinationGenerationService
         return [
             'target_ketenagaan' => $payload['target_ketenagaan'] ?? null,
             'total_kombinasi' => max((int) ($payload['total_kombinasi'] ?? 1), 1),
+            'included_assessment_ids' => $this->normalizeAssessmentIds($payload['included_assessment_ids'] ?? []),
             'competency_selection_modes' => $payload['competency_selection_modes'] ?? [],
             'competency_take_counts' => $payload['competency_take_counts'] ?? [],
         ];
@@ -230,9 +231,22 @@ class AssessmentCombinationGenerationService
 
         return [
             'target_ketenagaan' => $selectionConfig['target_ketenagaan'] ?? $generation->target_ketenagaan,
+            'included_assessment_ids' => $this->normalizeAssessmentIds(
+                $selectionConfig['included_assessment_ids'] ?? []
+            ),
             'competency_selection_modes' => $selectionConfig['competency_selection_modes'] ?? [],
             'competency_take_counts' => $selectionConfig['competency_take_counts'] ?? [],
         ];
+    }
+
+    private function normalizeAssessmentIds(mixed $assessmentIds): array
+    {
+        return collect((array) $assessmentIds)
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function resolveSequenceNumbers(AssessmentCombinationGeneration $generation): array

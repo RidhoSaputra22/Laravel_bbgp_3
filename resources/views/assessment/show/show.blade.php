@@ -362,11 +362,21 @@
         if ($initialQuestionFieldId <= 0) {
             $initialQuestionFieldId = (int) (collect($questionNavigationItems)->first()['field_id'] ?? 0);
         }
+        $portalUrls = array_merge([
+            'dashboard' => route('assessment.portal.dashboard'),
+            'show' => route('assessment.portal.show', $target->id),
+            'start' => route('assessment.portal.start', $target->id),
+            'autosave' => route('assessment.portal.autosave', $target->id),
+            'submit' => route('assessment.portal.submit', $target->id),
+            'violation' => route('assessment.portal.security.violation', $target->id),
+            'disqualify' => route('assessment.portal.security.disqualify', $target->id),
+            'result' => route('assessment.portal.result', $target->id),
+        ], $portalUrls ?? []);
         $securityPayload = array_merge($securityPayload ?? [], [
             'enabled' => (bool) data_get($securityPayload ?? [], 'enabled', false),
-            'violationUrl' => route('assessment.portal.security.violation', $target->id),
-            'disqualifyUrl' => route('assessment.portal.security.disqualify', $target->id),
-            'resultUrl' => route('assessment.portal.result', $target->id),
+            'violationUrl' => $portalUrls['violation'],
+            'disqualifyUrl' => $portalUrls['disqualify'],
+            'resultUrl' => $portalUrls['result'],
             'csrfToken' => csrf_token(),
             'targetId' => (int) $target->id,
         ]);
@@ -382,10 +392,10 @@
         stageFlowEnabled: @js($stageFlowEnabled),
         initialFlaggedFieldIds: @js($initialFlaggedFieldIds),
         initialQuestionFieldId: {{ $initialQuestionFieldId }},
-        autosaveUrl: @js(route('assessment.portal.autosave', $target->id)),
-        overviewUrl: @js(route('assessment.portal.show', $target->id)),
+        autosaveUrl: @js($portalUrls['autosave']),
+        overviewUrl: @js($portalUrls['show']),
         autosaveActionThreshold: 3,
-        resultUrl: @js(route('assessment.portal.result', $target->id)),
+        resultUrl: @js($portalUrls['result']),
         deadlineAt: @js(optional($countdownTargetAt)->toIso8601String()),
         textareaWordLimits: @js([
             'min' => \App\Support\Assessment\TextareaWordLimit::minWords(),
@@ -400,8 +410,19 @@
         <div class="space-y-6" data-assessment-exam-content>
             <section class="grid gap-8 p-6 grid-cols-1 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] md:gap-10 md:p-14">
                 <div class="space-y-8 md:space-y-12" x-ref="assessmentFlowTop">
+                    @foreach ($assessmentItems as $assessmentItem)
+                        @if (($stageMetaByIndex[$assessmentItem['index']]['requires_start_button'] ?? false) === true)
+                            <form id="assessment-stage-start-form-{{ $assessmentItem['index'] }}"
+                                action="{{ $portalUrls['start'] }}" method="POST"
+                                class="hidden">
+                                @csrf
+                                <input type="hidden" name="stage_index" value="{{ $assessmentItem['index'] }}">
+                            </form>
+                        @endif
+                    @endforeach
+
                     <form id="assessment-exam-form" x-ref="assessmentExamForm"
-                        action="{{ route('assessment.portal.submit', $target->id) }}" method="POST"
+                        action="{{ $portalUrls['submit'] }}" method="POST"
                         enctype="multipart/form-data" novalidate @submit.prevent="handleSubmit($event)">
                         @csrf
                         <input type="hidden" name="active_assessment_index" x-model="currentAssessmentIndex">

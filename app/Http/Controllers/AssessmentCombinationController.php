@@ -234,8 +234,10 @@ class AssessmentCombinationController extends Controller
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
                 'total_kombinasi' => 'required|integer|min:1',
-                'competency_selection_modes' => 'required|array|min:1',
-                'competency_take_counts' => 'required|array|min:1',
+                'included_assessment_ids' => 'required|array|min:1',
+                'included_assessment_ids.*' => 'integer|min:1',
+                'competency_selection_modes' => 'nullable|array',
+                'competency_take_counts' => 'nullable|array',
             ],
             [
                 'target_ketenagaan.required' => 'Ketenagaan wajib dipilih.',
@@ -243,8 +245,9 @@ class AssessmentCombinationController extends Controller
                 'total_kombinasi.required' => 'Jumlah kombinasi yang ingin dibuat wajib diisi.',
                 'total_kombinasi.integer' => 'Jumlah kombinasi harus berupa angka bulat.',
                 'total_kombinasi.min' => 'Jumlah kombinasi minimal 1.',
-                'competency_selection_modes.required' => 'Konfigurasi kompetensi kombinasi wajib diisi.',
-                'competency_take_counts.required' => 'Jumlah soal kompetensi wajib diisi.',
+                'included_assessment_ids.required' => 'Pilih minimal satu assessment sumber.',
+                'included_assessment_ids.array' => 'Pilihan assessment sumber tidak valid.',
+                'included_assessment_ids.min' => 'Pilih minimal satu assessment sumber.',
             ]
         );
 
@@ -256,6 +259,7 @@ class AssessmentCombinationController extends Controller
             }
 
             $availableAssessments = collect($assessmentCatalogByKetenagaan[$targetKetenagaan->value] ?? [])->values();
+            $includedAssessmentIds = $this->normalizeAssessmentIds($request->input('included_assessment_ids', []));
 
             if ($availableAssessments->isEmpty()) {
                 $validator->errors()->add(
@@ -282,6 +286,28 @@ class AssessmentCombinationController extends Controller
                 ->pluck('assessment_id')
                 ->map(fn ($assessmentId) => (int) $assessmentId)
                 ->all();
+            $availableAssessmentLookup = array_fill_keys($availableAssessmentIds, true);
+            $invalidIncludedAssessmentIds = collect($includedAssessmentIds)
+                ->reject(fn ($assessmentId) => isset($availableAssessmentLookup[(int) $assessmentId]))
+                ->values()
+                ->all();
+
+            if ($includedAssessmentIds === []) {
+                $validator->errors()->add(
+                    'included_assessment_ids',
+                    'Pilih minimal satu assessment sumber.'
+                );
+
+                return;
+            }
+
+            if ($invalidIncludedAssessmentIds !== []) {
+                $validator->errors()->add(
+                    'included_assessment_ids',
+                    'Ada assessment yang tidak sesuai dengan ketenagaan kombinasi yang dipilih.'
+                );
+            }
+
             $invalidAssessmentIds = $selectionModes
                 ->keys()
                 ->merge($takeCounts->keys())
@@ -297,7 +323,14 @@ class AssessmentCombinationController extends Controller
                 );
             }
 
-            $availableAssessments->each(function (array $assessment) use ($validator, $selectionModes, $takeCounts) {
+            $selectedAssessmentLookup = array_fill_keys($includedAssessmentIds, true);
+            $selectedAssessments = $availableAssessments
+                ->filter(function (array $assessment) use ($selectedAssessmentLookup) {
+                    return isset($selectedAssessmentLookup[(int) ($assessment['assessment_id'] ?? 0)]);
+                })
+                ->values();
+
+            $selectedAssessments->each(function (array $assessment) use ($validator, $selectionModes, $takeCounts) {
                 $assessmentId = (int) ($assessment['assessment_id'] ?? 0);
                 $assessmentModes = collect((array) $selectionModes->get($assessmentId, []));
                 $assessmentCounts = collect((array) $takeCounts->get($assessmentId, []));
@@ -352,7 +385,22 @@ class AssessmentCombinationController extends Controller
             });
         });
 
-        return $validator->validate();
+        $validated = $validator->validate();
+        $validated['included_assessment_ids'] = $this->normalizeAssessmentIds(
+            $validated['included_assessment_ids'] ?? []
+        );
+
+        return $validated;
+    }
+
+    private function normalizeAssessmentIds(mixed $assessmentIds): array
+    {
+        return collect((array) $assessmentIds)
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->filter(fn (int $assessmentId) => $assessmentId > 0)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function buildGenerationCreateNotice(AssessmentCombinationGeneration $generation): string

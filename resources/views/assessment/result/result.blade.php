@@ -3,7 +3,8 @@
 @section('content')
     @php
         $viewerMode = $viewerMode ?? 'participant';
-        $isAdminViewer = $viewerMode === 'admin';
+        $isAdminViewer = in_array($viewerMode, ['admin', 'admin_preview'], true);
+        $isPreviewViewer = $viewerMode === 'admin_preview';
         $backUrl = $backUrl ?? route('assessment.portal.dashboard');
         $backLabel = $backLabel ?? 'Kembali ke Dashboard';
         $isStakeholderDownloadAvailable = $isStakeholderDownloadAvailable ?? false;
@@ -38,7 +39,7 @@
             ? 'Assessment dihentikan oleh guard ujian'
             : ($autoSubmitted
                 ? 'Assessment selesai otomatis karena batas waktu berakhir'
-                : 'Assessment berhasil dikirim');
+                : ($isPreviewViewer ? 'Preview assessment berhasil dikirim' : 'Assessment berhasil dikirim'));
         $assignmentDateText = $meta['date_text'] ?? '-';
         $assessmentTotal = (int) ($meta['assessment_total'] ?? 0);
         $formTotal = (int) ($meta['form_total'] ?? 0);
@@ -47,15 +48,22 @@
                 ? ($attempt->disqualification_reason ?: 'Assessment dihentikan oleh sistem guard karena pelanggaran aturan ujian.')
                 : ($autoSubmitted
                     ? 'Batas waktu peserta berakhir. Jawaban terakhir diproses otomatis dan soal kosong diberi skor 0.'
-                    : 'Assessment peserta sudah dikirim dan hasilnya dapat ditinjau kembali kapan saja.'))
+                    : ($isPreviewViewer
+                        ? 'Preview admin selesai dikirim. Nilai pada halaman ini bersifat sementara dan tidak masuk monitoring peserta.'
+                        : 'Assessment peserta sudah dikirim dan hasilnya dapat ditinjau kembali kapan saja.')))
             : ($meta['description'] ?? 'Hasil assessment ini tersimpan pada portal peserta.');
-        $pageDescription = $isAdminViewer
-            ? 'Ringkasan dan seluruh jawaban peserta yang sudah dikirim tersedia pada halaman ini.'
-            : 'Ringkasan dan seluruh jawaban yang sudah Anda kirim tersedia pada halaman ini.';
+        $pageTitle = $isPreviewViewer ? 'Hasil Preview Assessment' : 'Hasil Assessment Peserta';
+        $pageDescription = $isPreviewViewer
+            ? 'Ringkasan jawaban dan skor sementara dari sesi preview admin tersedia pada halaman ini.'
+            : ($isAdminViewer
+                ? 'Ringkasan dan seluruh jawaban peserta yang sudah dikirim tersedia pada halaman ini.'
+                : 'Ringkasan dan seluruh jawaban yang sudah Anda kirim tersedia pada halaman ini.');
         $assignmentDescription = $target->assignment->deskripsi
-            ?: ($isAdminViewer
-                ? 'Hasil pengisian assessment peserta tersimpan dan dapat ditinjau kembali kapan saja.'
-                : 'Hasil pengisian assessment Anda tersimpan dan dapat ditinjau kembali kapan saja pada portal peserta.');
+            ?: ($isPreviewViewer
+                ? 'Hasil preview ini dipakai untuk menguji alur pengerjaan dan membaca skor sementara sebelum assessment dipakai peserta.'
+                : ($isAdminViewer
+                    ? 'Hasil pengisian assessment peserta tersimpan dan dapat ditinjau kembali kapan saja.'
+                    : 'Hasil pengisian assessment Anda tersimpan dan dapat ditinjau kembali kapan saja pada portal peserta.'));
         $seriousViolationCount = (int) ($attempt->serious_violation_count ?? 0);
         $warningViolationCount = (int) ($attempt->warning_violation_count ?? 0);
         $sessionDetails = [
@@ -120,7 +128,7 @@
         <div class="flex flex-col gap-4 bg-[#1376BD] px-5 py-4 text-white md:flex-row md:items-start md:justify-between">
             <div>
                 <h1 class="text-xl font-medium">
-                    Hasil Assessment Peserta
+                    {{ $pageTitle }}
                 </h1>
                 <p class="text-xs font-light">
                     {{ $pageDescription }}
@@ -154,6 +162,12 @@
                         </div>
 
                         <div class="flex flex-wrap gap-2">
+                            @if ($isPreviewViewer)
+                                <x-assessment::ui.status-badge tone="warning" class="rounded-sm px-3 py-1.5">
+                                    Nilai Sementara Preview Admin
+                                </x-assessment::ui.status-badge>
+                            @endif
+
                             <x-assessment::ui.status-badge tone="success" class="rounded-sm px-3 py-1.5">
                                 {{ $primarySubmissionBadge }}
                             </x-assessment::ui.status-badge>

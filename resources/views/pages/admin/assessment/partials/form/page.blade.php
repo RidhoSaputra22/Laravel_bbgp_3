@@ -933,9 +933,13 @@
                             <div class="assessment-summary-actions mt-4 row g-2 px-2 ">
 
                                 @if ($previewUrl)
-                                    <a href="{{ $previewUrl }}" class="col btn mx-1 btn-info  ">
-                                        <i class="fas fa-eye"></i> Lihat Preview
-                                    </a>
+                                    <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST"
+                                        class="col px-1">
+                                        @csrf
+                                        <button type="submit" class="btn btn-info btn-block">
+                                            <i class="fas fa-play-circle"></i> Lihat Preview
+                                        </button>
+                                    </form>
                                 @endif
                                 <a href="{{ route('assessment.index') }}" class="col btn mx-1 btn-light  ">
                                     Kembali

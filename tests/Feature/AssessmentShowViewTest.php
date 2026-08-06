@@ -735,6 +735,169 @@ class AssessmentShowViewTest extends TestCase
         $response->assertDontSee('Next Assessment');
     }
 
+    public function test_assessment_show_view_treats_likert_fields_as_answered_questions_in_navigation_script(): void
+    {
+        $guru = new Guru([
+            'nama_lengkap' => 'Guru Likert',
+            'satuan_pendidikan' => 'SMP Likert',
+        ]);
+
+        $assignment = new AssessmentAssignment([
+            'tanggal_mulai' => '2026-06-28',
+            'tanggal_selesai' => '2026-06-29',
+        ]);
+
+        $target = new AssessmentAssignmentTarget([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+        ]);
+        $target->id = 13;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('session', new AssessmentAssignmentSession([
+            'label_sesi' => 'Sesi Likert',
+        ]));
+
+        $attempt = new AssessmentAttempt([
+            'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+            'progress_snapshot' => [
+                'stage_flow_enabled' => true,
+                'current_stage_index' => 1,
+                'stages' => [
+                    [
+                        'stage_index' => 0,
+                        'status' => 'ready',
+                        'config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'start_button',
+                            'allow_draft' => false,
+                            'finalize_mode' => 'auto',
+                            'lock_until_previous_stages_completed' => false,
+                            'time_limit_minutes' => null,
+                            'security' => [
+                                'enabled' => false,
+                                'require_fullscreen' => false,
+                            ],
+                        ],
+                    ],
+                    [
+                        'stage_index' => 1,
+                        'status' => 'in_progress',
+                        'started_at' => '2026-06-28T08:15:00+08:00',
+                        'config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'direct',
+                            'allow_draft' => false,
+                            'finalize_mode' => 'auto',
+                            'lock_until_previous_stages_completed' => false,
+                            'time_limit_minutes' => null,
+                            'security' => [
+                                'enabled' => false,
+                                'require_fullscreen' => false,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'structure_snapshot' => [
+                'meta' => [
+                    'total_questions' => 1,
+                    'required_questions' => 1,
+                ],
+                'assessments' => [
+                    [
+                        'id' => 900,
+                        'kode_assessment' => 'ASM-START-BUTTON',
+                        'judul' => 'Tahap Dengan Tombol Mulai',
+                        'deskripsi' => null,
+                        'petunjuk' => null,
+                        'stage_config' => [
+                            'enabled' => true,
+                            'entry_mode' => 'start_button',
+                            'allow_draft' => false,
+                            'finalize_mode' => 'auto',
+                            'lock_until_previous_stages_completed' => false,
+                            'time_limit_minutes' => null,
+                            'security' => [
+                                'enabled' => false,
+                                'require_fullscreen' => false,
+                            ],
+                        ],
+                        'forms' => [],
+                    ],
+                    [
+                        'id' => 901,
+                        'kode_assessment' => 'ASM-LIKERT',
+                        'judul' => 'Assessment Likert',
+                        'deskripsi' => 'Deskripsi likert',
+                        'petunjuk' => null,
+                        'forms' => [
+                            [
+                                'id' => 902,
+                                'judul_form' => 'Form Likert',
+                                'deskripsi' => null,
+                                'fields' => [
+                                    [
+                                        'id' => 903,
+                                        'assessment_id' => 901,
+                                        'assessment_form_id' => 902,
+                                        'label' => 'Saya memahami materi dengan baik',
+                                        'deskripsi' => null,
+                                        'placeholder' => null,
+                                        'tipe_field' => 'likert',
+                                        'opsi_field' => [],
+                                        'is_required' => true,
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this
+            ->withViewErrors([])
+            ->view('assessment.show.show', [
+                'menu' => 'assessment-portal',
+                'guru' => $guru,
+                'target' => $target,
+                'attempt' => $attempt,
+                'meta' => [
+                    'session_label' => 'Sesi Likert',
+                    'session_schedule_text' => 'Jadwal sesi belum ditentukan',
+                    'label' => 'Sedang Dikerjakan',
+                    'date_text' => '28 Jun 2026 - 29 Jun 2026',
+                ],
+            ]);
+
+        $rendered = (string) $response;
+
+        $response->assertSee('data-field-type="likert"', false);
+        $response->assertSee('data-question-nav-count="answered"', false);
+        $response->assertSee('x-bind:class="questionButtonClass(903,', false);
+        $response->assertSee('x-bind:aria-current="isCurrentQuestion(903,', false);
+        $response->assertSee('id="assessment-stage-start-form-0"', false);
+        $response->assertSee('form="assessment-stage-start-form-0"', false);
+        $this->assertGreaterThanOrEqual(2, substr_count($rendered, "if (fieldType === 'radio' || fieldType === 'likert') {"));
+        $this->assertStringContainsString('this.questionStateVersion += 1;', $rendered);
+        $this->assertStringContainsString('syncCurrentQuestionFromViewport(options = {})', $rendered);
+        $this->assertStringNotContainsString('data-question-nav-base-class=', $rendered);
+        $this->assertStringNotContainsString('assessmentSyncQuestionNavigationFromDom', $rendered);
+        $this->assertStringNotContainsString('detailsElement.open = false', $rendered);
+
+        $document = new \DOMDocument();
+        @$document->loadHTML($rendered);
+        $xpath = new \DOMXPath($document);
+        $likertField = $xpath->query('//*[@data-field-id="903"]')->item(0);
+        $parent = $likertField?->parentNode;
+
+        while ($parent instanceof \DOMElement && strtolower($parent->tagName) !== 'form') {
+            $parent = $parent->parentNode;
+        }
+
+        $this->assertInstanceOf(\DOMElement::class, $parent);
+        $this->assertSame('assessment-exam-form', $parent->getAttribute('id'));
+    }
+
     public function test_radio_group_displays_sequential_labels_while_preserving_randomized_option_values(): void
     {
         $html = Blade::render(

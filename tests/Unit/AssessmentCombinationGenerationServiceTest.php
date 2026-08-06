@@ -207,9 +207,10 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
     public function test_it_creates_requested_generation_and_stores_all_combinations(): void
     {
         $assessment = $this->createAssessmentFixture();
+        $service = app(AssessmentCombinationGenerationService::class);
 
         /** @var AssessmentCombinationGeneration $generation */
-        $generation = app(AssessmentCombinationGenerationService::class)->createGeneration([
+        $generation = $service->createGeneration([
             'target_ketenagaan' => 'tenaga_pendidik',
             'total_kombinasi' => 2,
             'competency_selection_modes' => [
@@ -226,8 +227,12 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
             ],
         ]);
 
+        $service->processSequence($generation->id, 1);
+        $service->processSequence($generation->id, 2);
+        $service->refreshGenerationSummary($generation->id);
+
         $generation = $generation->fresh()->loadCount('combinations');
-        $monitoring = app(AssessmentCombinationGenerationService::class)->buildGenerationMonitoring($generation, false);
+        $monitoring = $service->buildGenerationMonitoring($generation, false);
 
         $this->assertStringStartsWith('KBG-ASM-', $generation->kode_generate);
         $this->assertSame('selesai', $generation->status);
@@ -248,6 +253,7 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
     public function test_it_retries_only_missing_generation_sequences(): void
     {
         $assessment = $this->createAssessmentFixture();
+        $service = app(AssessmentCombinationGenerationService::class);
         $payload = [
             'target_ketenagaan' => 'tenaga_pendidik',
             'competency_selection_modes' => [
@@ -278,11 +284,15 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
             'generation_sequence' => 1,
         ])->save();
 
-        $result = app(AssessmentCombinationGenerationService::class)->retryGeneration($generation);
+        $result = $service->retryGeneration($generation);
 
         $this->assertTrue($result['queued']);
         $this->assertFalse($result['already_complete']);
         $this->assertSame(2, $result['resumed_count']);
+
+        $service->processSequence($generation->id, 2);
+        $service->processSequence($generation->id, 3);
+        $service->refreshGenerationSummary($generation->id);
 
         $generation = $generation->fresh()->loadCount('combinations');
         $this->assertSame('selesai', $generation->status);
@@ -337,6 +347,55 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
         $this->assertSame('Resume Sisa Gagal', $monitoring['action_label']);
         $this->assertSame(1, $monitoring['generated_total']);
         $this->assertSame(2, $monitoring['missing_total']);
+    }
+
+    public function test_it_preserves_selected_assessment_ids_when_generating_combinations(): void
+    {
+        $this->createAssessmentFixture();
+        $selectedAssessment = $this->createSingleFieldAssessment(
+            'ASM-002',
+            'Assessment Baru'
+        );
+
+        /** @var AssessmentCombinationGeneration $generation */
+        $generation = app(AssessmentCombinationGenerationService::class)->createGeneration([
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 2,
+            'included_assessment_ids' => [$selectedAssessment->id],
+            'competency_selection_modes' => [
+                $selectedAssessment->id => [
+                    'pedagogik' => 'count',
+                ],
+            ],
+            'competency_take_counts' => [
+                $selectedAssessment->id => [
+                    'pedagogik' => 1,
+                ],
+            ],
+        ]);
+
+        $generation = $generation->fresh()->load('combinations.items');
+
+        $this->assertSame(
+            [$selectedAssessment->id],
+            collect(data_get($generation->selection_config, 'included_assessment_ids', []))
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->values()
+                ->all()
+        );
+
+        $generation->combinations->each(function (AssessmentCombination $combination) use ($selectedAssessment) {
+            $this->assertSame(1, $combination->total_assessments);
+            $this->assertSame(
+                [$selectedAssessment->id],
+                $combination->items
+                    ->pluck('assessment_id')
+                    ->map(fn ($assessmentId) => (int) $assessmentId)
+                    ->unique()
+                    ->values()
+                    ->all()
+            );
+        });
     }
 
     private function createAssessmentFixture(): Assessment
@@ -398,6 +457,34 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
         $this->createField($kepribadian, 'Refleksi 1', 1);
         $this->createField($identity, 'Nama Lengkap', 1);
         $this->createField($identity, 'NIP', 2);
+
+        return $assessment;
+    }
+
+    private function createSingleFieldAssessment(string $code, string $title): Assessment
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => $code,
+            'judul' => $title,
+            'deskripsi' => 'Assessment test.',
+            'petunjuk' => 'Isi seluruh bagian.',
+            'instrument_type' => 'studi_kasus',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'status' => 'publish',
+            'is_active' => true,
+        ]);
+
+        $form = AssessmentForm::query()->create([
+            'assessment_id' => $assessment->id,
+            'judul_form' => $title.' Form',
+            'kode_form' => $code.'-FORM',
+            'kompetensi' => 'pedagogik',
+            'is_scoreable' => true,
+            'urutan' => 1,
+            'is_active' => true,
+        ]);
+
+        $this->createField($form, $title.' Item', 1);
 
         return $assessment;
     }

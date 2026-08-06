@@ -266,6 +266,61 @@ class AssessmentCombinationServiceTest extends TestCase
         );
     }
 
+    public function test_it_can_limit_combination_to_selected_assessment_ids(): void
+    {
+        $this->createSingleFieldAssessment(
+            'ASM-LAMA',
+            'Assessment Lama',
+            'portofolio'
+        );
+        $selectedAssessment = $this->createSingleFieldAssessment(
+            'ASM-BARU',
+            'Assessment Baru',
+            'studi_kasus'
+        );
+
+        $combination = app(AssessmentCombinationService::class)->createCombination([
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'included_assessment_ids' => [$selectedAssessment->id],
+            'competency_selection_modes' => [
+                $selectedAssessment->id => [
+                    'pedagogik' => 'count',
+                ],
+            ],
+            'competency_take_counts' => [
+                $selectedAssessment->id => [
+                    'pedagogik' => 1,
+                ],
+            ],
+        ]);
+
+        $this->assertSame(1, $combination->total_assessments);
+        $this->assertSame(1, $combination->total_questions);
+        $this->assertSame(
+            [$selectedAssessment->id],
+            $combination->items
+                ->pluck('assessment_id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->unique()
+                ->values()
+                ->all()
+        );
+        $this->assertSame(
+            [$selectedAssessment->id],
+            collect(data_get($combination->selection_config, 'included_assessment_ids', []))
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->values()
+                ->all()
+        );
+        $this->assertSame(
+            [$selectedAssessment->id],
+            collect(data_get($combination->structure_snapshot, 'assessments', []))
+                ->pluck('id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->all()
+        );
+    }
+
     private function createAssessmentFixture(): Assessment
     {
         $assessment = Assessment::query()->create([

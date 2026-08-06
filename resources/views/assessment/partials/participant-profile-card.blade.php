@@ -1,4 +1,10 @@
 @php
+    $participantAction = is_array($participantAction ?? null) ? $participantAction : [];
+    $participantActionMethod = strtoupper((string) ($participantAction['method'] ?? 'POST'));
+    $participantActionUrl = $participantAction['url'] ?? route('assessment.portal.logout');
+    $participantActionLabel = $participantAction['label'] ?? 'Logout';
+    $participantActionIcon = $participantAction['icon'] ?? 'fas fa-sign-out-alt';
+    $participantActionVariant = $participantAction['variant'] ?? 'outline';
     $birthPlaceDate = collect([
         $guru->tempat_lahir,
         filled($guru->tgl_lahir) ? \Illuminate\Support\Carbon::parse($guru->tgl_lahir)->format('d/m/Y') : null,
@@ -60,13 +66,19 @@
             <h1 class="text-md font-medium">Data Diri Peserta</h1>
         </div>
 
-        <form action="{{ route('assessment.portal.logout') }}" method="POST" class="shrink-0">
-            @csrf
-
-            <x-assessment::ui.button type="submit" variant="outline" icon="fas fa-sign-out-alt">
-                Logout
+        @if ($participantActionMethod === 'GET')
+            <x-assessment::ui.button :href="$participantActionUrl" :variant="$participantActionVariant" :icon="$participantActionIcon">
+                {{ $participantActionLabel }}
             </x-assessment::ui.button>
-        </form>
+        @else
+            <form action="{{ $participantActionUrl }}" method="POST" class="shrink-0">
+                @csrf
+
+                <x-assessment::ui.button type="submit" :variant="$participantActionVariant" :icon="$participantActionIcon">
+                    {{ $participantActionLabel }}
+                </x-assessment::ui.button>
+            </form>
+        @endif
     </div>
 
     <div class="grid grid-cols-1 px-6 py-1 sm:grid-cols-2">

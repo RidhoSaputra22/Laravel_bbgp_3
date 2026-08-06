@@ -6,9 +6,12 @@
             <div class="section-header">
                 <h1>Edit Assessment</h1>
                 <div class="section-header-breadcrumb">
-                    <a href="{{ route('assessment.show', $assessment->id) }}" class="btn btn-info">
-                        <i class="fas fa-eye"></i> Lihat Preview
-                    </a>
+                    <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-info">
+                            <i class="fas fa-play-circle"></i> Lihat Preview
+                        </button>
+                    </form>
                 </div>
             </div>
 

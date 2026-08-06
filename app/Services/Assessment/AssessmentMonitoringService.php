@@ -265,6 +265,15 @@ class AssessmentMonitoringService
                 '=',
                 'assignment_session.assessment_assignment_id'
             )
+            ->where(function ($query) {
+                $query
+                    ->whereNull('assignment.kode_penugasan')
+                    ->orWhere(
+                        'assignment.kode_penugasan',
+                        'not like',
+                        AssessmentAssignment::PREVIEW_CODE_PREFIX.'%'
+                    );
+            })
             ->leftJoinSub($statsBySessionQuery, 'session_stats', function ($join) {
                 $join->on(
                     'session_stats.assessment_assignment_session_id',
@@ -376,6 +385,15 @@ class AssessmentMonitoringService
         $phaseSql = $this->globalAssignmentPhaseSql();
 
         return DB::table('assessment_assignments as assignment')
+            ->where(function ($query) {
+                $query
+                    ->whereNull('assignment.kode_penugasan')
+                    ->orWhere(
+                        'assignment.kode_penugasan',
+                        'not like',
+                        AssessmentAssignment::PREVIEW_CODE_PREFIX.'%'
+                    );
+            })
             ->leftJoinSub(
                 $this->globalAssignmentTargetAggregateQuery(),
                 'target_stats',
@@ -684,6 +702,21 @@ class AssessmentMonitoringService
     private function globalAssignmentTargetGuruBaseQuery()
     {
         return DB::table('assessment_assignment_targets as target')
+            ->join(
+                'assessment_assignments as assignment_filter',
+                'assignment_filter.id',
+                '=',
+                'target.assessment_assignment_id'
+            )
+            ->where(function ($query) {
+                $query
+                    ->whereNull('assignment_filter.kode_penugasan')
+                    ->orWhere(
+                        'assignment_filter.kode_penugasan',
+                        'not like',
+                        AssessmentAssignment::PREVIEW_CODE_PREFIX.'%'
+                    );
+            })
             ->join('gurus as guru', 'guru.id', '=', 'target.guru_id');
     }
 
@@ -742,6 +775,21 @@ class AssessmentMonitoringService
     private function globalAssignmentTargetBaseQuery()
     {
         return DB::table('assessment_assignment_targets as target')
+            ->join(
+                'assessment_assignments as assignment_filter',
+                'assignment_filter.id',
+                '=',
+                'target.assessment_assignment_id'
+            )
+            ->where(function ($query) {
+                $query
+                    ->whereNull('assignment_filter.kode_penugasan')
+                    ->orWhere(
+                        'assignment_filter.kode_penugasan',
+                        'not like',
+                        AssessmentAssignment::PREVIEW_CODE_PREFIX.'%'
+                    );
+            })
             ->leftJoin(
                 'assessment_attempts as attempt',
                 'attempt.assessment_assignment_target_id',
@@ -932,6 +980,7 @@ class AssessmentMonitoringService
         return AssessmentAssignment::query()
             ->with($this->monitoringRelations())
             ->withCount(['targets', 'sessions'])
+            ->withoutPreview()
             ->newestFirst()
             ->get();
     }
