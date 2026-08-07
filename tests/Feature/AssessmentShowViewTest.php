@@ -898,6 +898,112 @@ class AssessmentShowViewTest extends TestCase
         $this->assertSame('assessment-exam-form', $parent->getAttribute('id'));
     }
 
+    public function test_debug_autofill_fab_only_renders_for_admin_preview_viewer(): void
+    {
+        $makeViewData = function (array $overrides = []): array {
+            $guru = new Guru([
+                'nama_lengkap' => 'Guru Debug',
+                'satuan_pendidikan' => 'SD Debug',
+            ]);
+
+            $assignment = new AssessmentAssignment([
+                'tanggal_mulai' => '2026-06-28',
+                'tanggal_selesai' => '2026-06-29',
+            ]);
+
+            $target = new AssessmentAssignmentTarget([
+                'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+            ]);
+            $target->id = 14;
+            $target->setRelation('assignment', $assignment);
+            $target->setRelation('session', new AssessmentAssignmentSession([
+                'label_sesi' => 'Sesi Debug',
+            ]));
+
+            $attempt = new AssessmentAttempt([
+                'started_at' => Carbon::parse('2026-06-28 08:15:00'),
+                'structure_snapshot' => [
+                    'meta' => [
+                        'total_questions' => 2,
+                        'required_questions' => 2,
+                    ],
+                    'assessments' => [
+                        [
+                            'id' => 1001,
+                            'kode_assessment' => 'ASM-DEBUG',
+                            'judul' => 'Assessment Debug',
+                            'deskripsi' => null,
+                            'petunjuk' => null,
+                            'forms' => [
+                                [
+                                    'id' => 1002,
+                                    'judul_form' => 'Form Debug',
+                                    'deskripsi' => null,
+                                    'fields' => [
+                                        [
+                                            'id' => 1003,
+                                            'assessment_id' => 1001,
+                                            'assessment_form_id' => 1002,
+                                            'label' => 'Nama Lengkap',
+                                            'deskripsi' => null,
+                                            'placeholder' => 'Isi nama',
+                                            'tipe_field' => 'text',
+                                            'opsi_field' => [],
+                                            'is_required' => true,
+                                        ],
+                                        [
+                                            'id' => 1004,
+                                            'assessment_id' => 1001,
+                                            'assessment_form_id' => 1002,
+                                            'label' => 'Alamat Email',
+                                            'deskripsi' => null,
+                                            'placeholder' => 'Isi email',
+                                            'tipe_field' => 'email',
+                                            'opsi_field' => [],
+                                            'is_required' => true,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+
+            return array_merge([
+                'menu' => 'assessment-portal',
+                'guru' => $guru,
+                'target' => $target,
+                'attempt' => $attempt,
+                'meta' => [
+                    'session_label' => 'Sesi Debug',
+                    'session_schedule_text' => 'Jadwal sesi belum ditentukan',
+                    'label' => 'Sedang Dikerjakan',
+                    'date_text' => '28 Jun 2026 - 29 Jun 2026',
+                ],
+            ], $overrides);
+        };
+
+        $participantResponse = $this
+            ->withViewErrors([])
+            ->view('assessment.show.show', $makeViewData());
+
+        $participantResponse->assertDontSee('data-assessment-debug-fab', false);
+        $participantResponse->assertDontSee('debugModeEnabled', false);
+        $participantResponse->assertDontSee('debugAutofillAssessment', false);
+        $participantResponse->assertDontSee('canUseDebugAutofill', false);
+
+        $adminPreviewResponse = $this
+            ->withViewErrors([])
+            ->view('assessment.show.show', $makeViewData([
+                'viewerMode' => 'admin_preview',
+            ]));
+
+        $adminPreviewResponse->assertSee('data-assessment-debug-fab', false);
+        $adminPreviewResponse->assertSee('@click="debugAutofillAssessment()"', false);
+        $adminPreviewResponse->assertSee('debugModeEnabled: true', false);
+    }
+
     public function test_radio_group_displays_sequential_labels_while_preserving_randomized_option_values(): void
     {
         $html = Blade::render(

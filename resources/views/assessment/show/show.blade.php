@@ -13,6 +13,9 @@
         );
         $answerLookup = $answerLookup ?? [];
         $securityPayload = $securityPayload ?? [];
+        $viewerMode = (string) ($viewerMode ?? 'participant');
+        $assessmentDebugModeEnabled = in_array($viewerMode, ['admin', 'admin_preview'], true)
+            || in_array((string) session('role'), ['admin', 'superadmin', 'kepala', 'database'], true);
         $participantAutoFillResolver = app(\App\Support\Assessment\ParticipantAutoFillResolver::class);
         $autoFilledAnswerLookup = [];
 
@@ -402,6 +405,9 @@
             'max' => \App\Support\Assessment\TextareaWordLimit::maxWords(),
         ]),
         security: @js($securityPayload),
+        @if ($assessmentDebugModeEnabled)
+            debugModeEnabled: true,
+        @endif
     })" class="space-y-6 **:text-xs sm:**:text-sm">
         @include('assessment.show.partials.security-overlay', [
             'securityPayload' => $securityPayload,
@@ -472,6 +478,26 @@
                 'sessionDetails' => $sessionDetails,
                 'securityPayload' => $securityPayload,
             ])
+
+            @if ($assessmentDebugModeEnabled)
+                <div class="fixed bottom-28 right-4 z-40 flex flex-col items-end gap-3 sm:bottom-8 sm:right-8"
+                    data-assessment-debug-fab>
+                    <div x-show="debugAutofillMessage" x-transition.opacity
+                        class="max-w-[min(20rem,calc(100vw-2rem))] rounded-sm border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-slate-700 shadow-lg shadow-slate-900/10"
+                        style="display: none;"
+                        x-text="debugAutofillMessage"></div>
+
+                    <button type="button"
+                        class="group flex h-14 w-14 items-center justify-center rounded-full border border-sky-300 bg-[#0d5f98] text-white shadow-xl shadow-[#0d5f98]/30 transition hover:-translate-y-0.5 hover:bg-[#0a4c7a] focus:outline-none focus:ring-4 focus:ring-[#1376bd]/25 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                        title="Debug autofill template"
+                        aria-label="Debug autofill template"
+                        x-bind:disabled="!canUseDebugAutofill()"
+                        @click="debugAutofillAssessment()">
+                        <i class="fas fa-magic text-lg" x-show="!isApplyingDebugAutofill"></i>
+                        <i class="fas fa-spinner fa-spin text-lg" x-show="isApplyingDebugAutofill" style="display: none;"></i>
+                    </button>
+                </div>
+            @endif
         </div>
     </div>
 

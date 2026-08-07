@@ -1080,6 +1080,12 @@
                 isSubmitting: false,
                 isAutosaving: false,
                 isSavingDraft: false,
+                @if ($assessmentDebugModeEnabled ?? false)
+                    debugModeEnabled: Boolean(config.debugModeEnabled ?? false),
+                    isApplyingDebugAutofill: false,
+                    debugAutofillMessage: '',
+                    debugAutofillMessageTimerId: null,
+                @endif
                 autosaveActionThreshold: Math.max(1, Number(config.autosaveActionThreshold ?? 3)),
                 autosaveActionCount: 0,
                 autosaveBucket: null,
@@ -1122,6 +1128,12 @@
                                 this.clearFieldError(fieldWrapper);
                                 this.setCurrentQuestion(fieldWrapper.dataset.fieldId);
                                 this.syncQuestionState(fieldWrapper.dataset.fieldId);
+
+                                @if ($assessmentDebugModeEnabled ?? false)
+                                    if (this.isApplyingDebugAutofill) {
+                                        return;
+                                    }
+                                @endif
 
                                 if (eventName === 'input') {
                                     this.trackFieldMutation(event.target, 'field_input');
@@ -1213,6 +1225,12 @@
                         window.removeEventListener('scroll', this.handleWindowQuestionViewportSync);
                         window.removeEventListener('resize', this.handleWindowQuestionViewportSync);
                     }
+
+                    @if ($assessmentDebugModeEnabled ?? false)
+                        if (this.debugAutofillMessageTimerId) {
+                            clearTimeout(this.debugAutofillMessageTimerId);
+                        }
+                    @endif
 
                     this.disconnectQuestionViewportObserver();
                     this.securityGuard?.destroy?.();
@@ -1963,6 +1981,454 @@
                         assessmentIndex: Number(fieldWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
                     });
                 },
+                @if ($assessmentDebugModeEnabled ?? false)
+                canUseDebugAutofill() {
+                    if (!this.debugModeEnabled || this.isBusy() || this.isApplyingDebugAutofill) {
+                        return false;
+                    }
+
+                    const stageMeta = this.currentStageMeta();
+
+                    return stageMeta.can_access !== false
+                        && stageMeta.requires_start_button !== true
+                        && stageMeta.read_only !== true
+                        && stageMeta.is_interactive !== false;
+                },
+                debugAutofillTargetPanels() {
+                    const form = this.formElement();
+
+                    if (!form) {
+                        return [];
+                    }
+
+                    if (this.stageFlowEnabled) {
+                        const currentPanel = this.getAssessmentPanel(this.currentAssessmentIndex);
+
+                        return currentPanel ? [currentPanel] : [];
+                    }
+
+                    return Array.from(form.querySelectorAll('[data-assessment-panel]'));
+                },
+                debugFieldIsWritable(fieldWrapper) {
+                    if (!fieldWrapper || fieldWrapper.closest('fieldset[disabled]')) {
+                        return false;
+                    }
+
+                    return Array.from(fieldWrapper.querySelectorAll('input, select, textarea'))
+                        .some((input) => !input.disabled && input.type !== 'hidden');
+                },
+                async debugAutofillAssessment() {
+                    if (!this.canUseDebugAutofill()) {
+                        return;
+                    }
+
+                    const panels = this.debugAutofillTargetPanels();
+
+                    if (panels.length === 0) {
+                        this.debugShowAutofillMessage('Tidak ada form aktif untuk debug.');
+                        return;
+                    }
+
+                    const dirtyFieldIds = new Set();
+                    let skippedFileCount = 0;
+                    let skippedLockedCount = 0;
+
+                    this.isApplyingDebugAutofill = true;
+                    this.clearAllFieldErrors();
+
+                    try {
+                        panels.forEach((panel) => {
+                            panel.querySelectorAll('[data-assessment-field][data-field-id]').forEach((fieldWrapper) => {
+                                const fieldId = Number(fieldWrapper.dataset.fieldId ?? 0);
+
+                                if (!fieldId) {
+                                    return;
+                                }
+
+                                if (!this.debugFieldIsWritable(fieldWrapper)) {
+                                    skippedLockedCount += 1;
+                                    return;
+                                }
+
+                                const result = this.debugFillFieldWrapper(fieldWrapper);
+
+                                if (result.skippedFile) {
+                                    skippedFileCount += 1;
+                                }
+
+                                if (result.changed) {
+                                    dirtyFieldIds.add(fieldId);
+                                }
+
+                                this.syncQuestionState(fieldId);
+                            });
+                        });
+
+                        this.refreshAllTextareaWordCounters();
+                        this.refreshAllQuestionStates();
+                    } finally {
+                        this.isApplyingDebugAutofill = false;
+                    }
+
+                    const filledFieldIds = Array.from(dirtyFieldIds.values());
+                    const validation = this.debugValidateTargetPanels(panels);
+                    const messageParts = [];
+
+                    if (filledFieldIds.length > 0) {
+                        messageParts.push(`${filledFieldIds.length} field debug terisi`);
+                    } else {
+                        messageParts.push('Tidak ada field baru yang diubah');
+                    }
+
+                    if (skippedFileCount > 0) {
+                        messageParts.push(`${skippedFileCount} upload file fisik dilewati`);
+                    }
+
+                    if (skippedLockedCount > 0) {
+                        messageParts.push(`${skippedLockedCount} field nonaktif dilewati`);
+                    }
+
+                    if (!validation.valid) {
+                        messageParts.push('masih ada validasi yang perlu dicek');
+                    }
+
+                    this.debugShowAutofillMessage(`${messageParts.join(', ')}.`);
+
+                    if (filledFieldIds.length > 0) {
+                        await this.saveCurrentAssessmentSnapshot({
+                            reason: 'debug_autofill_template',
+                            bucket: {
+                                dirtyFieldIds: filledFieldIds,
+                                flaggedDirty: false,
+                                hasMutations: true,
+                                startedAt: new Date().toISOString(),
+                                trace: [{
+                                    sequence: this.autosaveTraceSequence + 1,
+                                    type: 'debug_autofill_template',
+                                    changed: true,
+                                    assessment_index: this.currentAssessmentIndex,
+                                    client_occurred_at: new Date().toISOString(),
+                                }],
+                            },
+                        });
+                    }
+
+                    if (!validation.valid) {
+                        this.focusFieldById(validation.fieldId);
+                        return;
+                    }
+
+                    if (filledFieldIds.length > 0) {
+                        this.setCurrentQuestion(filledFieldIds[0]);
+                    }
+                },
+                debugValidateTargetPanels(panels) {
+                    for (const panel of panels) {
+                        const fieldWrappers = Array.from(panel.querySelectorAll('[data-assessment-field]'));
+
+                        for (const fieldWrapper of fieldWrappers) {
+                            if (fieldWrapper.closest('fieldset[disabled]')) {
+                                continue;
+                            }
+
+                            const validation = this.validateField(fieldWrapper);
+
+                            if (!validation.valid) {
+                                return validation;
+                            }
+                        }
+                    }
+
+                    return {
+                        valid: true,
+                        fieldId: null,
+                    };
+                },
+                debugFillFieldWrapper(fieldWrapper) {
+                    const fieldType = String(fieldWrapper.dataset.fieldType ?? 'text').toLowerCase();
+
+                    if (fieldType === 'radio' || fieldType === 'likert') {
+                        return this.debugFillSingleChoice(fieldWrapper);
+                    }
+
+                    if (fieldType === 'checkbox') {
+                        return this.debugFillCheckbox(fieldWrapper);
+                    }
+
+                    if (fieldType === 'file') {
+                        return this.debugFillFileField(fieldWrapper);
+                    }
+
+                    if (fieldType === 'repeater') {
+                        return this.debugFillRepeaterField(fieldWrapper);
+                    }
+
+                    if (fieldType === 'textarea') {
+                        const textarea = fieldWrapper.querySelector('textarea');
+
+                        return {
+                            changed: this.debugSetInputValue(
+                                textarea,
+                                this.debugTextareaValue(textarea)
+                            ),
+                            skippedFile: false,
+                        };
+                    }
+
+                    if (fieldType === 'select') {
+                        const select = fieldWrapper.querySelector('select');
+                        const changed = this.debugSelectFirstOption(select);
+                        const allowsOtherInput = fieldWrapper.dataset.allowOtherInput === '1';
+                        const selectOtherOptionValue = String(fieldWrapper.dataset.selectOtherOptionValue || '').trim();
+                        const otherInput = allowsOtherInput
+                            ? fieldWrapper.querySelector('input[name^="answers["][name$="[other_text]"]')
+                            : null;
+                        let otherChanged = false;
+
+                        if (otherInput && String(select?.value || '') === selectOtherOptionValue) {
+                            otherInput.disabled = false;
+                            otherChanged = this.debugSetInputValue(otherInput, 'Jawaban debug lainnya');
+                        }
+
+                        return {
+                            changed: changed || otherChanged,
+                            skippedFile: false,
+                        };
+                    }
+
+                    const input = fieldWrapper.querySelector('input:not([type="radio"]):not([type="checkbox"]):not([type="file"]):not([type="hidden"])');
+
+                    return {
+                        changed: this.debugSetInputValue(input, this.debugInputValue(input, fieldWrapper)),
+                        skippedFile: false,
+                    };
+                },
+                debugFillSingleChoice(fieldWrapper) {
+                    const inputs = Array.from(fieldWrapper.querySelectorAll('input[type="radio"]'))
+                        .filter((input) => !input.disabled);
+                    const input = inputs[Math.max(0, Math.floor((inputs.length - 1) / 2))] ?? null;
+
+                    return {
+                        changed: this.debugCheckInput(input, true),
+                        skippedFile: false,
+                    };
+                },
+                debugFillCheckbox(fieldWrapper) {
+                    const inputs = Array.from(fieldWrapper.querySelectorAll('input[type="checkbox"]'))
+                        .filter((input) => !input.disabled);
+                    let changed = false;
+
+                    inputs.forEach((input, index) => {
+                        changed = this.debugCheckInput(input, index === 0) || changed;
+                    });
+
+                    return {
+                        changed,
+                        skippedFile: false,
+                    };
+                },
+                debugFillFileField(fieldWrapper) {
+                    const fileInputMode = fieldWrapper.dataset.fileInputMode || 'file';
+                    const hasExistingFile = fieldWrapper.dataset.hasExistingFile === '1';
+
+                    if (fileInputMode !== 'link') {
+                        return {
+                            changed: false,
+                            skippedFile: !hasExistingFile,
+                        };
+                    }
+
+                    const input = fieldWrapper.querySelector('input[type="url"]');
+                    const allowedDomains = window.assessmentResolveAllowedDomains(
+                        input?.dataset?.urlAllowedDomains || fieldWrapper.dataset.urlAllowedDomains
+                    );
+
+                    return {
+                        changed: this.debugSetInputValue(input, this.debugUrlForAllowedDomains(allowedDomains)),
+                        skippedFile: false,
+                    };
+                },
+                debugFillRepeaterField(fieldWrapper) {
+                    const rows = Array.from(this.extractRepeaterRows(fieldWrapper).values());
+                    const firstRowInputs = rows[0] || [];
+                    let changed = false;
+
+                    firstRowInputs.forEach((input) => {
+                        if (input.disabled || input.type === 'hidden' || input.type === 'file') {
+                            return;
+                        }
+
+                        if (input instanceof HTMLSelectElement) {
+                            changed = this.debugSelectFirstOption(input) || changed;
+                            return;
+                        }
+
+                        if (input instanceof HTMLTextAreaElement) {
+                            changed = this.debugSetInputValue(
+                                input,
+                                this.debugTextareaValue(input)
+                            ) || changed;
+                            return;
+                        }
+
+                        changed = this.debugSetInputValue(input, this.debugInputValue(input, fieldWrapper)) || changed;
+                    });
+
+                    return {
+                        changed,
+                        skippedFile: false,
+                    };
+                },
+                debugSetInputValue(input, value) {
+                    if (!(input instanceof HTMLInputElement || input instanceof HTMLSelectElement || input instanceof HTMLTextAreaElement)) {
+                        return false;
+                    }
+
+                    if (input.disabled || input.type === 'file') {
+                        return false;
+                    }
+
+                    const previousValue = input.value;
+                    input.value = String(value ?? '');
+
+                    if (input instanceof HTMLInputElement && input.type === 'number') {
+                        this.normalizeNumberInput(input);
+                    }
+
+                    this.debugDispatchAnswerEvents(input);
+
+                    return previousValue !== input.value;
+                },
+                debugCheckInput(input, checked) {
+                    if (!(input instanceof HTMLInputElement) || input.disabled) {
+                        return false;
+                    }
+
+                    const previousValue = input.checked;
+                    input.checked = Boolean(checked);
+                    this.debugDispatchAnswerEvents(input);
+
+                    return previousValue !== input.checked;
+                },
+                debugSelectFirstOption(select) {
+                    if (!(select instanceof HTMLSelectElement) || select.disabled) {
+                        return false;
+                    }
+
+                    const option = Array.from(select.options).find((item) => {
+                        return !item.disabled && String(item.value || '').trim() !== '';
+                    });
+
+                    if (!option) {
+                        return false;
+                    }
+
+                    return this.debugSetInputValue(select, option.value);
+                },
+                debugDispatchAnswerEvents(input) {
+                    input.dispatchEvent(new Event('input', {
+                        bubbles: true,
+                    }));
+                    input.dispatchEvent(new Event('change', {
+                        bubbles: true,
+                    }));
+                },
+                debugInputValue(input, fieldWrapper) {
+                    const inputType = String(input?.type || '').toLowerCase();
+                    const fieldLabel = String(input?.dataset?.repeaterLabel || fieldWrapper?.dataset?.fieldLabel || '').toLowerCase();
+                    let value = 'Template debug valid';
+
+                    if (inputType === 'email') {
+                        value = 'debug.assessment@example.com';
+                    } else if (inputType === 'number') {
+                        value = '1';
+                    } else if (inputType === 'date') {
+                        value = new Date().toISOString().slice(0, 10);
+                    } else if (inputType === 'url') {
+                        value = this.debugUrlForAllowedDomains(
+                            window.assessmentResolveAllowedDomains(input?.dataset?.urlAllowedDomains || fieldWrapper?.dataset?.urlAllowedDomains)
+                        );
+                    } else if (fieldLabel.includes('nama')) {
+                        value = 'Debug Assessment Admin';
+                    } else if (fieldLabel.includes('nip') || fieldLabel.includes('nuptk') || fieldLabel.includes('nik')) {
+                        value = '199001012020121001';
+                    } else if (fieldLabel.includes('pangkat') || fieldLabel.includes('golongan')) {
+                        value = 'Penata Muda / III-a';
+                    } else if (fieldLabel.includes('jabatan')) {
+                        value = 'Guru Kelas';
+                    } else if (fieldLabel.includes('sekolah') || fieldLabel.includes('satuan pendidikan') || fieldLabel.includes('instansi')) {
+                        value = 'SD Negeri Debug';
+                    } else if (fieldLabel.includes('telepon') || fieldLabel.includes('ponsel') || fieldLabel.includes('whatsapp') || fieldLabel.includes('hp')) {
+                        value = '081234567890';
+                    } else if (fieldLabel.includes('tahun')) {
+                        value = '2026';
+                    }
+
+                    const maxLength = Number(input?.maxLength ?? -1);
+
+                    if (Number.isInteger(maxLength) && maxLength > 0 && value.length > maxLength) {
+                        value = value.slice(0, maxLength);
+                    }
+
+                    return value;
+                },
+                debugTextareaValue(input) {
+                    const words = [
+                        'Jawaban',
+                        'debug',
+                        'assessment',
+                        'ini',
+                        'disiapkan',
+                        'untuk',
+                        'memenuhi',
+                        'validasi',
+                        'form',
+                        'admin',
+                        'secara',
+                        'konsisten',
+                        'dan',
+                        'lengkap',
+                        'sesuai',
+                        'kebutuhan',
+                        'pengujian',
+                        'portal',
+                    ];
+                    const limits = this.resolveTextareaWordLimits(input);
+                    let wordTarget = Math.max(12, limits.min || 0);
+
+                    if (limits.max > 0) {
+                        wordTarget = Math.min(wordTarget, limits.max);
+                    }
+
+                    wordTarget = Math.max(1, wordTarget);
+
+                    return Array.from({
+                        length: wordTarget,
+                    }, (_, index) => words[index % words.length]).join(' ');
+                },
+                debugUrlForAllowedDomains(allowedDomains) {
+                    const domains = Array.isArray(allowedDomains) ? allowedDomains : [];
+                    const domain = String(domains[0] || 'example.com').trim().toLowerCase().replace(/\.+$/, '');
+
+                    if (domain === 'drive.google.com') {
+                        return 'https://drive.google.com/file/d/1DebugAssessmentAutofillTemplate/view';
+                    }
+
+                    return `https://${domain || 'example.com'}/debug-assessment-template`;
+                },
+                debugShowAutofillMessage(message) {
+                    this.debugAutofillMessage = String(message || '').trim();
+
+                    if (this.debugAutofillMessageTimerId) {
+                        clearTimeout(this.debugAutofillMessageTimerId);
+                    }
+
+                    this.debugAutofillMessageTimerId = window.setTimeout(() => {
+                        this.debugAutofillMessage = '';
+                        this.debugAutofillMessageTimerId = null;
+                    }, 5000);
+                },
+                @endif
                 buildQuestionState(fieldId) {
                     const normalizedFieldId = Number(fieldId);
                     const fieldWrapper = this.getFieldWrapper(normalizedFieldId);
