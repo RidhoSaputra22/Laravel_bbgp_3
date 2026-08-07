@@ -692,6 +692,309 @@
                                         </small>
                                     </div>
 
+                                      <div class="card border shadow-none mb-4">
+                                        <div class="card-header bg-white">
+                                            <h4 class="mb-0">Distribusi Kombinasi Soal Otomatis</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-light border mb-4">
+                                                Data form kombinasi ini akan didistibusikan secara merata ke seluruh peserta yang dipilih
+                                            </div>
+
+                                            <div class="auto-summary-panel mb-0">
+                                                <div class="d-flex flex-wrap justify-content-between align-items-start">
+                                                    <div class="mb-3">
+                                                        <div class="text-muted small">Pool Kombinasi Aktif</div>
+                                                        <div class="font-weight-bold" id="auto-combination-summary-title">
+                                                            {{ count($currentCombinationOptions) > 0 ? count($currentCombinationOptions) . ' kombinasi dalam ' . max($currentCombinationGroupCount, 1) . ' grup parent assessment' : 'Belum ada kombinasi aktif untuk ketenagaan ini' }}
+                                                        </div>
+                                                        <small class="text-muted d-block" id="auto-combination-summary-code">
+                                                            Kombinasi aktif terbaru dikelompokkan per parent assessment lalu dibagikan otomatis per kabupaten.
+                                                        </small>
+                                                    </div>
+                                                    <div class="mb-3 text-right">
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-count">
+                                                            {{ max($currentCombinationGroupCount, 0) }} grup / {{ count($currentCombinationOptions) }} kombinasi
+                                                        </span>
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-assessments">
+                                                            0 assessment
+                                                        </span>
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-forms">
+                                                            0 form
+                                                        </span>
+                                                        <span class="auto-summary-pill" id="auto-combination-summary-questions">
+                                                            0 soal
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="table-responsive mb-4">
+                                                    <table class="table table-sm auto-summary-table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Kode Kombinasi</th>
+                                                                <th>Grup Parent Assessment</th>
+                                                                <th>Struktur</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="auto-combination-list">
+                                                            @if (!empty($currentCombinationOptions))
+                                                                @foreach ($currentCombinationOptions as $combinationOption)
+                                                                    <tr>
+                                                                        <td class="font-weight-bold">
+                                                                            {{ $combinationOption['kode'] ?: '-' }}
+                                                                        </td>
+                                                                        <td>
+                                                                            <div class="font-weight-bold">
+                                                                                {{ $combinationOption['parent_assessment_label'] ?? 'Tanpa grup parent assessment' }}
+                                                                            </div>
+                                                                            @if (!empty($combinationOption['source_assessments']))
+                                                                                <small class="text-muted d-block">
+                                                                                    {{ collect($combinationOption['source_assessments'])
+                                                                                        ->map(fn ($assessment) => trim((string) ($assessment['kode'] ?? $assessment['judul'] ?? '-')) .
+                                                                                            ' (' . (int) ($assessment['form_count'] ?? 0) . ' form / ' .
+                                                                                            (int) ($assessment['question_count'] ?? 0) . ' soal)')
+                                                                                        ->implode(' | ') }}
+                                                                                </small>
+                                                                            @endif
+                                                                        </td>
+                                                                        <td>
+                                                                            {{ $combinationOption['total_forms'] ?? 0 }} form /
+                                                                            {{ $combinationOption['total_questions'] ?? 0 }} soal
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            @else
+                                                                <tr>
+                                                                    <td colspan="3" class="auto-summary-empty">
+                                                                        Kombinasi aktif akan tampil otomatis setelah ketenagaan dipilih.
+                                                                    </td>
+                                                                </tr>
+                                                            @endif
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm auto-summary-table mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Kabupaten</th>
+                                                                <th>Satuan Pendidikan</th>
+                                                                <th>Kode Kombinasi</th>
+                                                                <th>Target User</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="auto-combination-distribution-list">
+                                                            <tr>
+                                                                <td colspan="4" class="auto-summary-empty">
+                                                                    Preview pembagian kabupaten akan tampil setelah jabatan, kabupaten, dan satuan pendidikan target dipilih.
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border shadow-none mb-4">
+                                        <div class="card-body">
+                                            <div class="custom-control custom-switch mb-2">
+                                                <input type="hidden" name="session_enabled" value="0">
+                                                <input type="checkbox" class="custom-control-input" id="session_enabled"
+                                                    name="session_enabled" value="1" @checked($selectedSessionEnabled)>
+                                                <label class="custom-control-label" for="session_enabled">
+                                                    Aktifkan Pembagian Sesi
+                                                </label>
+                                            </div>
+                                            <small class="text-muted d-block" id="session-enabled-help">
+                                                {{ $selectedSessionEnabled
+                                                    ? 'Peserta dibagi otomatis ke beberapa sesi. Sistem membuat sesi baru berdasarkan kapasitas per sesi dan durasi yang dipilih.'
+                                                    : 'Peserta tidak dibagi ke sesi. Sistem tidak membuat data sesi dan peserta dapat memulai kapan saja selama periode penugasan.' }}
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label id="schedule-start-time-label">
+                                                    {{ $selectedSessionEnabled ? 'Jam Mulai Sesi Awal' : 'Jam Mulai Penugasan' }}
+                                                </label>
+                                                <input type="time" name="jam_mulai" id="jam_mulai"
+                                                    class="form-control @error('jam_mulai') is-invalid @enderror"
+                                                    value="{{ $selectedStartTime }}">
+                                                <small class="text-muted d-block" id="schedule-start-time-help">
+                                                    {{ $selectedSessionEnabled
+                                                        ? 'Sesi 1 dimulai pada jam ini. Sesi berikutnya otomatis berurutan mengikuti durasi per sesi.'
+                                                        : 'Opsional. Jika diisi bersama tanggal mulai, jam ini menjadi waktu buka penugasan untuk semua peserta tanpa pembagian sesi.' }}
+                                                </small>
+                                                @error('jam_mulai')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Tanggal Mulai</label>
+                                                <input type="date" name="tanggal_mulai"
+                                                    class="form-control @error('tanggal_mulai') is-invalid @enderror"
+                                                    value="{{ $selectedStartDate }}">
+                                                @error('tanggal_mulai')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label>Tanggal Selesai</label>
+                                                <input type="date" name="tanggal_selesai"
+                                                    class="form-control @error('tanggal_selesai') is-invalid @enderror"
+                                                    value="{{ $selectedEndDate }}">
+                                                @error('tanggal_selesai')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label id="duration-hours-label">
+                                                    {{ $selectedSessionEnabled ? 'Durasi Sesi Assessment' : 'Durasi Pengerjaan Assessment' }}
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="durasi_sesi_jam" id="durasi_sesi_jam"
+                                                    class="form-control @error('durasi_sesi_jam') is-invalid @enderror">
+                                                    @foreach ($sessionDurationOptions as $durationHour)
+                                                        <option value="{{ $durationHour }}"
+                                                            @selected($selectedDurationHours === (int) $durationHour)>
+                                                            {{ $durationHour }} jam
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                @error('durasi_sesi_jam')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label id="session-capacity-label">
+                                                    {{ $selectedSessionEnabled ? 'Kapasitas Peserta Per Sesi' : 'Pembagian Sesi' }}
+                                                </label>
+                                                <input type="text" class="form-control" id="session-capacity-preview"
+                                                    value="{{ $selectedSessionEnabled ? $sessionCapacity . ' peserta' : 'Tidak dipakai' }}"
+                                                    readonly>
+                                                <small class="text-muted d-block" id="session-capacity-help">
+                                                    {{ $selectedSessionEnabled
+                                                        ? 'Sistem otomatis membagi ' . $sessionCapacity . ' peserta untuk setiap sesi assessment.'
+                                                        : 'Mode tanpa sesi tidak memakai kapasitas per sesi dan tidak membuat slot sesi apa pun.' }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card border shadow-none mb-4">
+                                        <div class="card-header bg-white">
+                                            <h4 class="mb-0">Guard Ujian & Anti Kecurangan</h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="alert alert-light border mb-4">
+                                                Konfigurasi ini mengaktifkan blok shortcut, pantauan fokus halaman, serta
+                                                kontrol fullscreen pada portal peserta. Seluruh pelanggaran akan masuk
+                                                ke database attempt sebagai log audit.
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="custom-control custom-switch mb-3">
+                                                        <input type="hidden" name="security_enabled" value="0">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="security_enabled" name="security_enabled" value="1"
+                                                            @checked($selectedSecurityEnabled)>
+                                                        <label class="custom-control-label" for="security_enabled">
+                                                            Aktifkan Guard Ujian
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="custom-control custom-switch mb-3">
+                                                        <input type="hidden" name="security_require_fullscreen" value="0">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="security_require_fullscreen"
+                                                            name="security_require_fullscreen" value="1"
+                                                            @checked($selectedSecurityRequireFullscreen)>
+                                                        <label class="custom-control-label"
+                                                            for="security_require_fullscreen">
+                                                            Wajib Fullscreen
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Batas Pelanggaran Serius</label>
+                                                        <input type="number" min="1" max="10"
+                                                            name="security_max_serious_violations"
+                                                            class="form-control @error('security_max_serious_violations') is-invalid @enderror"
+                                                            value="{{ $selectedSecurityMaxSeriousViolations }}">
+                                                        <small class="text-muted">
+                                                            Saat limit tercapai, ujian dihentikan otomatis.
+                                                        </small>
+                                                        @error('security_max_serious_violations')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Kunci Sementara (detik)</label>
+                                                        <input type="number" min="1" max="30"
+                                                            name="security_temporary_lock_seconds"
+                                                            class="form-control @error('security_temporary_lock_seconds') is-invalid @enderror"
+                                                            value="{{ $selectedSecurityTemporaryLockSeconds }}">
+                                                        <small class="text-muted">
+                                                            Waktu lock saat warning atau pelanggaran non-final.
+                                                        </small>
+                                                        @error('security_temporary_lock_seconds')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label>Tenggang Fullscreen (detik)</label>
+                                                        <input type="number" min="3" max="60"
+                                                            name="security_fullscreen_grace_seconds"
+                                                            class="form-control @error('security_fullscreen_grace_seconds') is-invalid @enderror"
+                                                            value="{{ $selectedSecurityFullscreenGraceSeconds }}">
+                                                        <small class="text-muted">
+                                                            Batas kembali ke fullscreen sebelum diskualifikasi.
+                                                        </small>
+                                                        @error('security_fullscreen_grace_seconds')
+                                                            <div class="invalid-feedback">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mb-0">
+                                        <label>Deskripsi Penugasan</label>
+                                        <textarea name="deskripsi" rows="4" class="form-control @error('deskripsi') is-invalid @enderror"
+                                            placeholder="Catatan, instruksi, atau konteks penugasan untuk admin.">{{ $selectedDeskripsi }}</textarea>
+                                        @error('deskripsi')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
 
 
 
