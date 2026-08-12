@@ -13,6 +13,10 @@
     <title>Portal Assessment BBGTK</title>
 
     <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
         button {
             cursor: pointer;
         }

@@ -176,6 +176,7 @@ class AssessmentPortalService
             'duration_minutes' => $durationMinutes,
             'completion_mode' => $completionMode,
             'action_label' => $assignmentUsesStageFlow ? 'Buka Penugasan' : 'Mulai Ujian',
+            'uses_stage_flow' => $assignmentUsesStageFlow,
             'stage_progress' => $currentStagePreview,
         ];
 
@@ -348,6 +349,7 @@ class AssessmentPortalService
                     'title' => $title,
                     'description' => trim((string) ($assessment['deskripsi'] ?? '')),
                     'instruction' => trim((string) ($assessment['petunjuk'] ?? '')),
+                    'instrument_type' => $assessment['instrument_type'] ?? null,
                     'instrument_label' => $instrumentLabel,
                     'form_total' => (int) $forms->count(),
                     'question_total' => $questionTotal,
@@ -371,6 +373,9 @@ class AssessmentPortalService
                     'finalize_mode_label' => ($config['finalize_mode'] ?? null) === AssessmentStageConfig::FINALIZE_AUTO
                         ? 'Auto submit'
                         : 'Manual / permanen',
+                    'time_limit_minutes' => filled($config['time_limit_minutes'] ?? null)
+                        ? (int) $config['time_limit_minutes']
+                        : null,
                     'time_limit_label' => $config['time_limit_minutes']
                         ? $config['time_limit_minutes'].' menit'
                         : 'Tanpa timer',

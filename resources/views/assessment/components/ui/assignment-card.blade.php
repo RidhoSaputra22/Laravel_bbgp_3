@@ -5,6 +5,24 @@
 
 @php
     $durationMinutes = (int) ($meta['duration_minutes'] ?? 0);
+    $openEntryPayload = [
+        'action' => route('assessment.portal.confirm', $target->id),
+        'entryAction' => 'open',
+        'title' => $target->assignment->judul_penugasan,
+        'stageLabel' => $target->assignment->kode_penugasan,
+        'questionTotal' => (int) ($meta['question_total'] ?? 0),
+        'durationMinutes' => $durationMinutes,
+        'customInstruction' => '',
+    ];
+    $startEntryPayload = [
+        'action' => route('assessment.portal.confirm', $target->id),
+        'entryAction' => 'start',
+        'title' => $target->assignment->judul_penugasan,
+        'stageLabel' => $target->assignment->kode_penugasan,
+        'questionTotal' => (int) ($meta['question_total'] ?? 0),
+        'durationMinutes' => $durationMinutes,
+        'customInstruction' => '',
+    ];
     $durationLabel = '-';
 
     if ($durationMinutes > 0) {
@@ -84,13 +102,24 @@
                     Lihat Hasil
                 </x-assessment::ui.button>
             @elseif ($meta['status'] === 'in_progress')
-                <x-assessment::ui.button
-                    :href="route('assessment.portal.show', $target->id)"
-                    icon="fas fa-play-circle"
-                    class="font-bold"
-                >
-                    {{ $meta['action_label'] ?? 'Lanjutkan Ujian' }}
-                </x-assessment::ui.button>
+                @if (($meta['uses_stage_flow'] ?? false) === true)
+                    <x-assessment::ui.button
+                        :href="route('assessment.portal.show', $target->id)"
+                        icon="fas fa-play-circle"
+                        class="font-bold"
+                    >
+                        {{ $meta['action_label'] ?? 'Lanjutkan Ujian' }}
+                    </x-assessment::ui.button>
+                @else
+                    <button
+                        type="button"
+                        class="cursor-pointer inline-flex items-center justify-center text-sm font-semibold transition focus:outline-none focus:ring-4 px-3 py-2 rounded-sm border border-[#1376bd] bg-[#1376bd] text-white hover:bg-[#0f619c] focus:ring-[#1376bd]/25 font-bold"
+                        x-on:click.prevent="openEntryModal({{ \Illuminate\Support\Js::from($openEntryPayload) }})"
+                    >
+                        <i class="fas fa-play-circle mr-2"></i>
+                        {{ $meta['action_label'] ?? 'Lanjutkan Ujian' }}
+                    </button>
+                @endif
             @elseif ($meta['status'] === 'ready')
                 @if (($meta['action_label'] ?? null) === 'Buka Penugasan')
                     <x-assessment::ui.button
@@ -101,17 +130,14 @@
                         {{ $meta['action_label'] }}
                     </x-assessment::ui.button>
                 @else
-                    <form action="{{ route('assessment.portal.start', $target->id) }}" method="POST">
-                        @csrf
-
-                        <x-assessment::ui.button
-                            type="submit"
-                            icon="fas fa-play-circle"
-                            class="font-bold"
-                        >
-                            {{ $meta['action_label'] ?? 'Mulai Ujian' }}
-                        </x-assessment::ui.button>
-                    </form>
+                    <button
+                        type="button"
+                        class="cursor-pointer inline-flex items-center justify-center text-sm font-semibold transition focus:outline-none focus:ring-4 px-3 py-2 rounded-sm border border-[#1376bd] bg-[#1376bd] text-white hover:bg-[#0f619c] focus:ring-[#1376bd]/25 font-bold"
+                        x-on:click.prevent="openEntryModal({{ \Illuminate\Support\Js::from($startEntryPayload) }})"
+                    >
+                        <i class="fas fa-play-circle mr-2"></i>
+                        {{ $meta['action_label'] ?? 'Mulai Ujian' }}
+                    </button>
                 @endif
             @else
                 <x-assessment::ui.button

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Assessment;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssessmentAssignmentTarget;
+use App\Models\AssessmentAttempt;
 use App\Models\Guru;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\Assessment\AssessmentAttemptSecurityService;
@@ -10,6 +12,7 @@ use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
 use App\Services\Assessment\AssessmentPortalStageService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class PortalController extends Controller
@@ -52,47 +55,48 @@ class PortalController extends Controller
         ]);
     }
 
+    public function confirmEntry(Request $request, string $id): RedirectResponse
+    {
+        $guru = $this->requireGuru();
+        $target = $this->portalService->findTargetForGuru($guru, (int) $id);
+        $target = $this->attemptLifecycleService->syncExpiredTarget($target);
+        $meta = $this->portalService->buildTargetMeta($target);
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+        $stageIndex = $this->resolveEntryStageIndex($request, $target, $attempt);
+        $entryAction = $request->input('entry_action', 'open');
+
+        if ($meta['status'] === 'submitted') {
+            return redirect()->route('assessment.portal.result', $target->id);
+        }
+
+        $this->storeEntryConfirmation($request, $target->id, $stageIndex);
+
+        if ($entryAction === 'start') {
+            return $this->performStart($request, $target, $meta);
+        }
+
+        return redirect()->route(
+            'assessment.portal.show',
+            $stageIndex === null
+                ? ['id' => $target->id]
+                : ['id' => $target->id, 'stage' => $stageIndex]
+        );
+    }
+
     public function start(Request $request, string $id)
     {
         $guru = $this->requireGuru();
         $target = $this->portalService->findTargetForGuru($guru, (int) $id);
         $target = $this->attemptLifecycleService->syncExpiredTarget($target);
         $meta = $this->portalService->buildTargetMeta($target);
-
-        if ($meta['status'] === 'submitted') {
-            return redirect()->route('assessment.portal.result', $target->id);
-        }
-
-        if (! in_array($meta['status'], ['ready', 'in_progress'], true)) {
-            return redirect()
-                ->route('assessment.portal.dashboard')
-                ->withErrors([
-                    'portal' => $meta['description'],
-                ]);
-        }
-
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
-        $stageContext = $this->stageService->resolveStartContext($request, $target, $attempt);
+        $stageIndex = $this->resolveEntryStageIndex($request, $target, $attempt);
 
-        if ($stageContext['uses_stage_flow']) {
-            if ($stageContext['error'] !== null) {
-                return redirect()
-                    ->route('assessment.portal.show', $stageContext['redirect_params'])
-                    ->withErrors([
-                        'portal' => $stageContext['error'],
-                    ]);
-            }
-
-            return redirect()
-                ->route('assessment.portal.show', $stageContext['redirect_params'])
-                ->with('assessment_portal_success', 'Tahap assessment dimulai.');
+        if (! $this->hasEntryConfirmation($request, $target->id, $stageIndex)) {
+            return $this->missingEntryConfirmationResponse($target, $stageIndex);
         }
 
-        $this->attemptLifecycleService->ensureAttempt($target, true);
-
-        return redirect()
-            ->route('assessment.portal.show', $target->id)
-            ->with('assessment_portal_success', 'Assessment dimulai. Timer pengerjaan sudah berjalan.');
+        return $this->performStart($request, $target, $meta);
     }
 
     public function show(Request $request, string $id)
@@ -107,6 +111,16 @@ class PortalController extends Controller
         }
 
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+        $stageFlowEnabled = $this->stageService->usesStageFlow($target, $attempt);
+        $requiresEntryConfirmation = ! $stageFlowEnabled
+            || ($stageFlowEnabled && $this->stageService->hasRequestedStageSelection($request));
+        $confirmationStageIndex = $requiresEntryConfirmation
+            ? $this->resolveEntryStageIndex($request, $target, $attempt)
+            : null;
+
+        if ($requiresEntryConfirmation && ! $this->hasEntryConfirmation($request, $target->id, $confirmationStageIndex)) {
+            return $this->missingEntryConfirmationResponse($target, $confirmationStageIndex);
+        }
         $stageState = $this->stageService->resolveShowState($request, $target, $attempt);
         $attempt = $stageState['attempt'];
         $stageFlowEnabled = $stageState['stage_flow_enabled'];
@@ -189,6 +203,91 @@ class PortalController extends Controller
             'answerLookup' => $this->attemptService->buildAnswerLookup($freshAttempt),
             'securityPayload' => $this->attemptSecurityService->buildClientPayload($freshAttempt, $currentStageIndex),
         ]);
+    }
+
+    private function performStart(
+        Request $request,
+        AssessmentAssignmentTarget $target,
+        array $meta
+    ): RedirectResponse {
+        if ($meta['status'] === 'submitted') {
+            return redirect()->route('assessment.portal.result', $target->id);
+        }
+
+        if (! in_array($meta['status'], ['ready', 'in_progress'], true)) {
+            return redirect()
+                ->route('assessment.portal.dashboard')
+                ->withErrors([
+                    'portal' => $meta['description'],
+                ]);
+        }
+
+        $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
+        $stageContext = $this->stageService->resolveStartContext($request, $target, $attempt);
+
+        if ($stageContext['uses_stage_flow']) {
+            if ($stageContext['error'] !== null) {
+                return redirect()
+                    ->route('assessment.portal.show', $stageContext['redirect_params'])
+                    ->withErrors([
+                        'portal' => $stageContext['error'],
+                    ]);
+            }
+
+            return redirect()
+                ->route('assessment.portal.show', $stageContext['redirect_params'])
+                ->with('assessment_portal_success', 'Tahap assessment dimulai.');
+        }
+
+        $this->attemptLifecycleService->ensureAttempt($target, true);
+
+        return redirect()
+            ->route('assessment.portal.show', $target->id)
+            ->with('assessment_portal_success', 'Assessment dimulai. Timer pengerjaan sudah berjalan.');
+    }
+
+    private function resolveEntryStageIndex(
+        Request $request,
+        AssessmentAssignmentTarget $target,
+        AssessmentAttempt $attempt
+    ): ?int {
+        if (! $this->stageService->usesStageFlow($target, $attempt)) {
+            return null;
+        }
+
+        return $this->stageService->resolveRequestedStageIndex($request, $attempt);
+    }
+
+    private function storeEntryConfirmation(Request $request, int $targetId, ?int $stageIndex = null): void
+    {
+        $request->session()->put($this->entryConfirmationSessionKey($targetId, $stageIndex), true);
+    }
+
+    private function hasEntryConfirmation(Request $request, int $targetId, ?int $stageIndex = null): bool
+    {
+        return (bool) $request->session()->get($this->entryConfirmationSessionKey($targetId, $stageIndex), false);
+    }
+
+    private function entryConfirmationSessionKey(int $targetId, ?int $stageIndex = null): string
+    {
+        $guruId = $this->authService->currentGuru()?->getKey() ?? 'guest';
+        $stageKey = $stageIndex === null ? 'default' : 'stage_'.$stageIndex;
+
+        return "assessment_portal.entry_confirmation.{$guruId}.{$targetId}.{$stageKey}";
+    }
+
+    private function missingEntryConfirmationResponse(
+        AssessmentAssignmentTarget $target,
+        ?int $stageIndex = null
+    ): RedirectResponse {
+        $redirectRoute = $stageIndex === null ? 'assessment.portal.dashboard' : 'assessment.portal.show';
+        $redirectParams = $stageIndex === null ? [] : ['id' => $target->id];
+
+        return redirect()
+            ->route($redirectRoute, $redirectParams)
+            ->withErrors([
+                'portal' => 'Buka assessment melalui tombol Mulai atau Lanjutkan agar petunjuk pengerjaan tampil terlebih dahulu.',
+            ]);
     }
 
     private function requireGuru(): Guru
