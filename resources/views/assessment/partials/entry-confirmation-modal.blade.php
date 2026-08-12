@@ -7,9 +7,12 @@
                     entryModal: {
                         action: '',
                         entryAction: 'open',
+                        scope: 'assessment',
                         stageIndex: '',
                         title: 'Assessment',
                         stageLabel: '',
+                        stageTotal: 0,
+                        currentStageLabel: '',
                         instrumentType: '',
                         instrumentLabel: '',
                         questionTotal: 0,
@@ -22,6 +25,7 @@
                         const modal = {
                             action: typeof payload.action === 'string' ? payload.action : '',
                             entryAction: payload.entryAction === 'start' ? 'start' : 'open',
+                            scope: payload.scope === 'assignment' ? 'assignment' : 'assessment',
                             stageIndex: payload.stageIndex === undefined || payload.stageIndex === null || payload.stageIndex === ''
                                 ? ''
                                 : String(payload.stageIndex),
@@ -29,6 +33,10 @@
                                 ? payload.title.trim()
                                 : 'Assessment',
                             stageLabel: typeof payload.stageLabel === 'string' ? payload.stageLabel.trim() : '',
+                            stageTotal: this.normalizePositiveNumber(payload.stageTotal),
+                            currentStageLabel: typeof payload.currentStageLabel === 'string'
+                                ? payload.currentStageLabel.trim()
+                                : '',
                             instrumentType: instrumentType,
                             instrumentLabel: typeof payload.instrumentLabel === 'string' && payload.instrumentLabel.trim() !== ''
                                 ? payload.instrumentLabel.trim()
@@ -123,7 +131,93 @@
 
                         return 'Kerjakan assessment secara bertahap dan pastikan setiap jawaban atau eviden sudah terisi dengan lengkap sebelum berpindah.';
                     },
-                    buildInstructionItems(modal) {
+                    modalDescription() {
+                        if (this.entryModal.scope === 'assignment') {
+                            return 'Baca petunjuk berikut terlebih dahulu sebelum halaman penugasan dibuka.';
+                        }
+
+                        return 'Baca petunjuk berikut terlebih dahulu sebelum assessment dimulai atau dibuka.';
+                    },
+                    durationBadgeText() {
+                        if (this.entryModal.durationMinutes > 0) {
+                            return 'Durasi ' + this.formatDuration(this.entryModal.durationMinutes);
+                        }
+
+                        if (this.entryModal.scope === 'assignment') {
+                            return 'Cek durasi per tahap';
+                        }
+
+                        return 'Tanpa timer khusus';
+                    },
+                    buildAssignmentInstructionItems(modal) {
+                        const items = [];
+
+                        if (modal.stageTotal > 0 && modal.questionTotal > 0) {
+                            items.push({
+                                text: 'Penugasan terdiri atas ' + modal.stageTotal + ' tahap assessment dengan total ' + modal.questionTotal + ' butir.',
+                            });
+                        } else if (modal.stageTotal > 0) {
+                            items.push({
+                                text: 'Penugasan terdiri atas ' + modal.stageTotal + ' tahap assessment yang dikerjakan secara bertahap.',
+                            });
+                        } else if (modal.questionTotal > 0) {
+                            items.push({
+                                text: 'Penugasan memuat ' + modal.questionTotal + ' butir assessment yang siap dikerjakan.',
+                            });
+                        } else {
+                            items.push({
+                                text: 'Buka penugasan dan ikuti tahap assessment yang tersedia sampai selesai.',
+                            });
+                        }
+
+                        items.push({
+                            text: 'Buka tahap yang berstatus siap dikerjakan atau lanjutkan tahap yang sedang berjalan dari halaman penugasan.',
+                        });
+
+                        if (modal.durationMinutes > 0) {
+                            items.push({
+                                text: 'Durasi total penugasan yang tercatat adalah ' + this.formatDuration(modal.durationMinutes) + '.',
+                            });
+                        } else {
+                            items.push({
+                                text: 'Setiap tahap dapat memiliki aturan durasi yang berbeda. Periksa keterangan waktu pada kartu tahap sebelum memulai.',
+                            });
+                        }
+
+                        items.push({
+                            text: modal.durationMinutes > 0
+                                ? this.timeManagementInstruction(modal.questionTotal, modal.durationMinutes)
+                                : 'Selesaikan satu tahap terlebih dahulu sebelum berpindah ke tahap berikutnya yang sudah tersedia.',
+                        });
+
+                        items.push({
+                            text: 'Persiapan teknis yang perlu diperhatikan:',
+                            children: [
+                                'Pastikan memiliki koneksi internet yang stabil selama assessment berlangsung.',
+                                'Gunakan komputer/laptop yang tetap aktif selama proses assessment berjalan.',
+                                'Jangan menutup browser sebelum semua jawaban atau unggahan selesai tersimpan.',
+                            ],
+                        });
+
+                        items.push({
+                            text: 'Bacalah instruksi khusus pada tiap tahap sebelum menjawab atau mengunggah dokumen pendukung.',
+                        });
+
+                        items.push({
+                            text: 'Jawaban yang dipilih otomatis tersimpan oleh sistem.',
+                        });
+
+                        items.push({
+                            text: 'Jika satu tahap sudah disimpan permanen, lanjutkan ke tahap berikutnya sesuai urutan yang tersedia.',
+                        });
+
+                        items.push({
+                            text: 'Disarankan menggunakan laptop/PC agar tampilan assessment lebih optimal dan mudah dibaca.',
+                        });
+
+                        return items;
+                    },
+                    buildAssessmentInstructionItems(modal) {
                         const items = [];
 
                         if (modal.questionTotal > 0) {
@@ -187,6 +281,11 @@
 
                         return items;
                     },
+                    buildInstructionItems(modal) {
+                        return modal.scope === 'assignment'
+                            ? this.buildAssignmentInstructionItems(modal)
+                            : this.buildAssessmentInstructionItems(modal);
+                    },
                     formatDuration(totalMinutes) {
                         if (! totalMinutes || totalMinutes <= 0) {
                             return 'tanpa batas waktu';
@@ -216,16 +315,17 @@
     x-show="entryModalOpen"
     x-cloak
     style="display: none;"
-    class="fixed inset-0 z-50 flex items-center justify-center "
+    class="fixed  inset-0 z-50 flex items-center justify-center "
     @keydown.escape.window="closeEntryModal()"
 >
     <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" x-transition.opacity @click="closeEntryModal()"></div>
 
-    <div class="relative w-full max-w-4xl" x-transition>
-        <x-assessment::ui.card class="overflow-hidden rounded-[28px] p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)] ">
+    <div class="relative h-full w-full max-w-4xl" x-transition>
+        <x-assessment::ui.card class=" rounded-[28px] p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)] ">
             <form x-ref="entryConfirmForm" method="POST" x-bind:action="entryModal.action" class="hidden">
                 @csrf
                 <input type="hidden" name="entry_action" x-bind:value="entryModal.entryAction">
+                <input type="hidden" name="entry_scope" x-bind:value="entryModal.scope">
                 <input type="hidden" name="stage_index" x-bind:value="entryModal.stageIndex">
             </form>
 
@@ -237,12 +337,22 @@
                         </div>
                         <h3 class="mt-2 text-xl font-bold text-slate-900" x-text="entryModal.title"></h3>
                         <p class="mt-1 text-sm leading-relaxed text-slate-500">
-                            Baca petunjuk berikut terlebih dahulu sebelum assessment dimulai atau dibuka.
+                            <span x-text="modalDescription()"></span>
                         </p>
 
                         <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
                             <template x-if="entryModal.stageLabel">
                                 <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-slate-700" x-text="entryModal.stageLabel"></span>
+                            </template>
+
+                            <template x-if="entryModal.scope === 'assignment' && entryModal.stageTotal > 0">
+                                <span class="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 py-1 text-[#0d5f98]">
+                                    <span x-text="entryModal.stageTotal"></span>&nbsp;tahap
+                                </span>
+                            </template>
+
+                            <template x-if="entryModal.scope === 'assignment' && entryModal.currentStageLabel">
+                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-emerald-700" x-text="entryModal.currentStageLabel"></span>
                             </template>
 
                             <template x-if="entryModal.instrumentLabel">
@@ -255,7 +365,7 @@
                                 </span>
                             </template>
 
-                            <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-amber-700" x-text="entryModal.durationMinutes > 0 ? 'Durasi ' + formatDuration(entryModal.durationMinutes) : 'Tanpa timer khusus'"></span>
+                            <span class="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-amber-700" x-text="durationBadgeText()"></span>
                         </div>
                     </div>
 
@@ -270,7 +380,7 @@
                 </div>
             </div>
 
-            <div class="max-h-[72vh] overflow-y-auto px-3 py-2 mt-3">
+            <div class="max-h-[72vh]  px-3 py-2 mt-3">
                 <div class="flex items-end gap-4 border-b border-[#dce8f1] pb-4">
 
                     <div>
@@ -298,7 +408,7 @@
 
                 <template x-if="entryModal.customInstruction">
                     <div class="mt-6 rounded-sm border border-sky-200 bg-sky-50 px-5 py-4 text-sm leading-7 text-sky-900">
-                        <div class="font-semibold">Catatan khusus assessment</div>
+                        <div class="font-semibold" x-text="entryModal.scope === 'assignment' ? 'Informasi penugasan' : 'Catatan khusus assessment'"></div>
                         <div class="mt-1 whitespace-pre-line" x-text="entryModal.customInstruction"></div>
                     </div>
                 </template>

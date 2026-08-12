@@ -62,14 +62,22 @@ class PortalController extends Controller
         $target = $this->attemptLifecycleService->syncExpiredTarget($target);
         $meta = $this->portalService->buildTargetMeta($target);
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
-        $stageIndex = $this->resolveEntryStageIndex($request, $target, $attempt);
         $entryAction = $request->input('entry_action', 'open');
+        $entryScope = trim((string) $request->input('entry_scope', 'assessment'));
+        $isAssignmentEntry = $entryScope === 'assignment' && $this->stageService->usesStageFlow($target, $attempt);
+        $stageIndex = $isAssignmentEntry
+            ? null
+            : $this->resolveEntryStageIndex($request, $target, $attempt);
 
         if ($meta['status'] === 'submitted') {
             return redirect()->route('assessment.portal.result', $target->id);
         }
 
         $this->storeEntryConfirmation($request, $target->id, $stageIndex);
+
+        if ($isAssignmentEntry) {
+            return redirect()->route('assessment.portal.show', ['id' => $target->id]);
+        }
 
         if ($entryAction === 'start') {
             return $this->performStart($request, $target, $meta);

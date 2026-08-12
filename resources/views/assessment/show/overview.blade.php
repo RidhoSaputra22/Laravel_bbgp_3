@@ -35,7 +35,7 @@
         $dashboardLabel = $dashboardLabel ?? 'Kembali ke Dashboard';
     @endphp
 
-    <div x-data="assessmentEntryGate()">
+    <div>
         <div>
             <div class="flex justify-between bg-[#1376BD] px-5 py-4 text-white">
                 <div>
@@ -128,20 +128,7 @@
                     @forelse ($stageOverview['stages'] as $stage)
                         @php
                             $stageCanOpen = in_array($stage['action_mode'] ?? null, ['start', 'open'], true);
-                            $stageEntryPayload = $stageCanOpen
-                                ? [
-                                    'action' => route('assessment.portal.confirm', $target->id),
-                                    'entryAction' => ($stage['action_mode'] ?? 'open') === 'start' ? 'start' : 'open',
-                                    'stageIndex' => (int) ($stage['index'] ?? 0),
-                                    'title' => $stage['title'] ?? 'Assessment',
-                                    'stageLabel' => 'Tahap '.($stage['number'] ?? 0).' - '.($stage['code'] ?? '-'),
-                                    'instrumentType' => $stage['instrument_type'] ?? '',
-                                    'instrumentLabel' => $stage['instrument_label'] ?? '',
-                                    'questionTotal' => (int) ($stage['question_total'] ?? 0),
-                                    'durationMinutes' => (int) ($stage['time_limit_minutes'] ?? 0),
-                                    'customInstruction' => $stage['instruction'] ?? '',
-                                ]
-                                : null;
+                            $stageEntryAction = ($stage['action_mode'] ?? 'open') === 'start' ? 'start' : 'open';
                         @endphp
 
                         <x-assessment::ui.card
@@ -181,14 +168,15 @@
 
                                 <div class="flex flex-wrap gap-2">
                                     @if ($stageCanOpen)
-                                        <button
-                                            type="button"
-                                            class="cursor-pointer inline-flex items-center justify-center text-sm font-semibold transition focus:outline-none focus:ring-4 px-3 py-2 rounded-sm border border-[#1376bd] bg-[#1376bd] text-white hover:bg-[#0f619c] focus:ring-[#1376bd]/25 font-bold"
-                                            x-on:click.prevent="openEntryModal({{ \Illuminate\Support\Js::from($stageEntryPayload) }})"
-                                        >
-                                            <i class="fas fa-play-circle mr-2"></i>
-                                            {{ $stage['action_label'] }}
-                                        </button>
+                                        <form method="POST" action="{{ route('assessment.portal.confirm', $target->id) }}">
+                                            @csrf
+                                            <input type="hidden" name="entry_action" value="{{ $stageEntryAction }}">
+                                            <input type="hidden" name="stage_index" value="{{ (int) ($stage['index'] ?? 0) }}">
+
+                                            <x-assessment::ui.button type="submit" icon="fas fa-play-circle" class="font-bold">
+                                                {{ $stage['action_label'] }}
+                                            </x-assessment::ui.button>
+                                        </form>
                                     @else
                                         <x-assessment::ui.button variant="muted" icon="fas fa-lock" :disabled="true">
                                             {{ $stage['action_label'] }}
@@ -219,20 +207,7 @@
                     @if ($currentStage)
                         @php
                             $currentStageCanOpen = in_array($currentStage['action_mode'] ?? null, ['start', 'open'], true);
-                            $currentStageEntryPayload = $currentStageCanOpen
-                                ? [
-                                    'action' => route('assessment.portal.confirm', $target->id),
-                                    'entryAction' => ($currentStage['action_mode'] ?? 'open') === 'start' ? 'start' : 'open',
-                                    'stageIndex' => (int) ($currentStage['index'] ?? 0),
-                                    'title' => $currentStage['title'] ?? 'Assessment',
-                                    'stageLabel' => 'Tahap '.($currentStage['number'] ?? 0).' - '.($currentStage['code'] ?? '-'),
-                                    'instrumentType' => $currentStage['instrument_type'] ?? '',
-                                    'instrumentLabel' => $currentStage['instrument_label'] ?? '',
-                                    'questionTotal' => (int) ($currentStage['question_total'] ?? 0),
-                                    'durationMinutes' => (int) ($currentStage['time_limit_minutes'] ?? 0),
-                                    'customInstruction' => $currentStage['instruction'] ?? '',
-                                ]
-                                : null;
+                            $currentStageEntryAction = ($currentStage['action_mode'] ?? 'open') === 'start' ? 'start' : 'open';
                         @endphp
 
                         <div class="space-y-2">
@@ -245,14 +220,15 @@
 
                         <div class="mt-5 flex flex-wrap gap-2">
                             @if ($currentStageCanOpen)
-                                <button
-                                    type="button"
-                                    class="cursor-pointer inline-flex items-center justify-center text-sm font-semibold transition focus:outline-none focus:ring-4 px-3 py-2 rounded-sm border border-[#1376bd] bg-[#1376bd] text-white hover:bg-[#0f619c] focus:ring-[#1376bd]/25 font-bold"
-                                    x-on:click.prevent="openEntryModal({{ \Illuminate\Support\Js::from($currentStageEntryPayload) }})"
-                                >
-                                    <i class="fas fa-play-circle mr-2"></i>
-                                    {{ $currentStage['action_label'] }}
-                                </button>
+                                <form method="POST" action="{{ route('assessment.portal.confirm', $target->id) }}">
+                                    @csrf
+                                    <input type="hidden" name="entry_action" value="{{ $currentStageEntryAction }}">
+                                    <input type="hidden" name="stage_index" value="{{ (int) ($currentStage['index'] ?? 0) }}">
+
+                                    <x-assessment::ui.button type="submit" icon="fas fa-play-circle" class="font-bold">
+                                        {{ $currentStage['action_label'] }}
+                                    </x-assessment::ui.button>
+                                </form>
                             @else
                                 <x-assessment::ui.button variant="muted" icon="fas fa-lock" :disabled="true">
                                     {{ $currentStage['action_label'] }}
@@ -273,6 +249,5 @@
             </aside>
         </section>
 
-        @include('assessment.partials.entry-confirmation-modal')
     </div>
 @endsection

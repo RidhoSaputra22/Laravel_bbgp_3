@@ -501,6 +501,9 @@ class AssessmentPortalService
 
             if ($stage) {
                 $status = $stage['status'] ?? AssessmentStageProgress::STATUS_READY;
+                $config = AssessmentStageProgress::stageConfig($stageProgress, $stageIndex);
+                $requiresStartButton =
+                    ($config['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_START_BUTTON;
                 $title = trim((string) ($stage['title'] ?? 'Tahap '.($stageIndex + 1)));
                 $prefix = 'Tahap '.($stageIndex + 1).': '.$title;
 
@@ -508,6 +511,10 @@ class AssessmentPortalService
                     'stage_index' => $stageIndex,
                     'title' => $title,
                     'status' => $status,
+                    'action_mode' => $this->resolveStageActionMode($status, $requiresStartButton),
+                    'entry_action' => $status === AssessmentStageProgress::STATUS_READY && $requiresStartButton
+                        ? 'start'
+                        : 'open',
                     'label' => match ($status) {
                         AssessmentStageProgress::STATUS_DRAFT => 'Tahap '.($stageIndex + 1).' Draft',
                         AssessmentStageProgress::STATUS_IN_PROGRESS => 'Tahap '.($stageIndex + 1).' Sedang Dikerjakan',
@@ -532,10 +539,22 @@ class AssessmentPortalService
             return [];
         }
 
+        $firstStageConfig = AssessmentStageConfig::normalize(
+            is_array($firstStage->pivot?->stage_config ?? null) ? $firstStage->pivot->stage_config : [],
+            AssessmentStageConfig::defaultForAssessment($firstStage->instrument_type, 0)
+        );
+        $firstStageRequiresStartButton =
+            ($firstStageConfig['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_START_BUTTON;
+
         return [
             'stage_index' => 0,
             'title' => trim((string) $firstStage->judul) ?: 'Tahap 1',
             'status' => AssessmentStageProgress::STATUS_READY,
+            'action_mode' => $this->resolveStageActionMode(
+                AssessmentStageProgress::STATUS_READY,
+                $firstStageRequiresStartButton
+            ),
+            'entry_action' => $firstStageRequiresStartButton ? 'start' : 'open',
             'label' => 'Tahap 1 Siap Dikerjakan',
             'description' => 'Tahap 1: '.(trim((string) $firstStage->judul) ?: 'Assessment pertama')
                 .' siap dibuka dari halaman penugasan.',

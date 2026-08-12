@@ -34,6 +34,10 @@
                                 <i class="fas fa-clock"></i>
                                 Waktu pengerjaan soal 3 jam setelah tombol mulai di klik
                             </p>
+                            <p>
+                                <i class="fas fa-user"></i>
+                                Pastikan anda sudah terdaftar di Data Eksternal
+                            </p>
                         </ul>
                     </div>
                 </div>
@@ -123,13 +127,13 @@
 
                         <p class="leading-relaxed text-[#607489]">
                             Pastikan NIK, password, dan peran peserta sesuai dengan akun yang didaftarkan. Jika belum
-                            mendapatkan penugasan assessment, silakan hubungi admin BBGTK terlebih dahulu.
+                            bisa melakukan login, silakan mendaftar di kegiatan atau data eksternal
                         </p>
                     </div>
 
                     <div class="lg:col-span-4 lg:text-right">
-                        <x-assessment::ui.button :href="route('login')" variant="outline" paddingX="px-5" paddingY="py-2.5">
-                            Login Dashboard
+                        <x-assessment::ui.button :href="config('app.url') . '/kegiatan'" variant="outline" paddingX="px-5" paddingY="py-2.5">
+                            Kegiaan BBGTK
                         </x-assessment::ui.button>
                     </div>
                 </div>
