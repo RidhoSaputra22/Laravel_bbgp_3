@@ -317,54 +317,7 @@
         </div>
     </div>
 
-    <section class="call-to-action-box no-padding">
-        <div class="container my-container">
-            <div class="action-style-box">
-                <ul class="info-box my-box-wrap">
-                    <li class="single-info">
-                        <div class="info-icon">
-                            <i class="fab fa-whatsapp fa-lg"></i>
-                        </div>
-                        <div class="info-my-content">
-                            <a href="">
-                                <p>Unit Layanan Terpadu (ULT)</p>
-                            </a>
-                        </div>
-                    </li>
-                    <li class="single-info">
-                        <div class="info-icon">
-                            <i class="fas fa-award fa-lg"></i>
-                        </div>
-                        <div class="info-my-content">
-                            <a href="">
-                                <p>Standar Pelayanan</p>
-                            </a>
-                        </div>
-                    </li>
-                    <li class="single-info">
-                        <div class="info-icon">
-                            <i class="fas fa-users fa-lg"></i>
-                        </div>
-                        <div class="info-my-content">
-                            <a href="{{ route('user.monitoring') }}">
-                                <p>Monitoring dan Evaluasi Kegiatan</p>
-                            </a>
-                        </div>
-                    </li>
-                    <li class="single-info">
-                        <div class="info-icon">
-                            <i class="fas fa-paste fa-lg"></i>
-                        </div>
-                        <div class="info-my-content">
-                            <a href="">
-                                <p class="multi-line">Akuntabilitas Kinerja Instansi Pemerintah (AKIP)</p>
-                            </a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
+
 
 
     {{-- slider icon img --}}
@@ -563,7 +516,7 @@
                                 <div class="ts-service-info">
                                     {{-- <h3 class="service-box-title"><a href="#">Tur Virtual</a></h3> --}}
                                     <h3 class="service-box-title"><a href="#">Lab Virtual</a></h3>
-    
+
                                 </div>
                             </div>
                         </div><!-- Service1 end -->
@@ -633,80 +586,6 @@
         <!--/ Container end -->
     </section><!-- Service end -->
 
-    <section id="ts-service-area" class="ts-service-area pb-0">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-12">
-                    <h2 class="section-title">BBGTK Sul-Sel</h2>
-                    <h3 class="section-sub-title">Berita Terkini</h3>
-                </div>
-            </div>
-            <!--/ Title row end -->
-            @php
-                use Illuminate\Support\Str;
-            @endphp
-            <div class="row my-posts-slider">
-                @foreach ($datas['berita'] as $v)
-                    <div class="col-lg-4 col-md-6 mb-5">
-                        <div class="ts-service-box">
-                            <div class="ts-service-image-wrapper">
-                                <img loading="lazy" class="w-100" src="{{ asset('upload/berita/' . $v->thumbnail) }}"
-                                    alt="thumbnail berita" title="{{ $v->thumbnail }}">
-                            </div>
-                            <div class="d-flex">
-                                <div class="ts-service-info">
-                                    <h3 class="service-box-title"><a
-                                            href="{{ route('user.detail.post', ['jenis' => 'berita', 'id' => $v->id]) }}">{{ $v->judul }}</a>
-                                    </h3>
-                                    <p>
-                                        {{ Str::limit(strip_tags($v->isi), 120, '...') }}
-                                        {{-- {!! Str::limit($v->isi, 150, '...') !!} --}}
-                                    </p>
-                                    <a class="learn-more d-inline-block"
-                                        href="{{ route('user.detail.post', ['jenis' => 'berita', 'id' => $v->id]) }}"
-                                        aria-label="service-details"><i class="fa fa-caret-right"></i> Detail...</a>
-                                </div>
-                            </div>
-                        </div><!-- Service1 end -->
-                    </div><!-- Col 1 end -->
-                @endforeach
-
-
-
-            </div><!-- Main row end -->
-
-
-        </div>
-        <!--/ Container end -->
-    </section><!-- Service end -->
-
-    {{-- Instagram Posts Section --}}
-    <section id="instagram-feed" class="news">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-12">
-                    <h2 class="section-title">BBGTK Sul-Sel</h2>
-                    <h3 class="section-sub-title">Postingan Instagram Terbaru</h3>
-                    <div class="section-divider"></div>
-                </div>
-            </div>
-
-            <div class="row" id="instagram-container">
-                <div class="col-12 text-center py-5">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </div>
-                    <p class="mt-3">Memuat postingan Instagram...</p>
-                </div>
-            </div>
-
-            <div class="text-center mt-4">
-                <a href="https://www.instagram.com/bbgtksulsel/" target="_blank" class="btn btn-primary">
-                    <i class="fab fa-instagram mr-2"></i>Lihat Semua di Instagram
-                </a>
-            </div>
-        </div>
-    </section>
 
     {{-- YouTube Videos Section --}}
     <section id="youtube-videos" class="ts-service-area pb-0" style="background: #f8f9fa;">
@@ -1006,7 +885,7 @@
                                     <span class="post-item-date">
                                         <?php
                                         setlocale(LC_ALL, 'IND');
-                                        
+
                                         $tgl_kegiatan = strftime('%d %B %Y', strtotime($v->tgl_kegiatan));
                                         ?>
                                         <i class="fa fa-clock-o"></i> {{ $tgl_kegiatan }}
