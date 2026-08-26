@@ -508,7 +508,7 @@
                     <div class="row">
                         <div class="col-12 text-center">
                             <h2 class="category-title">
-                                <i class="fas fa-flask mr-2 text-warning"></i>Laboratorium
+                                <i class="mr-2 text-warning"></i>Lab & Lapangan
                             </h2>
                             <p class="category-subtitle">Fasilitas laboratorium dengan peralatan lengkap</p>
                         </div>
