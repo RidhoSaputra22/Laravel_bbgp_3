@@ -402,8 +402,7 @@
                                                 <i class="fas fa-bed"></i>
                                             </div>
                                         @endif
-                                        <div class="room-badge bg-success">Mulai Rp.
-                                            {{ number_format($asrama->harga_per_malam, 0, ',', '.') }}</div>
+
                                     </div>
 
                                     <div class="room-content">
