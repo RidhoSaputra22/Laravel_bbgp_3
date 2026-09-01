@@ -84,8 +84,25 @@ class AssessmentAssignmentService
             return Guru::query()->whereRaw('1 = 0');
         }
 
-        return Guru::query()
+        $query = Guru::query()
             ->where('eksternal_jabatan', $targetKetenagaan->guruValue());
+        $selectedJabatan = $this->normalizeTargetJabatanSelections($assignment->target_jabatan ?? []);
+        $selectedKabupaten = $this->normalizeTargetKabupatenSelections($assignment->target_kabupaten ?? []);
+        $selectedSatuanPendidikan = $this->normalizeTargetSatuanPendidikanSelections(
+            $assignment->target_satuan_pendidikan ?? []
+        );
+
+        if ($selectedJabatan !== []) {
+            $query->whereIn('jenis_jabatan', $selectedJabatan);
+        }
+
+        if ($selectedKabupaten !== []) {
+            $query->whereIn('kabupaten', $selectedKabupaten);
+        }
+
+        $this->applyTargetSatuanPendidikanFilter($query, $selectedSatuanPendidikan);
+
+        return $query;
     }
 
     public function createAssignment(array $payload, ?int $assignedBy = null): AssessmentAssignment

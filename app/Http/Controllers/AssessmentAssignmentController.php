@@ -286,6 +286,11 @@ class AssessmentAssignmentController extends Controller
             $query->whereNotIn('id', $existingGuruIds);
         }
 
+        $this->applyParticipantAdditionFilterScope(
+            $query,
+            $this->resolveParticipantAdditionFilters($request, $assignment)
+        );
+
         $this->applyGuruSelectionScope($query, [
             'q' => $request->input('q'),
         ]);
@@ -715,6 +720,8 @@ class AssessmentAssignmentController extends Controller
         $selectedGuruIds = $this->normalizeGuruIdList((array) old('guru_ids', []));
         $canChangeTargets = ! in_array($assignment->status_distribusi, ['diproses', 'gagal'], true);
         $availableTotal = 0;
+        $defaultFilters = $this->buildParticipantAdditionDefaultFilters($assignment);
+        $filterOptions = $this->buildParticipantAdditionFilterOptions($assignment, $defaultFilters);
 
         if ($canChangeTargets) {
             $query = $this->assignmentService
@@ -739,7 +746,7 @@ class AssessmentAssignmentController extends Controller
                 ? 'Penugasan masih diproses queue. Tunggu sampai distribusi selesai sebelum menambah peserta baru.'
                 : 'Penugasan sedang berstatus gagal. Selesaikan distribusi bermasalah terlebih dahulu sebelum menambah peserta baru.';
         } elseif ($availableTotal < 1) {
-            $disabledReason = 'Tidak ada peserta tambahan pada ketenagaan ini atau semua peserta pada ketenagaan ini sudah pernah ditugaskan.';
+            $disabledReason = 'Tidak ada peserta tambahan yang cocok dengan target penugasan ini atau semua pesertanya sudah pernah ditugaskan.';
         }
 
         return [
@@ -748,6 +755,56 @@ class AssessmentAssignmentController extends Controller
             'disabled_reason' => $disabledReason,
             'selected_ids' => $selectedGuruIds,
             'selected_items' => $this->buildSelectedGuruItems($selectedGuruIds),
+            'filter_defaults' => $defaultFilters,
+            'filter_options' => $filterOptions,
+            'ajax_params' => $defaultFilters,
+        ];
+    }
+
+    private function buildParticipantAdditionDefaultFilters(AssessmentAssignment $assignment): array
+    {
+        return [
+            'target_jabatan' => $this->normalizeTargetJabatanList($assignment->target_jabatan ?? []),
+            'target_kabupaten' => $this->normalizeTargetKabupatenList($assignment->target_kabupaten ?? []),
+            'target_satuan_pendidikan' => $this->normalizeTargetSatuanPendidikanList(
+                $assignment->target_satuan_pendidikan ?? []
+            ),
+        ];
+    }
+
+    private function buildParticipantAdditionFilterOptions(
+        AssessmentAssignment $assignment,
+        ?array $defaultFilters = null
+    ): array {
+        $defaultFilters = $defaultFilters ?? $this->buildParticipantAdditionDefaultFilters($assignment);
+
+        return [
+            'jabatan' => collect($defaultFilters['target_jabatan'] ?? [])
+                ->map(fn (string $jabatan) => [
+                    'value' => $jabatan,
+                    'label' => $jabatan,
+                ])
+                ->values()
+                ->all(),
+            'kabupaten' => collect($defaultFilters['target_kabupaten'] ?? [])
+                ->map(fn (string $kabupaten) => [
+                    'value' => $kabupaten,
+                    'label' => $kabupaten,
+                ])
+                ->values()
+                ->all(),
+            'satuan_pendidikan' => collect($defaultFilters['target_satuan_pendidikan'] ?? [])
+                ->map(function (string $selectionKey) {
+                    $decoded = AssessmentSchoolTargetKey::decode($selectionKey);
+
+                    return [
+                        'value' => $selectionKey,
+                        'label' => AssessmentSchoolTargetKey::label($selectionKey),
+                        'kabupaten' => (string) ($decoded['kabupaten'] ?? ''),
+                    ];
+                })
+                ->values()
+                ->all(),
         ];
     }
 
@@ -1234,6 +1291,28 @@ class AssessmentAssignmentController extends Controller
             ->all();
     }
 
+    private function resolveParticipantAdditionFilters(
+        Request $request,
+        AssessmentAssignment $assignment
+    ): array {
+        $defaultFilters = $this->buildParticipantAdditionDefaultFilters($assignment);
+
+        return [
+            'target_jabatan' => $this->normalizeTargetJabatanList(
+                $request->input('target_jabatan', $defaultFilters['target_jabatan'] ?? [])
+            ),
+            'target_kabupaten' => $this->normalizeTargetKabupatenList(
+                $request->input('target_kabupaten', $defaultFilters['target_kabupaten'] ?? [])
+            ),
+            'target_satuan_pendidikan' => $this->normalizeTargetSatuanPendidikanList(
+                $request->input(
+                    'target_satuan_pendidikan',
+                    $defaultFilters['target_satuan_pendidikan'] ?? []
+                )
+            ),
+        ];
+    }
+
     private function buildParticipantTargetQuery(
         AssessmentKetenagaanType $case,
         array $selectedJabatan = [],
@@ -1254,6 +1333,25 @@ class AssessmentAssignmentController extends Controller
         $this->applyTargetSatuanPendidikanFilter($query, $selectedSatuanPendidikan);
 
         return $query;
+    }
+
+    private function applyParticipantAdditionFilterScope($query, array $filters): void
+    {
+        $selectedJabatan = $this->normalizeTargetJabatanList($filters['target_jabatan'] ?? []);
+        $selectedKabupaten = $this->normalizeTargetKabupatenList($filters['target_kabupaten'] ?? []);
+        $selectedSatuanPendidikan = $this->normalizeTargetSatuanPendidikanList(
+            $filters['target_satuan_pendidikan'] ?? []
+        );
+
+        if ($selectedJabatan !== []) {
+            $query->whereIn('jenis_jabatan', $selectedJabatan);
+        }
+
+        if ($selectedKabupaten !== []) {
+            $query->whereIn('kabupaten', $selectedKabupaten);
+        }
+
+        $this->applyTargetSatuanPendidikanFilter($query, $selectedSatuanPendidikan);
     }
 
     private function applyTargetSatuanPendidikanFilter($query, array $selectedSatuanPendidikan): void

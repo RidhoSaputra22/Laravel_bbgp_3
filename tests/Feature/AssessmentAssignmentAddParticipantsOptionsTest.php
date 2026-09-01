@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -70,7 +71,7 @@ class AssessmentAssignmentAddParticipantsOptionsTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_add_participant_options_only_return_unassigned_participants_within_same_ketenagaan(): void
+    public function test_add_participant_options_only_return_unassigned_participants_within_stored_assignment_target_scope(): void
     {
         $assignment = AssessmentAssignment::query()->create([
             'kode_penugasan' => 'TGS-OPT-001',
@@ -78,7 +79,9 @@ class AssessmentAssignmentAddParticipantsOptionsTest extends TestCase
             'target_ketenagaan' => 'tenaga_pendidik',
             'target_jabatan' => ['Guru'],
             'target_kabupaten' => ['Kota Makassar'],
-            'target_satuan_pendidikan' => [],
+            'target_satuan_pendidikan' => [
+                AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+            ],
             'status_distribusi' => 'selesai',
             'total_target' => 1,
             'total_ditugaskan' => 1,
@@ -131,13 +134,76 @@ class AssessmentAssignmentAddParticipantsOptionsTest extends TestCase
             ]));
 
         $response->assertOk();
-        $response->assertJsonCount(4, 'items');
+        $response->assertJsonCount(1, 'items');
         $response->assertJsonFragment(['id' => (string) $eligible->id]);
         $response->assertJsonMissing(['id' => (string) $alreadyAssigned->id]);
-        $response->assertJsonFragment(['id' => (string) $differentSchool->id]);
-        $response->assertJsonFragment(['id' => (string) $differentKabupaten->id]);
-        $response->assertJsonFragment(['id' => (string) $differentJabatan->id]);
+        $response->assertJsonMissing(['id' => (string) $differentSchool->id]);
+        $response->assertJsonMissing(['id' => (string) $differentKabupaten->id]);
+        $response->assertJsonMissing(['id' => (string) $differentJabatan->id]);
         $response->assertJsonMissing(['id' => (string) $differentKetenagaan->id]);
+    }
+
+    public function test_add_participant_options_can_be_narrowed_further_by_modal_target_filters(): void
+    {
+        $assignment = AssessmentAssignment::query()->create([
+            'kode_penugasan' => 'TGS-OPT-002',
+            'judul_penugasan' => 'Penugasan Filter Modal',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru', 'Kepala Sekolah'],
+            'target_kabupaten' => ['Kota Makassar', 'Kabupaten Gowa'],
+            'target_satuan_pendidikan' => [
+                AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+                AssessmentSchoolTargetKey::encode('Kabupaten Gowa', 'SMP Negeri 1 Gowa'),
+            ],
+            'status_distribusi' => 'selesai',
+            'total_target' => 0,
+            'total_ditugaskan' => 0,
+            'durasi_sesi_jam' => 3,
+        ]);
+
+        $this->createGuru([
+            'nama_lengkap' => 'Guru Makassar',
+            'email' => 'guru.makassar@example.test',
+            'satuan_pendidikan' => 'SD Negeri 1 Makassar',
+            'kabupaten' => 'Kota Makassar',
+            'jenis_jabatan' => 'Guru',
+        ]);
+
+        $matchingGuru = $this->createGuru([
+            'nama_lengkap' => 'Kepala Sekolah Gowa',
+            'email' => 'kepsek.gowa@example.test',
+            'satuan_pendidikan' => 'SMP Negeri 1 Gowa',
+            'kabupaten' => 'Kabupaten Gowa',
+            'jenis_jabatan' => 'Kepala Sekolah',
+        ]);
+
+        $filteredOutBySchool = $this->createGuru([
+            'nama_lengkap' => 'Kepala Sekolah Gowa Sekolah Lain',
+            'email' => 'kepsek.gowa.lain@example.test',
+            'satuan_pendidikan' => 'SMP Negeri 2 Gowa',
+            'kabupaten' => 'Kabupaten Gowa',
+            'jenis_jabatan' => 'Kepala Sekolah',
+        ]);
+
+        $response = $this
+            ->withSession([
+                'cek' => true,
+                'role' => 'admin',
+            ])
+            ->getJson(
+                route('assessment.assignment.add-participants-options', ['id' => $assignment->id]).'?'.http_build_query([
+                    'target_jabatan' => ['Kepala Sekolah'],
+                    'target_kabupaten' => ['Kabupaten Gowa'],
+                    'target_satuan_pendidikan' => [
+                        AssessmentSchoolTargetKey::encode('Kabupaten Gowa', 'SMP Negeri 1 Gowa'),
+                    ],
+                ])
+            );
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'items');
+        $response->assertJsonPath('items.0.id', (string) $matchingGuru->id);
+        $response->assertJsonMissing(['id' => (string) $filteredOutBySchool->id]);
     }
 
     private function createGuru(array $overrides = []): Guru

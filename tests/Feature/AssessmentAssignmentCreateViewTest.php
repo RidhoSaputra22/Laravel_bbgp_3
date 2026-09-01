@@ -260,9 +260,13 @@ class AssessmentAssignmentCreateViewTest extends TestCase
         $response->assertSee('id="auto-combination-list"', false);
         $response->assertSee('id="auto-combination-distribution-list"', false);
         $response->assertSee('id="assignment-ketenagaan-tenaga_pendidik"', false);
-        $response->assertSee('data-table-id="assignment-jabatan-selector"', false);
-        $response->assertSee('data-table-id="assignment-kabupaten-selector"', false);
-        $response->assertSee('data-table-id="assignment-satuan-pendidikan-selector"', false);
+        $response->assertSee('id="assignment-jabatan-selector"', false);
+        $response->assertSee('name="target_jabatan[]"', false);
+        $response->assertSee('id="assignment-kabupaten-selector"', false);
+        $response->assertSee('name="target_kabupaten[]"', false);
+        $response->assertSee('id="assignment-satuan-pendidikan-selector"', false);
+        $response->assertSee('name="target_satuan_pendidikan[]"', false);
+        $response->assertSee('Gunakan Ctrl atau Command untuk memilih lebih dari satu item', false);
         $response->assertSee('KMB-001');
         $response->assertSee('Kepala Sekolah');
         $response->assertSee('Kota Makassar');

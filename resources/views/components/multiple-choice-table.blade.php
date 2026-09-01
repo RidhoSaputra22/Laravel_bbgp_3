@@ -9,6 +9,7 @@
     'emptyMessage' => 'Data tidak tersedia.',
     'selectedTitle' => 'Data Terpilih',
     'ajaxUrl' => null,
+    'ajaxParams' => [],
     'pageSize' => 10,
     'initialSelectedItems' => [],
 ])
@@ -27,6 +28,25 @@
         })
         ->filter(fn ($item) => filled($item['id']))
         ->values()
+        ->all();
+    $normalizedAjaxParams = collect($ajaxParams)
+        ->mapWithKeys(function ($value, $key) {
+            if (is_array($value)) {
+                $items = collect($value)
+                    ->map(fn ($item) => trim((string) $item))
+                    ->filter(fn (string $item) => $item !== '')
+                    ->values()
+                    ->all();
+
+                return [$key => $items];
+            }
+
+            if ($value === null) {
+                return [$key => null];
+            }
+
+            return [$key => trim((string) $value)];
+        })
         ->all();
 @endphp
 
@@ -216,6 +236,40 @@
                     };
                 }
 
+                function normalizeAjaxParams(rawParams) {
+                    if (!rawParams || typeof rawParams !== 'object') {
+                        return {};
+                    }
+
+                    return Object.keys(rawParams).reduce(function(result, key) {
+                        const value = rawParams[key];
+
+                        if (Array.isArray(value)) {
+                            const normalizedItems = value
+                                .map((item) => String(item == null ? '' : item).trim())
+                                .filter((item) => item !== '');
+
+                            if (normalizedItems.length > 0) {
+                                result[key] = normalizedItems;
+                            }
+
+                            return result;
+                        }
+
+                        if (value == null) {
+                            return result;
+                        }
+
+                        const normalizedValue = String(value).trim();
+
+                        if (normalizedValue !== '') {
+                            result[key] = normalizedValue;
+                        }
+
+                        return result;
+                    }, {});
+                }
+
                 function buildRowMarkup(item, tableId, isSelected, rowIndex, inputName) {
                     const cellsHtml = item.cells.map((cell) => {
                         return '<td class="align-middle">' + escapeHtml(cell == null ? '-' : String(cell)) + '</td>';
@@ -273,6 +327,7 @@
                     const pageSize = Math.max(Number(element.dataset.pageSize || 10), 1);
                     let selectedTitle = element.dataset.selectedTitle || 'Data Terpilih';
                     let emptyMessage = element.dataset.emptyMessage || 'Data tidak tersedia.';
+                    let ajaxParams = normalizeAjaxParams(parseJson(element.dataset.ajaxParams, {}));
 
                     const searchInput = element.querySelector('[data-role="mct-search"]');
                     const selectAllButton = element.querySelector('[data-action="select-all"]');
@@ -618,6 +673,20 @@
                             params.set('q', keyword);
                         }
 
+                        Object.keys(ajaxParams).forEach(function(key) {
+                            const value = ajaxParams[key];
+
+                            if (Array.isArray(value)) {
+                                value.forEach(function(item) {
+                                    params.append(key + '[]', String(item));
+                                });
+
+                                return;
+                            }
+
+                            params.set(key, String(value));
+                        });
+
                         window.fetch(ajaxUrl + '?' + params.toString(), {
                                 headers: {
                                     'X-Requested-With': 'XMLHttpRequest',
@@ -646,6 +715,16 @@
                                     emptyMessage :
                                     'Tidak ada data yang cocok dengan pencarian.') : '');
                                 updatePaginationFooter();
+                                element.dispatchEvent(new CustomEvent('multiple-choice-table:fetched', {
+                                    bubbles: true,
+                                    detail: {
+                                        tableId: tableId,
+                                        inputName: inputName,
+                                        items: items,
+                                        pagination: pagination,
+                                        ajaxParams: ajaxParams,
+                                    },
+                                }));
                             })
                             .catch(function() {
                                 totalItems = 0;
@@ -760,9 +839,29 @@
                         replaceLocalItems(detail.items || [], detail);
                     });
 
+                    element.addEventListener('multiple-choice-table:set-ajax-params', function(event) {
+                        if (!isRemote) {
+                            return;
+                        }
+
+                        const detail = event.detail || {};
+                        ajaxParams = normalizeAjaxParams(detail.params || {});
+                        currentPage = 1;
+                        fetchRemoteRows();
+                    });
+
                     element.multipleChoiceTable = {
                         getSelectedItems: getSelectedItems,
                         setItems: replaceLocalItems,
+                        setAjaxParams: function(params) {
+                            if (!isRemote) {
+                                return;
+                            }
+
+                            ajaxParams = normalizeAjaxParams(params || {});
+                            currentPage = 1;
+                            fetchRemoteRows();
+                        },
                     };
 
                     if (isRemote) {
@@ -789,6 +888,7 @@
     data-input-name="{{ $name }}"
     data-selected-title="{{ $selectedTitle }}"
     data-ajax-url="{{ $ajaxUrl ?? '' }}"
+    data-ajax-params='@json($normalizedAjaxParams)'
     data-page-size="{{ $pageSize }}"
     data-column-count="{{ count($headers) + 1 }}"
     data-empty-message="{{ $emptyMessage }}"

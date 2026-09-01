@@ -7,9 +7,11 @@ use App\Models\AssessmentAssignmentSession;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
 use App\Services\AssessmentAssignmentService;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
@@ -142,7 +144,7 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_add_participants_accepts_any_participant_in_same_ketenagaan_and_keeps_existing_target_untouched(): void
+    public function test_add_participants_only_accept_matching_participants_and_keep_existing_progress_untouched(): void
     {
         $existingGuru = $this->createGuru([
             'nama_lengkap' => 'Peserta Lama',
@@ -151,9 +153,9 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
         $newGuru = $this->createGuru([
             'nama_lengkap' => 'Peserta Baru',
             'email' => 'baru@example.test',
-            'satuan_pendidikan' => 'SMP Negeri 1 Gowa',
-            'kabupaten' => 'Kabupaten Gowa',
-            'jenis_jabatan' => 'Kepala Sekolah',
+            'satuan_pendidikan' => 'SD Negeri 1 Makassar',
+            'kabupaten' => 'Kota Makassar',
+            'jenis_jabatan' => 'Guru',
         ]);
 
         $assignment = AssessmentAssignment::query()->create([
@@ -163,7 +165,9 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
             'target_ketenagaan' => 'tenaga_pendidik',
             'target_jabatan' => ['Guru'],
             'target_kabupaten' => ['Kota Makassar'],
-            'target_satuan_pendidikan' => [],
+            'target_satuan_pendidikan' => [
+                AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+            ],
             'tanggal_mulai' => now()->toDateString(),
             'jam_mulai' => '08:00:00',
             'tanggal_selesai' => now()->addDay()->toDateString(),
@@ -224,6 +228,49 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
         $this->assertSame(2, (int) $assignment->total_ditugaskan);
         $this->assertSame(2, (int) $assignment->total_sesi);
         $this->assertSame('selesai', $assignment->status_distribusi);
+    }
+
+    public function test_add_participants_rejects_participants_outside_stored_assignment_target_scope(): void
+    {
+        $outOfScopeGuru = $this->createGuru([
+            'nama_lengkap' => 'Peserta Di Luar Scope',
+            'email' => 'luar.scope@example.test',
+            'satuan_pendidikan' => 'SMP Negeri 1 Gowa',
+            'kabupaten' => 'Kabupaten Gowa',
+            'jenis_jabatan' => 'Kepala Sekolah',
+        ]);
+
+        $assignment = AssessmentAssignment::query()->create([
+            'kode_penugasan' => 'TGS-ADD-002',
+            'judul_penugasan' => 'Penugasan Scope Ketat',
+            'session_enabled' => true,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'target_satuan_pendidikan' => [
+                AssessmentSchoolTargetKey::encode('Kota Makassar', 'SD Negeri 1 Makassar'),
+            ],
+            'tanggal_mulai' => now()->toDateString(),
+            'jam_mulai' => '08:00:00',
+            'tanggal_selesai' => now()->addDay()->toDateString(),
+            'kapasitas_per_sesi' => 41,
+            'durasi_sesi_jam' => 3,
+            'total_sesi' => 1,
+            'status_distribusi' => 'selesai',
+            'total_target' => 0,
+            'total_ditugaskan' => 0,
+            'processed_at' => now(),
+        ]);
+
+        try {
+            app(AssessmentAssignmentService::class)->addParticipants($assignment, [$outOfScopeGuru->id]);
+            $this->fail('ValidationException tidak dilempar untuk peserta di luar scope target penugasan.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Sebagian peserta tidak sesuai dengan ketenagaan penugasan ini atau datanya sudah tidak valid.',
+                $exception->errors()['guru_ids'][0] ?? null
+            );
+        }
     }
 
     private function createGuru(array $overrides = []): Guru

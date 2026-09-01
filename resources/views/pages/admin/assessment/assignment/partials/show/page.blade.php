@@ -114,8 +114,33 @@
             position: relative;
         }
 
+        .assignment-add-filter-card {
+            background: #f8fbff;
+            border: 1px solid #d7e3f8;
+            border-radius: 0.3rem;
+            padding: 1rem;
+        }
+
+        .assignment-add-filter-grid {
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .assignment-add-filter-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .assignment-add-filter-grid select[multiple] {
+            min-height: 9rem;
+        }
+
         @media (max-width: 991.98px) {
             .monitor-filter-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .assignment-add-filter-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -159,6 +184,8 @@
             ->filter(fn($value) => filled($value))
             ->count();
         $participantAdditionPanel = $participantAdditionPanel ?? [];
+        $participantAdditionFilterDefaults = $participantAdditionPanel['filter_defaults'] ?? [];
+        $participantAdditionFilterOptions = $participantAdditionPanel['filter_options'] ?? [];
         $stageAccess = $stageAccess ?? [];
         $addParticipantsErrors = $errors->getBag('addParticipants');
     @endphp
@@ -1339,7 +1366,7 @@
                     <div class="alert alert-success border">
                         Daftar di bawah ini memuat semua peserta pada ketenagaan
                         <strong>{{ $assignment->target_ketenagaan_label ?: '-' }}</strong>, kecuali yang sudah ada di
-                        penugasan ini.
+                        penugasan ini. Filter default mengikuti snapshot target penugasan saat pertama kali dibuat.
                     </div>
 
                     <div class="row">
@@ -1353,7 +1380,7 @@
                         </div>
                         <div class="col-lg-4 mb-3">
                             <div class="text-muted small">Kandidat Tambahan Tersedia</div>
-                            <div class="font-weight-bold text-success">
+                            <div class="font-weight-bold text-success" data-role="assignment-add-available-total">
                                 {{ (int) ($participantAdditionPanel['available_total'] ?? 0) }} peserta
                             </div>
                         </div>
@@ -1365,10 +1392,78 @@
                         </div>
                     @endif
 
+                    <div class="assignment-add-filter-card mb-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
+                            <div>
+                                <div class="text-muted small">Filter Target Penugasan</div>
+                                <div class="font-weight-bold">Default mengikuti jabatan, kabupaten, dan satuan pendidikan target</div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-role="assignment-add-filters-reset">
+                                Reset ke Default
+                            </button>
+                        </div>
+
+                        <div class="assignment-add-filter-grid">
+                            <div class="form-group">
+                                <label for="assignment-add-filter-jabatan">Jabatan Target</label>
+                                <select id="assignment-add-filter-jabatan" class="form-control"
+                                    data-role="assignment-add-filter" data-filter-key="target_jabatan" multiple
+                                    size="{{ max(min(count($participantAdditionFilterOptions['jabatan'] ?? []), 6), 3) }}">
+                                    @forelse (($participantAdditionFilterOptions['jabatan'] ?? []) as $option)
+                                        <option value="{{ $option['value'] }}"
+                                            @selected(in_array($option['value'], $participantAdditionFilterDefaults['target_jabatan'] ?? [], true))>
+                                            {{ $option['label'] }}
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>Tidak ada jabatan target tersimpan.</option>
+                                    @endforelse
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="assignment-add-filter-kabupaten">Kabupaten Target</label>
+                                <select id="assignment-add-filter-kabupaten" class="form-control"
+                                    data-role="assignment-add-filter" data-filter-key="target_kabupaten" multiple
+                                    size="{{ max(min(count($participantAdditionFilterOptions['kabupaten'] ?? []), 6), 3) }}">
+                                    @forelse (($participantAdditionFilterOptions['kabupaten'] ?? []) as $option)
+                                        <option value="{{ $option['value'] }}"
+                                            @selected(in_array($option['value'], $participantAdditionFilterDefaults['target_kabupaten'] ?? [], true))>
+                                            {{ $option['label'] }}
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>Tidak ada kabupaten target tersimpan.</option>
+                                    @endforelse
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="assignment-add-filter-satuan-pendidikan">Satuan Pendidikan Target</label>
+                                <select id="assignment-add-filter-satuan-pendidikan" class="form-control"
+                                    data-role="assignment-add-filter" data-filter-key="target_satuan_pendidikan" multiple
+                                    size="{{ max(min(count($participantAdditionFilterOptions['satuan_pendidikan'] ?? []), 6), 3) }}">
+                                    @forelse (($participantAdditionFilterOptions['satuan_pendidikan'] ?? []) as $option)
+                                        <option value="{{ $option['value'] }}"
+                                            data-kabupaten="{{ $option['kabupaten'] ?? '' }}"
+                                            @selected(in_array($option['value'], $participantAdditionFilterDefaults['target_satuan_pendidikan'] ?? [], true))>
+                                            {{ $option['label'] }}
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>Tidak ada satuan pendidikan target tersimpan.</option>
+                                    @endforelse
+                                </select>
+                            </div>
+                        </div>
+
+                        <small class="form-text text-muted mt-3 mb-0">
+                            Semua pilihan di atas otomatis tercentang sesuai setting penugasan agar peserta yang baru
+                            registrasi tetapi belum sempat ditugaskan tetap langsung terlihat.
+                        </small>
+                    </div>
+
                     <x-multiple-choice-table id="assignment-add-participants-selector" name="guru_ids"
                         :headers="['Nama', 'Email', 'Satuan Pendidikan', 'Kabupaten', 'Verifikasi']"
                         :items="[]" :selected="$participantAdditionPanel['selected_ids'] ?? []"
                         :initialSelectedItems="$participantAdditionPanel['selected_items'] ?? []"
+                        :ajaxParams="$participantAdditionPanel['ajax_params'] ?? []"
                         ajax-url="{{ route('assessment.assignment.add-participants-options', $assignment->id) }}"
                         page-size="10" search-placeholder="Cari nama peserta tambahan..."
                         empty-message="{{ $participantAdditionPanel['disabled_reason'] ?? 'Tidak ada peserta tambahan yang tersedia pada ketenagaan ini.' }}"
@@ -1448,6 +1543,7 @@
             const explorerMode = @json($explorerMode);
             const csrfToken = @json(csrf_token());
             const shouldOpenAddParticipantsModal = @json($addParticipantsErrors->any());
+            const addParticipantDefaultFilters = @json($participantAdditionPanel['ajax_params'] ?? []);
 
             function initDataTable(selector, nonSortableColumns) {
                 const table = $(selector);
@@ -1473,6 +1569,123 @@
 
             function escapeHtml(value) {
                 return $('<div>').text(value ?? '').html();
+            }
+
+            function normalizeFilterValues(values) {
+                if (!Array.isArray(values)) {
+                    return [];
+                }
+
+                return values
+                    .map((value) => String(value ?? '').trim())
+                    .filter((value) => value !== '');
+            }
+
+            function getMultiSelectValues(element) {
+                if (!element) {
+                    return [];
+                }
+
+                return normalizeFilterValues(
+                    Array.from(element.selectedOptions || []).map((option) => option.value)
+                );
+            }
+
+            function setMultiSelectValues(element, values) {
+                if (!element) {
+                    return;
+                }
+
+                const selectedValues = new Set(normalizeFilterValues(values));
+
+                Array.from(element.options).forEach(function(option) {
+                    option.selected = selectedValues.has(String(option.value || '').trim());
+                });
+            }
+
+            function initAddParticipantsFilters() {
+                const selector = document.querySelector('[data-table-id="assignment-add-participants-selector"]');
+
+                if (!selector) {
+                    return;
+                }
+
+                const jabatanSelect = document.querySelector('#assignment-add-filter-jabatan');
+                const kabupatenSelect = document.querySelector('#assignment-add-filter-kabupaten');
+                const schoolSelect = document.querySelector('#assignment-add-filter-satuan-pendidikan');
+                const resetButton = document.querySelector('[data-role="assignment-add-filters-reset"]');
+                const totalNode = document.querySelector('[data-role="assignment-add-available-total"]');
+
+                function syncSchoolOptions() {
+                    if (!schoolSelect) {
+                        return;
+                    }
+
+                    const selectedKabupaten = getMultiSelectValues(kabupatenSelect);
+
+                    Array.from(schoolSelect.options).forEach(function(option) {
+                        const optionKabupaten = String(option.dataset.kabupaten || '').trim();
+                        const isVisible = selectedKabupaten.length === 0 || optionKabupaten === '' || selectedKabupaten.includes(optionKabupaten);
+
+                        option.hidden = !isVisible;
+                        option.disabled = option.value !== '' && !isVisible;
+
+                        if (!isVisible) {
+                            option.selected = false;
+                        }
+                    });
+                }
+
+                function applyFilters() {
+                    selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-ajax-params', {
+                        detail: {
+                            params: {
+                                target_jabatan: getMultiSelectValues(jabatanSelect),
+                                target_kabupaten: getMultiSelectValues(kabupatenSelect),
+                                target_satuan_pendidikan: getMultiSelectValues(schoolSelect),
+                            },
+                        },
+                    }));
+                }
+
+                if (jabatanSelect) {
+                    jabatanSelect.addEventListener('change', applyFilters);
+                }
+
+                if (kabupatenSelect) {
+                    kabupatenSelect.addEventListener('change', function() {
+                        syncSchoolOptions();
+                        applyFilters();
+                    });
+                }
+
+                if (schoolSelect) {
+                    schoolSelect.addEventListener('change', applyFilters);
+                }
+
+                if (resetButton) {
+                    resetButton.addEventListener('click', function() {
+                        setMultiSelectValues(jabatanSelect, addParticipantDefaultFilters.target_jabatan || []);
+                        setMultiSelectValues(kabupatenSelect, addParticipantDefaultFilters.target_kabupaten || []);
+                        syncSchoolOptions();
+                        setMultiSelectValues(
+                            schoolSelect,
+                            addParticipantDefaultFilters.target_satuan_pendidikan || []
+                        );
+                        applyFilters();
+                    });
+                }
+
+                selector.addEventListener('multiple-choice-table:fetched', function(event) {
+                    if (!totalNode) {
+                        return;
+                    }
+
+                    const pagination = event.detail && event.detail.pagination ? event.detail.pagination : {};
+                    totalNode.textContent = String(Number(pagination.total || 0)) + ' peserta';
+                });
+
+                syncSchoolOptions();
             }
 
             function initMonitoringIndividualDataTable() {
@@ -1943,6 +2156,7 @@
             initDataTable('#table-assignment-assessment', [0]);
             initDataTable('#table-assignment-session', [0]);
             initMonitoringIndividualDataTable();
+            initAddParticipantsFilters();
             initCharts();
             initExplorerCharts();
 
