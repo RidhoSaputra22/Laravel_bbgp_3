@@ -89,6 +89,10 @@
         ->values()
         ->all();
     $currentJabatanItems = collect($jabatanOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])->values()->all();
+    $currentSelectedJabatanItems = collect($currentJabatanItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetJabatan, true))
+        ->values()
+        ->all();
     $resolveKabupatenItems = function (array $items, array $selectedJabatan) {
         if ($selectedJabatan === []) {
             return [];
@@ -125,6 +129,10 @@
         collect($kabupatenOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])->values()->all(),
         $selectedTargetJabatan,
     );
+    $currentSelectedKabupatenItems = collect($currentKabupatenItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetKabupaten, true))
+        ->values()
+        ->all();
     $resolveSatuanPendidikanItems = function (array $items, array $selectedJabatan, array $selectedKabupaten) {
         if ($selectedJabatan === [] || $selectedKabupaten === []) {
             return [];
@@ -176,6 +184,10 @@
             ->values()
             ->all();
     }
+    $currentSelectedSatuanPendidikanItems = collect($currentSatuanPendidikanItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetSatuanPendidikan, true))
+        ->values()
+        ->all();
     $initialKabupatenState = [
         'target' => $selectedTargetKetenagaan,
         'jabatan' => collect($selectedTargetJabatan)
@@ -313,31 +325,6 @@
             border: 1px solid #d7e3f8;
             border-radius: 0.2rem;
             padding: 1rem 1rem 0.75rem;
-        }
-
-        .assignment-target-selection-card {
-            background: #f8fbff;
-            border: 1px solid #d7e3f8;
-            border-radius: 0.3rem;
-            padding: 1rem;
-        }
-
-        .assignment-target-select-grid {
-            display: grid;
-            gap: 0.85rem;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .assignment-target-select-grid .form-group {
-            margin-bottom: 0;
-        }
-
-        .assignment-target-select[multiple] {
-            min-height: 9rem;
-        }
-
-        .assignment-target-select[disabled] {
-            background: #f8f9fa;
         }
 
         .auto-summary-pill {
@@ -481,10 +468,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .assignment-target-select-grid {
-                grid-template-columns: 1fr;
-            }
-
             .stage-config-grid,
             .stage-config-grid--wide,
             .stage-config-switches {
@@ -596,92 +579,67 @@
                                         @enderror
                                     </div>
 
-                                    <div class="assignment-target-selection-card mb-4">
-                                        <div class="text-muted small">Seleksi Target Peserta</div>
-                                        <div class="font-weight-bold mb-3">
-                                            Gunakan selection untuk memilih jabatan, kabupaten, dan satuan pendidikan target.
-                                        </div>
-
-                                        <div class="assignment-target-select-grid">
-                                            <div class="form-group">
-                                                <label for="assignment-jabatan-selector">Jabatan Target <span class="text-danger">*</span></label>
-                                                <select id="assignment-jabatan-selector" name="target_jabatan[]"
-                                                    class="form-control assignment-target-select @if ($errors->has('target_jabatan') || $errors->has('target_jabatan.*')) is-invalid @endif"
-                                                    multiple
-                                                    size="{{ max(min(count($currentJabatanItems), 6), 3) }}"
-                                                    @disabled(count($currentJabatanItems) === 0)>
-                                                    @forelse ($currentJabatanItems as $item)
-                                                        <option value="{{ data_get($item, 'id') }}"
-                                                            @selected(in_array((string) data_get($item, 'id'), $selectedTargetJabatan, true))>
-                                                            {{ data_get($item, 'label', data_get($item, 'id', '-')) }}
-                                                        </option>
-                                                    @empty
-                                                        <option value="" disabled>
-                                                            {{ $selectedTargetKetenagaan ? 'Belum ada jabatan yang tersedia untuk ketenagaan ini.' : 'Pilih ketenagaan terlebih dahulu.' }}
-                                                        </option>
-                                                    @endforelse
-                                                </select>
-                                                @if ($errors->has('target_jabatan') || $errors->has('target_jabatan.*'))
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ $errors->first('target_jabatan') ?: $errors->first('target_jabatan.*') }}
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="assignment-kabupaten-selector">Kabupaten Target <span class="text-danger">*</span></label>
-                                                <select id="assignment-kabupaten-selector" name="target_kabupaten[]"
-                                                    class="form-control assignment-target-select @if ($errors->has('target_kabupaten') || $errors->has('target_kabupaten.*')) is-invalid @endif"
-                                                    multiple
-                                                    size="{{ max(min(count($currentKabupatenItems), 6), 3) }}"
-                                                    @disabled(count($currentKabupatenItems) === 0)>
-                                                    @forelse ($currentKabupatenItems as $item)
-                                                        <option value="{{ data_get($item, 'id') }}"
-                                                            @selected(in_array((string) data_get($item, 'id'), $selectedTargetKabupaten, true))>
-                                                            {{ data_get($item, 'label', data_get($item, 'id', '-')) }}
-                                                        </option>
-                                                    @empty
-                                                        <option value="" disabled>
-                                                            {{ $selectedTargetJabatan !== [] ? 'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.' : 'Pilih minimal satu jabatan target terlebih dahulu.' }}
-                                                        </option>
-                                                    @endforelse
-                                                </select>
-                                                @if ($errors->has('target_kabupaten') || $errors->has('target_kabupaten.*'))
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ $errors->first('target_kabupaten') ?: $errors->first('target_kabupaten.*') }}
-                                                    </div>
-                                                @endif
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="assignment-satuan-pendidikan-selector">Satuan Pendidikan Target <span class="text-danger">*</span></label>
-                                                <select id="assignment-satuan-pendidikan-selector" name="target_satuan_pendidikan[]"
-                                                    class="form-control assignment-target-select @if ($errors->has('target_satuan_pendidikan') || $errors->has('target_satuan_pendidikan.*')) is-invalid @endif"
-                                                    multiple
-                                                    size="{{ max(min(count($currentSatuanPendidikanItems), 6), 3) }}"
-                                                    @disabled(count($currentSatuanPendidikanItems) === 0)>
-                                                    @forelse ($currentSatuanPendidikanItems as $item)
-                                                        <option value="{{ data_get($item, 'id') }}"
-                                                            @selected(in_array((string) data_get($item, 'id'), $selectedTargetSatuanPendidikan, true))>
-                                                            {{ data_get($item, 'label', data_get($item, 'id', '-')) }}
-                                                        </option>
-                                                    @empty
-                                                        <option value="" disabled>
-                                                            {{ $selectedTargetKabupaten !== [] ? 'Belum ada satuan pendidikan yang tersedia untuk kombinasi ketenagaan, jabatan, dan kabupaten ini.' : 'Pilih minimal satu kabupaten target terlebih dahulu.' }}
-                                                        </option>
-                                                    @endforelse
-                                                </select>
-                                                @if ($errors->has('target_satuan_pendidikan') || $errors->has('target_satuan_pendidikan.*'))
-                                                    <div class="invalid-feedback d-block">
-                                                        {{ $errors->first('target_satuan_pendidikan') ?: $errors->first('target_satuan_pendidikan.*') }}
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        <small class="form-text text-muted mt-3 mb-0">
-                                            Gunakan Ctrl atau Command untuk memilih lebih dari satu item pada setiap daftar target.
+                                    <div class="form-group">
+                                        <label>Jabatan Target <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="assignment-jabatan-selector" name="target_jabatan"
+                                            :headers="['Jabatan', 'Target User']" :items="$currentJabatanItems"
+                                            :selected="$selectedTargetJabatan"
+                                            :initialSelectedItems="$currentSelectedJabatanItems"
+                                            searchPlaceholder="Cari jabatan target..."
+                                            emptyMessage="{{ $selectedTargetKetenagaan ? 'Belum ada jabatan yang tersedia untuk ketenagaan ini.' : 'Pilih ketenagaan terlebih dahulu.' }}"
+                                            selectedTitle="Jabatan Target" />
+                                        <small class="form-text text-muted">
+                                            Pilih satu atau beberapa jabatan sesuai ketenagaan target. Hanya user pada
+                                            jabatan ini yang akan otomatis ditugaskan.
                                         </small>
+                                        @if ($errors->has('target_jabatan') || $errors->has('target_jabatan.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_jabatan') ?: $errors->first('target_jabatan.*') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Kabupaten Target <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="assignment-kabupaten-selector" name="target_kabupaten"
+                                            :headers="['Kabupaten', 'Target User']" :items="$currentKabupatenItems"
+                                            :selected="$selectedTargetKabupaten"
+                                            :initialSelectedItems="$currentSelectedKabupatenItems"
+                                            searchPlaceholder="Cari kabupaten target..."
+                                            emptyMessage="{{ $selectedTargetJabatan !== [] ? 'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.' : 'Pilih minimal satu jabatan target terlebih dahulu.' }}"
+                                            selectedTitle="Kabupaten Target" />
+                                        <small class="form-text text-muted">
+                                            Pilih satu atau beberapa kabupaten sesuai ketenagaan dan jabatan target.
+                                            Hanya user pada kabupaten ini yang akan otomatis ditugaskan.
+                                        </small>
+                                        @if ($errors->has('target_kabupaten') || $errors->has('target_kabupaten.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_kabupaten') ?: $errors->first('target_kabupaten.*') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Satuan Pendidikan Target <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="assignment-satuan-pendidikan-selector"
+                                            name="target_satuan_pendidikan"
+                                            :headers="['Satuan Pendidikan', 'Kabupaten', 'Target User']"
+                                            :items="$currentSatuanPendidikanItems"
+                                            :selected="$selectedTargetSatuanPendidikan"
+                                            :initialSelectedItems="$currentSelectedSatuanPendidikanItems"
+                                            searchPlaceholder="Cari satuan pendidikan target..."
+                                            emptyMessage="{{ $selectedTargetKabupaten !== [] ? 'Belum ada satuan pendidikan yang tersedia untuk kombinasi ketenagaan, jabatan, dan kabupaten ini.' : 'Pilih minimal satu kabupaten target terlebih dahulu.' }}"
+                                            selectedTitle="Satuan Pendidikan Target" />
+                                        <small class="form-text text-muted">
+                                            Pilih satu atau beberapa satuan pendidikan sesuai ketenagaan, jabatan, dan
+                                            kabupaten target. Hanya user pada satuan pendidikan ini yang akan otomatis
+                                            ditugaskan.
+                                        </small>
+                                        @if ($errors->has('target_satuan_pendidikan') || $errors->has('target_satuan_pendidikan.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_satuan_pendidikan') ?: $errors->first('target_satuan_pendidikan.*') }}
+                                            </div>
+                                        @endif
                                     </div>
 
                                     <div class="auto-summary-panel mb-4">
@@ -1239,73 +1197,15 @@
             }
 
             function getJabatanSelector() {
-                return document.getElementById('assignment-jabatan-selector');
+                return document.querySelector('[data-table-id="assignment-jabatan-selector"]');
             }
 
             function getKabupatenSelector() {
-                return document.getElementById('assignment-kabupaten-selector');
+                return document.querySelector('[data-table-id="assignment-kabupaten-selector"]');
             }
 
             function getSatuanPendidikanSelector() {
-                return document.getElementById('assignment-satuan-pendidikan-selector');
-            }
-
-            function normalizeSelectionList(values) {
-                if (!Array.isArray(values)) {
-                    return [];
-                }
-
-                return values
-                    .map((value) => String(value == null ? '' : value).trim())
-                    .filter((value) => value !== '');
-            }
-
-            function getMultiSelectValues(selector) {
-                if (!selector) {
-                    return [];
-                }
-
-                return normalizeSelectionList(
-                    Array.from(selector.selectedOptions || []).map((option) => option.value)
-                );
-            }
-
-            function setMultiSelectItems(selector, items, config = {}) {
-                if (!selector) {
-                    return;
-                }
-
-                const normalizedItems = Array.isArray(items)
-                    ? items.filter((item) => String(item && item.id != null ? item.id : '').trim() !== '')
-                    : [];
-                const selectedValues = new Set(normalizeSelectionList(config.selectedValues || []));
-                const emptyMessage = String(config.emptyMessage || 'Data tidak tersedia.');
-
-                selector.innerHTML = '';
-                selector.size = Math.max(Math.min(normalizedItems.length, 6), 3);
-
-                if (normalizedItems.length === 0) {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = emptyMessage;
-                    option.disabled = true;
-                    option.selected = true;
-                    selector.disabled = true;
-                    selector.appendChild(option);
-
-                    return;
-                }
-
-                selector.disabled = false;
-                normalizedItems.forEach((item) => {
-                    const option = document.createElement('option');
-                    const value = String(item.id || '').trim();
-
-                    option.value = value;
-                    option.textContent = String(item.label || item.id || '-');
-                    option.selected = selectedValues.has(value);
-                    selector.appendChild(option);
-                });
+                return document.querySelector('[data-table-id="assignment-satuan-pendidikan-selector"]');
             }
 
             function getAvailableJabatanItems(target = getSelectedTargetKetenagaan()) {
@@ -1327,7 +1227,9 @@
                     return [];
                 }
 
-                return getMultiSelectValues(selector);
+                return Array.from(selector.querySelectorAll('input[name="target_jabatan[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
             }
 
             function getSelectedJabatanItems() {
@@ -1401,7 +1303,9 @@
                     return [];
                 }
 
-                return getMultiSelectValues(selector);
+                return Array.from(selector.querySelectorAll('input[name="target_kabupaten[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
             }
 
             function getSelectedKabupatenItems() {
@@ -1491,7 +1395,9 @@
                     return [];
                 }
 
-                return getMultiSelectValues(selector);
+                return Array.from(selector.querySelectorAll('input[name="target_satuan_pendidikan[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
             }
 
             function getSelectedSatuanPendidikanItems() {
@@ -1512,12 +1418,16 @@
                 }
 
                 activeJabatanTarget = target;
-                setMultiSelectItems(selector, getAvailableJabatanItems(target), {
-                    selectedValues: [],
-                    emptyMessage: target ?
-                        'Belum ada jabatan yang tersedia untuk ketenagaan ini.' :
-                        'Pilih ketenagaan terlebih dahulu.',
-                });
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: getAvailableJabatanItems(target),
+                        selectedIds: [],
+                        emptyMessage: target ?
+                            'Belum ada jabatan yang tersedia untuk ketenagaan ini.' :
+                            'Pilih ketenagaan terlebih dahulu.',
+                        emitChange: false,
+                    },
+                }));
             }
 
             function syncKabupatenSelector(force = false) {
@@ -1531,12 +1441,16 @@
                 }
 
                 activeKabupatenStateKey = stateKey;
-                setMultiSelectItems(selector, buildKabupatenItemsForSelection(target, selectedJabatanItems), {
-                    selectedValues: [],
-                    emptyMessage: selectedJabatanItems.length === 0 ?
-                        'Pilih minimal satu jabatan target terlebih dahulu.' :
-                        'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.',
-                });
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: buildKabupatenItemsForSelection(target, selectedJabatanItems),
+                        selectedIds: [],
+                        emptyMessage: selectedJabatanItems.length === 0 ?
+                            'Pilih minimal satu jabatan target terlebih dahulu.' :
+                            'Belum ada kabupaten yang tersedia untuk kombinasi ketenagaan dan jabatan ini.',
+                        emitChange: false,
+                    },
+                }));
             }
 
             function syncSatuanPendidikanSelector(force = false) {
@@ -1555,22 +1469,22 @@
                 }
 
                 activeSatuanPendidikanStateKey = stateKey;
-                setMultiSelectItems(
-                    selector,
-                    buildSatuanPendidikanItemsForSelection(
-                        target,
-                        selectedJabatanItems,
-                        selectedKabupatenItems
-                    ),
-                    {
-                        selectedValues: [],
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: buildSatuanPendidikanItemsForSelection(
+                            target,
+                            selectedJabatanItems,
+                            selectedKabupatenItems
+                        ),
+                        selectedIds: [],
                         emptyMessage: selectedJabatanItems.length === 0 ?
                             'Pilih minimal satu jabatan target terlebih dahulu.' :
                             (selectedKabupatenItems.length === 0 ?
                                 'Pilih minimal satu kabupaten target terlebih dahulu.' :
                                 'Belum ada satuan pendidikan yang tersedia untuk kombinasi ketenagaan, jabatan, dan kabupaten ini.'),
-                    }
-                );
+                        emitChange: false,
+                    },
+                }));
             }
 
             function renderSelectedJabatanBadges(selectedJabatanItems) {
@@ -2490,7 +2404,7 @@
                 const titleInput = document.querySelector('input[name="judul_penugasan"]');
 
                 if (jabatanSelector) {
-                    jabatanSelector.addEventListener('change', function() {
+                    jabatanSelector.addEventListener('multiple-choice-table:change', function() {
                         syncKabupatenSelector();
                         syncSatuanPendidikanSelector();
                         refreshSummaries();
@@ -2498,14 +2412,14 @@
                 }
 
                 if (kabupatenSelector) {
-                    kabupatenSelector.addEventListener('change', function() {
+                    kabupatenSelector.addEventListener('multiple-choice-table:change', function() {
                         syncSatuanPendidikanSelector();
                         refreshSummaries();
                     });
                 }
 
                 if (satuanPendidikanSelector) {
-                    satuanPendidikanSelector.addEventListener('change', refreshSummaries);
+                    satuanPendidikanSelector.addEventListener('multiple-choice-table:change', refreshSummaries);
                 }
 
                 document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
