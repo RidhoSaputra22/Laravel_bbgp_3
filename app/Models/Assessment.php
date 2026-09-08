@@ -43,6 +43,11 @@ class Assessment extends Model
             ->orderByDesc('assessment_assignments.id');
     }
 
+    public function validatorAssignments()
+    {
+        return $this->hasMany(ValidatorAssignment::class);
+    }
+
     public function getTargetKetenagaanLabelAttribute(): ?string
     {
         return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->label();

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Admin;
 use App\Models\Guru;
 use App\Models\User;
+use App\Support\Assessment\ValidatorAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -35,7 +35,7 @@ class AuthController extends Controller
         }
 
         $credentials = ['no_ktp' => $request->nik, 'password' => $request->password, 'role' => $request->role];
-        
+
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
             $guru = Guru::where('no_ktp', $user->no_ktp)->first();
@@ -53,6 +53,10 @@ class AuthController extends Controller
                 return redirect()->route('pegawai.show', $user->no_ktp)->with('message', 'sukses login');
             }
 
+            if ($user->role == 'stakeholder' && ValidatorAccess::isEligibleUser($user->setRelation('guru', $guru))) {
+                return redirect()->route('assessment.validator.task.index')->with('message', 'sukses login');
+            }
+
             if ($user->role == 'tenaga pendidik' || $user->role == 'tenaga kependidikan' || $user->role == 'stakeholder') {
                 return redirect()->route('guru.show', $user->no_ktp)->with('message', 'sukses login');
             }
@@ -67,19 +71,19 @@ class AuthController extends Controller
     {
         $user_found = User::where('username', $request->username)->first();
 
-        if (!$user_found || !in_array($user_found->role, ['admin', 'superadmin', 'kepala'])) {
+        if (! $user_found || ! in_array($user_found->role, ['admin', 'superadmin', 'kepala'])) {
             return redirect()->back()->with('message', 'gagal login');
         }
 
         $credentials = [
             'username' => $request->username,
             'password' => $request->password,
-            'role' => $user_found->role
+            'role' => $user_found->role,
         ];
 
         if (Auth::attempt($credentials)) {
             $user = Auth::user();
-            
+
             Session::put('user_id', $user->id);
             Session::put('name', $user->name);
             Session::put('nip', $user->nip ?? null);

@@ -329,6 +329,35 @@ Route::group(
             });
 
             Route::prefix('assessment')->group(function () {
+                Route::prefix('validator')->group(function () {
+                    Route::get('/', 'ValidatorPanelController@index')->name('assessment.validator.index');
+
+                    Route::prefix('form')->group(function () {
+                        Route::get('/', 'ValidatorFormController@index')->name('assessment.validator.form.index');
+                        Route::get('/create', 'ValidatorFormController@create')->name('assessment.validator.form.create');
+                        Route::post('/', 'ValidatorFormController@store')->name('assessment.validator.form.store');
+                        Route::get('/{form}', 'ValidatorFormController@show')->name('assessment.validator.form.show');
+                        Route::get('/{form}/edit', 'ValidatorFormController@edit')->name('assessment.validator.form.edit');
+                        Route::put('/{form}', 'ValidatorFormController@update')->name('assessment.validator.form.update');
+                        Route::delete('/{form}', 'ValidatorFormController@destroy')->name('assessment.validator.form.destroy');
+                    });
+
+                    Route::prefix('penugasan')->group(function () {
+                        Route::get('/', 'ValidatorAssignmentController@index')->name('assessment.validator.assignment.index');
+                        Route::get('/create', 'ValidatorAssignmentController@create')->name('assessment.validator.assignment.create');
+                        Route::post('/', 'ValidatorAssignmentController@store')->name('assessment.validator.assignment.store');
+                        Route::get('/{assignment}', 'ValidatorAssignmentController@show')->name('assessment.validator.assignment.show');
+                        Route::delete('/{assignment}', 'ValidatorAssignmentController@destroy')->name('assessment.validator.assignment.destroy');
+                    });
+
+                    Route::prefix('tugas')->group(function () {
+                        Route::get('/', 'ValidatorTaskController@index')->name('assessment.validator.task.index');
+                        Route::get('/{assignment}', 'ValidatorTaskController@show')->name('assessment.validator.task.show');
+                        Route::post('/{assignment}/draft', 'ValidatorTaskController@saveDraft')->name('assessment.validator.task.draft');
+                        Route::post('/{assignment}/submit', 'ValidatorTaskController@submit')->name('assessment.validator.task.submit');
+                    });
+                });
+
                 Route::get('/', 'AssessmentController@index')->name('assessment.index');
                 Route::get('/create', 'AssessmentController@create')->name('assessment.create');
                 Route::post('/store', 'AssessmentController@store')->name('assessment.store');

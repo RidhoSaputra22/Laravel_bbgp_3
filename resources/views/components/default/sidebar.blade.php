@@ -124,7 +124,7 @@
                </a>
             </li>
 
-            <li class="nav-item dropdown {{ in_array($menu, ['assessment', 'assessment-kombinasi', 'assessment-penugasan', 'assessment-monitoring'], true) ? 'active' : '' }}">
+            <li class="nav-item dropdown {{ in_array($menu, ['assessment', 'assessment-kombinasi', 'assessment-penugasan', 'assessment-monitoring', 'assessment-validator'], true) ? 'active' : '' }}">
                <a href="#" class="nav-link has-dropdown"><i class="fas fa-clipboard-list"></i>
                   <span>Assessment</span></a>
                <ul class="dropdown-menu">
@@ -146,6 +146,11 @@
                   <li class="{{ $menu == 'assessment-monitoring' ? 'active' : '' }}">
                      <a class="nav-link" href="{{ route('assessment.monitoring.index') }}">
                         Monitoring
+                     </a>
+                  </li>
+                  <li class="{{ $menu == 'assessment-validator' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('assessment.validator.index') }}">
+                        Validator
                      </a>
                   </li>
                </ul>
@@ -306,6 +311,13 @@
                   <i class="fas fa-file-signature"></i> <span>RTL & Sertifikat</span>
                </a>
             </li>
+            @if (Session('role') == 'stakeholder' && App\Support\Assessment\ValidatorAccess::currentValidator())
+               <li class="{{ $menu == 'validator-tasks' ? 'active' : '' }}">
+                  <a class="nav-link" href="{{ route('assessment.validator.task.index') }}">
+                     <i class="fas fa-clipboard-check"></i> <span>Tugas Validasi</span>
+                  </a>
+               </li>
+            @endif
             @php
                // Cek apakah user ini adalah kepala sekolah yang sudah punya data sekolah
                $sekolah = \App\Models\Sekolah::where('user_id', session('guru_id'))->first();
@@ -361,6 +373,11 @@
             <li class="{{ $menu == 'assessment' ? 'active' : '' }}">
                <a class="nav-link" href="{{ route('assessment.index') }}">
                   <i class="fas fa-clipboard-list"></i> <span>Assessment</span>
+               </a>
+            </li>
+            <li class="{{ $menu == 'assessment-validator' ? 'active' : '' }}">
+               <a class="nav-link" href="{{ route('assessment.validator.index') }}">
+                  <i class="fas fa-clipboard-check"></i> <span>Validator</span>
                </a>
             </li>
          @endif

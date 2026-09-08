@@ -2,11 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Enum\AssessmentInstrumentType;
-use App\Enum\AssessmentKetenagaanType;
-use App\Models\Assessment;
+use App\Models\ValidatorForm;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Str;
 
 class AssessmentValidasiAhliSeeder extends Seeder
 {
@@ -315,54 +312,70 @@ class AssessmentValidasiAhliSeeder extends Seeder
 
         foreach ($assessments as $item) {
             $forms = $item['forms'];
-            unset($item['forms']);
-
-            $assessment = Assessment::updateOrCreate(
-                ['kode_assessment' => $item['kode_assessment']],
+            $validatorForm = ValidatorForm::updateOrCreate(
+                ['code' => 'VF-VALIDASI-AHLI-001'],
                 [
-                    'judul' => $item['judul'],
-                    'slug' => Str::slug($item['judul']),
-                    'deskripsi' => $item['deskripsi'],
-                    'petunjuk' => $item['petunjuk'],
-                    'instrument_type' => $item['instrument_type'],
-                    'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
-                    'scoring_config' => $this->assessmentScoringConfig(),
-                    'status' => $item['status'],
+                    'title' => $item['judul'],
+                    'description' => $item['deskripsi'],
+                    'instructions' => $item['petunjuk'],
+                    'status' => 'published',
                     'is_active' => $item['is_active'],
+                    'created_by' => null,
                 ]
             );
 
-            $assessment->forms()->delete();
+            if ($validatorForm->assignments()->exists()) {
+                continue;
+            }
 
-            foreach ($forms as $formData) {
+            $validatorForm->sections()->delete();
+
+            foreach (array_values($forms) as $sectionIndex => $formData) {
                 $fields = $formData['fields'];
-                unset($formData['fields']);
-
-                $formData['scoring_config'] = $this->formScoringConfig($formData);
-
-                $form = $assessment->forms()->create($formData);
+                $section = $validatorForm->sections()->create([
+                    'title' => $formData['judul_form'],
+                    'description' => $formData['deskripsi'] ?? null,
+                    'sort_order' => $sectionIndex + 1,
+                ]);
 
                 foreach (array_values($fields) as $fieldIndex => $fieldData) {
-                    $fieldData['scoring_config'] = $this->fieldScoringConfig(
-                        $formData,
-                        $fieldData,
-                        $fieldIndex
-                    );
+                    if (in_array($fieldData['nama_field'] ?? null, [
+                        'rekomendasi_umum',
+                        'nama_validator_pengesahan',
+                        'tanda_tangan_validator',
+                        'tanggal_pengesahan',
+                    ], true)) {
+                        // Kesimpulan, identitas akun, dan waktu pengesahan dicatat
+                        // langsung pada penugasan QA agar tidak diinput dua kali.
+                        continue;
+                    }
 
-                    $form->fields()->create($fieldData);
+                    $isScored = (bool) ($formData['is_scoreable'] ?? false);
+                    $fieldType = $isScored ? 'likert' : ($fieldData['tipe_field'] ?? 'text');
+
+                    $section->fields()->create([
+                        'label' => $fieldData['label'],
+                        'description' => $fieldData['deskripsi'] ?? $fieldData['bantuan'] ?? null,
+                        'field_type' => $fieldType,
+                        'options' => $fieldData['opsi_field'] ?? null,
+                        'is_required' => (bool) ($fieldData['is_required'] ?? false),
+                        'is_scored' => $isScored,
+                        'max_score' => $isScored ? 5 : null,
+                        'sort_order' => $fieldIndex + 1,
+                        'is_active' => (bool) ($fieldData['is_active'] ?? true),
+                    ]);
                 }
             }
         }
     }
 
     /**
-     * Menggunakan enum apabila value validasi_ahli telah tersedia.
-     * Fallback string dipakai agar seeder tetap mudah disesuaikan.
+     * Dipertahankan sebagai metadata definisi lama, tetapi data disimpan ke
+     * modul validator yang terpisah dari assessment peserta.
      */
     private function instrumentTypeValue(): string
     {
-        return AssessmentInstrumentType::tryFrom('validasi_ahli')?->value
-            ?? 'validasi_ahli';
+        return 'validasi_ahli';
     }
 
     /**
@@ -389,7 +402,7 @@ class AssessmentValidasiAhliSeeder extends Seeder
                 'nilai_default' => null,
                 'validasi' => [
                     'required' => true,
-                    'in' => [1, 2, 3, 4, 5],    
+                    'in' => [1, 2, 3, 4, 5],
                 ],
                 'lebar_kolom' => 'col-md-12',
                 'urutan' => $number,

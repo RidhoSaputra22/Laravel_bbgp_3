@@ -36,6 +36,21 @@ class User extends Authenticatable
         return $this->hasMany(AssessmentAssignment::class, 'assigned_by');
     }
 
+    public function guru()
+    {
+        return $this->hasOne(Guru::class, 'no_ktp', 'no_ktp');
+    }
+
+    public function validatorAssignments()
+    {
+        return $this->hasMany(ValidatorAssignment::class, 'validator_user_id');
+    }
+
+    public function validatorAssignmentsCreated()
+    {
+        return $this->hasMany(ValidatorAssignment::class, 'assigned_by');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
