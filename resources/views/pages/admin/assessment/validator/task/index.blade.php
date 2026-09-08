@@ -61,8 +61,8 @@
                                                 </div>
                                                 <h5 class="mt-2">{{ $assignment->title }}</h5>
                                                 <p class="mb-1">
-                                                    <strong>Assessment:</strong>
-                                                    {{ $assignment->assessment?->judul ?? data_get($assignment->assessment_snapshot, 'title') }}
+                                                    <strong>Penugasan assessment:</strong>
+                                                    {{ $assignment->assessment_assignments_label }}
                                                 </p>
                                                 <p class="text-muted">{{ $assignment->validatorForm?->title }}</p>
                                                 <div class="mb-3">
@@ -83,6 +83,9 @@
                                         </div>
                                     </div>
                                 @endforeach
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                {{ $assignments->links() }}
                             </div>
                         @endif
                     </div>

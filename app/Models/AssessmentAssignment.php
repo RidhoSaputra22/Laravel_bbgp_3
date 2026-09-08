@@ -111,6 +111,13 @@ class AssessmentAssignment extends Model
             ->orderBy('assessment_assignment_assessments.urutan');
     }
 
+    public function validatorAssignments()
+    {
+        return $this->belongsToMany(ValidatorAssignment::class, 'validator_assignment_assessment_assignments')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
+
     public function combination()
     {
         return $this->belongsTo(AssessmentCombination::class, 'assessment_combination_id');

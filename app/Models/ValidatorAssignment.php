@@ -26,6 +26,7 @@ class ValidatorAssignment extends Model
         'assigned_by',
         'notes',
         'assessment_snapshot',
+        'assessment_assignment_snapshots',
         'validator_snapshot',
         'status',
         'start_date',
@@ -41,6 +42,7 @@ class ValidatorAssignment extends Model
 
     protected $casts = [
         'assessment_snapshot' => 'array',
+        'assessment_assignment_snapshots' => 'array',
         'validator_snapshot' => 'array',
         'start_date' => 'date',
         'due_date' => 'date',
@@ -53,7 +55,26 @@ class ValidatorAssignment extends Model
 
     public function scopeNewestFirst(Builder $query): Builder
     {
-        return $query->orderByDesc('created_at')->orderByDesc('id');
+        return $query->orderByDesc($this->qualifyColumn('id'));
+    }
+
+    public function scopeWithSummaryColumns(Builder $query): Builder
+    {
+        return $query->select([
+            'validator_assignments.id',
+            'validator_assignments.code',
+            'validator_assignments.title',
+            'validator_assignments.validator_form_id',
+            'validator_assignments.assessment_id',
+            'validator_assignments.validator_user_id',
+            'validator_assignments.status',
+            'validator_assignments.start_date',
+            'validator_assignments.due_date',
+            'validator_assignments.submitted_at',
+            'validator_assignments.score_percentage',
+            'validator_assignments.recommendation',
+            'validator_assignments.created_at',
+        ]);
     }
 
     public function validatorForm()
@@ -64,6 +85,58 @@ class ValidatorAssignment extends Model
     public function assessment()
     {
         return $this->belongsTo(Assessment::class);
+    }
+
+    public function assessmentAssignments()
+    {
+        return $this->belongsToMany(AssessmentAssignment::class, 'validator_assignment_assessment_assignments')
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('validator_assignment_assessment_assignments.sort_order');
+    }
+
+    public function getResolvedAssignmentSnapshotsAttribute(): array
+    {
+        if (! empty($this->assessment_assignment_snapshots)) {
+            return $this->assessment_assignment_snapshots;
+        }
+
+        return [[
+            'id' => null,
+            'code' => null,
+            'title' => data_get($this->assessment_snapshot, 'title', 'Penugasan lama'),
+            'target_ketenagaan_label' => data_get($this->assessment_snapshot, 'target_ketenagaan'),
+            'assessments' => [$this->assessment_snapshot],
+            'captured_at' => data_get($this->assessment_snapshot, 'captured_at'),
+        ]];
+    }
+
+    public function getAssessmentAssignmentsLabelAttribute(): string
+    {
+        if ($this->relationLoaded('assessmentAssignments') && $this->assessmentAssignments->isNotEmpty()) {
+            $titles = $this->assessmentAssignments->pluck('judul_penugasan')->filter();
+
+            return $titles->take(2)->implode(', ').($titles->count() > 2 ? ' +'.($titles->count() - 2).' lainnya' : '');
+        }
+
+        if ($this->relationLoaded('assessment') && $this->assessment) {
+            return $this->assessment->judul;
+        }
+
+        $snapshots = collect($this->resolved_assignment_snapshots);
+        $titles = $snapshots->pluck('title')->filter()->take(2)->implode(', ');
+        $remaining = max(0, $snapshots->count() - 2);
+
+        return $titles.($remaining > 0 ? ' +'.$remaining.' lainnya' : '');
+    }
+
+    public function getAssessmentAssignmentsTotalAttribute(): int
+    {
+        if ($this->relationLoaded('assessmentAssignments') && $this->assessmentAssignments->isNotEmpty()) {
+            return $this->assessmentAssignments->count();
+        }
+
+        return count($this->resolved_assignment_snapshots);
     }
 
     public function validator()

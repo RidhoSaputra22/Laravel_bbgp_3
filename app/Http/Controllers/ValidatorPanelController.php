@@ -19,7 +19,8 @@ class ValidatorPanelController extends Controller
             'assignmentCount' => ValidatorAssignment::count(),
             'pendingCount' => ValidatorAssignment::whereIn('status', ['assigned', 'in_progress'])->count(),
             'submittedCount' => ValidatorAssignment::where('status', 'submitted')->count(),
-            'recentAssignments' => ValidatorAssignment::with(['assessment', 'validator.guru'])
+            'recentAssignments' => ValidatorAssignment::with(['assessmentAssignments', 'validator.guru'])
+                ->withSummaryColumns()
                 ->newestFirst()
                 ->limit(5)
                 ->get(),

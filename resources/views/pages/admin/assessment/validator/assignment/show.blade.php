@@ -18,7 +18,11 @@
                             <div class="col-md-8">
                                 <small class="text-muted">{{ $assignment->code }}</small>
                                 <h3>{{ $assignment->title }}</h3>
-                                <p class="mb-1"><strong>Assessment:</strong> {{ data_get($assignment->assessment_snapshot, 'title') }}</p>
+                                <p class="mb-1">
+                                    <strong>Penugasan assessment:</strong>
+                                    {{ $assignment->assessment_assignments_label }}
+                                    ({{ count($assignment->resolved_assignment_snapshots) }} dipilih)
+                                </p>
                                 <p class="mb-1"><strong>Form QA:</strong> {{ $assignment->validatorForm->title }}</p>
                                 <p class="mb-0">
                                     <strong>Validator:</strong>
@@ -39,6 +43,29 @@
                         @if ($assignment->notes)
                             <div class="alert alert-light border mt-3 mb-0">{{ $assignment->notes }}</div>
                         @endif
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h4>Penugasan Assessment yang Divalidasi</h4></div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach ($assignment->resolved_assignment_snapshots as $sourceSnapshot)
+                                <div class="col-lg-6 mb-3">
+                                    <div class="border rounded p-3 h-100">
+                                        <small class="text-muted">{{ data_get($sourceSnapshot, 'code', '-') }}</small>
+                                        <h6 class="mb-2">{{ data_get($sourceSnapshot, 'title', '-') }}</h6>
+                                        <span class="badge badge-info">
+                                            {{ data_get($sourceSnapshot, 'target_ketenagaan_label', '-') }}
+                                        </span>
+                                        <small class="d-block text-muted mt-2">
+                                            {{ count(data_get($sourceSnapshot, 'assessments', [])) }} assessment:
+                                            {{ collect(data_get($sourceSnapshot, 'assessments', []))->pluck('title')->filter()->implode(', ') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 

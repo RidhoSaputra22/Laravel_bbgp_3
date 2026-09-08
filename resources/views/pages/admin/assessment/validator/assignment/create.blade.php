@@ -21,13 +21,15 @@
                     </div>
                 @endif
 
-                @if ($forms->isEmpty() || $assessments->isEmpty() || $validators->isEmpty())
+                @if ($forms->isEmpty() || $assessmentAssignments->isEmpty() || $validators->isEmpty())
                     <div class="alert alert-warning">
                         <strong>Data belum lengkap.</strong>
                         @if ($forms->isEmpty())
                             Publikasikan minimal satu <a href="{{ route('assessment.validator.form.create') }}">form validator</a>.
                         @endif
-                        @if ($assessments->isEmpty()) Belum ada assessment aktif. @endif
+                        @if ($assessmentAssignments->isEmpty())
+                            Belum ada penugasan assessment aktif untuk Tenaga Pendidik atau Tenaga Kependidikan.
+                        @endif
                         @if ($validators->isEmpty())
                             Belum ada akun dengan role <strong>Stakeholder</strong>, ketenagaan
                             <strong>Stakeholder</strong>, dan jabatan <strong>Validator</strong>.
@@ -47,20 +49,7 @@
                                         value="{{ old('title') }}"
                                         placeholder="Contoh: QA Instrumen Pemetaan Kompetensi Guru 2026">
                                 </div>
-                                <div class="form-group col-md-6">
-                                    <label>Assessment yang Divalidasi <span class="text-danger">*</span></label>
-                                    <select name="assessment_id" class="form-control select2" required>
-                                        <option value="">-- Pilih Assessment --</option>
-                                        @foreach ($assessments as $assessment)
-                                            <option value="{{ $assessment->id }}" @selected((int) old('assessment_id') === $assessment->id)>
-                                                {{ $assessment->kode_assessment }} — {{ $assessment->judul }}
-                                                ({{ $assessment->forms_count }} form)
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <small class="text-muted">Struktur assessment disalin sebagai snapshot saat penugasan dibuat.</small>
-                                </div>
-                                <div class="form-group col-md-6">
+                                <div class="form-group col-md-12">
                                     <label>Form Validator <span class="text-danger">*</span></label>
                                     <select name="validator_form_id" class="form-control select2" required>
                                         <option value="">-- Pilih Form QA --</option>
@@ -72,20 +61,14 @@
                                     </select>
                                 </div>
                                 <div class="form-group col-md-12">
-                                    <label>Validator <span class="text-danger">*</span></label>
-                                    <select name="validator_user_id" class="form-control select2" required>
-                                        <option value="">-- Pilih Validator yang Memenuhi Syarat --</option>
-                                        @foreach ($validators as $validator)
-                                            <option value="{{ $validator->id }}" @selected((int) old('validator_user_id') === $validator->id)>
-                                                {{ $validator->guru?->nama_lengkap ?? $validator->name }}
-                                                — {{ $validator->guru?->email ?? $validator->username }}
-                                                — Stakeholder / Validator
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <small class="text-success">
-                                        <i class="fas fa-shield-alt"></i> Daftar difilter dan akan diverifikasi ulang saat disimpan.
-                                    </small>
+                                    <div class="alert alert-info mb-0">
+                                        <i class="fas fa-magic"></i>
+                                        Sistem otomatis mengambil seluruh
+                                        <strong>{{ $assessmentAssignments->count() }} penugasan assessment aktif</strong>
+                                        untuk Tenaga Pendidik dan Tenaga Kependidikan, lalu memberikan QA kepada seluruh
+                                        <strong>{{ $validators->count() }} stakeholder dengan jabatan Validator</strong>.
+                                        Validator yang sudah memiliki QA aktif yang sama akan dilewati.
+                                    </div>
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label>Tanggal Mulai</label>
@@ -104,7 +87,7 @@
                         <div class="card-footer text-right">
                             <a href="{{ route('assessment.validator.assignment.index') }}" class="btn btn-light mr-2">Batal</a>
                             <button class="btn btn-primary"
-                                @disabled($forms->isEmpty() || $assessments->isEmpty() || $validators->isEmpty())>
+                                @disabled($forms->isEmpty() || $assessmentAssignments->isEmpty() || $validators->isEmpty())>
                                 <i class="fas fa-paper-plane"></i> Buat Penugasan Validator
                             </button>
                         </div>

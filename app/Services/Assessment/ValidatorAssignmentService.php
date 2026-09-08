@@ -2,7 +2,9 @@
 
 namespace App\Services\Assessment;
 
+use App\Enum\AssessmentKetenagaanType;
 use App\Models\Assessment;
+use App\Models\AssessmentAssignment;
 use App\Models\User;
 use App\Models\ValidatorAssignment;
 use App\Models\ValidatorForm;
@@ -14,6 +16,60 @@ use Illuminate\Validation\ValidationException;
 
 class ValidatorAssignmentService
 {
+    public function createForAllEligibleValidators(array $data, ?int $assignedBy): array
+    {
+        $validators = ValidatorAccess::eligibleUsersQuery()->with('guru')->get();
+
+        if ($validators->isEmpty()) {
+            throw ValidationException::withMessages([
+                'validators' => 'Belum ada akun Stakeholder dengan jabatan Validator.',
+            ]);
+        }
+
+        $sourceIds = AssessmentAssignment::active()
+            ->whereIn('target_ketenagaan', [
+                AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+            ])
+            ->has('assessments')
+            ->pluck('id');
+
+        if ($sourceIds->isEmpty()) {
+            throw ValidationException::withMessages([
+                'assessment_assignments' => 'Belum ada penugasan assessment aktif untuk Tenaga Pendidik atau Tenaga Kependidikan.',
+            ]);
+        }
+
+        $data['assessment_assignment_ids'] = $sourceIds->all();
+        $created = 0;
+        $skipped = 0;
+
+        DB::transaction(function () use ($data, $assignedBy, $validators, $sourceIds, &$created, &$skipped) {
+            foreach ($validators as $validator) {
+                $alreadyAssigned = ValidatorAssignment::query()
+                    ->where('validator_form_id', (int) $data['validator_form_id'])
+                    ->where('validator_user_id', $validator->id)
+                    ->whereIn('status', ['assigned', 'in_progress'])
+                    ->whereHas('assessmentAssignments', fn ($query) => $query->whereIn(
+                        'assessment_assignments.id',
+                        $sourceIds
+                    ))
+                    ->exists();
+
+                if ($alreadyAssigned) {
+                    $skipped++;
+
+                    continue;
+                }
+
+                $this->create(array_merge($data, ['validator_user_id' => $validator->id]), $assignedBy);
+                $created++;
+            }
+        });
+
+        return compact('created', 'skipped');
+    }
+
     public function create(array $data, ?int $assignedBy): ValidatorAssignment
     {
         $validator = User::with('guru')->findOrFail((int) $data['validator_user_id']);
@@ -25,7 +81,28 @@ class ValidatorAssignmentService
         }
 
         $form = ValidatorForm::with('sections.fields')->findOrFail((int) $data['validator_form_id']);
-        $assessment = Assessment::with('forms.fields')->findOrFail((int) $data['assessment_id']);
+        $requestedIds = collect($data['assessment_assignment_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($requestedIds->isEmpty()) {
+            throw ValidationException::withMessages([
+                'assessment_assignment_ids' => 'Minimal satu penugasan assessment aktif wajib dipilih.',
+            ]);
+        }
+
+        $assignmentLookup = AssessmentAssignment::active()
+            ->whereIn('target_ketenagaan', [
+                AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+            ])
+            ->whereIn('id', $requestedIds)
+            ->with('assessments.forms.fields')
+            ->get()
+            ->keyBy('id');
+        $sourceAssignments = $requestedIds->map(fn ($id) => $assignmentLookup->get($id))->filter()->values();
 
         if ($form->status !== 'published' || ! $form->is_active) {
             throw ValidationException::withMessages([
@@ -33,35 +110,49 @@ class ValidatorAssignmentService
             ]);
         }
 
-        if (! $assessment->is_active) {
+        if ($sourceAssignments->count() !== $requestedIds->count()) {
             throw ValidationException::withMessages([
-                'assessment_id' => 'Assessment yang dipilih sudah tidak aktif.',
+                'assessment_assignment_ids' => 'Pilihan harus berupa penugasan aktif milik Tenaga Pendidik atau Tenaga Kependidikan.',
+            ]);
+        }
+
+        if ($sourceAssignments->contains(fn ($source) => $source->assessments->isEmpty())) {
+            throw ValidationException::withMessages([
+                'assessment_assignment_ids' => 'Setiap penugasan yang dipilih harus memiliki minimal satu assessment.',
             ]);
         }
 
         $alreadyAssigned = ValidatorAssignment::query()
             ->where('validator_form_id', $form->id)
-            ->where('assessment_id', $assessment->id)
             ->where('validator_user_id', $validator->id)
             ->whereIn('status', ['assigned', 'in_progress'])
+            ->whereHas('assessmentAssignments', fn ($query) => $query->whereIn(
+                'assessment_assignments.id',
+                $requestedIds
+            ))
             ->exists();
 
         if ($alreadyAssigned) {
             throw ValidationException::withMessages([
-                'validator_user_id' => 'Validator ini masih memiliki penugasan aktif untuk assessment dan form yang sama.',
+                'assessment_assignment_ids' => 'Validator ini masih memiliki QA aktif dengan form yang sama pada salah satu penugasan yang dipilih.',
             ]);
         }
 
-        return DB::transaction(function () use ($data, $assignedBy, $assessment, $form, $validator) {
-            return ValidatorAssignment::create([
+        return DB::transaction(function () use ($data, $assignedBy, $sourceAssignments, $form, $validator) {
+            $firstAssessment = $sourceAssignments->first()->assessments->first();
+            $snapshots = $sourceAssignments
+                ->map(fn (AssessmentAssignment $source) => $this->buildAssessmentAssignmentSnapshot($source))
+                ->all();
+            $assignment = ValidatorAssignment::create([
                 'code' => $this->generateCode(),
                 'title' => $data['title'],
                 'validator_form_id' => $form->id,
-                'assessment_id' => $assessment->id,
+                'assessment_id' => $firstAssessment->id,
                 'validator_user_id' => (int) $data['validator_user_id'],
                 'assigned_by' => $assignedBy,
                 'notes' => $data['notes'] ?? null,
-                'assessment_snapshot' => $this->buildAssessmentSnapshot($assessment),
+                'assessment_snapshot' => $this->buildAssessmentSnapshot($firstAssessment),
+                'assessment_assignment_snapshots' => $snapshots,
                 'validator_snapshot' => [
                     'user_id' => $validator->id,
                     'guru_id' => $validator->guru?->id,
@@ -76,6 +167,14 @@ class ValidatorAssignmentService
                 'start_date' => $data['start_date'] ?? null,
                 'due_date' => $data['due_date'] ?? null,
             ]);
+
+            $assignment->assessmentAssignments()->attach(
+                $sourceAssignments->values()->mapWithKeys(fn ($source, $index) => [
+                    $source->id => ['sort_order' => $index + 1],
+                ])->all()
+            );
+
+            return $assignment;
         });
     }
 
@@ -205,6 +304,26 @@ class ValidatorAssignmentService
                     'required' => $field->is_required,
                 ])->values()->all(),
             ])->values()->all(),
+        ];
+    }
+
+    private function buildAssessmentAssignmentSnapshot(AssessmentAssignment $assignment): array
+    {
+        return [
+            'id' => $assignment->id,
+            'code' => $assignment->kode_penugasan,
+            'title' => $assignment->judul_penugasan,
+            'target_ketenagaan' => $assignment->target_ketenagaan,
+            'target_ketenagaan_label' => $assignment->target_ketenagaan_label,
+            'description' => $assignment->deskripsi,
+            'start_date' => $assignment->tanggal_mulai?->toDateString(),
+            'end_date' => $assignment->tanggal_selesai?->toDateString(),
+            'total_target' => $assignment->total_target,
+            'captured_at' => now()->toIso8601String(),
+            'assessments' => $assignment->assessments
+                ->map(fn (Assessment $assessment) => $this->buildAssessmentSnapshot($assessment))
+                ->values()
+                ->all(),
         ];
     }
 }

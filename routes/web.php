@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Assessment\AuthController as AssessmentPortalAuthController;
 use App\Http\Controllers\Assessment\AdminPreviewController as AssessmentAdminPreviewController;
+use App\Http\Controllers\Assessment\AuthController as AssessmentPortalAuthController;
 use App\Http\Controllers\Assessment\PortalAttemptController as AssessmentPortalAttemptController;
 use App\Http\Controllers\Assessment\PortalController as AssessmentPortalController;
 use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;

@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Assessment;
+use App\Enum\AssessmentKetenagaanType;
+use App\Models\AssessmentAssignment;
 use App\Models\ValidatorAssignment;
 use App\Models\ValidatorForm;
 use App\Services\Assessment\ValidatorAssignmentService;
@@ -26,8 +27,9 @@ class ValidatorAssignmentController extends Controller
             'assignments' => ValidatorAssignment::with([
                 'validatorForm',
                 'assessment',
+                'assessmentAssignments',
                 'validator.guru',
-            ])->newestFirst()->get(),
+            ])->withSummaryColumns()->newestFirst()->paginate(20),
         ]);
     }
 
@@ -42,10 +44,14 @@ class ValidatorAssignmentController extends Controller
                 ->withCount('sections')
                 ->orderBy('title')
                 ->get(),
-            'assessments' => Assessment::withCount(['forms', 'validatorAssignments'])
-                ->where('is_active', true)
-                ->orderBy('judul')
-                ->get(),
+            'assessmentAssignments' => AssessmentAssignment::active()
+                ->whereIn('target_ketenagaan', [
+                    AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                    AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+                ])
+                ->has('assessments')
+                ->newestFirst()
+                ->get(['id']),
             'validators' => ValidatorAccess::eligibleUsersQuery()
                 ->with('guru')
                 ->orderBy('name')
@@ -59,15 +65,11 @@ class ValidatorAssignmentController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'validator_form_id' => ['required', 'integer', 'exists:validator_forms,id'],
-            'assessment_id' => ['required', 'integer', 'exists:assessments,id'],
-            'validator_user_id' => ['required', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
         ], [
             'validator_form_id.required' => 'Form validator wajib dipilih.',
-            'assessment_id.required' => 'Assessment yang akan dijamin mutunya wajib dipilih.',
-            'validator_user_id.required' => 'Validator wajib dipilih.',
         ]);
 
         if (
@@ -80,12 +82,20 @@ class ValidatorAssignmentController extends Controller
             ]);
         }
 
-        $assignment = $this->assignmentService->create(
+        $result = $this->assignmentService->createForAllEligibleValidators(
             $validated,
             session('user_id') ? (int) session('user_id') : null
         );
 
-        return redirect()->route('assessment.validator.assignment.show', $assignment)->with('message', 'store');
+        $message = $result['created'].' penugasan validator berhasil dibuat.';
+
+        if ($result['skipped'] > 0) {
+            $message .= ' '.$result['skipped'].' validator dilewati karena sudah memiliki QA aktif yang sama.';
+        }
+
+        return redirect()
+            ->route('assessment.validator.assignment.index')
+            ->with('validator_success', $message);
     }
 
     public function show(ValidatorAssignment $assignment)
@@ -95,6 +105,7 @@ class ValidatorAssignmentController extends Controller
         $assignment->load([
             'validatorForm.sections.fields',
             'assessment',
+            'assessmentAssignments.assessments',
             'validator.guru',
             'responses.field',
         ]);

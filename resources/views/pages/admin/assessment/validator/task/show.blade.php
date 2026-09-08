@@ -52,48 +52,61 @@
                 <div class="row">
                     <div class="col-xl-5">
                         <div class="card sticky-top" style="top: 85px;">
-                            <div class="card-header"><h4>Snapshot Assessment yang Diperiksa</h4></div>
+                            <div class="card-header"><h4>Snapshot Penugasan yang Diperiksa</h4></div>
                             <div class="card-body" style="max-height: 72vh; overflow-y: auto;">
-                                <small class="text-muted">{{ data_get($assignment->assessment_snapshot, 'code') }}</small>
-                                <h5>{{ data_get($assignment->assessment_snapshot, 'title') }}</h5>
-                                <p>{{ data_get($assignment->assessment_snapshot, 'description') }}</p>
-                                @if (data_get($assignment->assessment_snapshot, 'instructions'))
-                                    <div class="alert alert-light border">
-                                        <strong>Petunjuk peserta</strong><br>
-                                        {{ data_get($assignment->assessment_snapshot, 'instructions') }}
-                                    </div>
-                                @endif
+                                @foreach ($assignment->resolved_assignment_snapshots as $sourceSnapshot)
+                                    <div class="border rounded p-3 mb-4">
+                                        <small class="text-muted">Penugasan {{ $loop->iteration }} · {{ data_get($sourceSnapshot, 'code', '-') }}</small>
+                                        <h5 class="mb-1">{{ data_get($sourceSnapshot, 'title', '-') }}</h5>
+                                        <span class="badge badge-info mb-3">
+                                            {{ data_get($sourceSnapshot, 'target_ketenagaan_label', '-') }}
+                                        </span>
 
-                                @foreach (data_get($assignment->assessment_snapshot, 'forms', []) as $assessmentForm)
-                                    <div class="border rounded p-3 mb-3">
-                                        <strong>{{ $loop->iteration }}. {{ $assessmentForm['title'] ?? '-' }}</strong>
-                                        @if (!empty($assessmentForm['description']))
-                                            <small class="d-block text-muted mb-2">{{ $assessmentForm['description'] }}</small>
-                                        @endif
-                                        <ol class="pl-3 mb-0">
-                                            @foreach (($assessmentForm['fields'] ?? []) as $assessmentField)
-                                                <li class="mb-2">
-                                                    {{ $assessmentField['label'] ?? '-' }}
-                                                    <small class="d-block text-muted">
-                                                        {{ $assessmentField['type'] ?? 'text' }}
-                                                        {{ !empty($assessmentField['required']) ? ' · wajib' : '' }}
-                                                        @if (!empty($assessmentField['options']))
-                                                            · opsi: {{ is_array($assessmentField['options'])
-                                                                ? collect($assessmentField['options'])->map(fn ($option) => is_scalar($option)
-                                                                    ? (string) $option
-                                                                    : (data_get($option, 'label') ?? data_get($option, 'text') ?? json_encode($option)))->implode(', ')
-                                                                : $assessmentField['options'] }}
+                                        @foreach (data_get($sourceSnapshot, 'assessments', []) as $assessmentSnapshot)
+                                            <div class="border-top pt-3 mt-2">
+                                                <small class="text-muted">{{ data_get($assessmentSnapshot, 'code') }}</small>
+                                                <h6>{{ data_get($assessmentSnapshot, 'title', '-') }}</h6>
+                                                @if (data_get($assessmentSnapshot, 'description'))
+                                                    <p>{{ data_get($assessmentSnapshot, 'description') }}</p>
+                                                @endif
+                                                @if (data_get($assessmentSnapshot, 'instructions'))
+                                                    <div class="alert alert-light border">
+                                                        <strong>Petunjuk peserta</strong><br>
+                                                        {{ data_get($assessmentSnapshot, 'instructions') }}
+                                                    </div>
+                                                @endif
+
+                                                @foreach (data_get($assessmentSnapshot, 'forms', []) as $assessmentForm)
+                                                    <div class="bg-light rounded p-3 mb-3">
+                                                        <strong>{{ $assessmentForm['title'] ?? '-' }}</strong>
+                                                        @if (!empty($assessmentForm['description']))
+                                                            <small class="d-block text-muted mb-2">{{ $assessmentForm['description'] }}</small>
                                                         @endif
-                                                    </small>
-                                                </li>
-                                            @endforeach
-                                        </ol>
+                                                        <ol class="pl-3 mb-0">
+                                                            @foreach (($assessmentForm['fields'] ?? []) as $assessmentField)
+                                                                <li class="mb-2">
+                                                                    {{ $assessmentField['label'] ?? '-' }}
+                                                                    <small class="d-block text-muted">
+                                                                        {{ $assessmentField['type'] ?? 'text' }}
+                                                                        {{ !empty($assessmentField['required']) ? ' · wajib' : '' }}
+                                                                        @if (!empty($assessmentField['options']))
+                                                                            · opsi: {{ is_array($assessmentField['options'])
+                                                                                ? collect($assessmentField['options'])->map(fn ($option) => is_scalar($option)
+                                                                                    ? (string) $option
+                                                                                    : (data_get($option, 'label') ?? data_get($option, 'text') ?? json_encode($option)))->implode(', ')
+                                                                                : $assessmentField['options'] }}
+                                                                        @endif
+                                                                    </small>
+                                                                </li>
+                                                            @endforeach
+                                                        </ol>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endforeach
+                                        <small class="text-muted">Snapshot: {{ data_get($sourceSnapshot, 'captured_at', '-') }}</small>
                                     </div>
                                 @endforeach
-                                <small class="text-muted">
-                                    Snapshot disimpan saat penugasan dibuat:
-                                    {{ data_get($assignment->assessment_snapshot, 'captured_at', '-') }}
-                                </small>
                             </div>
                         </div>
                     </div>

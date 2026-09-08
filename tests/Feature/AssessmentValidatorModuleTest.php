@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Controllers\ValidatorPanelController;
 use App\Http\Controllers\ValidatorTaskController;
 use App\Models\Assessment;
+use App\Models\AssessmentAssignment;
 use App\Models\Guru;
 use App\Models\User;
 use App\Models\ValidatorForm;
@@ -31,6 +32,8 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->createCoreTables();
         $migration = require database_path('migrations/2026_09_08_000000_create_assessment_validator_tables.php');
         $migration->up();
+        $multiAssignmentMigration = require database_path('migrations/2026_09_09_000000_add_assessment_assignments_to_validator_assignments.php');
+        $multiAssignmentMigration->up();
     }
 
     protected function tearDown(): void
@@ -58,22 +61,24 @@ class AssessmentValidatorModuleTest extends TestCase
     public function test_assignment_uses_separate_tables_and_keeps_assessment_snapshot(): void
     {
         $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '555');
-        $assessment = $this->createAssessment();
+        [$assessment, $sourceAssignment] = $this->createAssessment();
         [$form, $scoredField, $noteField] = $this->createValidatorForm();
         $service = app(ValidatorAssignmentService::class);
 
         $assignment = $service->create([
             'title' => 'QA Assessment Guru',
             'validator_form_id' => $form->id,
-            'assessment_id' => $assessment->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
             'validator_user_id' => $validator->id,
             'start_date' => now()->toDateString(),
             'due_date' => now()->addWeek()->toDateString(),
         ], null);
 
-        $this->assertDatabaseCount('assessment_assignments', 0);
+        $this->assertDatabaseCount('assessment_assignments', 1);
         $this->assertDatabaseCount('validator_assignments', 1);
+        $this->assertDatabaseCount('validator_assignment_assessment_assignments', 1);
         $this->assertSame('Assessment Utama', data_get($assignment->assessment_snapshot, 'title'));
+        $this->assertSame('Penugasan Guru Aktif', data_get($assignment->assessment_assignment_snapshots, '0.title'));
         $this->assertSame('Validator Test', data_get($assignment->validator_snapshot, 'name'));
 
         $assignment->load('validatorForm.sections.fields');
@@ -94,7 +99,7 @@ class AssessmentValidatorModuleTest extends TestCase
     public function test_assignment_rejects_user_who_is_not_an_eligible_validator(): void
     {
         $notValidator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Kepala Dinas', '666');
-        $assessment = $this->createAssessment();
+        [, $sourceAssignment] = $this->createAssessment();
         [$form] = $this->createValidatorForm();
 
         $this->expectException(ValidationException::class);
@@ -102,9 +107,96 @@ class AssessmentValidatorModuleTest extends TestCase
         app(ValidatorAssignmentService::class)->create([
             'title' => 'QA Tidak Valid',
             'validator_form_id' => $form->id,
-            'assessment_id' => $assessment->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
             'validator_user_id' => $notValidator->id,
         ], null);
+    }
+
+    public function test_assignment_accepts_multiple_active_assignments_for_both_workforce_types(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '888');
+        [$assessment, $educatorAssignment] = $this->createAssessment();
+        $staffAssignment = AssessmentAssignment::create([
+            'kode_penugasan' => 'TGS-TENDIK',
+            'judul_penugasan' => 'Penugasan Tendik Aktif',
+            'is_active' => true,
+            'target_ketenagaan' => 'tenaga_kependidikan',
+            'total_target' => 5,
+        ]);
+        $staffAssignment->assessments()->attach($assessment->id, ['urutan' => 1]);
+        [$form] = $this->createValidatorForm();
+
+        $assignment = app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA Gabungan PTK',
+            'validator_form_id' => $form->id,
+            'assessment_assignment_ids' => [$staffAssignment->id, $educatorAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+
+        $this->assertSame(
+            ['Penugasan Tendik Aktif', 'Penugasan Guru Aktif'],
+            collect($assignment->assessment_assignment_snapshots)->pluck('title')->all()
+        );
+        $this->assertSame(
+            ['tenaga_kependidikan', 'tenaga_pendidik'],
+            collect($assignment->assessment_assignment_snapshots)->pluck('target_ketenagaan')->all()
+        );
+        $this->assertDatabaseCount('validator_assignment_assessment_assignments', 2);
+    }
+
+    public function test_assignment_rejects_inactive_source_assignment(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '999');
+        [, $sourceAssignment] = $this->createAssessment();
+        $sourceAssignment->update(['is_active' => false]);
+        [$form] = $this->createValidatorForm();
+
+        $this->expectException(ValidationException::class);
+
+        app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA Sumber Nonaktif',
+            'validator_form_id' => $form->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+    }
+
+    public function test_bulk_assignment_is_given_to_every_eligible_validator_and_skips_duplicates(): void
+    {
+        $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '101');
+        $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '102');
+        $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Kepala Dinas', '103');
+        [$assessment] = $this->createAssessment();
+        $staffAssignment = AssessmentAssignment::create([
+            'kode_penugasan' => 'TGS-AUTO-TENDIK',
+            'judul_penugasan' => 'Penugasan Tendik Otomatis',
+            'is_active' => true,
+            'target_ketenagaan' => 'tenaga_kependidikan',
+            'total_target' => 5,
+        ]);
+        $staffAssignment->assessments()->attach($assessment->id, ['urutan' => 1]);
+        [$form] = $this->createValidatorForm();
+        $data = [
+            'title' => 'QA Untuk Semua Validator',
+            'validator_form_id' => $form->id,
+        ];
+
+        $firstResult = app(ValidatorAssignmentService::class)
+            ->createForAllEligibleValidators($data, null);
+        $secondResult = app(ValidatorAssignmentService::class)
+            ->createForAllEligibleValidators($data, null);
+
+        $this->assertSame(['created' => 2, 'skipped' => 0], $firstResult);
+        $this->assertSame(['created' => 0, 'skipped' => 2], $secondResult);
+        $this->assertDatabaseCount('validator_assignments', 2);
+        $this->assertDatabaseCount('validator_assignment_assessment_assignments', 4);
+        $this->assertSame(
+            [2, 2],
+            \App\Models\ValidatorAssignment::query()
+                ->withCount('assessmentAssignments')
+                ->pluck('assessment_assignments_count')
+                ->all()
+        );
     }
 
     public function test_admin_panel_and_validator_workspace_have_separate_access_rules(): void
@@ -188,6 +280,24 @@ class AssessmentValidatorModuleTest extends TestCase
 
         Schema::create('assessment_assignments', function (Blueprint $table) {
             $table->id();
+            $table->string('kode_penugasan')->nullable();
+            $table->string('judul_penugasan');
+            $table->boolean('is_active')->default(true);
+            $table->boolean('session_enabled')->default(true);
+            $table->string('target_ketenagaan');
+            $table->text('deskripsi')->nullable();
+            $table->date('tanggal_mulai')->nullable();
+            $table->date('tanggal_selesai')->nullable();
+            $table->unsignedInteger('total_target')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('assessment_assignment_assessments', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_assignment_id');
+            $table->unsignedBigInteger('assessment_id');
+            $table->unsignedInteger('urutan')->default(1);
+            $table->json('stage_config')->nullable();
             $table->timestamps();
         });
 
@@ -222,7 +332,7 @@ class AssessmentValidatorModuleTest extends TestCase
         return $user;
     }
 
-    private function createAssessment(): Assessment
+    private function createAssessment(): array
     {
         $assessment = Assessment::create([
             'kode_assessment' => 'ASM-TEST',
@@ -251,7 +361,17 @@ class AssessmentValidatorModuleTest extends TestCase
             'is_required' => true,
         ]);
 
-        return $assessment;
+        $sourceAssignment = AssessmentAssignment::create([
+            'kode_penugasan' => 'TGS-TEST',
+            'judul_penugasan' => 'Penugasan Guru Aktif',
+            'is_active' => true,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'deskripsi' => 'Penugasan peserta yang akan diperiksa.',
+            'total_target' => 10,
+        ]);
+        $sourceAssignment->assessments()->attach($assessment->id, ['urutan' => 1]);
+
+        return [$assessment, $sourceAssignment];
     }
 
     private function createValidatorForm(): array

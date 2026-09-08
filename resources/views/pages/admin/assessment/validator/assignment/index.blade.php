@@ -34,7 +34,7 @@
                             <div class="empty-state" data-height="300">
                                 <div class="empty-state-icon bg-info"><i class="fas fa-user-check"></i></div>
                                 <h2>Belum ada penugasan validator</h2>
-                                <p class="lead">Pilih form QA, assessment, dan validator yang memenuhi persyaratan.</p>
+                                <p class="lead">Buat QA untuk seluruh penugasan aktif dan validator yang memenuhi persyaratan.</p>
                                 <a href="{{ route('assessment.validator.assignment.create') }}" class="btn btn-primary mt-3">
                                     Buat Penugasan
                                 </a>
@@ -46,7 +46,7 @@
                                         <tr>
                                             <th>#</th>
                                             <th>Penugasan</th>
-                                            <th>Assessment & Form QA</th>
+                                            <th>Penugasan Assessment & Form QA</th>
                                             <th>Validator</th>
                                             <th>Periode</th>
                                             <th>Status</th>
@@ -56,13 +56,16 @@
                                     <tbody>
                                         @foreach ($assignments as $assignment)
                                             <tr>
-                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $assignments->firstItem() + $loop->index }}</td>
                                                 <td>
                                                     <strong>{{ $assignment->title }}</strong>
                                                     <small class="d-block text-muted">{{ $assignment->code }}</small>
                                                 </td>
                                                 <td>
-                                                    <span>{{ $assignment->assessment?->judul ?? data_get($assignment->assessment_snapshot, 'title') }}</span>
+                                                    <span>{{ $assignment->assessment_assignments_label }}</span>
+                                                    <small class="d-block text-muted">
+                                                        {{ $assignment->assessment_assignments_total }} penugasan aktif
+                                                    </small>
                                                     <small class="d-block text-muted">{{ $assignment->validatorForm?->title }}</small>
                                                 </td>
                                                 <td>
@@ -102,6 +105,9 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
+                            <div class="mt-3 d-flex justify-content-end">
+                                {{ $assignments->links() }}
                             </div>
                         @endif
                     </div>

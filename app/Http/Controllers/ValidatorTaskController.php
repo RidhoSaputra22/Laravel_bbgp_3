@@ -20,17 +20,23 @@ class ValidatorTaskController extends Controller
     {
         $user = ValidatorAccess::authorizeValidator();
 
-        $assignments = ValidatorAssignment::with(['validatorForm', 'assessment'])
+        $baseQuery = ValidatorAssignment::query()
             ->where('validator_user_id', $user->id)
-            ->where('status', '!=', 'cancelled')
+            ->where('status', '!=', 'cancelled');
+
+        $pendingCount = (clone $baseQuery)->whereIn('status', ['assigned', 'in_progress'])->count();
+        $submittedCount = (clone $baseQuery)->where('status', 'submitted')->count();
+        $assignments = $baseQuery
+            ->with(['validatorForm', 'assessment', 'assessmentAssignments'])
+            ->withSummaryColumns()
             ->newestFirst()
-            ->get();
+            ->paginate(20);
 
         return view('pages.admin.assessment.validator.task.index', [
             'menu' => 'validator-tasks',
             'assignments' => $assignments,
-            'pendingCount' => $assignments->whereIn('status', ['assigned', 'in_progress'])->count(),
-            'submittedCount' => $assignments->where('status', 'submitted')->count(),
+            'pendingCount' => $pendingCount,
+            'submittedCount' => $submittedCount,
         ]);
     }
 
@@ -40,6 +46,7 @@ class ValidatorTaskController extends Controller
         $assignment->load([
             'validatorForm.sections.fields',
             'assessment',
+            'assessmentAssignments.assessments',
             'responses.field',
         ]);
 

@@ -114,7 +114,7 @@
                                     <thead>
                                         <tr>
                                             <th>Kode</th>
-                                            <th>Assessment</th>
+                                            <th>Penugasan Assessment</th>
                                             <th>Validator</th>
                                             <th>Status</th>
                                             <th></th>
@@ -124,7 +124,7 @@
                                         @foreach ($recentAssignments as $assignment)
                                             <tr>
                                                 <td>{{ $assignment->code }}</td>
-                                                <td>{{ $assignment->assessment?->judul ?? data_get($assignment->assessment_snapshot, 'title', '-') }}</td>
+                                                <td>{{ $assignment->assessment_assignments_label ?: '-' }}</td>
                                                 <td>{{ $assignment->validator?->guru?->nama_lengkap ?? $assignment->validator?->name ?? data_get($assignment->validator_snapshot, 'name', '-') }}</td>
                                                 <td>
                                                     <span class="badge badge-{{ $assignment->status_badge_class }}">
