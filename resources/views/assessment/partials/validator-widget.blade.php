@@ -1,6 +1,6 @@
 @php
     $validatorErrorBag = $errors ?? new \Illuminate\Support\ViewErrorBag();
-    $panelStartsOpen = $selectedValidatorTask || $pendingValidatorTaskCount > 0 || $validatorErrorBag->any();
+    $panelStartsOpen = true;
     $taskIsLocked = $selectedValidatorTask?->status === 'submitted';
     $taskIsUpcoming = $selectedValidatorTask?->start_date?->isFuture() ?? false;
 @endphp
@@ -58,7 +58,7 @@
                         <h3 class="font-bold text-slate-800">{{ $selectedValidatorTask->title }}</h3>
                         <p class="mt-1 text-xs text-slate-500">{{ $selectedValidatorTask->validatorForm->title }}</p>
                     </div>
-                    <a href="{{ route('assessment.portal.dashboard') }}"
+                    <a href="{{ route('assessment.portal.dashboard', ['validator_task' => 0]) }}"
                         class="shrink-0 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">
                         <i class="fas fa-arrow-left"></i> Daftar
                     </a>

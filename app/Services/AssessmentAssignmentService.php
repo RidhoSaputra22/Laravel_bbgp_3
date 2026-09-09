@@ -379,6 +379,74 @@ class AssessmentAssignmentService
         });
     }
 
+    /**
+     * Add a validator as an assessment target even though the assessment
+     * assignment's normal participant scope is limited to educators or
+     * education staff.
+     *
+     * Validators are system participants for QA. Their Guru record must be
+     * present in the target table so the assessment portal can show the
+     * active assessment alongside the validator task.
+     */
+    public function addValidatorParticipant(AssessmentAssignment $assignment, Guru $guru): bool
+    {
+        return DB::transaction(function () use ($assignment, $guru) {
+            /** @var \App\Models\AssessmentAssignment $lockedAssignment */
+            $lockedAssignment = AssessmentAssignment::query()
+                ->whereKey($assignment->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $existingTarget = AssessmentAssignmentTarget::query()
+                ->where('assessment_assignment_id', $lockedAssignment->id)
+                ->where('guru_id', $guru->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingTarget) {
+                return false;
+            }
+
+            $guruIds = [(int) $guru->id];
+            $sessionAllocation = Schema::hasTable('assessment_assignment_sessions')
+                ? $this->allocateAdditionalSessionSlots($lockedAssignment, $guruIds, true)
+                : ['session_id_by_guru' => [], 'created_session_count' => 0];
+            $combinationLookup = Schema::hasTable('assessment_combinations')
+                ? $this->buildIncrementalKabupatenCombinationLookup($lockedAssignment, $guruIds)
+                : [];
+            $targetRows = $this->buildAdditionalTargetRows(
+                $lockedAssignment,
+                $guruIds,
+                $sessionAllocation['session_id_by_guru'],
+                $combinationLookup
+            );
+
+            $this->storeTargetRows($targetRows);
+
+            $currentTargetCount = (int) $lockedAssignment->targets()
+                ->where('status', '!=', 'dibatalkan')
+                ->count();
+            $plannedTargetCount = max((int) $lockedAssignment->total_target, $currentTargetCount);
+
+            $assignmentSummary = [
+                'total_target' => $plannedTargetCount + 1,
+            ];
+
+            if (Schema::hasColumn('assessment_assignments', 'total_sesi')) {
+                $assignmentSummary['total_sesi'] = Schema::hasTable('assessment_assignment_sessions')
+                    && $lockedAssignment->usesSessionScheduling()
+                    ? (int) $lockedAssignment->sessions()->count()
+                    : 0;
+            }
+
+            $lockedAssignment->forceFill($assignmentSummary)->save();
+
+            $this->refreshAssignmentSummary($lockedAssignment->id);
+
+            return true;
+        });
+    }
+
     public function deleteAssignment(AssessmentAssignment $assignment): array
     {
         $cleanupSummary = $this->collectAssignmentCleanupSummary($assignment->id);
@@ -2122,7 +2190,8 @@ class AssessmentAssignmentService
 
     private function allocateAdditionalSessionSlots(
         AssessmentAssignment $assignment,
-        array $guruIds
+        array $guruIds,
+        bool $includePlannedOccupancy = false
     ): array {
         if (! $assignment->usesSessionScheduling() || $guruIds === []) {
             return [
@@ -2145,6 +2214,20 @@ class AssessmentAssignmentService
             ->pluck('aggregate', 'assessment_assignment_session_id')
             ->mapWithKeys(fn ($count, $sessionId) => [(int) $sessionId => (int) $count])
             ->all();
+
+        if ($includePlannedOccupancy) {
+            // For large assignments the original target rows can still be
+            // waiting in the queue. Session totals already contain their
+            // planned occupancy, so include that value before placing a
+            // validator.
+            foreach ($sessions as $session) {
+                $occupancyBySessionId[$session->id] = max(
+                    (int) ($occupancyBySessionId[$session->id] ?? 0),
+                    (int) ($session->total_peserta ?? 0)
+                );
+            }
+        }
+
         $createdSessionIds = [];
         $sessionIdByGuru = [];
         $nextSessionNumber = ((int) $sessions->max('nomor_sesi')) + 1;

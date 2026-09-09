@@ -52,6 +52,10 @@
         </x-assessment::ui.alert>
     @endif
 
+    @if (($isValidator ?? false) === true)
+        @include('assessment.partials.validator-widget')
+    @endif
+
 
     @stack('scripts')
 </body>

@@ -87,7 +87,8 @@ class ValidatorAssignmentController extends Controller
             session('user_id') ? (int) session('user_id') : null
         );
 
-        $message = $result['created'].' penugasan validator berhasil dibuat.';
+        $message = $result['created'].' penugasan validator berhasil dibuat. '
+            .'Validator juga otomatis ditambahkan sebagai peserta pada penugasan assessment aktif terkait.';
 
         if ($result['skipped'] > 0) {
             $message .= ' '.$result['skipped'].' validator dilewati karena sudah memiliki QA aktif yang sama.';

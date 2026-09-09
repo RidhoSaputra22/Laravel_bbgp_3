@@ -23,8 +23,9 @@
                 @endif
 
                 <div class="alert alert-light border">
-                    Daftar ini khusus penugasan Quality Assurance. Penugasan peserta assessment tetap dikelola
-                    secara terpisah melalui menu <strong>Assessment &gt; Penugasan</strong>.
+                    Saat penugasan Quality Assurance dibuat, setiap validator otomatis didaftarkan sebagai
+                    peserta pada penugasan assessment aktif yang terkait. Pengelolaan peserta assessment tetap
+                    tersedia melalui menu <strong>Assessment &gt; Penugasan</strong>.
                 </div>
 
                 <div class="card">

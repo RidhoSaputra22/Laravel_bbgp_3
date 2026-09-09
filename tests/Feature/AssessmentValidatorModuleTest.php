@@ -80,6 +80,12 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame('Assessment Utama', data_get($assignment->assessment_snapshot, 'title'));
         $this->assertSame('Penugasan Guru Aktif', data_get($assignment->assessment_assignment_snapshots, '0.title'));
         $this->assertSame('Validator Test', data_get($assignment->validator_snapshot, 'name'));
+        $this->assertDatabaseHas('assessment_assignment_targets', [
+            'assessment_assignment_id' => $sourceAssignment->id,
+            'guru_id' => $validator->guru()->first()->id,
+            'status' => 'ditugaskan',
+        ]);
+        $this->assertSame(1, $sourceAssignment->fresh()->total_ditugaskan);
 
         $assignment->load('validatorForm.sections.fields');
         $service->submit($assignment, [
@@ -93,7 +99,7 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame(5.0, $assignment->score_max);
         $this->assertSame(80.0, $assignment->score_percentage);
         $this->assertDatabaseCount('validator_assignment_responses', 2);
-        $this->assertDatabaseCount('assessment_assignment_targets', 0);
+        $this->assertDatabaseCount('assessment_assignment_targets', 1);
     }
 
     public function test_assignment_rejects_user_who_is_not_an_eligible_validator(): void
@@ -161,6 +167,40 @@ class AssessmentValidatorModuleTest extends TestCase
         ], null);
     }
 
+    public function test_validator_uses_planned_session_capacity_while_source_distribution_is_queued(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '1000');
+        [, $sourceAssignment] = $this->createAssessment();
+        $sourceAssignment->update([
+            'status_distribusi' => 'diproses',
+            'total_target' => 41,
+        ]);
+        $sourceAssignment->sessions()->create([
+            'nomor_sesi' => 1,
+            'label_sesi' => 'Sesi 1',
+            'kapasitas_peserta' => 41,
+            'total_peserta' => 41,
+            'durasi_sesi_jam' => 3,
+        ]);
+        [$form] = $this->createValidatorForm();
+
+        app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA Distribusi Antrean',
+            'validator_form_id' => $form->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+
+        $target = $sourceAssignment->targets()->where('guru_id', $validator->guru()->first()->id)->first();
+
+        $this->assertNotNull($target);
+        $this->assertSame(2, $target->session?->nomor_sesi);
+        $this->assertSame(42, $sourceAssignment->fresh()->total_target);
+        $this->assertSame(1, $sourceAssignment->fresh()->total_ditugaskan);
+        $this->assertSame(41, $sourceAssignment->sessions()->where('nomor_sesi', 1)->value('total_peserta'));
+        $this->assertSame(1, $sourceAssignment->sessions()->where('nomor_sesi', 2)->value('total_peserta'));
+    }
+
     public function test_bulk_assignment_is_given_to_every_eligible_validator_and_skips_duplicates(): void
     {
         $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '101');
@@ -190,6 +230,7 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame(['created' => 0, 'skipped' => 2], $secondResult);
         $this->assertDatabaseCount('validator_assignments', 2);
         $this->assertDatabaseCount('validator_assignment_assessment_assignments', 4);
+        $this->assertDatabaseCount('assessment_assignment_targets', 4);
         $this->assertSame(
             [2, 2],
             \App\Models\ValidatorAssignment::query()
@@ -257,6 +298,43 @@ class AssessmentValidatorModuleTest extends TestCase
             ->assertRedirect(route('assessment.portal.dashboard', ['validator_task' => $assignment->id]));
     }
 
+    public function test_validator_widget_is_available_from_the_shared_portal_layout(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '204');
+        [, $sourceAssignment] = $this->createAssessment();
+        [$form] = $this->createValidatorForm();
+        $assignment = app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA Tampil di Semua Halaman',
+            'validator_form_id' => $form->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+
+        $response = $this
+            ->withSession([
+                'assessment_portal_auth' => [
+                    'user_id' => $validator->id,
+                    'guru_id' => $validator->guru()->first()->id,
+                ],
+            ])
+            ->view('assessment.layouts.app');
+
+        $response->assertSee('Quality Assurance Assessment');
+        $response->assertSee('QA Tampil di Semua Halaman');
+        $response->assertSee('open: true', false);
+
+        $this->withSession([
+            'assessment_portal_auth' => [
+                'user_id' => $validator->id,
+                'guru_id' => $validator->guru()->first()->id,
+            ],
+            'assessment_portal.validator_task_id.'.$validator->id => $assignment->id,
+        ])
+            ->view('assessment.layouts.app')
+            ->assertSee('QA Tampil di Semua Halaman')
+            ->assertSee('Kirim Hasil QA');
+    }
+
     private function createCoreTables(): void
     {
         Schema::create('users', function (Blueprint $table) {
@@ -274,6 +352,7 @@ class AssessmentValidatorModuleTest extends TestCase
             $table->string('nama_lengkap');
             $table->string('email')->nullable();
             $table->string('no_ktp');
+            $table->string('kabupaten')->nullable();
             $table->string('eksternal_jabatan');
             $table->string('jenis_jabatan');
             $table->timestamps();
@@ -323,10 +402,16 @@ class AssessmentValidatorModuleTest extends TestCase
             $table->boolean('is_active')->default(true);
             $table->boolean('session_enabled')->default(true);
             $table->string('target_ketenagaan');
+            $table->unsignedInteger('kapasitas_per_sesi')->default(41);
+            $table->unsignedInteger('durasi_sesi_jam')->default(3);
+            $table->unsignedInteger('total_sesi')->default(0);
             $table->text('deskripsi')->nullable();
             $table->date('tanggal_mulai')->nullable();
             $table->date('tanggal_selesai')->nullable();
+            $table->string('status_distribusi')->default('draft');
             $table->unsignedInteger('total_target')->default(0);
+            $table->unsignedInteger('total_ditugaskan')->default(0);
+            $table->timestamp('processed_at')->nullable();
             $table->timestamps();
         });
 
@@ -341,6 +426,32 @@ class AssessmentValidatorModuleTest extends TestCase
 
         Schema::create('assessment_assignment_targets', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('assessment_assignment_id');
+            $table->unsignedBigInteger('assessment_assignment_session_id')->nullable();
+            $table->unsignedBigInteger('assessment_combination_id')->nullable();
+            $table->unsignedBigInteger('guru_id');
+            $table->string('status')->default('ditugaskan');
+            $table->timestamp('assigned_at')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('deadline_at')->nullable();
+            $table->timestamp('submitted_at')->nullable();
+            $table->string('completion_mode')->nullable();
+            $table->timestamp('timed_out_at')->nullable();
+            $table->unique(['assessment_assignment_id', 'guru_id']);
+            $table->index(['guru_id', 'status']);
+            $table->timestamps();
+        });
+
+        Schema::create('assessment_assignment_sessions', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_assignment_id');
+            $table->unsignedInteger('nomor_sesi');
+            $table->string('label_sesi');
+            $table->timestamp('waktu_mulai')->nullable();
+            $table->timestamp('waktu_selesai')->nullable();
+            $table->unsignedInteger('kapasitas_peserta')->default(41);
+            $table->unsignedInteger('total_peserta')->default(0);
+            $table->unsignedInteger('durasi_sesi_jam')->default(3);
             $table->timestamps();
         });
     }

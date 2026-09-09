@@ -67,7 +67,9 @@
                                         <strong>{{ $assessmentAssignments->count() }} penugasan assessment aktif</strong>
                                         untuk Tenaga Pendidik dan Tenaga Kependidikan, lalu memberikan QA kepada seluruh
                                         <strong>{{ $validators->count() }} stakeholder dengan jabatan Validator</strong>.
-                                        Validator yang sudah memiliki QA aktif yang sama akan dilewati.
+                                        Setiap validator juga otomatis ditambahkan sebagai peserta pada penugasan assessment
+                                        tersebut agar assessment tampil di portalnya. Validator yang sudah memiliki QA aktif
+                                        yang sama akan dilewati dan target peserta yang sudah ada tidak dibuat ulang.
                                     </div>
                                 </div>
                                 <div class="form-group col-md-6">

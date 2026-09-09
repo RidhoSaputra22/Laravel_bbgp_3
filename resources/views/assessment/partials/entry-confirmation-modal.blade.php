@@ -315,13 +315,13 @@
     x-show="entryModalOpen"
     x-cloak
     style="display: none;"
-    class="fixed  inset-0 z-50 flex items-center justify-center "
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
     @keydown.escape.window="closeEntryModal()"
 >
     <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" x-transition.opacity @click="closeEntryModal()"></div>
 
-    <div class="relative h-full w-full max-w-4xl" x-transition>
-        <x-assessment::ui.card class=" rounded-[28px] p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)] ">
+    <div class="relative flex max-h-[calc(100vh-2rem)] w-full max-w-4xl" x-transition>
+        <x-assessment::ui.card class="flex max-h-full w-full flex-col overflow-hidden rounded-2xl p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)] sm:rounded-[24px]">
             <form x-ref="entryConfirmForm" method="POST" x-bind:action="entryModal.action" class="hidden">
                 @csrf
                 <input type="hidden" name="entry_action" x-bind:value="entryModal.entryAction">
@@ -329,18 +329,18 @@
                 <input type="hidden" name="stage_index" x-bind:value="entryModal.stageIndex">
             </form>
 
-            <div class="border-b border-slate-200 px-3 py-2">
+            <div class="shrink-0 border-b border-slate-200 px-5 py-5 sm:px-8 sm:py-6">
                 <div class="flex items-start justify-between gap-4">
                     <div class="min-w-0">
                         <div class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                             Konfirmasi Pengerjaan
                         </div>
-                        <h3 class="mt-2 text-xl font-bold text-slate-900" x-text="entryModal.title"></h3>
+                        <h3 class="mt-1.5 text-xl font-bold text-slate-900 sm:text-2xl" x-text="entryModal.title"></h3>
                         <p class="mt-1 text-sm leading-relaxed text-slate-500">
                             <span x-text="modalDescription()"></span>
                         </p>
 
-                        <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                        <div class="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
                             <template x-if="entryModal.stageLabel">
                                 <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-slate-700" x-text="entryModal.stageLabel"></span>
                             </template>
@@ -380,23 +380,23 @@
                 </div>
             </div>
 
-            <div class="max-h-[72vh]  px-3 py-2 mt-3">
+            <div class="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6">
                 <div class="flex items-end gap-4 border-b border-[#dce8f1] pb-4">
 
                     <div>
-                        <div class="text-2xl font-black uppercase tracking-[0.18em] ">
+                        <div class="text-xl font-black uppercase tracking-[0.14em] text-slate-900 sm:text-2xl sm:tracking-[0.18em]">
                             Petunjuk Umum
                         </div>
                     </div>
                 </div>
 
-                <ol class="mt-6 list-decimal space-y-4 pl-6 text-[12pt] leading-7 text-slate-700">
+                <ol class="mt-5 list-decimal space-y-3.5 pl-5 text-sm leading-6 text-slate-700 sm:mt-6 sm:space-y-4 sm:pl-6 sm:text-[12pt] sm:leading-7">
                     <template x-for="(item, index) in entryModal.instructionItems" :key="index">
                         <li>
                             <span class="font-medium" x-text="item.text"></span>
 
                             <template x-if="item.children && item.children.length">
-                                <ul class="mt-2 list-disc space-y-1 pl-6 text-slate-600">
+                                <ul class="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-slate-600 sm:pl-6 sm:text-base sm:leading-7">
                                     <template x-for="(child, childIndex) in item.children" :key="childIndex">
                                         <li x-text="child"></li>
                                     </template>
@@ -407,14 +407,14 @@
                 </ol>
 
                 <template x-if="entryModal.customInstruction">
-                    <div class="mt-6 rounded-sm border border-sky-200 bg-sky-50 px-5 py-4 text-sm leading-7 text-sky-900">
+                    <div class="mt-6 rounded-lg border border-sky-200 bg-sky-50 px-4 py-4 text-sm leading-6 text-sky-900 sm:px-5 sm:leading-7">
                         <div class="font-semibold" x-text="entryModal.scope === 'assignment' ? 'Informasi penugasan' : 'Catatan khusus assessment'"></div>
                         <div class="mt-1 whitespace-pre-line" x-text="entryModal.customInstruction"></div>
                     </div>
                 </template>
             </div>
 
-            <div class="border-t border-slate-200 px-6 py-4">
+            <div class="shrink-0 border-t border-slate-200 bg-white px-5 py-4 sm:px-8">
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                     <x-assessment::ui.button type="button" variant="outline" @click="closeEntryModal()">
                         Batal
