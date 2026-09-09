@@ -208,8 +208,9 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame('pages.admin.assessment.validator.panel', $panelView->getName());
 
         session()->put(['role' => 'stakeholder', 'user_id' => $eligible->id]);
-        $taskView = app(ValidatorTaskController::class)->index();
-        $this->assertSame('pages.admin.assessment.validator.task.index', $taskView->getName());
+        $taskRedirect = app(ValidatorTaskController::class)->index();
+        $this->assertSame(route('assessment.portal.dashboard'), $taskRedirect->getTargetUrl());
+        $this->assertSame($eligible->id, session('assessment_portal_auth.user_id'));
 
         try {
             app(ValidatorPanelController::class)->index();
@@ -217,6 +218,43 @@ class AssessmentValidatorModuleTest extends TestCase
         } catch (HttpException $exception) {
             $this->assertSame(403, $exception->getStatusCode());
         }
+    }
+
+    public function test_portal_validator_actions_reject_non_validator_and_accept_task_owner(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '201');
+        $otherValidator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '203');
+        $nonValidator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Kepala Dinas', '202');
+        [, $sourceAssignment] = $this->createAssessment();
+        [$form] = $this->createValidatorForm();
+        $assignment = app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA Portal Validator',
+            'validator_form_id' => $form->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+
+        $this->withSession([
+            'assessment_portal_auth' => [
+                'user_id' => $nonValidator->id,
+                'guru_id' => $nonValidator->guru()->first()->id,
+            ],
+        ])->post(route('assessment.portal.validator.tasks.draft', $assignment))->assertForbidden();
+
+        $this->withSession([
+            'assessment_portal_auth' => [
+                'user_id' => $otherValidator->id,
+                'guru_id' => $otherValidator->guru()->first()->id,
+            ],
+        ])->post(route('assessment.portal.validator.tasks.draft', $assignment))->assertForbidden();
+
+        $this->withSession([
+            'assessment_portal_auth' => [
+                'user_id' => $validator->id,
+                'guru_id' => $validator->guru()->first()->id,
+            ],
+        ])->post(route('assessment.portal.validator.tasks.draft', $assignment))
+            ->assertRedirect(route('assessment.portal.dashboard', ['validator_task' => $assignment->id]));
     }
 
     private function createCoreTables(): void

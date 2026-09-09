@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\ValidatorAssignment;
+use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\ValidatorAssignmentService;
 use App\Support\Assessment\ValidatorAccess;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -13,49 +16,22 @@ use Illuminate\Validation\ValidationException;
 class ValidatorTaskController extends Controller
 {
     public function __construct(
-        private readonly ValidatorAssignmentService $assignmentService
+        private readonly ValidatorAssignmentService $assignmentService,
+        private readonly AssessmentPortalAuthService $portalAuthService
     ) {}
 
-    public function index()
+    public function index(): RedirectResponse
     {
         $user = ValidatorAccess::authorizeValidator();
 
-        $baseQuery = ValidatorAssignment::query()
-            ->where('validator_user_id', $user->id)
-            ->where('status', '!=', 'cancelled');
-
-        $pendingCount = (clone $baseQuery)->whereIn('status', ['assigned', 'in_progress'])->count();
-        $submittedCount = (clone $baseQuery)->where('status', 'submitted')->count();
-        $assignments = $baseQuery
-            ->with(['validatorForm', 'assessment', 'assessmentAssignments'])
-            ->withSummaryColumns()
-            ->newestFirst()
-            ->paginate(20);
-
-        return view('pages.admin.assessment.validator.task.index', [
-            'menu' => 'validator-tasks',
-            'assignments' => $assignments,
-            'pendingCount' => $pendingCount,
-            'submittedCount' => $submittedCount,
-        ]);
+        return $this->redirectToPortal($user);
     }
 
-    public function show(ValidatorAssignment $assignment)
+    public function show(ValidatorAssignment $assignment): RedirectResponse
     {
-        $this->authorizeAssignment($assignment);
-        $assignment->load([
-            'validatorForm.sections.fields',
-            'assessment',
-            'assessmentAssignments.assessments',
-            'responses.field',
-        ]);
+        $user = $this->authorizeAssignment($assignment);
 
-        return view('pages.admin.assessment.validator.task.show', [
-            'menu' => 'validator-tasks',
-            'assignment' => $assignment,
-            'responseLookup' => $assignment->responses->keyBy('validator_form_field_id'),
-            'recommendations' => ValidatorAssignment::RECOMMENDATIONS,
-        ]);
+        return $this->redirectToPortal($user, $assignment);
     }
 
     public function saveDraft(Request $request, ValidatorAssignment $assignment)
@@ -76,7 +52,7 @@ class ValidatorTaskController extends Controller
         ]);
 
         return redirect()
-            ->route('assessment.validator.task.show', $assignment)
+            ->route('assessment.portal.dashboard', ['validator_task' => $assignment->id])
             ->with('validator_success', 'Draf validasi berhasil disimpan.');
     }
 
@@ -111,7 +87,7 @@ class ValidatorTaskController extends Controller
         );
 
         return redirect()
-            ->route('assessment.validator.task.show', $assignment)
+            ->route('assessment.portal.dashboard', ['validator_task' => $assignment->id])
             ->with('validator_success', 'Hasil quality assurance berhasil dikirim dan dikunci.');
     }
 
@@ -153,10 +129,32 @@ class ValidatorTaskController extends Controller
         return (array) ($validator->validate()['answers'] ?? []);
     }
 
-    private function authorizeAssignment(ValidatorAssignment $assignment): void
+    private function authorizeAssignment(ValidatorAssignment $assignment): User
     {
-        $user = ValidatorAccess::authorizeValidator();
+        if (request()->routeIs('assessment.portal.validator.*')) {
+            $user = $this->portalAuthService->currentUser()?->loadMissing('guru');
+            abort_unless(ValidatorAccess::isEligibleUser($user), 403);
+        } else {
+            $user = ValidatorAccess::authorizeValidator();
+        }
+
         abort_unless((int) $assignment->validator_user_id === (int) $user->id, 403);
+
+        return $user;
+    }
+
+    private function redirectToPortal(
+        User $user,
+        ?ValidatorAssignment $assignment = null
+    ): RedirectResponse {
+        $guru = $user->relationLoaded('guru') ? $user->guru : $user->guru()->first();
+        abort_unless($guru, 403);
+        $this->portalAuthService->storeSession($user, $guru);
+
+        return redirect()->route(
+            'assessment.portal.dashboard',
+            $assignment ? ['validator_task' => $assignment->id] : []
+        );
     }
 
     private function ensureEditable(ValidatorAssignment $assignment): void

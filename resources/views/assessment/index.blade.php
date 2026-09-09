@@ -55,5 +55,9 @@
         </section>
 
         @include('assessment.partials.entry-confirmation-modal')
+
+        @if ($isValidator)
+            @include('assessment.partials.validator-widget')
+        @endif
     </div>
 @endsection

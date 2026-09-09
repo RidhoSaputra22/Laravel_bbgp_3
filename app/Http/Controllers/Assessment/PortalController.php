@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
 use App\Models\Guru;
+use App\Models\ValidatorAssignment;
 use App\Services\Assessment\AssessmentAttemptLifecycleService;
 use App\Services\Assessment\AssessmentAttemptSecurityService;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
 use App\Services\Assessment\AssessmentPortalStageService;
+use App\Support\Assessment\ValidatorAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -33,9 +35,11 @@ class PortalController extends Controller
             : redirect()->route('assessment.portal.auth');
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $guru = $this->requireGuru();
+        $portalUser = $this->authService->currentUser()?->loadMissing('guru');
+        $isValidator = ValidatorAccess::isEligibleUser($portalUser);
         $dashboardCards = collect($this->portalService->getDashboardTargets($guru))
             ->map(function (array $item) {
                 $target = $this->attemptLifecycleService->syncExpiredTarget($item['target']);
@@ -48,10 +52,55 @@ class PortalController extends Controller
             ->values()
             ->all();
 
+        $validatorTasks = collect();
+        $validatorTaskCount = 0;
+        $pendingValidatorTaskCount = 0;
+        $selectedValidatorTask = null;
+        $validatorResponseLookup = collect();
+
+        if ($isValidator) {
+            $validatorBaseQuery = ValidatorAssignment::query()
+                ->where('validator_user_id', $portalUser->id)
+                ->where('status', '!=', 'cancelled');
+            $validatorTaskCount = (clone $validatorBaseQuery)->count();
+            $pendingValidatorTaskCount = (clone $validatorBaseQuery)
+                ->whereIn('status', ['assigned', 'in_progress'])
+                ->count();
+            $validatorTasks = $validatorBaseQuery
+                ->with(['validatorForm', 'assessment', 'assessmentAssignments'])
+                ->withSummaryColumns()
+                ->newestFirst()
+                ->limit(10)
+                ->get();
+
+            $selectedTaskId = $request->integer('validator_task');
+
+            if ($selectedTaskId) {
+                $selectedValidatorTask = ValidatorAssignment::query()
+                    ->whereKey($selectedTaskId)
+                    ->where('validator_user_id', $portalUser->id)
+                    ->where('status', '!=', 'cancelled')
+                    ->with([
+                        'validatorForm.sections.fields',
+                        'responses.field',
+                    ])
+                    ->firstOrFail();
+                $validatorResponseLookup = $selectedValidatorTask->responses
+                    ->keyBy('validator_form_field_id');
+            }
+        }
+
         return view('assessment.index', [
             'menu' => 'assessment-portal',
             'guru' => $guru,
             'dashboardCards' => $dashboardCards,
+            'isValidator' => $isValidator,
+            'validatorTasks' => $validatorTasks,
+            'validatorTaskCount' => $validatorTaskCount,
+            'pendingValidatorTaskCount' => $pendingValidatorTaskCount,
+            'selectedValidatorTask' => $selectedValidatorTask,
+            'validatorResponseLookup' => $validatorResponseLookup,
+            'validatorRecommendations' => ValidatorAssignment::RECOMMENDATIONS,
         ]);
     }
 

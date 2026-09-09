@@ -48,11 +48,15 @@ class AssessmentPortalRoutesTest extends TestCase
         $adminUrl = route('assessment.index', absolute: false);
         $autosaveUrl = route('assessment.portal.autosave', 5, absolute: false);
         $downloadResultUrl = route('assessment.portal.result.download', 5, absolute: false);
+        $validatorDraftUrl = route('assessment.portal.validator.tasks.draft', 7, absolute: false);
+        $validatorSubmitUrl = route('assessment.portal.validator.tasks.submit', 7, absolute: false);
 
         $this->assertSame('/assessment', $portalUrl);
         $this->assertSame('/dashboard/assessment', $adminUrl);
         $this->assertSame('/assessment/show/5/autosave', $autosaveUrl);
         $this->assertSame('/assessment/result/5/download', $downloadResultUrl);
+        $this->assertSame('/assessment/validator-tasks/7/draft', $validatorDraftUrl);
+        $this->assertSame('/assessment/validator-tasks/7/submit', $validatorSubmitUrl);
         $this->assertNotSame($portalUrl, $adminUrl);
     }
 

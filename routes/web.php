@@ -10,6 +10,7 @@ use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
 use App\Http\Controllers\User\SekolahController as UserSekolahController;
+use App\Http\Controllers\ValidatorTaskController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
@@ -117,6 +118,10 @@ Route::prefix('assessment')
 
         Route::middleware('assessment.portal')->group(function () {
             Route::get('/dashboard', [AssessmentPortalController::class, 'dashboard'])->name('dashboard');
+            Route::post('/validator-tasks/{assignment}/draft', [ValidatorTaskController::class, 'saveDraft'])
+                ->name('validator.tasks.draft');
+            Route::post('/validator-tasks/{assignment}/submit', [ValidatorTaskController::class, 'submit'])
+                ->name('validator.tasks.submit');
             Route::post('/show/{id}/confirm', [AssessmentPortalController::class, 'confirmEntry'])->name('confirm');
             Route::post('/show/{id}/start', [AssessmentPortalController::class, 'start'])->name('start');
             Route::get('/show/{id}', [AssessmentPortalController::class, 'show'])->name('show');

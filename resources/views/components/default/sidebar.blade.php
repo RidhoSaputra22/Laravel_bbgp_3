@@ -311,13 +311,6 @@
                   <i class="fas fa-file-signature"></i> <span>RTL & Sertifikat</span>
                </a>
             </li>
-            @if (Session('role') == 'stakeholder' && App\Support\Assessment\ValidatorAccess::currentValidator())
-               <li class="{{ $menu == 'validator-tasks' ? 'active' : '' }}">
-                  <a class="nav-link" href="{{ route('assessment.validator.task.index') }}">
-                     <i class="fas fa-clipboard-check"></i> <span>Tugas Validasi</span>
-                  </a>
-               </li>
-            @endif
             @php
                // Cek apakah user ini adalah kepala sekolah yang sudah punya data sekolah
                $sekolah = \App\Models\Sekolah::where('user_id', session('guru_id'))->first();
