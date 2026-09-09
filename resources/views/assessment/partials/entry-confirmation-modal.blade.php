@@ -52,9 +52,15 @@
                         modal.instructionItems = this.buildInstructionItems(modal);
                         this.entryModal = modal;
                         this.entryModalOpen = true;
+                        window.dispatchEvent(new CustomEvent('assessment-entry-modal-toggle', {
+                            detail: { open: true },
+                        }));
                     },
                     closeEntryModal() {
                         this.entryModalOpen = false;
+                        window.dispatchEvent(new CustomEvent('assessment-entry-modal-toggle', {
+                            detail: { open: false },
+                        }));
                     },
                     submitEntryModal() {
                         if (! this.entryModal.action) {

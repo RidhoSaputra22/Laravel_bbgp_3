@@ -51,8 +51,7 @@ class ValidatorTaskController extends Controller
             'final_notes' => $conclusion['final_notes'] ?? null,
         ]);
 
-        return redirect()
-            ->route('assessment.portal.dashboard', ['validator_task' => $assignment->id])
+        return $this->redirectAfterPortalAction($request, $assignment)
             ->with('validator_success', 'Draf validasi berhasil disimpan.');
     }
 
@@ -86,8 +85,7 @@ class ValidatorTaskController extends Controller
             $validatedConclusion['final_notes'] ?? null
         );
 
-        return redirect()
-            ->route('assessment.portal.dashboard', ['validator_task' => $assignment->id])
+        return $this->redirectAfterPortalAction($request, $assignment)
             ->with('validator_success', 'Hasil quality assurance berhasil dikirim dan dikunci.');
     }
 
@@ -155,6 +153,19 @@ class ValidatorTaskController extends Controller
             'assessment.portal.dashboard',
             $assignment ? ['validator_task' => $assignment->id] : []
         );
+    }
+
+    private function redirectAfterPortalAction(
+        Request $request,
+        ValidatorAssignment $assignment
+    ): RedirectResponse {
+        $returnTo = $request->string('return_to')->toString();
+
+        if ($returnTo !== '' && str_starts_with($returnTo, '/') && ! str_starts_with($returnTo, '//')) {
+            return redirect()->to($returnTo);
+        }
+
+        return redirect()->route('assessment.portal.dashboard', ['validator_task' => $assignment->id]);
     }
 
     private function ensureEditable(ValidatorAssignment $assignment): void
