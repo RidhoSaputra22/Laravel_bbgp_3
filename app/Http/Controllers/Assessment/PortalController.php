@@ -12,6 +12,7 @@ use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
 use App\Services\Assessment\AssessmentPortalStageService;
+use App\Support\Assessment\ValidatorAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -129,7 +130,8 @@ class PortalController extends Controller
         if ($requiresEntryConfirmation && ! $this->hasEntryConfirmation($request, $target->id, $confirmationStageIndex)) {
             return $this->missingEntryConfirmationResponse($target, $confirmationStageIndex);
         }
-        $stageState = $this->stageService->resolveShowState($request, $target, $attempt);
+        $ignoreStageLock = $this->isValidator();
+        $stageState = $this->stageService->resolveShowState($request, $target, $attempt, $ignoreStageLock);
         $attempt = $stageState['attempt'];
         $stageFlowEnabled = $stageState['stage_flow_enabled'];
         $renderStageOverview = $stageState['render_stage_overview'];
@@ -197,7 +199,8 @@ class PortalController extends Controller
                 'target' => $freshTarget,
                 'attempt' => $freshAttempt,
                 'meta' => $this->portalService->buildTargetMeta($freshTarget),
-                'stageOverview' => $this->portalService->buildStageOverview($freshTarget, $freshAttempt),
+                'stageOverview' => $this->portalService->buildStageOverview($freshTarget, $freshAttempt, $ignoreStageLock),
+                'validatorBypassStageLock' => $ignoreStageLock,
             ]);
         }
 
@@ -210,6 +213,7 @@ class PortalController extends Controller
             'selectedStageIndex' => $currentStageIndex,
             'answerLookup' => $this->attemptService->buildAnswerLookup($freshAttempt),
             'securityPayload' => $this->attemptSecurityService->buildClientPayload($freshAttempt, $currentStageIndex),
+            'validatorBypassStageLock' => $ignoreStageLock,
         ]);
     }
 
@@ -231,7 +235,7 @@ class PortalController extends Controller
         }
 
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
-        $stageContext = $this->stageService->resolveStartContext($request, $target, $attempt);
+        $stageContext = $this->stageService->resolveStartContext($request, $target, $attempt, $this->isValidator());
 
         if ($stageContext['uses_stage_flow']) {
             if ($stageContext['error'] !== null) {
@@ -305,5 +309,10 @@ class PortalController extends Controller
         abort_unless($guru, 403);
 
         return $guru;
+    }
+
+    private function isValidator(): bool
+    {
+        return ValidatorAccess::isEligibleUser($this->authService->currentUser()?->loadMissing('guru'));
     }
 }

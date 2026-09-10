@@ -17,7 +17,8 @@ class AssessmentPortalStageService
     public function resolveStartContext(
         Request $request,
         AssessmentAssignmentTarget $target,
-        AssessmentAttempt $attempt
+        AssessmentAttempt $attempt,
+        bool $ignoreStageLock = false
     ): array {
         if (! $this->usesStageFlow($target, $attempt)) {
             return [
@@ -32,7 +33,7 @@ class AssessmentPortalStageService
         $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
         $progress = $this->resolveProgress($attempt);
 
-        if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+        if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex, $ignoreStageLock)) {
             return [
                 'uses_stage_flow' => true,
                 'attempt' => $attempt,
@@ -61,7 +62,8 @@ class AssessmentPortalStageService
     public function resolveShowState(
         Request $request,
         AssessmentAssignmentTarget $target,
-        AssessmentAttempt $attempt
+        AssessmentAttempt $attempt,
+        bool $ignoreStageLock = false
     ): array {
         $stageFlowEnabled = $this->usesStageFlow($target, $attempt);
         $renderStageOverview = $stageFlowEnabled && ! $this->hasRequestedStageSelection($request);
@@ -83,7 +85,7 @@ class AssessmentPortalStageService
         } else {
             $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
 
-            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+            if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex, $ignoreStageLock)) {
                 $stageIndex = AssessmentStageProgress::resolveCurrentStageIndex($progress);
             }
 
@@ -117,7 +119,8 @@ class AssessmentPortalStageService
     public function resolveMutationContext(
         Request $request,
         AssessmentAssignmentTarget $target,
-        AssessmentAttempt $attempt
+        AssessmentAttempt $attempt,
+        bool $ignoreStageLock = false
     ): array {
         if (! $this->usesStageFlow($target, $attempt)) {
             return [
@@ -132,7 +135,7 @@ class AssessmentPortalStageService
         $stageIndex = $this->resolveRequestedStageIndex($request, $attempt);
         $progress = $this->resolveProgress($attempt);
 
-        if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex)) {
+        if (! AssessmentStageProgress::canAccessStage($progress, $stageIndex, $ignoreStageLock)) {
             return [
                 'uses_stage_flow' => true,
                 'attempt' => $attempt,

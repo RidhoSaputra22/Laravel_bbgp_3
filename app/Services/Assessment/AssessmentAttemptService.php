@@ -9,6 +9,7 @@ use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\AssessmentUrlValidationHelper;
 use App\Support\Assessment\AssessmentStageProgress;
+use App\Support\Assessment\ValidatorAccess;
 use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
@@ -1839,7 +1840,11 @@ class AssessmentAttemptService
             $resolvedStageIndex = $this->resolveStageIndexFromSnapshotBucket($progress, $processedFieldIds, $clientSnapshotBucket);
         }
 
-        if ($resolvedStageIndex === null || ! AssessmentStageProgress::canAccessStage($progress, $resolvedStageIndex)) {
+        if ($resolvedStageIndex === null || ! AssessmentStageProgress::canAccessStage(
+            $progress,
+            $resolvedStageIndex,
+            ValidatorAccess::currentValidator() !== null
+        )) {
             return null;
         }
 

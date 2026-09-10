@@ -13,6 +13,7 @@
         );
         $answerLookup = $answerLookup ?? [];
         $securityPayload = $securityPayload ?? [];
+        $validatorBypassStageLock = (bool) ($validatorBypassStageLock ?? false);
         $viewerMode = (string) ($viewerMode ?? 'participant');
         $assessmentDebugModeEnabled = in_array($viewerMode, ['admin', 'admin_preview'], true)
             || in_array((string) session('role'), ['admin', 'superadmin', 'kepala', 'database'], true);
@@ -90,7 +91,12 @@
             })
             ->all();
         $stageMetaByIndex = collect($assessmentItems)
-            ->mapWithKeys(function (array $assessmentItem) use ($stageFlowEnabled, $stageProgress, $securityPayload) {
+            ->mapWithKeys(function (array $assessmentItem) use (
+                $stageFlowEnabled,
+                $stageProgress,
+                $securityPayload,
+                $validatorBypassStageLock
+            ) {
                 $index = (int) ($assessmentItem['index'] ?? 0);
                 $stage = $stageFlowEnabled
                     ? \App\Support\Assessment\AssessmentStageProgress::stage($stageProgress, $index)
@@ -112,7 +118,8 @@
                 $status = $stageFlowEnabled
                     ? ($stage['status'] ?? \App\Support\Assessment\AssessmentStageProgress::STATUS_READY)
                     : 'in_progress';
-                $isLocked = $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_LOCKED;
+                $isLocked = $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_LOCKED
+                    && ! $validatorBypassStageLock;
                 $requiresStartButton = $stageFlowEnabled
                     && $status === \App\Support\Assessment\AssessmentStageProgress::STATUS_READY
                     && ($config['entry_mode'] ?? null) === \App\Support\Assessment\AssessmentStageConfig::ENTRY_START_BUTTON;

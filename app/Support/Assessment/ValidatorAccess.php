@@ -40,7 +40,9 @@ class ValidatorAccess
 
     public static function currentValidator(): ?User
     {
-        $userId = session('user_id');
+        // The assessment portal stores its own session payload, while legacy
+        // admin/portal flows may still use the top-level user_id session key.
+        $userId = session('assessment_portal_auth.user_id') ?: session('user_id');
 
         if (! $userId) {
             return null;

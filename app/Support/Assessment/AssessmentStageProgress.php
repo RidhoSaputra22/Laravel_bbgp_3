@@ -157,7 +157,7 @@ class AssessmentStageProgress
         return null;
     }
 
-    public static function canAccessStage(array $progress, int $stageIndex): bool
+    public static function canAccessStage(array $progress, int $stageIndex, bool $ignoreLock = false): bool
     {
         $stage = self::stage($progress, $stageIndex);
 
@@ -165,7 +165,7 @@ class AssessmentStageProgress
             return false;
         }
 
-        return ($stage['status'] ?? null) !== self::STATUS_LOCKED;
+        return $ignoreLock || ($stage['status'] ?? null) !== self::STATUS_LOCKED;
     }
 
     public static function stage(array $progress, int $stageIndex): ?array

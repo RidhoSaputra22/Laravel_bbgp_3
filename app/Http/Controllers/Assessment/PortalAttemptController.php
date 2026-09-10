@@ -10,6 +10,7 @@ use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentPortalAuthService;
 use App\Services\Assessment\AssessmentPortalService;
 use App\Services\Assessment\AssessmentPortalStageService;
+use App\Support\Assessment\ValidatorAccess;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -48,7 +49,7 @@ class PortalAttemptController extends Controller
         }
 
         $attempt = $this->attemptLifecycleService->ensureAttempt($target, false);
-        $stageContext = $this->stageService->resolveMutationContext($request, $target, $attempt);
+        $stageContext = $this->stageService->resolveMutationContext($request, $target, $attempt, $this->isValidator());
         $attempt = $stageContext['attempt'];
         $stageIndex = $stageContext['stage_index'];
 
@@ -186,7 +187,7 @@ class PortalAttemptController extends Controller
             return redirect()->route('assessment.portal.result', $target->id);
         }
 
-        $stageContext = $this->stageService->resolveMutationContext($request, $target, $attempt);
+        $stageContext = $this->stageService->resolveMutationContext($request, $target, $attempt, $this->isValidator());
         $attempt = $stageContext['attempt'];
         $stageIndex = $stageContext['stage_index'];
 
@@ -359,6 +360,11 @@ class PortalAttemptController extends Controller
         abort_unless($guru, 403);
 
         return $guru;
+    }
+
+    private function isValidator(): bool
+    {
+        return ValidatorAccess::isEligibleUser($this->authService->currentUser()?->loadMissing('guru'));
     }
 
     private function decodeClientSnapshotBucket(mixed $rawBucket): array

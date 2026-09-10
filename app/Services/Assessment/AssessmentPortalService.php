@@ -302,14 +302,18 @@ class AssessmentPortalService
         return $meta;
     }
 
-    public function buildStageOverview(AssessmentAssignmentTarget $target, AssessmentAttempt $attempt): array
+    public function buildStageOverview(
+        AssessmentAssignmentTarget $target,
+        AssessmentAttempt $attempt,
+        bool $ignoreStageLock = false
+    ): array
     {
         $snapshot = is_array($attempt->structure_snapshot ?? null) ? $attempt->structure_snapshot : [];
         $progress = AssessmentStageProgress::normalize($attempt->progress_snapshot, $snapshot);
         $stages = collect($snapshot['assessments'] ?? [])
             ->filter(fn ($assessment) => is_array($assessment))
             ->values()
-            ->map(function (array $assessment, int $index) use ($progress) {
+            ->map(function (array $assessment, int $index) use ($progress, $ignoreStageLock) {
                 $stage = AssessmentStageProgress::stage($progress, $index) ?? [];
                 $config = AssessmentStageProgress::stageConfig($progress, $index);
                 $forms = collect($assessment['forms'] ?? [])
@@ -330,6 +334,9 @@ class AssessmentPortalService
                         ->count();
                 });
                 $status = (string) ($stage['status'] ?? AssessmentStageProgress::STATUS_READY);
+                if ($ignoreStageLock && $status === AssessmentStageProgress::STATUS_LOCKED) {
+                    $status = AssessmentStageProgress::STATUS_READY;
+                }
                 $allowDraft = (bool) ($config['allow_draft'] ?? false);
                 $requiresStartButton =
                     ($config['entry_mode'] ?? null) === AssessmentStageConfig::ENTRY_START_BUTTON;
