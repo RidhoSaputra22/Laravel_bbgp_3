@@ -86,7 +86,7 @@ class ValidatorTaskController extends Controller
         );
 
         return $this->redirectAfterPortalAction($request, $assignment)
-            ->with('validator_success', 'Hasil quality assurance berhasil dikirim dan dikunci.');
+            ->with('validator_success', 'Hasil Validator berhasil dikirim dan dikunci.');
     }
 
     private function validateAnswers(

@@ -319,7 +319,7 @@ class AssessmentValidatorModuleTest extends TestCase
             ])
             ->view('assessment.layouts.app');
 
-        $response->assertSee('Quality Assurance Assessment');
+        $response->assertSee('Validator Assessment');
         $response->assertSee('QA Tampil di Semua Halaman');
         $response->assertSee('open: true', false);
 

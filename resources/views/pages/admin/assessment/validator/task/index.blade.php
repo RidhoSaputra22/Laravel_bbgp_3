@@ -33,7 +33,7 @@
                 </div>
 
                 <div class="card">
-                    <div class="card-header"><h4>Daftar Penugasan Quality Assurance</h4></div>
+                    <div class="card-header"><h4>Daftar Penugasan Validator</h4></div>
                     <div class="card-body">
                         @if ($assignments->isEmpty())
                             <div class="empty-state" data-height="300">

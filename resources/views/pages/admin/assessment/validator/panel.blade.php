@@ -13,7 +13,7 @@
                 @endif
 
                 <div class="alert alert-light border">
-                    <strong>Modul Quality Assurance terpisah.</strong>
+                    <strong>Modul Validator terpisah.</strong>
                     Form dan penugasan di halaman ini tidak memakai tabel pembuatan maupun penugasan peserta
                     assessment. Validator hanya menerima snapshot instrumen yang akan diperiksa.
                 </div>

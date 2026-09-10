@@ -23,7 +23,7 @@
                 @endif
 
                 <div class="alert alert-light border">
-                    Saat penugasan Quality Assurance dibuat, setiap validator otomatis didaftarkan sebagai
+                    Saat penugasan Validator dibuat, setiap validator otomatis didaftarkan sebagai
                     peserta pada penugasan assessment aktif yang terkait. Pengelolaan peserta assessment tetap
                     tersedia melalui menu <strong>Assessment &gt; Penugasan</strong>.
                 </div>

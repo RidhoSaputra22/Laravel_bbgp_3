@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Lembar Quality Assurance'])
+@extends('layouts.app', ['title' => 'Lembar Validator'])
 
 @php
     $isLocked = $assignment->status === 'submitted';
@@ -9,7 +9,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Lembar Quality Assurance</h1>
+                <h1>Lembar Validator</h1>
                 <div class="section-header-breadcrumb">
                     <a href="{{ route('assessment.validator.task.index') }}" class="btn btn-light">
                         <i class="fas fa-arrow-left"></i> Daftar Tugas
@@ -207,7 +207,7 @@
                             @endforeach
 
                             <div class="card">
-                                <div class="card-header"><h4>Kesimpulan Quality Assurance</h4></div>
+                                <div class="card-header"><h4>Kesimpulan Validator</h4></div>
                                 <div class="card-body">
                                     <div class="form-group">
                                         <label>Rekomendasi Akhir <span class="text-danger">*</span></label>
