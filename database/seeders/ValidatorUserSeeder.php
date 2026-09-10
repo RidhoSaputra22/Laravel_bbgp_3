@@ -23,7 +23,7 @@ class ValidatorUserSeeder extends Seeder
             $name = 'Validator '.$number;
             $username = 'validator'.$number;
             $noKtp = '990000000000000'.$number;
-            $password = $username;
+            $password = '12345';
 
             $payload = [
                 'name' => $name,
