@@ -6,6 +6,10 @@
             <div class="section-header">
                 <h1>Detail Penugasan Validator</h1>
                 <div class="section-header-breadcrumb">
+                    <a href="{{ route('assessment.validator.assignment.download', $assignment) }}"
+                        class="btn btn-primary mr-2">
+                        <i class="fas fa-file-pdf"></i> Print Hasil
+                    </a>
                     <a href="{{ route('assessment.validator.assignment.index') }}" class="btn btn-light">
                         <i class="fas fa-arrow-left"></i> Daftar Penugasan
                     </a>

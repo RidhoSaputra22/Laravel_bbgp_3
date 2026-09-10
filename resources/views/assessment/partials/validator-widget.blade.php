@@ -11,10 +11,10 @@
     x-show="!modalOpen"
     x-cloak
     @assessment-entry-modal-toggle.window="modalOpen = $event.detail.open"
-    class="fixed bottom-4 right-4 z-50"
+    class="pointer-events-none fixed inset-0 z-50"
 >
     <button x-show="!open" x-cloak type="button" @click="open = true"
-        class="relative flex items-center gap-3 rounded-sm bg-[#1376BD] px-5 py-3 font-semibold text-white shadow-xl transition hover:bg-indigo-700">
+        class="pointer-events-auto fixed bottom-4 right-4 flex items-center gap-3 rounded-sm bg-[#1376BD] px-5 py-3 font-semibold text-white shadow-xl transition hover:bg-indigo-700">
         <i class="fas fa-clipboard-check"></i>
         Tugas Validasi
         @if ($pendingValidatorTaskCount > 0)
@@ -25,10 +25,10 @@
     </button>
 
     <section x-show="open" x-cloak
-        class="flex max-h-[calc(100vh-2rem)] w-[min(92vw,36rem)] flex-col overflow-hidden rounded-md border border-slate-200 bg-white shadow-2xl">
+        class="pointer-events-auto ml-auto flex h-full w-full min-w-0 flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl sm:w-[min(92vw,36rem)]">
         <header class="flex shrink-0 items-center justify-between bg-[#1376BD] px-5 py-4 text-white">
             <div>
-                <h2 class="font-bold">Quality Assurance Assessment</h2>
+                <h2 class="font-bold">Validator Assessment</h2>
                 <p class="text-xs text-indigo-100">
                     {{ $pendingValidatorTaskCount }} perlu dikerjakan · {{ $validatorTaskCount }} total
                 </p>
@@ -89,18 +89,15 @@
                     </div>
                 @endif
 
-                @if ($taskIsLocked)
-                    <div class="mb-4 rounded-sm bg-emerald-50 p-3 text-sm text-emerald-700">
-                        Hasil sudah dikirim dan dikunci pada {{ $selectedValidatorTask->submitted_at?->format('d-m-Y H:i') }}.
-                    </div>
-                @endif
 
-                <form method="POST" action="{{ route('assessment.portal.validator.tasks.submit', $selectedValidatorTask) }}"
+
+                <form id="validator-task-form-{{ $selectedValidatorTask->id }}"
+                    method="POST" action="{{ route('assessment.portal.validator.tasks.submit', $selectedValidatorTask) }}"
                     class="space-y-5">
                     @csrf
                     <input type="hidden" name="return_to" value="{{ request()->fullUrlWithQuery(['validator_task' => $selectedValidatorTask->id]) }}">
                     @if ($selectedValidatorTask->validatorForm->instructions)
-                        <div class="rounded-sm bg-blue-50 p-3 text-sm text-blue-700">
+                        <div class="rounded-sm bg-blue-50 p-3 text-sm ">
                             {{ $selectedValidatorTask->validatorForm->instructions }}
                         </div>
                     @endif
@@ -197,7 +194,7 @@
                     @endforeach
 
                     <fieldset class="rounded-sm border border-slate-200 p-4">
-                        <legend class="px-2 font-bold text-slate-800">Kesimpulan QA</legend>
+                        <legend class="px-2 font-bold text-slate-800">Kesimpulan Validator</legend>
                         <label class="text-sm font-semibold text-slate-700">Rekomendasi Akhir <span class="text-red-500">*</span></label>
                         <select name="recommendation" class="mt-2 w-full rounded-sm border border-slate-300 px-3 py-2 text-sm"
                             @disabled($taskIsLocked || $taskIsUpcoming)>
@@ -214,20 +211,6 @@
                             @disabled($taskIsLocked || $taskIsUpcoming)>{{ old('final_notes', $selectedValidatorTask->final_notes) }}</textarea>
                     </fieldset>
 
-                    @unless ($taskIsLocked || $taskIsUpcoming)
-                        <div class="sticky bottom-0 flex justify-end gap-2 border-t border-slate-200 bg-white py-3">
-                            <button type="submit"
-                                formaction="{{ route('assessment.portal.validator.tasks.draft', $selectedValidatorTask) }}"
-                                class="rounded-sm border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                                Simpan Draf
-                            </button>
-                            <button type="submit"
-                                onclick="return confirm('Kirim hasil QA? Setelah dikirim hasil akan dikunci.')"
-                                class="rounded-sm bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-                                Kirim Hasil QA
-                            </button>
-                        </div>
-                    @endunless
                 </form>
             @else
                 @forelse ($validatorTasks as $task)
@@ -239,7 +222,7 @@
                                 <h3 class="font-semibold text-slate-800">{{ $task->title }}</h3>
                                 <p class="mt-1 text-xs text-slate-500">{{ $task->assessment_assignments_label }}</p>
                             </div>
-                            <span class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold
+                            <span class="shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold
                                 {{ $task->status === 'submitted' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700' }}">
                                 {{ $task->status_label }}
                             </span>
@@ -253,5 +236,23 @@
                 @endforelse
             @endif
         </div>
+
+        @if ($selectedValidatorTask)
+            @unless ($taskIsLocked || $taskIsUpcoming)
+                <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 sm:flex-row sm:justify-end">
+                    <button type="submit" form="validator-task-form-{{ $selectedValidatorTask->id }}"
+                        formaction="{{ route('assessment.portal.validator.tasks.draft', $selectedValidatorTask) }}"
+                        class="w-full rounded-sm border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto">
+                        Simpan Draf
+                    </button>
+                    <button type="submit" form="validator-task-form-{{ $selectedValidatorTask->id }}"
+                        formaction="{{ route('assessment.portal.validator.tasks.submit', $selectedValidatorTask) }}"
+                        onclick="return confirm('Kirim hasil QA? Setelah dikirim hasil akan dikunci.')"
+                        class="w-full rounded-sm bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700 sm:w-auto">
+                        Kirim Hasil QA
+                    </button>
+                </div>
+            @endunless
+        @endif
     </section>
 </div>

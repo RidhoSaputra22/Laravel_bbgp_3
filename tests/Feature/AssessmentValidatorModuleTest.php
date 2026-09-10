@@ -335,6 +335,41 @@ class AssessmentValidatorModuleTest extends TestCase
             ->assertSee('Kirim Hasil QA');
     }
 
+    public function test_admin_can_stream_a_pdf_containing_all_validator_answers(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '205');
+        [, $sourceAssignment] = $this->createAssessment();
+        [$form, $scoredField, $noteField] = $this->createValidatorForm();
+        $assignment = app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA PDF Validator',
+            'validator_form_id' => $form->id,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+
+        $assignment->load('validatorForm.sections.fields');
+        app(ValidatorAssignmentService::class)->submit($assignment, [
+            $scoredField->id => '5',
+            $noteField->id => 'Jawaban lengkap untuk dokumen PDF.',
+        ], 'approved', 'Instrumen siap digunakan.');
+
+        $response = $this->withSession([
+            'cek' => true,
+            'role' => 'admin',
+        ])->get(route('assessment.validator.assignment.download', $assignment));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+        $response->assertHeader(
+            'content-disposition',
+            'inline; filename="Hasil-Validasi-'.strtolower($assignment->code).'.pdf"'
+        );
+        $this->assertStringContainsString('no-cache', $response->headers->get('cache-control'));
+        $this->assertStringContainsString('no-store', $response->headers->get('cache-control'));
+        $response->assertHeader('pragma', 'no-cache');
+        $this->assertStringStartsWith('%PDF', $response->getContent());
+    }
+
     private function createCoreTables(): void
     {
         Schema::create('users', function (Blueprint $table) {

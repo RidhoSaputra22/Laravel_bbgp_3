@@ -36,6 +36,7 @@ class DatabaseSeeder extends Seeder
         $this->call(LatarJabatanSeeder::class);
         $this->call(JabatanPenugasanSeeder::class);
         $this->call(GuruSeeder::class);
+        $this->call(ValidatorUserSeeder::class);
         // $this->call(DataSeeder::class);
         $this->call(AssessmentProtofolioSeeder::class);
         $this->call(AssessmentPilihanGandaSeeder::class);

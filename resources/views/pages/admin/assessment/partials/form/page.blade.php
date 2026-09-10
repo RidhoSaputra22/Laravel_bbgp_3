@@ -614,6 +614,29 @@
             border-radius: 0.2rem;
             padding-bottom: 0.75rem;
             padding-top: 0.75rem;
+            align-items: center;
+            display: inline-flex;
+            justify-content: center;
+            min-height: 50px;
+            width: 100%;
+        }
+
+        .assessment-summary-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .assessment-summary-actions__preview,
+        .assessment-summary-actions__secondary {
+            margin: 0;
+            width: 100%;
+        }
+
+        .assessment-summary-actions__secondary {
+            display: grid;
+            gap: 0.5rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         @media (max-width: 991.98px) {
@@ -629,6 +652,12 @@
             .assessment-summary-row strong {
                 max-width: 100%;
                 text-align: left;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .assessment-summary-actions__secondary {
+                grid-template-columns: 1fr;
             }
         }
 
@@ -930,24 +959,26 @@
                                 </button>
                             </div>
 
-                            <div class="assessment-summary-actions mt-4 row g-2 px-2 ">
+                            <div class="assessment-summary-actions mt-4">
 
                                 @if ($previewUrl)
                                     <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST"
-                                        class="col px-1">
+                                        class="assessment-summary-actions__preview">
                                         @csrf
                                         <button type="submit" class="btn btn-info btn-block">
                                             <i class="fas fa-play-circle"></i> Lihat Preview
                                         </button>
                                     </form>
                                 @endif
-                                <a href="{{ route('assessment.index') }}" class="col btn mx-1 btn-light  ">
-                                    Kembali
-                                </a>
-                                <button type="submit" class="col btn mx-1 btn-primary " id="assessment-summary-submit"
-                                    data-builder-loading-lock disabled>
-                                    <i class="fas fa-save"></i> {{ $submitLabel }}
-                                </button>
+                                <div class="assessment-summary-actions__secondary">
+                                    <a href="{{ route('assessment.index') }}" class="btn btn-light">
+                                        Kembali
+                                    </a>
+                                    <button type="submit" class="btn btn-primary" id="assessment-summary-submit"
+                                        data-builder-loading-lock disabled>
+                                        <i class="fas fa-save"></i> {{ $submitLabel }}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

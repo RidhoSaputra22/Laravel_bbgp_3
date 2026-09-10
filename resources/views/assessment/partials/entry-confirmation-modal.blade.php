@@ -327,7 +327,7 @@
     <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" x-transition.opacity @click="closeEntryModal()"></div>
 
     <div class="relative flex max-h-[calc(100vh-2rem)] w-full max-w-4xl" x-transition>
-        <x-assessment::ui.card class="flex max-h-full w-full flex-col overflow-hidden rounded-2xl p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)] sm:rounded-[24px]">
+        <x-assessment::ui.card class="flex max-h-full w-full flex-col overflow-hidden rounded-md p-0 shadow-[0_28px_90px_rgba(15,23,42,0.35)] ">
             <form x-ref="entryConfirmForm" method="POST" x-bind:action="entryModal.action" class="hidden">
                 @csrf
                 <input type="hidden" name="entry_action" x-bind:value="entryModal.entryAction">

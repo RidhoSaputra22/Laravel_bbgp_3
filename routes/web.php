@@ -351,6 +351,8 @@ Route::group(
                         Route::get('/', 'ValidatorAssignmentController@index')->name('assessment.validator.assignment.index');
                         Route::get('/create', 'ValidatorAssignmentController@create')->name('assessment.validator.assignment.create');
                         Route::post('/', 'ValidatorAssignmentController@store')->name('assessment.validator.assignment.store');
+                        Route::get('/{assignment}/download', 'ValidatorAssignmentController@downloadResultPdf')
+                            ->name('assessment.validator.assignment.download');
                         Route::get('/{assignment}', 'ValidatorAssignmentController@show')->name('assessment.validator.assignment.show');
                         Route::delete('/{assignment}', 'ValidatorAssignmentController@destroy')->name('assessment.validator.assignment.destroy');
                     });

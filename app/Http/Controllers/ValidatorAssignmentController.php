@@ -8,8 +8,10 @@ use App\Models\ValidatorAssignment;
 use App\Models\ValidatorForm;
 use App\Services\Assessment\ValidatorAssignmentService;
 use App\Support\Assessment\ValidatorAccess;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ValidatorAssignmentController extends Controller
@@ -115,6 +117,46 @@ class ValidatorAssignmentController extends Controller
             'menu' => 'assessment-validator',
             'assignment' => $assignment,
             'responseLookup' => $assignment->responses->keyBy('validator_form_field_id'),
+        ]);
+    }
+
+    public function downloadResultPdf(ValidatorAssignment $assignment)
+    {
+        ValidatorAccess::authorizeAdmin();
+
+        $assignment->load([
+            'validatorForm.sections.fields',
+            'assessmentAssignments.assessments',
+            'validator.guru',
+            'responses.field',
+        ]);
+
+        $responseLookup = $assignment->responses->keyBy('validator_form_field_id');
+        $fields = $assignment->validatorForm->sections
+            ->flatMap->fields
+            ->where('is_active', true);
+
+        $pdf = Pdf::loadView('pages.admin.assessment.validator.assignment.result-pdf', [
+            'assignment' => $assignment,
+            'responseLookup' => $responseLookup,
+            'totalQuestions' => $fields->count(),
+            'answeredQuestions' => $fields->filter(function ($field) use ($responseLookup) {
+                $response = $responseLookup->get($field->id);
+
+                return $response && filled($response->answer_text);
+            })->count(),
+            'generatedAt' => now('Asia/Makassar'),
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
+
+        $filename = 'Hasil-Validasi-'.Str::slug($assignment->code ?: $assignment->title).'.pdf';
+
+        return $pdf->stream($filename)->withHeaders([
+            // Pastikan browser meminta ulang PDF agar perubahan hasil langsung terlihat saat refresh.
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
         ]);
     }
 
