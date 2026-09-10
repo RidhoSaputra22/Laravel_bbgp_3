@@ -66,7 +66,7 @@ class ValidatorUserSeeder extends Seeder
                     'no_wa' => '08129900000'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
                     'pas_foto' => '',
                     'no_rek' => '990000000'.$number,
-                    'jenis_bank' => 'BRI',
+                    'jenis_bank' => 'Bank BRI',
                     'npsn_sekolah' => '-',
                     'npwp' => '99000000000000'.$number,
                     'nuptk' => '990000000000000'.$number,
