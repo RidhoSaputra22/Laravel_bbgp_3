@@ -281,6 +281,23 @@ class ValidatorAssignmentService
         });
     }
 
+    public function reset(ValidatorAssignment $assignment): void
+    {
+        DB::transaction(function () use ($assignment) {
+            $assignment->responses()->delete();
+            $assignment->update([
+                'status' => 'assigned',
+                'started_at' => null,
+                'submitted_at' => null,
+                'score_total' => null,
+                'score_max' => null,
+                'score_percentage' => null,
+                'recommendation' => null,
+                'final_notes' => null,
+            ]);
+        });
+    }
+
     private function resolveScore(ValidatorFormField $field, mixed $answer): ?float
     {
         if (! $field->is_scored || is_array($answer) || ! is_numeric($answer)) {

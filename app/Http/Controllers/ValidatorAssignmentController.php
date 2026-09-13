@@ -160,6 +160,17 @@ class ValidatorAssignmentController extends Controller
         ]);
     }
 
+    public function reset(ValidatorAssignment $assignment)
+    {
+        ValidatorAccess::authorizeAdmin();
+
+        $this->assignmentService->reset($assignment);
+
+        return redirect()
+            ->route('assessment.validator.assignment.index')
+            ->with('validator_success', 'Validasi berhasil direset. Progres lama dihapus dan status dikembalikan menjadi Ditugaskan.');
+    }
+
     public function destroy(ValidatorAssignment $assignment)
     {
         ValidatorAccess::authorizeAdmin();

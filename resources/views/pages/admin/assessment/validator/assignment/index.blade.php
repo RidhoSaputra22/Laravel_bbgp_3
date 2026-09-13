@@ -92,6 +92,16 @@
                                                     <a href="{{ route('assessment.validator.assignment.show', $assignment) }}"
                                                         class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
                                                     <form method="POST"
+                                                        action="{{ route('assessment.validator.assignment.reset', $assignment) }}"
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Reset validasi ini? Seluruh progres, jawaban, nilai, dan hasil lama akan dihapus.')">
+                                                        @csrf
+                                                        <button class="btn btn-warning btn-sm" title="Reset progres validasi"
+                                                            {{ $assignment->status === 'assigned' ? 'disabled' : '' }}>
+                                                            <i class="fas fa-undo"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST"
                                                         action="{{ route('assessment.validator.assignment.destroy', $assignment) }}"
                                                         class="d-inline"
                                                         onsubmit="return confirm('Hapus penugasan validator ini beserta hasil validasinya?')">
