@@ -4,21 +4,18 @@
     $taskIsLocked = $selectedValidatorTask?->status === 'submitted';
     $taskIsUpcoming = $selectedValidatorTask?->start_date?->isFuture() ?? false;
     $validatorTaskListUrl = request()->fullUrlWithQuery(['validator_task' => 0]);
+    $isValidatorDashboard = request()->routeIs('assessment.portal.dashboard');
 @endphp
 
-<div
-    x-data="{ open: {{ $panelStartsOpen ? 'true' : 'false' }}, modalOpen: false }"
-    x-show="!modalOpen"
-    x-cloak
-    @assessment-entry-modal-toggle.window="modalOpen = $event.detail.open"
-    class="pointer-events-none fixed inset-0 z-50"
->
+<div x-data="{ open: {{ $panelStartsOpen ? 'true' : 'false' }}, modalOpen: false }" x-show="!modalOpen" x-cloak
+    @assessment-entry-modal-toggle.window="modalOpen = $event.detail.open" class="pointer-events-none fixed inset-0 z-50">
     <button x-show="!open" x-cloak type="button" @click="open = true"
         class="pointer-events-auto fixed bottom-4 right-4 flex items-center gap-3 rounded-sm bg-[#1376BD] px-5 py-3 font-semibold text-white shadow-xl transition hover:bg-indigo-700">
         <i class="fas fa-clipboard-check"></i>
         Tugas Validasi
         @if ($pendingValidatorTaskCount > 0)
-            <span class="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-md bg-red-500 px-1 text-xs">
+            <span
+                class="absolute -right-2 -top-2 flex h-6 min-w-6 items-center justify-center rounded-md bg-red-500 px-1 text-xs">
                 {{ $pendingValidatorTaskCount }}
             </span>
         @endif
@@ -33,11 +30,14 @@
                     {{ $pendingValidatorTaskCount }} perlu dikerjakan · {{ $validatorTaskCount }} total
                 </p>
             </div>
-            <button type="button" @click="open = false"
-                class="rounded-sm p-2 text-indigo-100 transition hover:bg-indigo-500 hover:text-white"
-                aria-label="Minimalkan panel validasi">
-                <i class="fas fa-minus"></i>
-            </button>
+            <div class="flex items-center gap-2">
+
+                <button type="button" @click="open = false"
+                    class="rounded-sm p-2 text-indigo-100 transition hover:bg-indigo-500 hover:text-white"
+                    aria-label="Minimalkan panel validasi">
+                    <i class="fas fa-minus"></i>
+                </button>
+            </div>
         </header>
 
         <div class="min-h-0 flex-1 overflow-y-auto p-5">
@@ -72,11 +72,13 @@
                 </div>
 
                 <details class="mb-4 rounded-sm border border-slate-200 bg-slate-50 p-3">
-                    <summary class="cursor-pointer text-sm font-semibold text-slate-700">Penugasan yang diperiksa</summary>
+                    <summary class="cursor-pointer text-sm font-semibold text-slate-700">Penugasan yang diperiksa
+                    </summary>
                     <div class="mt-3 space-y-2">
                         @foreach ($selectedValidatorTask->resolved_assignment_snapshots as $sourceSnapshot)
                             <div class="rounded-md bg-white p-2 text-xs text-slate-600">
-                                <strong class="block text-slate-800">{{ data_get($sourceSnapshot, 'title', '-') }}</strong>
+                                <strong
+                                    class="block text-slate-800">{{ data_get($sourceSnapshot, 'title', '-') }}</strong>
                                 {{ collect(data_get($sourceSnapshot, 'assessments', []))->pluck('title')->filter()->implode(', ') }}
                             </div>
                         @endforeach
@@ -91,11 +93,12 @@
 
 
 
-                <form id="validator-task-form-{{ $selectedValidatorTask->id }}"
-                    method="POST" action="{{ route('assessment.portal.validator.tasks.submit', $selectedValidatorTask) }}"
+                <form id="validator-task-form-{{ $selectedValidatorTask->id }}" method="POST"
+                    action="{{ route('assessment.portal.validator.tasks.submit', $selectedValidatorTask) }}"
                     class="space-y-5">
                     @csrf
-                    <input type="hidden" name="return_to" value="{{ request()->fullUrlWithQuery(['validator_task' => $selectedValidatorTask->id]) }}">
+                    <input type="hidden" name="return_to"
+                        value="{{ request()->fullUrlWithQuery(['validator_task' => $selectedValidatorTask->id]) }}">
                     @if ($selectedValidatorTask->validatorForm->instructions)
                         <div class="rounded-sm bg-blue-50 p-3 text-sm ">
                             {{ $selectedValidatorTask->validatorForm->instructions }}
@@ -104,7 +107,8 @@
 
                     @foreach ($selectedValidatorTask->validatorForm->sections as $section)
                         <fieldset class="rounded-sm border border-slate-200 p-4">
-                            <legend class="px-2 font-bold text-slate-800">{{ $loop->iteration }}. {{ $section->title }}</legend>
+                            <legend class="px-2 font-bold text-slate-800">{{ $loop->iteration }}.
+                                {{ $section->title }}</legend>
                             @if ($section->description)
                                 <p class="mb-4 text-xs text-slate-500">{{ $section->description }}</p>
                             @endif
@@ -114,18 +118,21 @@
                                     @php
                                         $response = $validatorResponseLookup->get($field->id);
                                         $oldValue = old(
-                                            'answers.'.$field->id,
+                                            'answers.' . $field->id,
                                             $field->field_type === 'checkbox'
-                                                ? ($response?->answer_payload ?? [])
+                                                ? $response?->answer_payload ?? []
                                                 : $response?->answer_text,
                                         );
-                                        $inputName = 'answers['.$field->id.']';
-                                        $inputClass = 'mt-2 w-full rounded-sm border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none';
+                                        $inputName = 'answers[' . $field->id . ']';
+                                        $inputClass =
+                                            'mt-2 w-full rounded-sm border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none';
                                     @endphp
                                     <div>
                                         <label class="text-sm font-semibold text-slate-700">
                                             {{ $loop->iteration }}. {{ $field->label }}
-                                            @if ($field->is_required)<span class="text-red-500">*</span>@endif
+                                            @if ($field->is_required)
+                                                <span class="text-red-500">*</span>
+                                            @endif
                                         </label>
                                         @if ($field->description)
                                             <p class="mt-1 text-xs text-slate-500">{{ $field->description }}</p>
@@ -133,59 +140,67 @@
 
                                         @switch($field->field_type)
                                             @case('textarea')
-                                                <textarea name="{{ $inputName }}" rows="3" class="{{ $inputClass }}"
-                                                    @disabled($taskIsLocked || $taskIsUpcoming)>{{ $oldValue }}</textarea>
-                                                @break
+                                                <textarea name="{{ $inputName }}" rows="3" class="{{ $inputClass }}" @disabled($taskIsLocked || $taskIsUpcoming)>{{ $oldValue }}</textarea>
+                                            @break
+
                                             @case('number')
                                                 <input type="number" step="0.01" min="0"
                                                     @if ($field->max_score) max="{{ $field->max_score }}" @endif
-                                                    name="{{ $inputName }}" value="{{ $oldValue }}" class="{{ $inputClass }}"
-                                                    @disabled($taskIsLocked || $taskIsUpcoming)>
-                                                @break
+                                                    name="{{ $inputName }}" value="{{ $oldValue }}"
+                                                    class="{{ $inputClass }}" @disabled($taskIsLocked || $taskIsUpcoming)>
+                                            @break
+
                                             @case('date')
                                                 <input type="date" name="{{ $inputName }}" value="{{ $oldValue }}"
                                                     class="{{ $inputClass }}" @disabled($taskIsLocked || $taskIsUpcoming)>
-                                                @break
+                                            @break
+
                                             @case('select')
                                                 <select name="{{ $inputName }}" class="{{ $inputClass }}"
                                                     @disabled($taskIsLocked || $taskIsUpcoming)>
                                                     <option value="">-- Pilih Jawaban --</option>
                                                     @foreach ($field->resolvedOptions() as $option)
-                                                        <option value="{{ $option }}" @selected((string) $oldValue === (string) $option)>{{ $option }}</option>
+                                                        <option value="{{ $option }}" @selected((string) $oldValue === (string) $option)>
+                                                            {{ $option }}</option>
                                                     @endforeach
                                                 </select>
-                                                @break
+                                            @break
+
                                             @case('checkbox')
                                                 <div class="mt-2 space-y-2">
                                                     @foreach ($field->resolvedOptions() as $option)
                                                         <label class="flex items-center gap-2 text-sm text-slate-700">
-                                                            <input type="checkbox" name="{{ $inputName }}[]" value="{{ $option }}"
-                                                                @checked(in_array((string) $option, array_map('strval', (array) $oldValue), true))
+                                                            <input type="checkbox" name="{{ $inputName }}[]"
+                                                                value="{{ $option }}" @checked(in_array((string) $option, array_map('strval', (array) $oldValue), true))
                                                                 @disabled($taskIsLocked || $taskIsUpcoming)>
                                                             {{ $option }}
                                                         </label>
                                                     @endforeach
                                                 </div>
-                                                @break
+                                            @break
+
                                             @case('radio')
                                             @case('likert')
                                                 <div class="mt-2 flex flex-wrap gap-2">
                                                     @foreach ($field->resolvedOptions() as $option)
-                                                        <label class="cursor-pointer rounded-sm border border-slate-300 px-3 py-2 text-sm text-slate-700 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700">
-                                                            <input type="radio" name="{{ $inputName }}" value="{{ $option }}"
-                                                                class="mr-1" @checked((string) $oldValue === (string) $option)
-                                                                @disabled($taskIsLocked || $taskIsUpcoming)>
+                                                        <label
+                                                            class="cursor-pointer rounded-sm border border-slate-300 px-3 py-2 text-sm text-slate-700 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 has-[:checked]:text-indigo-700">
+                                                            <input type="radio" name="{{ $inputName }}"
+                                                                value="{{ $option }}" class="mr-1"
+                                                                @checked((string) $oldValue === (string) $option) @disabled($taskIsLocked || $taskIsUpcoming)>
                                                             {{ $option }}
                                                         </label>
                                                     @endforeach
                                                 </div>
-                                                @break
+                                            @break
+
                                             @default
                                                 <input type="text" name="{{ $inputName }}" value="{{ $oldValue }}"
                                                     class="{{ $inputClass }}" @disabled($taskIsLocked || $taskIsUpcoming)>
                                         @endswitch
                                         @if ($field->is_scored)
-                                            <small class="mt-1 block text-emerald-600">Skor maksimum: {{ $field->max_score }}</small>
+                                            <small class="mt-1 block text-emerald-600">Skor maksimum:
+                                                {{ $field->max_score }}</small>
                                         @endif
                                     </div>
                                 @endforeach
@@ -195,8 +210,10 @@
 
                     <fieldset class="rounded-sm border border-slate-200 p-4">
                         <legend class="px-2 font-bold text-slate-800">Kesimpulan Validator</legend>
-                        <label class="text-sm font-semibold text-slate-700">Rekomendasi Akhir <span class="text-red-500">*</span></label>
-                        <select name="recommendation" class="mt-2 w-full rounded-sm border border-slate-300 px-3 py-2 text-sm"
+                        <label class="text-sm font-semibold text-slate-700">Rekomendasi Akhir <span
+                                class="text-red-500">*</span></label>
+                        <select name="recommendation"
+                            class="mt-2 w-full rounded-sm border border-slate-300 px-3 py-2 text-sm"
                             @disabled($taskIsLocked || $taskIsUpcoming)>
                             <option value="">-- Pilih Rekomendasi --</option>
                             @foreach ($validatorRecommendations as $value => $label)
@@ -222,7 +239,8 @@
                                 <h3 class="font-semibold text-slate-800">{{ $task->title }}</h3>
                                 <p class="mt-1 text-xs text-slate-500">{{ $task->assessment_assignments_label }}</p>
                             </div>
-                            <span class="shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold
+                            <span
+                                class="shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold
                                 {{ $task->status === 'submitted' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700' }}">
                                 {{ $task->status_label }}
                             </span>
@@ -239,7 +257,14 @@
 
         @if ($selectedValidatorTask)
             @unless ($taskIsLocked || $taskIsUpcoming)
-                <div class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 sm:flex-row sm:justify-end">
+                <div
+                    class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 sm:flex-row sm:justify-end">
+                    <button type="button" @click="window.history.back()" @disabled($isValidatorDashboard)
+                        class="w-full rounded-sm border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto"
+                        title="{{ $isValidatorDashboard ? 'Tombol tidak tersedia di dashboard' : 'Kembali ke halaman sebelumnya' }}">
+                        <i class="fas fa-arrow-left"></i> Kembali
+                    </button>
+                    <span class="flex-1"></span>
                     <button type="submit" form="validator-task-form-{{ $selectedValidatorTask->id }}"
                         formaction="{{ route('assessment.portal.validator.tasks.draft', $selectedValidatorTask) }}"
                         class="w-full rounded-sm border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto">
