@@ -91,16 +91,16 @@
                                                 <td class="text-center">
                                                     <a href="{{ route('assessment.validator.assignment.show', $assignment) }}"
                                                         class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
-                                                    @if ($assignment->status !== 'submitted')
-                                                        <form method="POST"
-                                                            action="{{ route('assessment.validator.assignment.destroy', $assignment) }}"
-                                                            class="d-inline"
-                                                            onsubmit="return confirm('Hapus penugasan validator ini?')">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-                                                        </form>
-                                                    @endif
+                                                    <form method="POST"
+                                                        action="{{ route('assessment.validator.assignment.destroy', $assignment) }}"
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Hapus penugasan validator ini beserta hasil validasinya?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="btn btn-danger btn-sm" title="Hapus penugasan dan hasil validasi">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
                                                 </td>
                                             </tr>
                                         @endforeach

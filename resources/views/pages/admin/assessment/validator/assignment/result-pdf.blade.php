@@ -45,17 +45,9 @@
         }
 
         .brand-mark {
-            width: 42px;
-            height: 42px;
-            border: 0.1px solid #000;
-            background: #fff;
-            color: #000;
-
-            text-align: center;
-            vertical-align: middle;
-            font-size: 13px;
-            font-weight: bold;
-            letter-spacing: .04em;
+            width: 112px;
+            height: auto;
+            display: block;
         }
 
         .brand-name {
@@ -331,13 +323,21 @@
             ?? data_get($assignment->validator_snapshot, 'name', '-');
         $isSubmitted = $assignment->status === 'submitted';
         $recommendation = $assignment->recommendation_label ?: 'Belum diberikan';
+        $brandLogoPath = public_path('landing/images/header/icon.png');
+        $brandLogo = file_exists($brandLogoPath)
+            ? 'data:image/png;base64,'.base64_encode(file_get_contents($brandLogoPath))
+            : null;
     @endphp
 
     <div class="page-header">
         <table class="brand-table">
             <tr>
                 <td style="width: 136px; vertical-align: middle;">
-                    <div class="brand-mark">BBGTK</div>
+                    @if ($brandLogo)
+                        <img class="brand-mark" src="{{ $brandLogo }}" alt="BBGTK Sulsel">
+                    @else
+                        <div class="brand-mark">BBGTK</div>
+                    @endif
                 </td>
                 <td>
                     <div class="brand-name">BBGTK Provinsi Sulawesi Selatan</div>

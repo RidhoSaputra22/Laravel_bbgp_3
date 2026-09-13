@@ -164,12 +164,6 @@ class ValidatorAssignmentController extends Controller
     {
         ValidatorAccess::authorizeAdmin();
 
-        if ($assignment->status === 'submitted') {
-            throw ValidationException::withMessages([
-                'assignment' => 'Hasil validasi yang sudah dikirim tidak dapat dihapus agar jejak audit tetap terjaga.',
-            ]);
-        }
-
         $assignment->delete();
 
         return redirect()
