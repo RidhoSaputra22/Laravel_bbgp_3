@@ -19,7 +19,7 @@ class ValidatorUserSeeder extends Seeder
      */
     public function run(): void
     {
-        foreach (range(1, 5) as $number) {
+        foreach (range(1, 10) as $number) {
             $name = 'Validator '.$number;
             $username = 'validator'.$number;
             $noKtp = '990000000000000'.$number;
