@@ -91,6 +91,8 @@ class EvaluasiPelaksanaanViewTest extends TestCase
         $response->assertSee('Ringkasan Penugasan');
         $response->assertSee('Distribusi Nilai');
         $response->assertSee('Hasil Per Peserta');
+        $response->assertSee('Skala penilaian 1–4');
+        $response->assertDontSee('Skala penilaian 1–5');
         $response->assertSee('4.25');
     }
 }

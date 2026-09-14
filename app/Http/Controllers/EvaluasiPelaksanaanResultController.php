@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enum\LevelKompetensi;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
@@ -12,6 +11,13 @@ use Illuminate\Support\Collection;
 class EvaluasiPelaksanaanResultController extends Controller
 {
     private const MENU = 'evaluasi-hasil';
+
+    private const SCORE_LABELS = [
+        1 => 'Kurang',
+        2 => 'Cukup',
+        3 => 'Baik',
+        4 => 'Sangat Baik',
+    ];
 
     public function index(Request $request)
     {
@@ -134,7 +140,7 @@ class EvaluasiPelaksanaanResultController extends Controller
             'is_submitted' => $isSubmitted,
             'score' => $score,
             'score_label' => $score !== null ? number_format($score, 2) : '-',
-            'score_level' => $score !== null ? LevelKompetensi::fromScore($score)?->shortLabel() : null,
+            'score_level' => $this->scoreLabel($score),
             'submitted_at' => $submittedAt?->format('d M Y H:i'),
             'submitted_at_sort' => $submittedAt?->timestamp ?? 0,
         ];
@@ -171,16 +177,30 @@ class EvaluasiPelaksanaanResultController extends Controller
      */
     private function buildScoreDistribution(Collection $scores): array
     {
-        return collect(LevelKompetensi::cases())->map(function (LevelKompetensi $level) use ($scores) {
-            $count = $scores->filter(
-                fn ($score) => LevelKompetensi::fromScore($score)?->value === $level->value
-            )->count();
+        return collect(self::SCORE_LABELS)->map(function (string $label, int $scoreValue) use ($scores) {
+            $count = $scores->filter(fn ($score) => $this->scoreBucket($score) === $scoreValue)->count();
 
             return [
-                'label' => $level->shortLabel(),
+                'label' => $label,
                 'count' => $count,
                 'percent' => $scores->isNotEmpty() ? round(($count / $scores->count()) * 100, 1) : 0,
             ];
         })->all();
+    }
+
+    private function scoreLabel(?float $score): ?string
+    {
+        $bucket = $this->scoreBucket($score);
+
+        return $bucket ? self::SCORE_LABELS[$bucket] : null;
+    }
+
+    private function scoreBucket(?float $score): ?int
+    {
+        if ($score === null) {
+            return null;
+        }
+
+        return min(max((int) round($score), 1), 4);
     }
 }

@@ -473,7 +473,11 @@ class AssessmentController extends Controller
             foreach ($forms as $formIndex => $form) {
                 $usedFieldNames = [];
 
-                if ((bool) ($form['is_scoreable'] ?? true) && blank($form['kompetensi'] ?? null)) {
+                if (
+                    ! $this->isEvaluasiPelaksanaan()
+                    && (bool) ($form['is_scoreable'] ?? true)
+                    && blank($form['kompetensi'] ?? null)
+                ) {
                     $validator->errors()->add(
                         "forms.$formIndex.kompetensi",
                         'Kompetensi wajib dipilih untuk form yang ikut dihitung pada penilaian.'

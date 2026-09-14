@@ -152,7 +152,7 @@
                                 <div class="evaluation-result-kpi-value">
                                     {{ $stats['average_score'] !== null ? number_format($stats['average_score'], 2) : '-' }}
                                 </div>
-                                <small class="text-muted">Skala penilaian 1–5</small>
+                                    <small class="text-muted">Skala penilaian 1–4</small>
                             </div>
                         </div>
                     </div>
