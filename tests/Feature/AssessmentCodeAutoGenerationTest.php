@@ -68,7 +68,6 @@ class AssessmentCodeAutoGenerationTest extends TestCase
             $table->string('lookup_source')->nullable();
             $table->json('validasi')->nullable();
             $table->json('scoring_config')->nullable();
-            $table->string('lebar_kolom')->default('col-md-12');
             $table->unsignedInteger('urutan')->default(1);
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
@@ -167,7 +166,6 @@ class AssessmentCodeAutoGenerationTest extends TestCase
                                 'profile' => '',
                                 'method' => 'presence',
                             ],
-                            'lebar_kolom' => 'col-md-12',
                             'urutan' => 1,
                             'is_required' => '0',
                             'is_active' => '1',

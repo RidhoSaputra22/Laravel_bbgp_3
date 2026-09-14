@@ -1039,7 +1039,6 @@
             };
             const participantAutofillSupportedFieldTypes = ['text', 'textarea', 'number', 'email', 'date', 'select', 'radio', 'checkbox'];
             const fieldLookupSupportedFieldTypes = ['select'];
-            const columnOptions = ['col-md-12', 'col-md-8', 'col-md-6', 'col-md-4'];
             const $builderShell = $('#assessment-builder-shell');
             const $builderLoading = $('#assessment-builder-loading');
             const $builderLoadingText = $('#assessment-builder-loading-text');
@@ -1417,13 +1416,6 @@
                 return Object.entries(assessmentFieldTypes).map(([value, label]) => {
                     const selected = value === selectedValue ? 'selected' : '';
                     return `<option value="${value}" ${selected}>${label}</option>`;
-                }).join('');
-            };
-
-            const buildColumnOptions = (selectedValue) => {
-                return columnOptions.map((value) => {
-                    const selected = value === selectedValue ? 'selected' : '';
-                    return `<option value="${value}" ${selected}>${value}</option>`;
                 }).join('');
             };
 
@@ -2500,7 +2492,6 @@
                 const rawOpsiFieldJsonName = `${fieldPrefix}[raw_opsi_field_json]`;
                 const radioOptionsName = `${fieldPrefix}[radio_options]`;
                 const bantuanName = `${fieldPrefix}[bantuan]`;
-                const lebarKolomName = `${fieldPrefix}[lebar_kolom]`;
                 const scoringPrefix = `${fieldPrefix}[scoring]`;
                 const scoringEnabledName = `${scoringPrefix}[enabled]`;
                 const scoringProfileName = `${scoringPrefix}[profile]`;
@@ -3358,7 +3349,6 @@
                     enabled: false,
                     method: resolveDefaultScoringMethod('text'),
                 },
-                lebar_kolom: 'col-md-12',
                 urutan: fieldIndex + 1,
                 is_required: false,
                 is_active: true,
@@ -4161,7 +4151,6 @@
                         max_score: $fieldCard.find('input[name$="[scoring][max_score]"]').val()?.trim() || '',
                         advanced_rules_text: $fieldCard.find('textarea[name$="[scoring][advanced_rules_text]"]').val()?.trim() || '',
                     },
-                    lebar_kolom: $fieldCard.find('select[name$="[lebar_kolom]"]').val() || 'col-md-12',
                     urutan: Number($fieldCard.find('input[name$="[urutan]"]').val() || fieldIndex + 1),
                     is_required: $fieldCard.find('input[name$="[is_required]"]').is(':checked'),
                     is_active: $fieldCard.find('input[name$="[is_active]"]').is(':checked'),
@@ -4387,7 +4376,7 @@
                                     (field.tipe_field === repeaterFieldType ?
                                         parseRepeaterConfig(field.repeater_config_text) :
                                         resolvePreviewChoiceOptions(field)),
-                                widthClass: field.lebar_kolom || 'col-md-12',
+                                widthClass: 'col-md-12',
                                 required: normalizeChecked(field.is_required),
                             }));
 

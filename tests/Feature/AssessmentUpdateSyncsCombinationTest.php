@@ -71,7 +71,6 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             $table->string('lookup_source')->nullable();
             $table->json('validasi')->nullable();
             $table->json('scoring_config')->nullable();
-            $table->string('lebar_kolom')->default('col-md-12');
             $table->unsignedInteger('urutan')->default(1);
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
@@ -125,7 +124,6 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             $table->json('field_options')->nullable();
             $table->json('field_validation')->nullable();
             $table->json('field_scoring_config')->nullable();
-            $table->string('field_width')->nullable();
             $table->boolean('field_is_required')->default(false);
             $table->unsignedInteger('assessment_order')->default(1);
             $table->unsignedInteger('form_order')->default(1);
@@ -204,7 +202,6 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
                 'enabled' => false,
                 'method' => 'presence',
             ],
-            'lebar_kolom' => 'col-md-12',
             'urutan' => 1,
             'is_required' => false,
             'is_active' => true,
@@ -349,7 +346,6 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
                                 'max_score' => '',
                                 'advanced_rules_text' => '',
                             ],
-                            'lebar_kolom' => 'col-md-12',
                             'urutan' => 1,
                             'is_required' => '0',
                             'is_active' => '1',

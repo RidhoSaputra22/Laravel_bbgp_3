@@ -70,7 +70,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -108,7 +107,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -146,7 +144,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -196,7 +193,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -234,7 +230,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -272,7 +267,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -322,7 +316,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -360,7 +353,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -398,7 +390,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -448,7 +439,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -486,7 +476,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -524,7 +513,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -574,7 +562,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -612,7 +599,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -650,7 +636,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -700,7 +685,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -738,7 +722,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -776,7 +759,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -826,7 +808,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -864,7 +845,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -902,7 +882,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -952,7 +931,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -990,7 +968,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1028,7 +1005,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1078,7 +1054,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1116,7 +1091,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1154,7 +1128,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1204,7 +1177,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1242,7 +1214,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1280,7 +1251,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1330,7 +1300,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1368,7 +1337,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1406,7 +1374,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1456,7 +1423,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1494,7 +1460,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1532,7 +1497,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1582,7 +1546,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1620,7 +1583,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1658,7 +1620,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1708,7 +1669,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1746,7 +1706,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1784,7 +1743,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1834,7 +1792,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1872,7 +1829,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1910,7 +1866,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1960,7 +1915,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -1998,7 +1952,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2036,7 +1989,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2086,7 +2038,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2124,7 +2075,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2162,7 +2112,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2212,7 +2161,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2250,7 +2198,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2288,7 +2235,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2338,7 +2284,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2376,7 +2321,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2414,7 +2358,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2464,7 +2407,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2502,7 +2444,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2540,7 +2481,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2590,7 +2530,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2628,7 +2567,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2666,7 +2604,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2716,7 +2653,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2754,7 +2690,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2792,7 +2727,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2842,7 +2776,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2880,7 +2813,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2918,7 +2850,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -2968,7 +2899,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -3006,7 +2936,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -3044,7 +2973,6 @@ class AssessmentPilihanGandaKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 3,
                                 'is_required' => true,
                                 'is_active' => true,

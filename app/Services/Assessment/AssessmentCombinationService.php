@@ -775,7 +775,6 @@ class AssessmentCombinationService
             'field_options' => $field->opsi_field,
             'field_validation' => $field->validasi,
             'field_scoring_config' => $field->scoring_config,
-            'field_width' => $field->lebar_kolom ?: 'col-md-12',
             'field_is_required' => (bool) $field->is_required,
             'assessment_order' => $assessmentOrder ?? (int) ($poolEntry['assessment_order'] ?? 0),
             'form_order' => (int) ($poolEntry['form_order'] ?? 0),
@@ -858,7 +857,6 @@ class AssessmentCombinationService
                                     'opsi_field' => $row['field_options'] ?? [],
                                     'validasi' => $row['field_validation'] ?? [],
                                     'scoring_config' => $row['field_scoring_config'] ?? [],
-                                    'lebar_kolom' => $row['field_width'] ?? 'col-md-12',
                                     'is_required' => (bool) ($row['field_is_required'] ?? false),
                                 ];
                             })

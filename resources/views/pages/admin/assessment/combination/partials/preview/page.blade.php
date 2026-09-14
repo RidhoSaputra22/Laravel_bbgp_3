@@ -116,10 +116,9 @@
                                         <div class="row">
                                             @foreach ($fields as $field)
                                                 @php
-                                                    $fieldWidth = $field['lebar_kolom'] ?? 'col-md-12';
                                                     $fieldLabelId = 'combination-preview-' . ($form['id'] ?? 'form') . '-' . ($field['id'] ?? $loop->index);
                                                 @endphp
-                                                <div class="{{ $fieldWidth }}">
+                                                <div class="col-md-12">
                                                     <div class="form-group">
                                                         <label for="{{ $fieldLabelId }}">
                                                             {{ $field['label'] ?? 'Field' }}

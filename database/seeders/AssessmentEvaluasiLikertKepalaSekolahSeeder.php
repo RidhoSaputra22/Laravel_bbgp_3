@@ -319,7 +319,6 @@ DATA;
                         'in' => ['1', '2', '3', '4', '5'],
                     ],
                     'scoring_config' => $this->fieldScoringConfig($formData, $item),
-                    'lebar_kolom' => 'col-md-12',
                     'urutan' => $item['position'],
                     'is_required' => true,
                     'is_active' => true,

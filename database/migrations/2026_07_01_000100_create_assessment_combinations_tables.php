@@ -73,7 +73,6 @@ return new class extends Migration
                 $table->json('field_options')->nullable();
                 $table->json('field_validation')->nullable();
                 $table->json('field_scoring_config')->nullable();
-                $table->string('field_width')->default('col-md-12');
                 $table->boolean('field_is_required')->default(false);
                 $table->unsignedInteger('assessment_order')->default(1);
                 $table->unsignedInteger('form_order')->default(1);

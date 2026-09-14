@@ -70,7 +70,6 @@ class AssessmentCombinationServiceTest extends TestCase
             $table->string('lookup_source')->nullable();
             $table->json('validasi')->nullable();
             $table->json('scoring_config')->nullable();
-            $table->string('lebar_kolom')->nullable();
             $table->unsignedInteger('urutan')->default(1);
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);
@@ -124,7 +123,6 @@ class AssessmentCombinationServiceTest extends TestCase
             $table->json('field_options')->nullable();
             $table->json('field_validation')->nullable();
             $table->json('field_scoring_config')->nullable();
-            $table->string('field_width')->nullable();
             $table->boolean('field_is_required')->default(false);
             $table->unsignedInteger('assessment_order')->default(1);
             $table->unsignedInteger('form_order')->default(1);

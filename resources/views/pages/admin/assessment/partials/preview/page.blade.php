@@ -166,7 +166,6 @@
                             <div class="row">
                                 @foreach ($activeFields as $field)
                                     @php
-                                        $fieldWidth = $field->lebar_kolom ?: 'col-md-12';
                                         $fieldLabelId = 'preview-field-' . $form->id . '-' . $field->id;
                                         $normalizedOptions = $field->tipe_field === \App\Support\Assessment\LikertScale::FIELD_TYPE
                                             ? $normalizeChoiceOptions($field->opsi_field ?: \App\Support\Assessment\LikertScale::defaultOptions())
@@ -174,7 +173,7 @@
                                                 ? $normalizeChoiceOptions($field->opsi_field)
                                                 : []);
                                     @endphp
-                                    <div class="{{ $fieldWidth }}">
+                                    <div class="col-md-12">
                                         <div class="form-group">
                                             <label for="{{ $fieldLabelId }}">
                                                 {{ $field->label }}

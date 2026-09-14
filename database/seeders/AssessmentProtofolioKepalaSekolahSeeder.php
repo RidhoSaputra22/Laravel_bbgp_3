@@ -46,7 +46,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -63,7 +62,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 2,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -80,7 +78,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => false,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 3,
                                 'is_required' => false,
                                 'is_active' => true,
@@ -101,7 +98,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 4,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -118,7 +114,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 5,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -135,7 +130,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 6,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -153,7 +147,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                     'required' => true,
                                     'min' => 0,
                                 ],
-                                'lebar_kolom' => 'col-md-6',
                                 'urutan' => 7,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -229,7 +222,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -306,7 +298,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => false,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => false,
                                 'is_active' => true,
@@ -369,7 +360,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => true,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,
@@ -432,7 +422,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => false,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => false,
                                 'is_active' => true,
@@ -488,7 +477,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                 'validasi' => [
                                     'required' => false,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => false,
                                 'is_active' => true,
@@ -519,7 +507,6 @@ class AssessmentProtofolioKepalaSekolahSeeder extends Seeder
                                     'required' => true,
                                     'min_length' => 100,
                                 ],
-                                'lebar_kolom' => 'col-md-12',
                                 'urutan' => 1,
                                 'is_required' => true,
                                 'is_active' => true,

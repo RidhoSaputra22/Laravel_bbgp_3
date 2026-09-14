@@ -36,7 +36,6 @@ class AssessmentCombinationItem extends Model
         'field_options',
         'field_validation',
         'field_scoring_config',
-        'field_width',
         'field_is_required',
         'assessment_order',
         'form_order',

@@ -50,7 +50,6 @@ return new class extends Migration
                 $table->json('opsi_field')->nullable();
                 $table->text('nilai_default')->nullable();
                 $table->json('validasi')->nullable();
-                $table->string('lebar_kolom')->default('col-md-6');
                 $table->unsignedInteger('urutan')->default(1);
                 $table->boolean('is_required')->default(false);
                 $table->boolean('is_active')->default(true);

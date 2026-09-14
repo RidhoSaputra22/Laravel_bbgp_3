@@ -425,7 +425,6 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'lookup_source' => null,
             'validasi' => array_merge(['required' => $required], $validationExtra),
             'scoring_config' => $scoringConfig,
-            'lebar_kolom' => 'col-md-12',
             'urutan' => 1,
             'is_required' => $required,
             'is_active' => true,

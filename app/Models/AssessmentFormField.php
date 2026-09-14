@@ -23,7 +23,6 @@ class AssessmentFormField extends Model
         'lookup_source',
         'validasi',
         'scoring_config',
-        'lebar_kolom',
         'urutan',
         'is_required',
         'is_active',
