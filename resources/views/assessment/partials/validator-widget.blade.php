@@ -259,16 +259,12 @@
             @unless ($taskIsLocked || $taskIsUpcoming)
                 <div
                     class="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-slate-50 px-5 py-3 sm:flex-row sm:justify-end">
-                    <button type="button" @click="window.history.back()" @disabled($isValidatorDashboard)
-                        class="w-full rounded-sm border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto"
-                        title="{{ $isValidatorDashboard ? 'Tombol tidak tersedia di dashboard' : 'Kembali ke halaman sebelumnya' }}">
-                        <i class="fas fa-arrow-left"></i> Kembali
-                    </button>
-                    <span class="flex-1"></span>
+
+
                     <button type="submit" form="validator-task-form-{{ $selectedValidatorTask->id }}"
                         formaction="{{ route('assessment.portal.validator.tasks.draft', $selectedValidatorTask) }}"
                         class="w-full rounded-sm border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 sm:w-auto">
-                        Simpan Draf
+                        Kembali
                     </button>
                     <button type="submit" form="validator-task-form-{{ $selectedValidatorTask->id }}"
                         formaction="{{ route('assessment.portal.validator.tasks.submit', $selectedValidatorTask) }}"
