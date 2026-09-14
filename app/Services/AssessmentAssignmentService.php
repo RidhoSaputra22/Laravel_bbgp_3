@@ -423,14 +423,9 @@ class AssessmentAssignmentService
 
             $this->storeTargetRows($targetRows);
 
-            $currentTargetCount = (int) $lockedAssignment->targets()
-                ->where('status', '!=', 'dibatalkan')
-                ->count();
-            $plannedTargetCount = max((int) $lockedAssignment->total_target, $currentTargetCount);
 
-            $assignmentSummary = [
-                'total_target' => $plannedTargetCount + 1,
-            ];
+
+
 
             if (Schema::hasColumn('assessment_assignments', 'total_sesi')) {
                 $assignmentSummary['total_sesi'] = Schema::hasTable('assessment_assignment_sessions')
