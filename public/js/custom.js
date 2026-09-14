@@ -8,7 +8,7 @@
 "use strict";
 
 // swal btn hps data
-const deleteData = (id, tabel) => {
+const deleteData = (id, tabel, deleteUrl = null) => {
     console.log(id, tabel);
     let token = $("meta[name='csrf-token']").attr("content");
 
@@ -25,7 +25,7 @@ const deleteData = (id, tabel) => {
                     "X-CSRF-TOKEN": token,
                 },
                 type: "POST",
-                url: `${tabel}/hapus/${id}`,
+                url: deleteUrl || `${tabel}/hapus/${id}`,
                 success: function (response) {
                     console.log(response);
                     if (response) {

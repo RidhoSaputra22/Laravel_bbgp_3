@@ -1,4 +1,8 @@
 @php
+    $assessmentRoutePrefix = $assessmentRoutePrefix ?? 'assessment';
+    $isEvaluationPelaksanaan = $isEvaluationPelaksanaan ?? false;
+    $contentLabel = $isEvaluationPelaksanaan ? 'soal' : 'assessment';
+    $contentLabelTitle = ucfirst($contentLabel);
     $builderSeed = old('forms', $formBuilderData ?? []);
     $assessmentCodeValue = old('kode_assessment', $assessment->kode_assessment);
     $assessmentCodeDisplay = $assessmentCodeValue ?: 'Otomatis saat disimpan';
@@ -13,7 +17,9 @@
     $ketenagaanOptions = $ketenagaanOptions ?? \App\Enum\AssessmentKetenagaanType::options();
     $selectedTargetKetenagaan = old(
         'target_ketenagaan',
-        $assessment->target_ketenagaan ?: \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+        $isEvaluationPelaksanaan
+            ? null
+            : ($assessment->target_ketenagaan ?: \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value),
     );
     $ketenagaanCards = collect(\App\Enum\AssessmentKetenagaanType::cases())
         ->mapWithKeys(function ($case) {
@@ -52,7 +58,7 @@
         'repeater_completeness' => 'Cek kelengkapan tabel',
     ];
     $isEditMode = $httpMethod !== 'POST';
-    $previewUrl = $isEditMode && $assessment->id ? route('assessment.show', $assessment->id) : null;
+    $previewUrl = $isEditMode && $assessment->id ? route($assessmentRoutePrefix.'.show', $assessment->id) : null;
     $normalizeCheckedValue = function (mixed $value, bool $default = false): bool {
         if ($value === null) {
             return $default;
@@ -141,7 +147,9 @@
         'status' => $initialStatus,
         'status_label' => ucfirst((string) $initialStatus),
         'is_active' => $normalizeCheckedValue(old('is_active', $assessment->is_active), false),
-        'target_label' => $ketenagaanOptions[$selectedTargetKetenagaan] ?? 'Belum dipilih',
+        'target_label' => $isEvaluationPelaksanaan
+            ? 'Tidak dibatasi'
+            : ($ketenagaanOptions[$selectedTargetKetenagaan] ?? 'Belum dipilih'),
         'instrument_label' => $instrumentTypes[$initialInstrumentValue] ?? 'Belum dipilih',
         'total_forms' => $initialTotalForms,
         'total_questions' => $initialTotalQuestions,
@@ -155,18 +163,18 @@
         ? $initialBuilderSummary['preview_forms'].' form / '.$initialBuilderSummary['visible_questions'].' soal'
         : 'Belum ada form aktif';
     $initialBuilderSummary['builder_note'] = match (true) {
-        $initialBuilderSummary['title'] === '' => 'Isi judul assessment terlebih dahulu agar struktur yang Anda susun mudah dikenali.',
-        $initialBuilderSummary['total_questions'] < 1 => 'Tambahkan minimal satu pertanyaan agar assessment siap dipakai pada penugasan.',
+        $initialBuilderSummary['title'] === '' => 'Isi judul '.$contentLabel.' terlebih dahulu agar struktur yang Anda susun mudah dikenali.',
+        $initialBuilderSummary['total_questions'] < 1 => 'Tambahkan minimal satu pertanyaan agar '.$contentLabel.' siap dipakai pada penugasan.',
         $initialBuilderSummary['preview_forms'] < 1 => 'Aktifkan minimal satu form agar pertanyaan bisa tampil pada sisi peserta.',
-        ! $initialBuilderSummary['is_active'] => 'Struktur assessment sudah terisi, tetapi assessment utama masih nonaktif.',
-        $initialBuilderSummary['status'] !== 'publish' => 'Struktur sudah siap, namun status assessment masih '.strtolower($initialBuilderSummary['status_label']).'.',
+        ! $initialBuilderSummary['is_active'] => 'Struktur '.$contentLabel.' sudah terisi, tetapi '.$contentLabel.' utama masih nonaktif.',
+        $initialBuilderSummary['status'] !== 'publish' => 'Struktur sudah siap, namun status '.$contentLabel.' masih '.strtolower($initialBuilderSummary['status_label']).'.',
         default => $initialBuilderSummary['preview_forms'].' form aktif dengan '.$initialBuilderSummary['visible_questions'].' pertanyaan siap ditampilkan ke peserta. '.$initialBuilderSummary['scoreable_forms'].' form masuk penilaian.',
     };
 @endphp
 
 @if ($errors->any())
     <div class="alert alert-danger">
-        <div class="font-weight-bold mb-2">Periksa kembali input assessment berikut:</div>
+        <div class="font-weight-bold mb-2">Periksa kembali input {{ $contentLabel }} berikut:</div>
         <ul class="mb-0">
             @foreach ($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -691,12 +699,12 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Kode Assessment</label>
+                                <label>Kode {{ $contentLabelTitle }}</label>
                                 <input type="hidden" name="kode_assessment" value="{{ $assessmentCodeValue }}">
                                 <input type="text" class="form-control @error('kode_assessment') is-invalid @enderror"
                                     value="{{ $assessmentCodeDisplay }}" data-assessment-code-display readonly>
                                 <small class="form-text text-muted">
-                                    Kode assessment dibuat otomatis saat data disimpan.
+                                    Kode {{ $contentLabel }} dibuat otomatis saat data disimpan.
                                 </small>
                                 @error('kode_assessment')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -705,11 +713,11 @@
                         </div>
                         <div class="col-md-5">
                             <div class="form-group">
-                                <label>Judul Assessment <span class="assessment-required">*</span></label>
+                                <label>Judul {{ $contentLabelTitle }} <span class="assessment-required">*</span></label>
                                 <input type="text" name="judul"
                                     class="form-control @error('judul') is-invalid @enderror"
                                     value="{{ old('judul', $assessment->judul) }}"
-                                    placeholder="Masukkan judul assessment" required>
+                                    placeholder="Masukkan judul {{ $contentLabel }}" required>
                                 @error('judul')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -734,6 +742,7 @@
                         </div>
                     </div>
 
+                    @unless ($isEvaluationPelaksanaan)
                     <div class="row">
                         <div class="col-12">
                             <div class="form-group">
@@ -771,6 +780,7 @@
                             </div>
                         </div>
                     </div>
+                    @endunless
 
                     <div class="row">
                         <div class="col-12">
@@ -795,7 +805,7 @@
                             <div class="form-group">
                                 <label>Deskripsi</label>
                                 <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror" rows="6"
-                                    placeholder="Deskripsi singkat assessment">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
+                                    placeholder="Deskripsi singkat {{ $contentLabel }}">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
                                 @error('deskripsi')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -816,7 +826,7 @@
                     <div class="custom-control custom-switch mt-2">
                         <input type="checkbox" class="custom-control-input" id="assessment-active" name="is_active"
                             value="1" @checked(old('is_active', $assessment->is_active))>
-                        <label class="custom-control-label" for="assessment-active">Aktifkan assessment</label>
+                        <label class="custom-control-label" for="assessment-active">Aktifkan {{ $contentLabel }}</label>
                     </div>
                 </div>
             </div>
@@ -829,10 +839,10 @@
                     <div class="alert alert-light border">
                         <div class="font-weight-bold mb-2">Petunjuk Penggunaan</div>
                         <ul class="mb-0 pl-3">
-                            <li>Isi informasi assessment di bagian atas terlebih dahulu.</li>
+                            <li>Isi informasi {{ $contentLabel }} di bagian atas terlebih dahulu.</li>
                             <li>Klik <strong>Tambah Form</strong> di bagian bawah untuk membuat bagian form, lalu
                                 tambahkan field di bawah form terkait.</li>
-                            <li>Pilih <strong>jenis instrumen</strong> di level assessment, lalu atur
+                            <li>Pilih <strong>jenis instrumen</strong> di level {{ $contentLabel }}, lalu atur
                                 <strong>kompetensi</strong>, <strong>indikator</strong>, dan status
                                 <strong>masuk penilaian</strong> di setiap form.</li>
                             <li>Untuk field <strong>Daftar Pilihan</strong> dan <strong>Kotak Centang</strong>,
@@ -867,7 +877,7 @@
                                 <i class="fas fa-layer-group"></i>
                             </div>
                             <h2>Belum ada form</h2>
-                            <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur assessment dinamis.</p>
+                            <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur {{ $contentLabel }} dinamis.</p>
                         </div>
 
                         <div id="form-builder-list"></div>
@@ -891,12 +901,12 @@
                 <div class="assessment-builder-sidebar-inner">
                     <div class="card assessment-summary-card" id="assessment-builder-summary">
                         <div class="card-body">
-                            <div class="assessment-summary-eyebrow">Rekapan Assessment</div>
+                            <div class="assessment-summary-eyebrow">Rekapan {{ $contentLabelTitle }}</div>
                             <h5 class="mb-2" id="summary-assessment-title">
-                                {{ old('judul', $assessment->judul) ?: 'Judul assessment belum diisi' }}
+                                {{ old('judul', $assessment->judul) ?: 'Judul '.$contentLabel.' belum diisi' }}
                             </h5>
                             <p class="text-muted mb-2">
-                                {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur assessment.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun assessment baru.' }}
+                                {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur '.$contentLabel.'.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun '.$contentLabel.' baru.' }}
                             </p>
 
                             <div class="assessment-summary-grid mb-4">
@@ -929,10 +939,12 @@
                                         <span>Aktivasi</span>
                                         <strong id="summary-activation-label">{{ $initialBuilderSummary['is_active'] ? 'Aktif' : 'Nonaktif' }}</strong>
                                     </div>
+                                    @unless ($isEvaluationPelaksanaan)
                                     <div class="assessment-summary-row">
                                         <span>Target</span>
                                         <strong id="summary-target-label">{{ $initialBuilderSummary['target_label'] }}</strong>
                                     </div>
+                                    @endunless
                                     <div class="assessment-summary-row">
                                         <span>Instrumen</span>
                                         <strong id="summary-instrument-label">{{ $initialBuilderSummary['instrument_label'] }}</strong>
@@ -963,6 +975,7 @@
 
                                 @if ($previewUrl)
                                     <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST"
+                                        data-preview-url="{{ $previewUrl }}"
                                         class="assessment-summary-actions__preview">
                                         @csrf
                                         <button type="submit" class="btn btn-info btn-block">
@@ -971,7 +984,7 @@
                                     </form>
                                 @endif
                                 <div class="assessment-summary-actions__secondary">
-                                    <a href="{{ route('assessment.index') }}" class="btn btn-light">
+                                    <a href="{{ route($assessmentRoutePrefix.'.index') }}" class="btn btn-light">
                                         Kembali
                                     </a>
                                     <button type="submit" class="btn btn-primary" id="assessment-summary-submit"
@@ -1004,6 +1017,9 @@
             const scoringGuidancePreset = @json($scoringGuidancePreset);
             const initialForms = @json($builderSeed);
             const validationErrors = @json($validationErrors);
+            const contentLabel = @js($contentLabel);
+            const contentLabelTitle = @js($contentLabelTitle);
+            const isEvaluationPelaksanaan = @js($isEvaluationPelaksanaan);
             const textOptionFieldTypes = ['select', 'checkbox'];
             const multipleChoiceFieldType = 'radio';
             const likertFieldType = @js(\App\Support\Assessment\LikertScale::FIELD_TYPE);
@@ -1062,7 +1078,7 @@
                 }
 
                 if (loadedCount >= totalCount) {
-                    return 'Merapikan tampilan akhir assessment...';
+                    return `Merapikan tampilan akhir ${contentLabel}...`;
                 }
 
                 return `Memuat ${loadedCount} dari ${totalCount} form. Tombol simpan akan aktif setelah proses selesai.`;
@@ -1216,7 +1232,7 @@
                 }
 
                 if (!selectedSource) {
-                    return 'Pilih sumber data peserta jika jawaban perlu terisi otomatis saat assessment dibuka.';
+                    return `Pilih sumber data peserta jika jawaban perlu terisi otomatis saat ${contentLabel} dibuka.`;
                 }
 
                 const sourceLabel = participantAutoFillOptions[selectedSource] || selectedSource;
@@ -1423,7 +1439,7 @@
             };
 
             const buildFormScoringProfileOptions = (selectedValue) => {
-                let optionsHtml = '<option value="">Ikuti instrumen assessment</option>';
+                let optionsHtml = `<option value="">Ikuti instrumen ${contentLabel}</option>`;
 
                 Object.entries(formScoringProfiles).forEach(([value, label]) => {
                     const selected = value === selectedValue ? 'selected' : '';
@@ -4217,6 +4233,10 @@
             };
 
             const resolveSelectedKetenagaanLabel = () => {
+                if (isEvaluationPelaksanaan) {
+                    return 'Tidak dibatasi';
+                }
+
                 const value = $('input[name="target_ketenagaan"]:checked').val() || '';
                 return ketenagaanLabels[value] || 'Belum dipilih';
             };
@@ -4272,11 +4292,11 @@
 
             const buildBuilderSummaryNote = (summary) => {
                 if (!summary.title) {
-                    return 'Isi judul assessment terlebih dahulu agar struktur yang Anda susun mudah dikenali.';
+                    return `Isi judul ${contentLabel} terlebih dahulu agar struktur yang Anda susun mudah dikenali.`;
                 }
 
                 if (!summary.totalQuestions) {
-                    return 'Tambahkan minimal satu pertanyaan agar assessment siap dipakai pada penugasan.';
+                    return `Tambahkan minimal satu pertanyaan agar ${contentLabel} siap dipakai pada penugasan.`;
                 }
 
                 if (!summary.previewForms) {
@@ -4284,11 +4304,11 @@
                 }
 
                 if (!summary.isActive) {
-                    return 'Struktur assessment sudah terisi, tetapi assessment utama masih nonaktif.';
+                    return `Struktur ${contentLabel} sudah terisi, tetapi ${contentLabel} utama masih nonaktif.`;
                 }
 
                 if (summary.status !== 'publish') {
-                    return `Struktur sudah siap, namun status assessment masih ${formatStatusLabel(summary.status).toLowerCase()}.`;
+                    return `Struktur sudah siap, namun status ${contentLabel} masih ${formatStatusLabel(summary.status).toLowerCase()}.`;
                 }
 
                 return `${summary.previewForms} form aktif dengan ${summary.visibleQuestions} pertanyaan siap ditampilkan ke peserta. ${summary.scoreableForms} form masuk penilaian.`;
@@ -4303,7 +4323,7 @@
 
                 const summary = buildBuilderSummarySnapshot();
 
-                $('#summary-assessment-title').text(summary.title || 'Judul assessment belum diisi');
+                $('#summary-assessment-title').text(summary.title || `Judul ${contentLabel} belum diisi`);
                 $('#summary-total-forms').text(summary.totalForms);
                 $('#summary-total-questions').text(summary.totalQuestions);
                 $('#summary-active-forms').text(summary.activeForms);
@@ -4386,7 +4406,7 @@
                     .filter((form) => form.fields.length);
 
                 return {
-                    title: $('input[name="judul"]').val()?.trim() || 'Judul assessment belum diisi',
+                    title: $('input[name="judul"]').val()?.trim() || `Judul ${contentLabel} belum diisi`,
                     code: $('[data-assessment-code-display]').val()?.trim() || 'Otomatis saat disimpan',
                     description: $('textarea[name="deskripsi"]').val()?.trim() || '',
                     instruction: $('textarea[name="petunjuk"]').val()?.trim() || '',
@@ -4633,7 +4653,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start flex-wrap">
                                 <div class="mb-3">
-                                    <div class="text-muted small">Kode Assessment</div>
+                                    <div class="text-muted small">Kode ${contentLabelTitle}</div>
                                     <div class="font-weight-bold">${escapeHtml(data.code)}</div>
                                 </div>
                                 <div class="mb-3">

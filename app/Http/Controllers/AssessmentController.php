@@ -17,6 +17,7 @@ use App\Support\Assessment\ScoringGuidanceAssistant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -38,12 +39,13 @@ class AssessmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $datas = Assessment::with(['forms.fields'])
+        $datas = $this->assessmentQuery()
+            ->with(['forms.fields'])
             ->orderByDesc('id')
             ->get();
 
         return view('pages.admin.assessment.index', [
-            'menu' => $this->menu,
+            ...$this->viewContext(),
             'datas' => $datas,
         ]);
     }
@@ -56,11 +58,14 @@ class AssessmentController extends Controller
         $this->authorizeAccess();
 
         return view('pages.admin.assessment.create', [
-            'menu' => $this->menu,
+            ...$this->viewContext(),
             'assessment' => new Assessment([
                 'status' => 'draft',
                 'is_active' => true,
-                'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                'kategori' => $this->assessmentCategory(),
+                'target_ketenagaan' => $this->isEvaluasiPelaksanaan()
+                    ? null
+                    : AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
             ]),
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => [],
@@ -89,30 +94,38 @@ class AssessmentController extends Controller
                 $validated['instrument_type'] ?? null
             );
 
-            $assessment = Assessment::create([
+            $assessmentData = [
                 'kode_assessment' => $assessmentCode,
                 'judul' => $validated['judul'],
                 'slug' => $this->generateUniqueSlug($validated['judul']),
                 'deskripsi' => $validated['deskripsi'] ?? null,
                 'petunjuk' => $validated['petunjuk'] ?? null,
                 'instrument_type' => $validated['instrument_type'] ?? null,
-                'target_ketenagaan' => $validated['target_ketenagaan'],
+                'target_ketenagaan' => $this->isEvaluasiPelaksanaan()
+                    ? null
+                    : $validated['target_ketenagaan'],
                 'scoring_config' => $this->buildAssessmentScoringConfig($validated['instrument_type'] ?? null),
                 'status' => $validated['status'],
                 'is_active' => (bool) ($validated['is_active'] ?? false),
-            ]);
+            ];
+
+            if ($this->hasCategoryColumn()) {
+                $assessmentData['kategori'] = $this->assessmentCategory();
+            }
+
+            $assessment = Assessment::create($assessmentData);
 
             $this->syncForms($assessment, $validated['forms']);
 
             DB::commit();
 
-            return redirect()->route('assessment.index')->with('message', 'store');
+            return redirect()->route($this->assessmentRoute('index'))->with('message', 'store');
         } catch (\Throwable $th) {
             DB::rollBack();
 
             return back()
                 ->withInput()
-                ->withErrors(['assessment' => 'Terjadi kesalahan saat menyimpan data assessment.']);
+                ->withErrors(['assessment' => 'Terjadi kesalahan saat menyimpan data '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').'.']);
         }
     }
 
@@ -123,10 +136,12 @@ class AssessmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $assessment = Assessment::with(['forms.fields'])->findOrFail($id);
+        $assessment = $this->assessmentQuery()
+            ->with(['forms.fields'])
+            ->findOrFail($id);
 
         return view('pages.admin.assessment.show', [
-            'menu' => $this->menu,
+            ...$this->viewContext(),
             'assessment' => $assessment,
         ]);
     }
@@ -138,10 +153,12 @@ class AssessmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $assessment = Assessment::with(['forms.fields'])->findOrFail($id);
+        $assessment = $this->assessmentQuery()
+            ->with(['forms.fields'])
+            ->findOrFail($id);
 
         return view('pages.admin.assessment.edit', [
-            'menu' => $this->menu,
+            ...$this->viewContext(),
             'assessment' => $assessment,
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => $this->buildFormBuilderData($assessment),
@@ -159,7 +176,9 @@ class AssessmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $assessment = Assessment::with('forms.fields')->findOrFail($id);
+        $assessment = $this->assessmentQuery()
+            ->with('forms.fields')
+            ->findOrFail($id);
         $validated = $this->validatePayload($request, $assessment->id);
 
         DB::beginTransaction();
@@ -173,18 +192,26 @@ class AssessmentController extends Controller
                 $assessment->kode_assessment
             );
 
-            $assessment->update([
+            $assessmentData = [
                 'kode_assessment' => $assessmentCode,
                 'judul' => $validated['judul'],
                 'slug' => $this->generateUniqueSlug($validated['judul'], $assessment->id),
                 'deskripsi' => $validated['deskripsi'] ?? null,
                 'petunjuk' => $validated['petunjuk'] ?? null,
                 'instrument_type' => $validated['instrument_type'] ?? null,
-                'target_ketenagaan' => $validated['target_ketenagaan'],
+                'target_ketenagaan' => $this->isEvaluasiPelaksanaan()
+                    ? null
+                    : $validated['target_ketenagaan'],
                 'scoring_config' => $this->buildAssessmentScoringConfig($validated['instrument_type'] ?? null),
                 'status' => $validated['status'],
                 'is_active' => (bool) ($validated['is_active'] ?? false),
-            ]);
+            ];
+
+            if ($this->hasCategoryColumn()) {
+                $assessmentData['kategori'] = $this->assessmentCategory();
+            }
+
+            $assessment->update($assessmentData);
 
             $this->syncForms($assessment, $validated['forms']);
             $assessment->load(['forms.fields']);
@@ -192,13 +219,13 @@ class AssessmentController extends Controller
 
             DB::commit();
 
-            return redirect()->route('assessment.index')->with('message', 'update');
+            return redirect()->route($this->assessmentRoute('index'))->with('message', 'update');
         } catch (\Throwable $th) {
             DB::rollBack();
 
             return back()
                 ->withInput()
-                ->withErrors(['assessment' => 'Terjadi kesalahan saat memperbarui data assessment.']);
+                ->withErrors(['assessment' => 'Terjadi kesalahan saat memperbarui data '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').'.']);
         }
     }
 
@@ -209,7 +236,8 @@ class AssessmentController extends Controller
     {
         $this->authorizeAccess();
 
-        $assessment = Assessment::findOrFail($id);
+        $assessment = $this->assessmentQuery()
+            ->findOrFail($id);
         $assessment->delete();
 
         return response()->json([
@@ -223,6 +251,52 @@ class AssessmentController extends Controller
             in_array(session('role'), ['admin', 'superadmin', 'kepala', 'database'], true),
             403
         );
+    }
+
+    private function isEvaluasiPelaksanaan(): bool
+    {
+        return request()->routeIs('evaluasi.pelaksanaan.bank-soal.*');
+    }
+
+    private function assessmentCategory(): string
+    {
+        return $this->isEvaluasiPelaksanaan()
+            ? Assessment::CATEGORY_EVALUASI_PELAKSANAAN
+            : Assessment::CATEGORY_STANDARD;
+    }
+
+    private function hasCategoryColumn(): bool
+    {
+        return Schema::hasColumn('assessments', 'kategori');
+    }
+
+    private function assessmentQuery()
+    {
+        return Assessment::query()->when(
+            $this->hasCategoryColumn(),
+            fn ($query) => $query->where('kategori', $this->assessmentCategory())
+        );
+    }
+
+    private function assessmentRoute(string $action): string
+    {
+        return ($this->isEvaluasiPelaksanaan()
+            ? 'evaluasi.pelaksanaan.bank-soal'
+            : 'assessment').'.'.$action;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function viewContext(): array
+    {
+        return [
+            'menu' => $this->isEvaluasiPelaksanaan() ? 'evaluasi-bank-soal' : $this->menu,
+            'isEvaluationPelaksanaan' => $this->isEvaluasiPelaksanaan(),
+            'assessmentRoutePrefix' => $this->isEvaluasiPelaksanaan()
+                ? 'evaluasi.pelaksanaan.bank-soal'
+                : 'assessment',
+        ];
     }
 
     private function fieldTypes(): array
@@ -260,7 +334,7 @@ class AssessmentController extends Controller
                 'deskripsi' => 'nullable|string',
                 'petunjuk' => 'nullable|string',
                 'target_ketenagaan' => [
-                    'required',
+                    $this->isEvaluasiPelaksanaan() ? 'nullable' : 'required',
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
@@ -381,8 +455,8 @@ class AssessmentController extends Controller
                 'forms.*.fields.*.is_active' => 'nullable|boolean',
             ],
             [
-                'kode_assessment.unique' => 'Kode assessment sudah digunakan.',
-                'judul.required' => 'Judul assessment wajib diisi.',
+                'kode_assessment.unique' => 'Kode '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' sudah digunakan.',
+                'judul.required' => 'Judul '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' wajib diisi.',
                 'forms.required' => 'Minimal harus ada satu form.',
                 'forms.*.judul_form.required' => 'Judul form wajib diisi.',
                 'forms.*.fields.required' => 'Setiap form minimal memiliki satu pertanyaan.',
@@ -560,7 +634,7 @@ class AssessmentController extends Controller
                 if ($submittedFormId > 0 && ! $existingForms->has($submittedFormId)) {
                     $validator->errors()->add(
                         "forms.$formIndex.id",
-                        'Form assessment yang dipilih tidak valid.'
+                        'Form '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' yang dipilih tidak valid.'
                     );
 
                     continue;
@@ -584,7 +658,7 @@ class AssessmentController extends Controller
                     if ($submittedFormId < 1 || ! array_key_exists($submittedFieldId, $existingFieldIds)) {
                         $validator->errors()->add(
                             "forms.$formIndex.fields.$fieldIndex.id",
-                            'Field assessment yang dipilih tidak valid.'
+                            'Field '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' yang dipilih tidak valid.'
                         );
                     }
                 }

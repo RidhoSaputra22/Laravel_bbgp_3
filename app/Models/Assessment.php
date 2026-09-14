@@ -11,6 +11,9 @@ class Assessment extends Model
 {
     use HasFactory;
 
+    public const CATEGORY_STANDARD = 'assessment';
+    public const CATEGORY_EVALUASI_PELAKSANAAN = 'evaluasi_pelaksanaan';
+
     protected $fillable = [
         'kode_assessment',
         'judul',
@@ -18,6 +21,7 @@ class Assessment extends Model
         'deskripsi',
         'petunjuk',
         'instrument_type',
+        'kategori',
         'target_ketenagaan',
         'scoring_config',
         'status',

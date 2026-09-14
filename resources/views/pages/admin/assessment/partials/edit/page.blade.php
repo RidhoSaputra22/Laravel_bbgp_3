@@ -1,10 +1,15 @@
-@extends('layouts.app', ['title' => 'Edit Assessment'])
+@extends('layouts.app', ['title' => ($isEvaluationPelaksanaan ?? false) ? 'Edit Bank Soal Evaluasi' : 'Edit Assessment'])
+
+@php
+    $isEvaluationPelaksanaan = $isEvaluationPelaksanaan ?? false;
+    $assessmentRoutePrefix = $assessmentRoutePrefix ?? 'assessment';
+@endphp
 
 @section('content')
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Edit Assessment</h1>
+                <h1>{{ $isEvaluationPelaksanaan ? 'Edit Bank Soal Evaluasi Pelaksanaan' : 'Edit Assessment' }}</h1>
                 <div class="section-header-breadcrumb">
                     <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST" class="d-inline">
                         @csrf
@@ -20,10 +25,12 @@
                     'assessment' => $assessment,
                     'fieldTypes' => $fieldTypes,
                     'formBuilderData' => $formBuilderData,
-                    'formAction' => route('assessment.update', $assessment->id),
+                    'formAction' => route($assessmentRoutePrefix.'.update', $assessment->id),
                     'httpMethod' => 'PUT',
-                    'submitLabel' => 'Edit Assessment',
-                    'pageTitle' => 'Edit Struktur Assessment',
+                    'submitLabel' => $isEvaluationPelaksanaan ? 'Simpan Perubahan' : 'Edit Assessment',
+                    'pageTitle' => $isEvaluationPelaksanaan ? 'Edit Struktur Evaluasi Pelaksanaan' : 'Edit Struktur Assessment',
+                    'assessmentRoutePrefix' => $assessmentRoutePrefix,
+                    'isEvaluationPelaksanaan' => $isEvaluationPelaksanaan,
                 ])
             </div>
         </section>

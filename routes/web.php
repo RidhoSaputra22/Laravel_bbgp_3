@@ -6,6 +6,7 @@ use App\Http\Controllers\Assessment\PortalAttemptController as AssessmentPortalA
 use App\Http\Controllers\Assessment\PortalController as AssessmentPortalController;
 use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;
 use App\Http\Controllers\Assessment\PortalSecurityController as AssessmentPortalSecurityController;
+use App\Http\Controllers\EvaluasiPelaksanaanResultController;
 use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
@@ -431,6 +432,21 @@ Route::group(
                     Route::get('/review/{targetId}', 'AssessmentAttemptReviewController@show')->name('assessment.assignment.review.show');
                     Route::put('/review/{targetId}', 'AssessmentAttemptReviewController@update')->name('assessment.assignment.review.update');
                 });
+            });
+
+            Route::prefix('evaluasi-pelaksanaan')->group(function () {
+                    Route::prefix('bank-soal')->group(function () {
+                        Route::get('/', 'AssessmentController@index')->name('evaluasi.pelaksanaan.bank-soal.index');
+                        Route::get('/create', 'AssessmentController@create')->name('evaluasi.pelaksanaan.bank-soal.create');
+                        Route::post('/store', 'AssessmentController@store')->name('evaluasi.pelaksanaan.bank-soal.store');
+                        Route::get('/show/{id}', 'AssessmentController@show')->name('evaluasi.pelaksanaan.bank-soal.show');
+                        Route::get('/edit/{id}', 'AssessmentController@edit')->name('evaluasi.pelaksanaan.bank-soal.edit');
+                        Route::put('/update/{id}', 'AssessmentController@update')->name('evaluasi.pelaksanaan.bank-soal.update');
+                        Route::post('/hapus/{id}', 'AssessmentController@destroy')->name('evaluasi.pelaksanaan.bank-soal.destroy');
+                    });
+
+                    Route::get('/hasil-evaluasi', [EvaluasiPelaksanaanResultController::class, 'index'])
+                        ->name('evaluasi.pelaksanaan.hasil.index');
             });
 
             // Kegiatan

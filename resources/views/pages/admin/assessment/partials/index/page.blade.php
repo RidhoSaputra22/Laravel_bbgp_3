@@ -1,4 +1,14 @@
-@extends('layouts.app', ['title' => 'Data Assessment'])
+@extends('layouts.app', ['title' => ($isEvaluationPelaksanaan ?? false) ? 'Bank Soal Evaluasi Pelaksanaan' : 'Data Assessment'])
+
+@php
+    $isEvaluationPelaksanaan = $isEvaluationPelaksanaan ?? false;
+    $assessmentRoutePrefix = $assessmentRoutePrefix ?? 'assessment';
+    $assessmentDeleteRoute = $isEvaluationPelaksanaan
+        ? $assessmentRoutePrefix.'.destroy'
+        : 'assessment.hapus';
+    $pageHeading = $isEvaluationPelaksanaan ? 'Bank Soal Evaluasi Pelaksanaan' : 'Data Assessment';
+    $createLabel = $isEvaluationPelaksanaan ? 'Tambah Bank Soal' : 'Tambah Assessment';
+@endphp
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -21,13 +31,15 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Data Assessment</h1>
+                <h1>{{ $pageHeading }}</h1>
                 <div class="section-header-breadcrumb">
-                    <a href="{{ route('assessment.combination.index') }}" class="btn btn-info mr-2">
-                        <i class="fas fa-random"></i> Panel Kombinasi
-                    </a>
-                    <a href="{{ route('assessment.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Tambah Assessment
+                    @unless ($isEvaluationPelaksanaan)
+                        <a href="{{ route('assessment.combination.index') }}" class="btn btn-info mr-2">
+                            <i class="fas fa-random"></i> Panel Kombinasi
+                        </a>
+                    @endunless
+                    <a href="{{ route($assessmentRoutePrefix.'.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> {{ $createLabel }}
                     </a>
                 </div>
             </div>
@@ -83,7 +95,7 @@
 
                 <div class="card">
                     <div class="card-header">
-                        <h4>Daftar Form Assessment Dinamis</h4>
+                        <h4>{{ $isEvaluationPelaksanaan ? 'Daftar Bank Soal Evaluasi' : 'Daftar Form Assessment Dinamis' }}</h4>
                     </div>
                     <div class="card-body">
                         @if ($datas->isEmpty())
@@ -91,16 +103,20 @@
                                 <div class="empty-state-icon bg-primary">
                                     <i class="fas fa-clipboard-list"></i>
                                 </div>
-                                <h2>Belum ada assessment</h2>
+                                <h2>{{ $isEvaluationPelaksanaan ? 'Belum ada bank soal' : 'Belum ada assessment' }}</h2>
                                 <p class="lead">
-                                    Mulai buat assessment baru untuk menyusun form dan pertanyaandinamis.
+                                    {{ $isEvaluationPelaksanaan
+                                        ? 'Buat bank soal untuk mengumpulkan evaluasi pelaksanaan kegiatan.'
+                                        : 'Mulai buat assessment baru untuk menyusun form dan pertanyaan dinamis.' }}
                                 </p>
-                                <a href="{{ route('assessment.create') }}" class="btn btn-primary mt-3 mr-2">
-                                    Tambah Assessment
+                                <a href="{{ route($assessmentRoutePrefix.'.create') }}" class="btn btn-primary mt-3 mr-2">
+                                    {{ $createLabel }}
                                 </a>
-                                <a href="{{ route('assessment.combination.index') }}" class="btn btn-info mt-3">
-                                    Panel Kombinasi
-                                </a>
+                                @unless ($isEvaluationPelaksanaan)
+                                    <a href="{{ route('assessment.combination.index') }}" class="btn btn-info mt-3">
+                                        Panel Kombinasi
+                                    </a>
+                                @endunless
                             </div>
                         @else
                             <div class="table-responsive">
@@ -158,15 +174,15 @@
                                                 </td>
                                                 <td>{{ \App\Helpers\Helper::dateIndo($data->updated_at) }}</td>
                                                 <td class="text-center">
-                                                    <a href="{{ route('assessment.show', $data->id) }}"
+                                                    <a href="{{ route($assessmentRoutePrefix.'.show', $data->id) }}"
                                                         class="btn btn-info btn-sm my-1">
                                                         <i class="fas fa-eye"></i>
                                                     </a>
-                                                    <a href="{{ route('assessment.edit', $data->id) }}"
+                                                    <a href="{{ route($assessmentRoutePrefix.'.edit', $data->id) }}"
                                                         class="btn btn-warning btn-sm my-1">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <button onclick="deleteData({{ $data->id }}, 'assessment')"
+                                                    <button onclick="deleteData({{ $data->id }}, 'assessment', '{{ route($assessmentDeleteRoute, $data->id) }}')"
                                                         class="btn btn-danger btn-sm my-1">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>

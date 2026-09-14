@@ -156,6 +156,23 @@
                </ul>
             </li>
 
+            <li class="nav-item dropdown {{ in_array($menu, ['evaluasi-bank-soal', 'evaluasi-hasil'], true) ? 'active' : '' }}">
+               <a href="#" class="nav-link has-dropdown"><i class="fas fa-chart-line"></i>
+                  <span>Evaluasi Pelaksanaan</span></a>
+               <ul class="dropdown-menu">
+                  <li class="{{ $menu == 'evaluasi-bank-soal' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('evaluasi.pelaksanaan.bank-soal.index') }}">
+                        Bank Soal
+                     </a>
+                  </li>
+                  <li class="{{ $menu == 'evaluasi-hasil' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('evaluasi.pelaksanaan.hasil.index') }}">
+                        Hasil Evaluasi
+                     </a>
+                  </li>
+               </ul>
+            </li>
+
             <li class="menu-header">Landing Page</li>
             <li class="nav-item  {{ $menu == 'agenda' ? 'active' : '' }}">
                <a href="{{ route('agenda.index') }}" class="nav-link "><i class="fas fa-thumbtack"></i>
@@ -372,6 +389,22 @@
                <a class="nav-link" href="{{ route('assessment.validator.index') }}">
                   <i class="fas fa-clipboard-check"></i> <span>Validator</span>
                </a>
+            </li>
+            <li class="nav-item dropdown {{ in_array($menu, ['evaluasi-bank-soal', 'evaluasi-hasil'], true) ? 'active' : '' }}">
+               <a href="#" class="nav-link has-dropdown"><i class="fas fa-chart-line"></i>
+                  <span>Evaluasi Pelaksanaan</span></a>
+               <ul class="dropdown-menu">
+                  <li class="{{ $menu == 'evaluasi-bank-soal' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('evaluasi.pelaksanaan.bank-soal.index') }}">
+                        Bank Soal
+                     </a>
+                  </li>
+                  <li class="{{ $menu == 'evaluasi-hasil' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('evaluasi.pelaksanaan.hasil.index') }}">
+                        Hasil Evaluasi
+                     </a>
+                  </li>
+               </ul>
             </li>
          @endif
 
