@@ -83,6 +83,9 @@
                               href="{{ route('user.kegiatan') }}">Kegiatan</a></li>
 
                         <li class="nav-item {{ $menu == 'sekolah' ? 'active' : '' }}"><a class="nav-link"
+                              href="https://evaluasi.simbbgtksulsel.com/quiz/evaluasi-pelaksanaan-hari-belajar-guru">Evaluasi Kegiatan</a></li>
+
+                        <li class="nav-item {{ $menu == 'sekolah' ? 'active' : '' }}"><a class="nav-link"
                               href="{{ route('user.data-sekolah') }}">Input Data Sekolah</a></li>
 
                         <li class="nav-item {{ $menu == 'assessment-portal' ? 'active' : '' }}"><a class="nav-link"
