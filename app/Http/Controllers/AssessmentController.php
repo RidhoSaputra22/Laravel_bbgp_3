@@ -30,7 +30,8 @@ class AssessmentController extends Controller
         private readonly AssessmentCombinationService $combinationService,
         private readonly ParticipantAutoFillResolver $participantAutoFillResolver,
         private readonly AssessmentFieldLookupResolver $fieldLookupResolver
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of the resource.
@@ -125,7 +126,7 @@ class AssessmentController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['assessment' => 'Terjadi kesalahan saat menyimpan data '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').'.']);
+                ->withErrors(['assessment' => 'Terjadi kesalahan saat menyimpan data ' . ($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment') . '.']);
         }
     }
 
@@ -225,7 +226,7 @@ class AssessmentController extends Controller
 
             return back()
                 ->withInput()
-                ->withErrors(['assessment' => 'Terjadi kesalahan saat memperbarui data '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').'.']);
+                ->withErrors(['assessment' => 'Terjadi kesalahan saat memperbarui data ' . ($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment') . '.']);
         }
     }
 
@@ -274,7 +275,7 @@ class AssessmentController extends Controller
     {
         return Assessment::query()->when(
             $this->hasCategoryColumn(),
-            fn ($query) => $query->where('kategori', $this->assessmentCategory())
+            fn($query) => $query->where('kategori', $this->assessmentCategory())
         );
     }
 
@@ -282,7 +283,7 @@ class AssessmentController extends Controller
     {
         return ($this->isEvaluasiPelaksanaan()
             ? 'evaluasi.pelaksanaan.bank-soal'
-            : 'assessment').'.'.$action;
+            : 'assessment') . '.' . $action;
     }
 
     /**
@@ -450,8 +451,8 @@ class AssessmentController extends Controller
                 'forms.*.fields.*.is_active' => 'nullable|boolean',
             ],
             [
-                'kode_assessment.unique' => 'Kode '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' sudah digunakan.',
-                'judul.required' => 'Judul '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' wajib diisi.',
+                'kode_assessment.unique' => 'Kode ' . ($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment') . ' sudah digunakan.',
+                'judul.required' => 'Judul ' . ($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment') . ' wajib diisi.',
                 'forms.required' => 'Minimal harus ada satu form.',
                 'forms.*.judul_form.required' => 'Judul form wajib diisi.',
                 'forms.*.fields.required' => 'Setiap form minimal memiliki satu pertanyaan.',
@@ -469,7 +470,7 @@ class AssessmentController extends Controller
                 $usedFieldNames = [];
 
                 if (
-                    ! $this->isEvaluasiPelaksanaan()
+                    !$this->isEvaluasiPelaksanaan()
                     && (bool) ($form['is_scoreable'] ?? true)
                     && blank($form['kompetensi'] ?? null)
                 ) {
@@ -537,7 +538,7 @@ class AssessmentController extends Controller
                                 );
                             }
 
-                            if (! LevelKompetensi::tryFromMixed($option['level_kompetensi'] ?? null)) {
+                            if (!LevelKompetensi::tryFromMixed($option['level_kompetensi'] ?? null)) {
                                 $validator->errors()->add(
                                     "forms.$formIndex.fields.$fieldIndex.radio_options.$optionIndex.level_kompetensi",
                                     'Level kompetensi pilihan ganda wajib dipilih.'
@@ -589,8 +590,8 @@ class AssessmentController extends Controller
                             $validator->errors()->add(
                                 "forms.$formIndex.fields.$fieldIndex.opsi_field_text",
                                 ($field['tipe_field'] ?? '') === 'select'
-                                    ? 'Isi opsi manual atau pilih lookup database untuk field daftar pilihan.'
-                                    : 'Opsi wajib diisi untuk field kotak centang.'
+                                ? 'Isi opsi manual atau pilih lookup database untuk field daftar pilihan.'
+                                : 'Opsi wajib diisi untuk field kotak centang.'
                             );
                         }
                     }
@@ -598,7 +599,7 @@ class AssessmentController extends Controller
                     if (($field['tipe_field'] ?? '') === 'repeater') {
                         $repeaterValidation = $this->validateRepeaterConfigText($field['repeater_config_text'] ?? null);
 
-                        if (! $repeaterValidation['valid']) {
+                        if (!$repeaterValidation['valid']) {
                             $validator->errors()->add(
                                 "forms.$formIndex.fields.$fieldIndex.repeater_config_text",
                                 $repeaterValidation['message']
@@ -608,7 +609,7 @@ class AssessmentController extends Controller
 
                     $keywordGroupsValidation = $this->validateKeywordGroupsText(data_get($field, 'scoring.keyword_groups_text'));
 
-                    if (! $keywordGroupsValidation['valid']) {
+                    if (!$keywordGroupsValidation['valid']) {
                         $validator->errors()->add(
                             "forms.$formIndex.fields.$fieldIndex.scoring.keyword_groups_text",
                             $keywordGroupsValidation['message']
@@ -617,7 +618,7 @@ class AssessmentController extends Controller
                 }
             }
 
-            if (! $assessmentId) {
+            if (!$assessmentId) {
                 return;
             }
 
@@ -630,10 +631,10 @@ class AssessmentController extends Controller
             foreach ($forms as $formIndex => $form) {
                 $submittedFormId = (int) ($form['id'] ?? 0);
 
-                if ($submittedFormId > 0 && ! $existingForms->has($submittedFormId)) {
+                if ($submittedFormId > 0 && !$existingForms->has($submittedFormId)) {
                     $validator->errors()->add(
                         "forms.$formIndex.id",
-                        'Form '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' yang dipilih tidak valid.'
+                        'Form ' . ($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment') . ' yang dipilih tidak valid.'
                     );
 
                     continue;
@@ -654,10 +655,10 @@ class AssessmentController extends Controller
                         continue;
                     }
 
-                    if ($submittedFormId < 1 || ! array_key_exists($submittedFieldId, $existingFieldIds)) {
+                    if ($submittedFormId < 1 || !array_key_exists($submittedFieldId, $existingFieldIds)) {
                         $validator->errors()->add(
                             "forms.$formIndex.fields.$fieldIndex.id",
-                            'Field '.($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment').' yang dipilih tidak valid.'
+                            'Field ' . ($this->isEvaluasiPelaksanaan() ? 'soal' : 'assessment') . ' yang dipilih tidak valid.'
                         );
                     }
                 }
@@ -678,7 +679,7 @@ class AssessmentController extends Controller
         foreach (array_values($forms) as $formIndex => $formData) {
             $formAttributes = [
                 'judul_form' => $formData['judul_form'],
-                'kode_form' => $formData['kode_form'] ?: 'FORM-'.str_pad((string) ($formIndex + 1), 2, '0', STR_PAD_LEFT),
+                'kode_form' => $formData['kode_form'] ?: 'FORM-' . str_pad((string) ($formIndex + 1), 2, '0', STR_PAD_LEFT),
                 'deskripsi' => $formData['deskripsi'] ?? null,
                 'kompetensi' => $formData['kompetensi'] ?? null,
                 'indikator_kode' => $formData['indikator_kode'] ?? null,
@@ -708,7 +709,7 @@ class AssessmentController extends Controller
 
         $formIdsToDelete = $existingForms
             ->keys()
-            ->reject(fn ($formId) => in_array((int) $formId, $retainedFormIds, true))
+            ->reject(fn($formId) => in_array((int) $formId, $retainedFormIds, true))
             ->values()
             ->all();
 
@@ -722,8 +723,7 @@ class AssessmentController extends Controller
         array $fields,
         ?string $instrumentType = null,
         ?string $targetKetenagaan = null
-    ): void
-    {
+    ): void {
         $existingFields = $form->fields()
             ->get()
             ->keyBy('id');
@@ -779,7 +779,7 @@ class AssessmentController extends Controller
 
         $fieldIdsToDelete = $existingFields
             ->keys()
-            ->reject(fn ($fieldId) => in_array((int) $fieldId, $retainedFieldIds, true))
+            ->reject(fn($fieldId) => in_array((int) $fieldId, $retainedFieldIds, true))
             ->values()
             ->all();
 
@@ -792,15 +792,14 @@ class AssessmentController extends Controller
         array $fieldData,
         ?string $targetKetenagaan = null,
         ?string $fieldName = null
-    ): ?array
-    {
+    ): ?array {
         $fieldType = $fieldData['tipe_field'] ?? null;
 
         if ($fieldType === 'file') {
             return $this->parseFileFieldOptions($fieldData);
         }
 
-        if (! in_array($fieldType, ['select', 'radio', LikertScale::FIELD_TYPE, 'checkbox', 'repeater'], true)) {
+        if (!in_array($fieldType, ['select', 'radio', LikertScale::FIELD_TYPE, 'checkbox', 'repeater'], true)) {
             return null;
         }
 
@@ -810,13 +809,13 @@ class AssessmentController extends Controller
 
         if ($fieldType === 'radio') {
             $options = collect(ChoiceOptionNormalizer::normalizeMany($fieldData['radio_options'] ?? []))
-                ->map(fn ($option) => [
+                ->map(fn($option) => [
                     'label' => trim((string) ($option['label'] ?? '')),
                     'value' => trim((string) ($option['value'] ?? '')),
                     'score' => is_numeric($option['score'] ?? null) ? (float) $option['score'] : null,
                     'level_kompetensi' => LevelKompetensi::tryFromMixed($option['level_kompetensi'] ?? null)?->value,
                 ])
-                ->filter(fn ($option) => $option['label'] !== '' && $option['value'] !== '')
+                ->filter(fn($option) => $option['label'] !== '' && $option['value'] !== '')
                 ->values()
                 ->toArray();
 
@@ -837,7 +836,7 @@ class AssessmentController extends Controller
         $options = $lookupSource
             ? collect($this->fieldLookupResolver->resolveOptions($lookupSource))
                 ->pluck('label')
-                ->map(fn ($label) => trim((string) $label))
+                ->map(fn($label) => trim((string) $label))
                 ->filter()
                 ->values()
                 ->all()
@@ -861,7 +860,7 @@ class AssessmentController extends Controller
                     'label' => $optionLabel,
                     'value' => $optionLabel,
                     'score' => is_numeric($score) ? (float) $score : null,
-                ], static fn ($value) => $value !== null && $value !== '');
+                ], static fn($value) => $value !== null && $value !== '');
             })
             ->values()
             ->all();
@@ -871,7 +870,7 @@ class AssessmentController extends Controller
     {
         $decoded = json_decode((string) $rawOptions, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
             return null;
         }
 
@@ -884,7 +883,7 @@ class AssessmentController extends Controller
         $rawConfig = is_array($rawConfig) ? $rawConfig : [];
         $inputMode = $this->normalizeFileInputMode($fieldData['file_input_mode'] ?? data_get($rawConfig, 'input_mode'));
         $accept = collect(Arr::wrap($rawConfig['accept'] ?? []))
-            ->map(fn ($value) => trim((string) $value))
+            ->map(fn($value) => trim((string) $value))
             ->filter()
             ->values()
             ->all();
@@ -900,7 +899,7 @@ class AssessmentController extends Controller
             'accept' => $accept !== [] ? $accept : null,
             'max_size_kb' => $inputMode === 'file' ? $maxSizeKb : null,
             'max_files' => $inputMode === 'file' ? $maxFiles : null,
-        ], static fn ($value) => $value !== null && $value !== '');
+        ], static fn($value) => $value !== null && $value !== '');
     }
 
     /**
@@ -910,7 +909,7 @@ class AssessmentController extends Controller
     private function parseOptionScoreText(?string $rawScoreText, array $options): array
     {
         $lines = collect(preg_split('/\r\n|\r|\n/', (string) $rawScoreText))
-            ->map(fn ($line) => trim((string) $line))
+            ->map(fn($line) => trim((string) $line))
             ->filter()
             ->values();
 
@@ -918,12 +917,12 @@ class AssessmentController extends Controller
             return [];
         }
 
-        if ($lines->every(fn ($line) => preg_match('/[:=]/', $line) === 1)) {
+        if ($lines->every(fn($line) => preg_match('/[:=]/', $line) === 1)) {
             return $lines->mapWithKeys(function ($line) {
                 [$rawKey, $rawValue] = array_pad(preg_split('/\s*[:=]\s*/', (string) $line, 2), 2, null);
                 $optionKey = Str::lower(trim((string) $rawKey));
 
-                if ($optionKey === '' || ! is_numeric($rawValue)) {
+                if ($optionKey === '' || !is_numeric($rawValue)) {
                     return [];
                 }
 
@@ -932,7 +931,7 @@ class AssessmentController extends Controller
         }
 
         $numericLines = $lines
-            ->filter(fn ($line) => is_numeric($line))
+            ->filter(fn($line) => is_numeric($line))
             ->values();
 
         if ($numericLines->count() !== count($options)) {
@@ -940,7 +939,7 @@ class AssessmentController extends Controller
         }
 
         return $numericLines
-            ->mapWithKeys(fn ($line, $index) => [$index => (float) $line])
+            ->mapWithKeys(fn($line, $index) => [$index => (float) $line])
             ->all();
     }
 
@@ -951,7 +950,7 @@ class AssessmentController extends Controller
         } else {
             $decoded = json_decode((string) $rawConfig, true);
 
-            if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
                 return null;
             }
         }
@@ -959,7 +958,7 @@ class AssessmentController extends Controller
         $allowedColumnTypes = ['text', 'textarea', 'number', 'email', 'date', 'url', 'select'];
 
         $columns = collect($decoded['columns'] ?? [])
-            ->filter(fn ($column) => is_array($column))
+            ->filter(fn($column) => is_array($column))
             ->map(function (array $column) use ($allowedColumnTypes) {
                 $fieldName = Str::slug(trim((string) ($column['nama_field'] ?? '')), '_');
                 $fieldType = trim((string) ($column['tipe_field'] ?? 'text')) ?: 'text';
@@ -1003,7 +1002,7 @@ class AssessmentController extends Controller
     {
         $parsedConfig = $this->parseRepeaterConfigText($rawConfig);
 
-        if (! $parsedConfig) {
+        if (!$parsedConfig) {
             return [
                 'valid' => false,
                 'message' => 'Konfigurasi tabel berulang wajib berupa JSON valid dan minimal memiliki satu kolom.',
@@ -1047,7 +1046,7 @@ class AssessmentController extends Controller
                 ];
             }
 
-            if (! in_array($columnType, ['text', 'textarea', 'number', 'email', 'date', 'url', 'select'], true)) {
+            if (!in_array($columnType, ['text', 'textarea', 'number', 'email', 'date', 'url', 'select'], true)) {
                 return [
                     'valid' => false,
                     'message' => "Tipe input untuk kolom {$columnLabel} tidak dikenali.",
@@ -1064,7 +1063,7 @@ class AssessmentController extends Controller
 
         $duplicateNames = $columns
             ->pluck('nama_field')
-            ->map(fn ($name) => trim((string) $name))
+            ->map(fn($name) => trim((string) $name))
             ->filter()
             ->duplicates()
             ->values();
@@ -1086,7 +1085,7 @@ class AssessmentController extends Controller
     {
         $instrument = AssessmentInstrumentType::tryFromMixed($instrumentType);
 
-        if (! $instrument) {
+        if (!$instrument) {
             return null;
         }
 
@@ -1107,10 +1106,10 @@ class AssessmentController extends Controller
             'weight' => is_numeric($rawConfig['weight'] ?? null) ? (float) $rawConfig['weight'] : null,
             'exclude_from_competency' => (bool) ($rawConfig['exclude_from_competency'] ?? false),
             'advanced_rules_text' => trim((string) ($rawConfig['advanced_rules_text'] ?? '')),
-        ], fn ($value, $key) => match ($key) {
-            'exclude_from_competency' => (bool) $value,
-            default => $value !== null && $value !== '',
-        }, ARRAY_FILTER_USE_BOTH);
+        ], fn($value, $key) => match ($key) {
+                'exclude_from_competency' => (bool) $value,
+                default => $value !== null && $value !== '',
+            }, ARRAY_FILTER_USE_BOTH);
 
         return $config === [] ? null : $config;
     }
@@ -1193,7 +1192,7 @@ class AssessmentController extends Controller
             && in_array($method, ['semantic_similarity', 'keyword_coverage'], true)
         ) || ($fieldType === 'repeater' && $method === 'repeater_completeness');
 
-        if (! $supportsGuidanceAssistant) {
+        if (!$supportsGuidanceAssistant) {
             return $config;
         }
 
@@ -1223,7 +1222,7 @@ class AssessmentController extends Controller
             $config['synonym_map_text'] = $suggestions['synonym_map_text'];
         }
 
-        if (! is_numeric($config['min_words'] ?? null) && is_numeric($suggestions['min_words'] ?? null)) {
+        if (!is_numeric($config['min_words'] ?? null) && is_numeric($suggestions['min_words'] ?? null)) {
             $config['min_words'] = (int) $suggestions['min_words'];
         }
 
@@ -1245,7 +1244,7 @@ class AssessmentController extends Controller
 
         while ($number > 0) {
             $number--;
-            $label = chr(65 + ($number % 26)).$label;
+            $label = chr(65 + ($number % 26)) . $label;
             $number = intdiv($number, 26);
         }
 
@@ -1256,13 +1255,13 @@ class AssessmentController extends Controller
     {
         $formsPayload = $request->input('forms_payload');
 
-        if (! is_string($formsPayload) || trim($formsPayload) === '') {
+        if (!is_string($formsPayload) || trim($formsPayload) === '') {
             return;
         }
 
         $decodedPayload = json_decode($formsPayload, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decodedPayload)) {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decodedPayload)) {
             return;
         }
 
@@ -1301,14 +1300,8 @@ class AssessmentController extends Controller
         ?string $fieldName = null,
         ?string $targetKetenagaan = null
     ): ?string {
-        $normalizedSource = $this->fieldLookupResolver->normalizeSource($source, $fieldType);
-
-        if ($normalizedSource) {
-            return $normalizedSource;
-        }
-
         return $this->fieldLookupResolver->normalizeSource(
-            $this->fieldLookupResolver->inferSourceFromField($label, $fieldName, $targetKetenagaan),
+            $source,
             $fieldType
         );
     }
@@ -1328,10 +1321,10 @@ class AssessmentController extends Controller
 
         while (
             Assessment::where('slug', $slug)
-                ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+                ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
                 ->exists()
         ) {
-            $slug = $baseSlug.'-'.$counter;
+            $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
 
@@ -1364,7 +1357,7 @@ class AssessmentController extends Controller
             $candidate = sprintf('%s-%03d', $baseCode, $counter);
             $exists = Assessment::query()
                 ->where('kode_assessment', $candidate)
-                ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+                ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
                 ->exists();
             $counter++;
         } while ($exists);
@@ -1384,17 +1377,17 @@ class AssessmentController extends Controller
         };
 
         if ($instrumentPrefix) {
-            return 'ASM-'.$instrumentPrefix;
+            return 'ASM-' . $instrumentPrefix;
         }
 
         $titleTokens = collect(explode('-', Str::slug($title)))
             ->filter()
             ->take(4)
-            ->map(fn ($token) => Str::upper($token))
+            ->map(fn($token) => Str::upper($token))
             ->values()
             ->all();
 
-        return 'ASM-'.implode('-', $titleTokens ?: ['ASSESSMENT']);
+        return 'ASM-' . implode('-', $titleTokens ?: ['ASSESSMENT']);
     }
 
     private function buildFormBuilderData(Assessment $assessment): array
@@ -1423,7 +1416,7 @@ class AssessmentController extends Controller
 
                     if ($field->tipe_field === 'radio') {
                         $radioOptions = collect(ChoiceOptionNormalizer::normalizeMany($field->opsi_field ?? []))
-                            ->map(fn ($option) => [
+                            ->map(fn($option) => [
                                 'label' => $option['label'],
                                 'value' => $option['value'],
                                 'score' => $option['score'],
@@ -1434,7 +1427,7 @@ class AssessmentController extends Controller
 
                     if (in_array($field->tipe_field, ['select', 'checkbox'], true)) {
                         $choiceOptions = collect(ChoiceOptionNormalizer::normalizeMany($field->opsi_field ?? []))
-                            ->map(fn ($option) => [
+                            ->map(fn($option) => [
                                 'label' => $option['label'],
                                 'value' => $option['value'],
                                 'score' => $option['score'],
@@ -1517,20 +1510,20 @@ class AssessmentController extends Controller
         if ($choiceOptions !== []) {
             $labels = collect($choiceOptions)
                 ->pluck('label')
-                ->map(fn ($label) => trim((string) $label))
+                ->map(fn($label) => trim((string) $label))
                 ->filter()
                 ->values();
 
             return $labels->isEmpty() ? null : $labels->implode(', ');
         }
 
-        if (! is_array($rawOptions) || ! array_is_list($rawOptions)) {
+        if (!is_array($rawOptions) || !array_is_list($rawOptions)) {
             return null;
         }
 
         $labels = collect($rawOptions)
-            ->filter(fn ($option) => is_scalar($option))
-            ->map(fn ($option) => trim((string) $option))
+            ->filter(fn($option) => is_scalar($option))
+            ->map(fn($option) => trim((string) $option))
             ->filter()
             ->values();
 
@@ -1539,7 +1532,7 @@ class AssessmentController extends Controller
 
     private function formatRawFieldOptionsJsonForBuilder(?string $fieldType, mixed $rawOptions): ?string
     {
-        if (in_array($fieldType, ['select', 'radio', LikertScale::FIELD_TYPE, 'checkbox', 'repeater'], true) || ! is_array($rawOptions)) {
+        if (in_array($fieldType, ['select', 'radio', LikertScale::FIELD_TYPE, 'checkbox', 'repeater'], true) || !is_array($rawOptions)) {
             return null;
         }
 
@@ -1549,8 +1542,8 @@ class AssessmentController extends Controller
     private function formatOptionScoreText(array $options): ?string
     {
         $scoredOptions = collect($options)
-            ->filter(fn ($option) => is_numeric($option['score'] ?? null))
-            ->map(fn ($option) => ($option['label'] ?? $option['value'] ?? '').' = '.$option['score'])
+            ->filter(fn($option) => is_numeric($option['score'] ?? null))
+            ->map(fn($option) => ($option['label'] ?? $option['value'] ?? '') . ' = ' . $option['score'])
             ->filter()
             ->values();
 
@@ -1591,7 +1584,7 @@ class AssessmentController extends Controller
         }
 
         $keywords = collect(explode(',', $raw))
-            ->map(fn ($keyword) => trim((string) $keyword))
+            ->map(fn($keyword) => trim((string) $keyword))
             ->filter()
             ->unique()
             ->values();
@@ -1602,7 +1595,7 @@ class AssessmentController extends Controller
     private function formatKeywordGroupsText(mixed $value): ?string
     {
         $keywords = collect($this->extractKeywordGroups($value))
-            ->map(fn (array $group) => $group[0] ?? null)
+            ->map(fn(array $group) => $group[0] ?? null)
             ->filter()
             ->unique()
             ->values();
@@ -1631,7 +1624,7 @@ class AssessmentController extends Controller
             return trim($value) !== '' ? trim($value) : null;
         }
 
-        if (! is_array($value)) {
+        if (!is_array($value)) {
             return null;
         }
 
@@ -1644,11 +1637,11 @@ class AssessmentController extends Controller
                 }
 
                 $variantText = collect((array) $variants)
-                    ->map(fn ($variant) => trim((string) $variant))
+                    ->map(fn($variant) => trim((string) $variant))
                     ->filter()
                     ->implode(', ');
 
-                return $variantText !== '' ? $baseWord.': '.$variantText : null;
+                return $variantText !== '' ? $baseWord . ': ' . $variantText : null;
             })
             ->filter()
             ->values();
@@ -1665,7 +1658,7 @@ class AssessmentController extends Controller
             return collect($value)
                 ->map(function ($group) {
                     return collect((array) $group)
-                        ->map(fn ($item) => trim((string) $item))
+                        ->map(fn($item) => trim((string) $item))
                         ->filter()
                         ->values()
                         ->all();
@@ -1681,19 +1674,19 @@ class AssessmentController extends Controller
             return [];
         }
 
-        if (! $this->keywordGroupsUseLegacyFormat($raw)) {
+        if (!$this->keywordGroupsUseLegacyFormat($raw)) {
             return collect(explode(',', $raw))
-                ->map(fn ($keyword) => trim((string) $keyword))
+                ->map(fn($keyword) => trim((string) $keyword))
                 ->filter()
                 ->values()
-                ->map(fn ($keyword) => [$keyword])
+                ->map(fn($keyword) => [$keyword])
                 ->all();
         }
 
         return collect(preg_split('/\r\n|\r|\n/', $raw))
             ->map(function ($line) {
                 return collect(preg_split('/\s*(?:\||;|,)\s*/', (string) $line))
-                    ->map(fn ($keyword) => trim((string) $keyword))
+                    ->map(fn($keyword) => trim((string) $keyword))
                     ->filter()
                     ->values()
                     ->all();
@@ -1712,7 +1705,7 @@ class AssessmentController extends Controller
             ->reduce(function (array $carry, array $group) {
                 $baseKeyword = trim((string) ($group[0] ?? ''));
                 $variants = collect(array_slice($group, 1))
-                    ->map(fn ($keyword) => trim((string) $keyword))
+                    ->map(fn($keyword) => trim((string) $keyword))
                     ->filter()
                     ->unique()
                     ->values()
@@ -1741,7 +1734,7 @@ class AssessmentController extends Controller
             return $trimmed !== '' ? $trimmed : null;
         }
 
-        if (! is_array($value) || $value === []) {
+        if (!is_array($value) || $value === []) {
             return null;
         }
 

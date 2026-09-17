@@ -19,7 +19,8 @@
         'target_ketenagaan',
         $isEvaluationPelaksanaan
             ? null
-            : ($assessment->target_ketenagaan ?: \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value),
+            : ($assessment->target_ketenagaan ?:
+            \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value),
     );
     $ketenagaanCards = collect(\App\Enum\AssessmentKetenagaanType::cases())
         ->mapWithKeys(function ($case) {
@@ -58,7 +59,7 @@
         'repeater_completeness' => 'Cek kelengkapan tabel',
     ];
     $isEditMode = $httpMethod !== 'POST';
-    $previewUrl = $isEditMode && $assessment->id ? route($assessmentRoutePrefix.'.show', $assessment->id) : null;
+    $previewUrl = $isEditMode && $assessment->id ? route($assessmentRoutePrefix . '.show', $assessment->id) : null;
     $normalizeCheckedValue = function (mixed $value, bool $default = false): bool {
         if ($value === null) {
             return $default;
@@ -87,61 +88,59 @@
     $initialStatus = old('status', $assessment->status ?: 'draft');
     $initialInstrumentValue = old('instrument_type', $assessment->instrument_type);
     $initialSummaryTitle = trim((string) old('judul', $assessment->judul));
-    $builderSeedCollection = collect($builderSeed)
-        ->map(fn ($form) => is_array($form) ? $form : (array) $form)
-        ->values();
+    $builderSeedCollection = collect($builderSeed)->map(fn($form) => is_array($form) ? $form : (array) $form)->values();
     $resolveMeaningfulFields = function (array $form) {
         return collect((array) ($form['fields'] ?? []))
-            ->map(fn ($field) => is_array($field) ? $field : (array) $field)
-            ->filter(fn ($field) => trim((string) ($field['label'] ?? '')) !== '')
+            ->map(fn($field) => is_array($field) ? $field : (array) $field)
+            ->filter(fn($field) => trim((string) ($field['label'] ?? '')) !== '')
             ->values();
     };
     $initialTotalForms = $builderSeedCollection->count();
-    $initialTotalQuestions = $builderSeedCollection->sum(
-        fn ($form) => $resolveMeaningfulFields($form)->count()
-    );
-    $initialActiveForms = $builderSeedCollection->filter(
-        fn ($form) => $normalizeCheckedValue($form['is_active'] ?? true, true)
-    )->count();
-    $initialScoreableForms = $builderSeedCollection->filter(function ($form) use (
-        $normalizeCheckedValue,
-        $resolveMeaningfulFields
-    ) {
-        return $normalizeCheckedValue($form['is_scoreable'] ?? true, true)
-            && $resolveMeaningfulFields($form)->isNotEmpty();
-    })->count();
+    $initialTotalQuestions = $builderSeedCollection->sum(fn($form) => $resolveMeaningfulFields($form)->count());
+    $initialActiveForms = $builderSeedCollection
+        ->filter(fn($form) => $normalizeCheckedValue($form['is_active'] ?? true, true))
+        ->count();
+    $initialScoreableForms = $builderSeedCollection
+        ->filter(function ($form) use ($normalizeCheckedValue, $resolveMeaningfulFields) {
+            return $normalizeCheckedValue($form['is_scoreable'] ?? true, true) &&
+                $resolveMeaningfulFields($form)->isNotEmpty();
+        })
+        ->count();
     $initialAutoScoringQuestions = $builderSeedCollection->sum(function ($form) use (
         $normalizeCheckedValue,
-        $resolveMeaningfulFields
+        $resolveMeaningfulFields,
     ) {
-        return $resolveMeaningfulFields($form)->filter(function ($field) use ($normalizeCheckedValue) {
-            return $normalizeCheckedValue(data_get($field, 'scoring.enabled'), false);
-        })->count();
+        return $resolveMeaningfulFields($form)
+            ->filter(function ($field) use ($normalizeCheckedValue) {
+                return $normalizeCheckedValue(data_get($field, 'scoring.enabled'), false);
+            })
+            ->count();
     });
     $initialVisibleQuestions = $builderSeedCollection->sum(function ($form) use (
         $normalizeCheckedValue,
-        $resolveMeaningfulFields
+        $resolveMeaningfulFields,
     ) {
-        if (! $normalizeCheckedValue($form['is_active'] ?? true, true)) {
+        if (!$normalizeCheckedValue($form['is_active'] ?? true, true)) {
             return 0;
         }
 
-        return $resolveMeaningfulFields($form)->filter(function ($field) use ($normalizeCheckedValue) {
-            return $normalizeCheckedValue($field['is_active'] ?? true, true);
-        })->count();
+        return $resolveMeaningfulFields($form)
+            ->filter(function ($field) use ($normalizeCheckedValue) {
+                return $normalizeCheckedValue($field['is_active'] ?? true, true);
+            })
+            ->count();
     });
-    $initialPreviewForms = $builderSeedCollection->filter(function ($form) use (
-        $normalizeCheckedValue,
-        $resolveMeaningfulFields
-    ) {
-        if (! $normalizeCheckedValue($form['is_active'] ?? true, true)) {
-            return false;
-        }
+    $initialPreviewForms = $builderSeedCollection
+        ->filter(function ($form) use ($normalizeCheckedValue, $resolveMeaningfulFields) {
+            if (!$normalizeCheckedValue($form['is_active'] ?? true, true)) {
+                return false;
+            }
 
-        return $resolveMeaningfulFields($form)->contains(function ($field) use ($normalizeCheckedValue) {
-            return $normalizeCheckedValue($field['is_active'] ?? true, true);
-        });
-    })->count();
+            return $resolveMeaningfulFields($form)->contains(function ($field) use ($normalizeCheckedValue) {
+                return $normalizeCheckedValue($field['is_active'] ?? true, true);
+            });
+        })
+        ->count();
     $initialBuilderSummary = [
         'title' => $initialSummaryTitle,
         'status' => $initialStatus,
@@ -149,7 +148,7 @@
         'is_active' => $normalizeCheckedValue(old('is_active', $assessment->is_active), false),
         'target_label' => $isEvaluationPelaksanaan
             ? 'Tidak dibatasi'
-            : ($ketenagaanOptions[$selectedTargetKetenagaan] ?? 'Belum dipilih'),
+            : $ketenagaanOptions[$selectedTargetKetenagaan] ?? 'Belum dipilih',
         'instrument_label' => $instrumentTypes[$initialInstrumentValue] ?? 'Belum dipilih',
         'total_forms' => $initialTotalForms,
         'total_questions' => $initialTotalQuestions,
@@ -159,16 +158,38 @@
         'visible_questions' => $initialVisibleQuestions,
         'preview_forms' => $initialPreviewForms,
     ];
-    $initialBuilderSummary['display_label'] = $initialBuilderSummary['preview_forms'] > 0
-        ? $initialBuilderSummary['preview_forms'].' form / '.$initialBuilderSummary['visible_questions'].' soal'
-        : 'Belum ada form aktif';
+    $initialBuilderSummary['display_label'] =
+        $initialBuilderSummary['preview_forms'] > 0
+            ? $initialBuilderSummary['preview_forms'] .
+                ' form / ' .
+                $initialBuilderSummary['visible_questions'] .
+                ' soal'
+            : 'Belum ada form aktif';
     $initialBuilderSummary['builder_note'] = match (true) {
-        $initialBuilderSummary['title'] === '' => 'Isi judul '.$contentLabel.' terlebih dahulu agar struktur yang Anda susun mudah dikenali.',
-        $initialBuilderSummary['total_questions'] < 1 => 'Tambahkan minimal satu pertanyaan agar '.$contentLabel.' siap dipakai pada penugasan.',
-        $initialBuilderSummary['preview_forms'] < 1 => 'Aktifkan minimal satu form agar pertanyaan bisa tampil pada sisi peserta.',
-        ! $initialBuilderSummary['is_active'] => 'Struktur '.$contentLabel.' sudah terisi, tetapi '.$contentLabel.' utama masih nonaktif.',
-        $initialBuilderSummary['status'] !== 'publish' => 'Struktur sudah siap, namun status '.$contentLabel.' masih '.strtolower($initialBuilderSummary['status_label']).'.',
-        default => $initialBuilderSummary['preview_forms'].' form aktif dengan '.$initialBuilderSummary['visible_questions'].' pertanyaan siap ditampilkan ke peserta. '.$initialBuilderSummary['scoreable_forms'].' form masuk penilaian.',
+        $initialBuilderSummary['title'] === '' => 'Isi judul ' .
+            $contentLabel .
+            ' terlebih dahulu agar struktur yang Anda susun mudah dikenali.',
+        $initialBuilderSummary['total_questions'] < 1 => 'Tambahkan minimal satu pertanyaan agar ' .
+            $contentLabel .
+            ' siap dipakai pada penugasan.',
+        $initialBuilderSummary['preview_forms'] < 1
+            => 'Aktifkan minimal satu form agar pertanyaan bisa tampil pada sisi peserta.',
+        !$initialBuilderSummary['is_active'] => 'Struktur ' .
+            $contentLabel .
+            ' sudah terisi, tetapi ' .
+            $contentLabel .
+            ' utama masih nonaktif.',
+        $initialBuilderSummary['status'] !== 'publish' => 'Struktur sudah siap, namun status ' .
+            $contentLabel .
+            ' masih ' .
+            strtolower($initialBuilderSummary['status_label']) .
+            '.',
+        default => $initialBuilderSummary['preview_forms'] .
+            ' form aktif dengan ' .
+            $initialBuilderSummary['visible_questions'] .
+            ' pertanyaan siap ditampilkan ke peserta. ' .
+            $initialBuilderSummary['scoreable_forms'] .
+            ' form masuk penilaian.',
     };
 @endphp
 
@@ -398,13 +419,13 @@
             background: linear-gradient(135deg, #e5a100, #f5bc2b);
         }
 
-        .assessment-ketenagaan-input:checked + .assessment-ketenagaan-card {
+        .assessment-ketenagaan-input:checked+.assessment-ketenagaan-card {
             border-color: #6777ef;
             box-shadow: 0 14px 28px rgba(103, 119, 239, 0.16);
             transform: translateY(-1px);
         }
 
-        .assessment-ketenagaan-input:checked + .assessment-ketenagaan-card .assessment-ketenagaan-card__title {
+        .assessment-ketenagaan-input:checked+.assessment-ketenagaan-card .assessment-ketenagaan-card__title {
             color: #23396b;
         }
 
@@ -701,7 +722,8 @@
                             <div class="form-group">
                                 <label>Kode {{ $contentLabelTitle }}</label>
                                 <input type="hidden" name="kode_assessment" value="{{ $assessmentCodeValue }}">
-                                <input type="text" class="form-control @error('kode_assessment') is-invalid @enderror"
+                                <input type="text"
+                                    class="form-control @error('kode_assessment') is-invalid @enderror"
                                     value="{{ $assessmentCodeDisplay }}" data-assessment-code-display readonly>
                                 <small class="form-text text-muted">
                                     Kode {{ $contentLabel }} dibuat otomatis saat data disimpan.
@@ -728,12 +750,9 @@
                                 <label>Status <span class="assessment-required">*</span></label>
                                 <select name="status" class="form-control @error('status') is-invalid @enderror"
                                     required>
-                                    <option value="draft"
-                                        @selected(old('status', $assessment->status ?: 'draft') == 'draft')>Draft</option>
-                                    <option value="publish"
-                                        @selected(old('status', $assessment->status) == 'publish')>Publish</option>
-                                    <option value="nonaktif"
-                                        @selected(old('status', $assessment->status) == 'nonaktif')>Nonaktif</option>
+                                    <option value="draft" @selected(old('status', $assessment->status ?: 'draft') == 'draft')>Draft</option>
+                                    <option value="publish" @selected(old('status', $assessment->status) == 'publish')>Publish</option>
+                                    <option value="nonaktif" @selected(old('status', $assessment->status) == 'nonaktif')>Nonaktif</option>
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -743,43 +762,43 @@
                     </div>
 
                     @unless ($isEvaluationPelaksanaan)
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label>Ketenagaan Assessment <span class="assessment-required">*</span></label>
-                                <div class="assessment-ketenagaan-grid">
-                                    @foreach ($ketenagaanCards as $value => $card)
-                                        <div class="assessment-ketenagaan-option">
-                                            <input type="radio" class="assessment-ketenagaan-input"
-                                                id="assessment-ketenagaan-{{ $value }}" name="target_ketenagaan"
-                                                value="{{ $value }}" @checked($selectedTargetKetenagaan === $value) required>
-                                            <label for="assessment-ketenagaan-{{ $value }}"
-                                                class="assessment-ketenagaan-card assessment-ketenagaan-card--{{ $card['theme'] }}">
-                                                <span class="assessment-ketenagaan-card__icon">
-                                                    <i class="{{ $card['icon'] }}"></i>
-                                                </span>
-                                                <span>
-                                                    <span
-                                                        class="assessment-ketenagaan-card__title">{{ $card['label'] }}</span>
-                                                    <span class="assessment-ketenagaan-card__hint">
-                                                        Form ini akan masuk ke penugasan otomatis untuk
-                                                        {{ strtolower($card['label']) }}.
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Ketenagaan Assessment <span class="assessment-required">*</span></label>
+                                    <div class="assessment-ketenagaan-grid">
+                                        @foreach ($ketenagaanCards as $value => $card)
+                                            <div class="assessment-ketenagaan-option">
+                                                <input type="radio" class="assessment-ketenagaan-input"
+                                                    id="assessment-ketenagaan-{{ $value }}" name="target_ketenagaan"
+                                                    value="{{ $value }}" @checked($selectedTargetKetenagaan === $value) required>
+                                                <label for="assessment-ketenagaan-{{ $value }}"
+                                                    class="assessment-ketenagaan-card assessment-ketenagaan-card--{{ $card['theme'] }}">
+                                                    <span class="assessment-ketenagaan-card__icon">
+                                                        <i class="{{ $card['icon'] }}"></i>
                                                     </span>
-                                                </span>
-                                            </label>
-                                        </div>
-                                    @endforeach
+                                                    <span>
+                                                        <span
+                                                            class="assessment-ketenagaan-card__title">{{ $card['label'] }}</span>
+                                                        <span class="assessment-ketenagaan-card__hint">
+                                                            Form ini akan masuk ke penugasan otomatis untuk
+                                                            {{ strtolower($card['label']) }}.
+                                                        </span>
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Pilih ketenagaan tujuan assessment. Menu penugasan akan memakai pilihan ini untuk
+                                        menentukan form dan seluruh user yang otomatis ditugaskan.
+                                    </small>
+                                    @error('target_ketenagaan')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
                                 </div>
-                                <small class="form-text text-muted">
-                                    Pilih ketenagaan tujuan assessment. Menu penugasan akan memakai pilihan ini untuk
-                                    menentukan form dan seluruh user yang otomatis ditugaskan.
-                                </small>
-                                @error('target_ketenagaan')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
                             </div>
                         </div>
-                    </div>
                     @endunless
 
                     <div class="row">
@@ -790,8 +809,7 @@
                                     class="form-control @error('instrument_type') is-invalid @enderror">
                                     <option value="">Pilih jenis instrumen</option>
                                     @foreach ($instrumentTypes as $value => $label)
-                                        <option value="{{ $value }}"
-                                            @selected(old('instrument_type', $assessment->instrument_type) === $value)>
+                                        <option value="{{ $value }}" @selected(old('instrument_type', $assessment->instrument_type) === $value)>
                                             {{ $label }}
                                         </option>
                                     @endforeach
@@ -804,8 +822,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Deskripsi</label>
-                                <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror" rows="6"
-                                    placeholder="Deskripsi singkat {{ $contentLabel }}">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
+                                <textarea name="deskripsi" class="form-control assessment-meta-textarea @error('deskripsi') is-invalid @enderror"
+                                    rows="6" placeholder="Deskripsi singkat {{ $contentLabel }}">{{ old('deskripsi', $assessment->deskripsi) }}</textarea>
                                 @error('deskripsi')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -814,8 +832,8 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Petunjuk Pengisian</label>
-                                <textarea name="petunjuk" class="form-control assessment-meta-textarea @error('petunjuk') is-invalid @enderror" rows="6"
-                                    placeholder="Petunjuk untuk pengguna form">{{ old('petunjuk', $assessment->petunjuk) }}</textarea>
+                                <textarea name="petunjuk" class="form-control assessment-meta-textarea @error('petunjuk') is-invalid @enderror"
+                                    rows="6" placeholder="Petunjuk untuk pengguna form">{{ old('petunjuk', $assessment->petunjuk) }}</textarea>
                                 @error('petunjuk')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -826,7 +844,8 @@
                     <div class="custom-control custom-switch mt-2">
                         <input type="checkbox" class="custom-control-input" id="assessment-active" name="is_active"
                             value="1" @checked(old('is_active', $assessment->is_active))>
-                        <label class="custom-control-label" for="assessment-active">Aktifkan {{ $contentLabel }}</label>
+                        <label class="custom-control-label" for="assessment-active">Aktifkan
+                            {{ $contentLabel }}</label>
                     </div>
                 </div>
             </div>
@@ -844,7 +863,8 @@
                                 tambahkan field di bawah form terkait.</li>
                             <li>Pilih <strong>jenis instrumen</strong> di level {{ $contentLabel }}, lalu atur
                                 <strong>kompetensi</strong>, <strong>indikator</strong>, dan status
-                                <strong>masuk penilaian</strong> di setiap form.</li>
+                                <strong>masuk penilaian</strong> di setiap form.
+                            </li>
                             <li>Untuk field <strong>Daftar Pilihan</strong> dan <strong>Kotak Centang</strong>,
                                 pisahkan opsi dengan koma atau baris baru.</li>
                             <li>Untuk field <strong>Pilihan Ganda</strong>, isi <strong>kode jawaban</strong>,
@@ -852,10 +872,12 @@
                             </li>
                             <li>Pada panel <strong>Pengaturan Skor Otomatis</strong>, isi dulu bagian utama seperti
                                 <strong>pedoman penilaian</strong> atau <strong>target angka</strong>. Pengaturan
-                                lanjutan bisa dibiarkan otomatis jika tidak diperlukan.</li>
+                                lanjutan bisa dibiarkan otomatis jika tidak diperlukan.
+                            </li>
                             <li>Untuk pertanyaan teks atau tabel, Anda bisa memakai tombol bantuan otomatis agar sistem
                                 menyiapkan <strong>kata kunci</strong>, <strong>padanan kata</strong>, dan
-                                <strong>saran panjang jawaban</strong> dari deskripsi yang sudah Anda tulis.</li>
+                                <strong>saran panjang jawaban</strong> dari deskripsi yang sudah Anda tulis.
+                            </li>
                             <li>Untuk field <strong>Tabel Berulang</strong>, isi konfigurasi JSON kolom tabel sesuai
                                 contoh yang tersedia.</li>
                             <li>Nama field akan dibuat otomatis dari label yang Anda isi.</li>
@@ -877,7 +899,8 @@
                                 <i class="fas fa-layer-group"></i>
                             </div>
                             <h2>Belum ada form</h2>
-                            <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur {{ $contentLabel }} dinamis.</p>
+                            <p class="lead">Tambahkan form pertama untuk mulai menyusun struktur {{ $contentLabel }}
+                                dinamis.</p>
                         </div>
 
                         <div id="form-builder-list"></div>
@@ -903,28 +926,32 @@
                         <div class="card-body">
                             <div class="assessment-summary-eyebrow">Rekapan {{ $contentLabelTitle }}</div>
                             <h5 class="mb-2" id="summary-assessment-title">
-                                {{ old('judul', $assessment->judul) ?: 'Judul '.$contentLabel.' belum diisi' }}
+                                {{ old('judul', $assessment->judul) ?: 'Judul ' . $contentLabel . ' belum diisi' }}
                             </h5>
                             <p class="text-muted mb-2">
-                                {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur '.$contentLabel.'.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun '.$contentLabel.' baru.' }}
+                                {{ $isEditMode ? 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur ' . $contentLabel . '.' : 'Pantau jumlah soal, status, dan kesiapan tampil saat Anda menyusun ' . $contentLabel . ' baru.' }}
                             </p>
 
                             <div class="assessment-summary-grid mb-4">
                                 <div class="assessment-summary-stat">
                                     <span class="assessment-summary-stat__label">Total Form</span>
-                                    <span class="assessment-summary-stat__value" id="summary-total-forms">{{ $initialBuilderSummary['total_forms'] }}</span>
+                                    <span class="assessment-summary-stat__value"
+                                        id="summary-total-forms">{{ $initialBuilderSummary['total_forms'] }}</span>
                                 </div>
                                 <div class="assessment-summary-stat">
                                     <span class="assessment-summary-stat__label">Total Soal</span>
-                                    <span class="assessment-summary-stat__value" id="summary-total-questions">{{ $initialBuilderSummary['total_questions'] }}</span>
+                                    <span class="assessment-summary-stat__value"
+                                        id="summary-total-questions">{{ $initialBuilderSummary['total_questions'] }}</span>
                                 </div>
                                 <div class="assessment-summary-stat">
                                     <span class="assessment-summary-stat__label">Form Aktif</span>
-                                    <span class="assessment-summary-stat__value" id="summary-active-forms">{{ $initialBuilderSummary['active_forms'] }}</span>
+                                    <span class="assessment-summary-stat__value"
+                                        id="summary-active-forms">{{ $initialBuilderSummary['active_forms'] }}</span>
                                 </div>
                                 <div class="assessment-summary-stat">
                                     <span class="assessment-summary-stat__label">Skor Otomatis</span>
-                                    <span class="assessment-summary-stat__value" id="summary-auto-scoring-questions">{{ $initialBuilderSummary['auto_scoring_questions'] }}</span>
+                                    <span class="assessment-summary-stat__value"
+                                        id="summary-auto-scoring-questions">{{ $initialBuilderSummary['auto_scoring_questions'] }}</span>
                                 </div>
                             </div>
 
@@ -933,29 +960,36 @@
                                 <div class="assessment-summary-list">
                                     <div class="assessment-summary-row">
                                         <span>Status</span>
-                                        <strong id="summary-status-label">{{ $initialBuilderSummary['status_label'] }}</strong>
+                                        <strong
+                                            id="summary-status-label">{{ $initialBuilderSummary['status_label'] }}</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Aktivasi</span>
-                                        <strong id="summary-activation-label">{{ $initialBuilderSummary['is_active'] ? 'Aktif' : 'Nonaktif' }}</strong>
+                                        <strong
+                                            id="summary-activation-label">{{ $initialBuilderSummary['is_active'] ? 'Aktif' : 'Nonaktif' }}</strong>
                                     </div>
                                     @unless ($isEvaluationPelaksanaan)
-                                    <div class="assessment-summary-row">
-                                        <span>Target</span>
-                                        <strong id="summary-target-label">{{ $initialBuilderSummary['target_label'] }}</strong>
-                                    </div>
+                                        <div class="assessment-summary-row">
+                                            <span>Target</span>
+                                            <strong
+                                                id="summary-target-label">{{ $initialBuilderSummary['target_label'] }}</strong>
+                                        </div>
                                     @endunless
                                     <div class="assessment-summary-row">
                                         <span>Instrumen</span>
-                                        <strong id="summary-instrument-label">{{ $initialBuilderSummary['instrument_label'] }}</strong>
+                                        <strong
+                                            id="summary-instrument-label">{{ $initialBuilderSummary['instrument_label'] }}</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Masuk Penilaian</span>
-                                        <strong id="summary-scoreable-label">{{ $initialBuilderSummary['scoreable_forms'] }} form</strong>
+                                        <strong
+                                            id="summary-scoreable-label">{{ $initialBuilderSummary['scoreable_forms'] }}
+                                            form</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Siap Tampil</span>
-                                        <strong id="summary-display-label">{{ $initialBuilderSummary['display_label'] }}</strong>
+                                        <strong
+                                            id="summary-display-label">{{ $initialBuilderSummary['display_label'] }}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -965,8 +999,8 @@
                             </div>
 
                             <div class="mt-4">
-                                <button type="button" class="btn btn-outline-primary btn-block" id="btn-sidebar-add-form"
-                                    data-builder-loading-lock disabled>
+                                <button type="button" class="btn btn-outline-primary btn-block"
+                                    id="btn-sidebar-add-form" data-builder-loading-lock disabled>
                                     <i class="fas fa-plus"></i> Tambah Form
                                 </button>
                             </div>
@@ -974,8 +1008,8 @@
                             <div class="assessment-summary-actions mt-4">
 
                                 @if ($previewUrl)
-                                    <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST"
-                                        data-preview-url="{{ $previewUrl }}"
+                                    <form action="{{ route('assessment.preview.launch', $assessment->id) }}"
+                                        method="POST" data-preview-url="{{ $previewUrl }}"
                                         class="assessment-summary-actions__preview">
                                         @csrf
                                         <button type="submit" class="btn btn-info btn-block">
@@ -984,7 +1018,7 @@
                                     </form>
                                 @endif
                                 <div class="assessment-summary-actions__secondary">
-                                    <a href="{{ route($assessmentRoutePrefix.'.index') }}" class="btn btn-light">
+                                    <a href="{{ route($assessmentRoutePrefix . '.index') }}" class="btn btn-light">
                                         Kembali
                                     </a>
                                     <button type="submit" class="btn btn-primary" id="assessment-summary-submit"
@@ -1037,7 +1071,9 @@
                 url: 'URL / Link',
                 select: 'Daftar Pilihan',
             };
-            const participantAutofillSupportedFieldTypes = ['text', 'textarea', 'number', 'email', 'date', 'select', 'radio', 'checkbox'];
+            const participantAutofillSupportedFieldTypes = ['text', 'textarea', 'number', 'email', 'date', 'select',
+                'radio', 'checkbox'
+            ];
             const fieldLookupSupportedFieldTypes = ['select'];
             const $builderShell = $('#assessment-builder-shell');
             const $builderLoading = $('#assessment-builder-loading');
@@ -1067,9 +1103,9 @@
 
             const buildBuilderLoadingMessage = (loadedCount, totalCount) => {
                 if (totalCount <= 1) {
-                    return loadedCount < totalCount
-                        ? 'Menyiapkan form awal agar siap diedit.'
-                        : 'Merapikan tampilan form...';
+                    return loadedCount < totalCount ?
+                        'Menyiapkan form awal agar siap diedit.' :
+                        'Merapikan tampilan form...';
                 }
 
                 if (loadedCount <= 0) {
@@ -1104,9 +1140,9 @@
 
                 if ($submitButton.length) {
                     $submitButton.html(
-                        isLoading
-                            ? '<i class="fas fa-spinner fa-spin"></i> Memuat Form...'
-                            : submitButtonDefaultHtml
+                        isLoading ?
+                        '<i class="fas fa-spinner fa-spin"></i> Memuat Form...' :
+                        submitButtonDefaultHtml
                     );
                 }
             };
@@ -1124,7 +1160,8 @@
 
             const hasNestedErrors = (prefix) => {
                 const normalizedPrefix = nameToErrorKey(prefix);
-                return errorKeys.some((key) => key === normalizedPrefix || key.startsWith(`${normalizedPrefix}.`));
+                return errorKeys.some((key) => key === normalizedPrefix || key.startsWith(
+                    `${normalizedPrefix}.`));
             };
 
             const getInputClass = (name, baseClass = 'form-control') => {
@@ -1196,9 +1233,11 @@
                 no_rek: ['no_rek', 'nomor rekening', 'rekening'],
                 jenis_bank: ['jenis_bank', 'jenis bank', 'bank'],
             };
-            const supportsParticipantAutofill = (fieldType) => participantAutofillSupportedFieldTypes.includes(String(fieldType || ''));
+            const supportsParticipantAutofill = (fieldType) => participantAutofillSupportedFieldTypes.includes(
+                String(fieldType || ''));
             const resolveSuggestedParticipantAutofillSource = (labelValue, fieldNameValue = '') => {
-                const haystack = normalizeAutofillKeyword([fieldNameValue, labelValue].filter(Boolean).join(' '));
+                const haystack = normalizeAutofillKeyword([fieldNameValue, labelValue].filter(Boolean).join(
+                    ' '));
 
                 if (!haystack) {
                     return '';
@@ -1209,7 +1248,8 @@
                 }
 
                 return Object.entries(participantAutofillSuggestionMap).find(([, keywords]) => {
-                    return keywords.some((keyword) => haystack.includes(normalizeAutofillKeyword(keyword)));
+                    return keywords.some((keyword) => haystack.includes(normalizeAutofillKeyword(
+                        keyword)));
                 })?.[0] || '';
             };
             const buildParticipantAutofillOptions = (selectedValue = '') => {
@@ -1238,8 +1278,10 @@
 
                 return `Nilai akan diisi otomatis dari data peserta: <code>${escapeHtml(sourceLabel)}</code>.`;
             };
-            const supportsFieldLookup = (fieldType) => fieldLookupSupportedFieldTypes.includes(String(fieldType || ''));
-            const resolveSelectedTargetKetenagaanValue = () => $('input[name="target_ketenagaan"]:checked').val() || '';
+            const supportsFieldLookup = (fieldType) => fieldLookupSupportedFieldTypes.includes(String(fieldType ||
+                ''));
+            const resolveSelectedTargetKetenagaanValue = () => $('input[name="target_ketenagaan"]:checked').val() ||
+                '';
             const fieldLookupSuggestionMap = {
                 master_golongan: ['golongan', 'pangkat'],
                 master_golongan_pns: ['golongan pns', 'pangkat pns'],
@@ -1252,18 +1294,20 @@
                 master_tugas_jabatan: ['tugas jabatan'],
                 master_latar_jabatan: ['latar jabatan'],
             };
-            const resolveSuggestedFieldLookupSource = (labelValue, fieldNameValue = '', targetKetenagaanValue = '') => {
-                const haystack = normalizeAutofillKeyword([fieldNameValue, labelValue].filter(Boolean).join(' '));
+            const resolveSuggestedFieldLookupSource = (labelValue, fieldNameValue = '', targetKetenagaanValue =
+                '') => {
+                const haystack = normalizeAutofillKeyword([fieldNameValue, labelValue].filter(Boolean).join(
+                    ' '));
 
                 if (!haystack) {
                     return '';
                 }
 
                 if (
-                    haystack.includes('jabatan')
-                    && !haystack.includes('jenis jabatan')
-                    && !haystack.includes('tugas jabatan')
-                    && !haystack.includes('latar jabatan')
+                    haystack.includes('jabatan') &&
+                    !haystack.includes('jenis jabatan') &&
+                    !haystack.includes('tugas jabatan') &&
+                    !haystack.includes('latar jabatan')
                 ) {
                     if (targetKetenagaanValue === 'tenaga_pendidik') {
                         return 'master_jabatan_pendidik';
@@ -1281,7 +1325,8 @@
                 }
 
                 return Object.entries(fieldLookupSuggestionMap).find(([, keywords]) => {
-                    return keywords.some((keyword) => haystack.includes(normalizeAutofillKeyword(keyword)));
+                    return keywords.some((keyword) => haystack.includes(normalizeAutofillKeyword(
+                        keyword)));
                 })?.[0] || '';
             };
             const buildFieldLookupSourceOptions = (selectedValue = '') => {
@@ -1332,7 +1377,8 @@
                 }
 
                 const badgesHtml = previewItems.map((item) => {
-                    const label = typeof item === 'object' ? (item.label || item.value || '') : String(item || '');
+                    const label = typeof item === 'object' ? (item.label || item.value || '') : String(
+                        item || '');
                     return `<span class="badge badge-light border mr-1 mb-1">${escapeHtml(label)}</span>`;
                 }).join('');
                 const remaining = Math.max(Number(previewMeta?.total || 0) - previewItems.length, 0);
@@ -1379,8 +1425,15 @@
                 return appendSelectOtherOption(options, field.allow_other_input);
             };
 
-            const normalizeChecked = (value) => {
-                return value === true || value === 1 || value === '1' || value === 'on';
+            const normalizeChecked = (value, fallback = false) => {
+                if (value === null || value === undefined || value === '') {
+                    return fallback;
+                }
+
+                return value === true ||
+                    value === 1 ||
+                    value === '1' ||
+                    value === 'on';
             };
 
             const supportsSelectOtherInput = (fieldType) => String(fieldType || '') === 'select';
@@ -1424,7 +1477,8 @@
 
                 Object.entries(teacherCompetencies).forEach(([value, label]) => {
                     const selected = value === selectedValue ? 'selected' : '';
-                    optionsHtml += `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
+                    optionsHtml +=
+                        `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
                 });
 
                 return optionsHtml;
@@ -1435,7 +1489,8 @@
 
                 Object.entries(formScoringProfiles).forEach(([value, label]) => {
                     const selected = value === selectedValue ? 'selected' : '';
-                    optionsHtml += `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
+                    optionsHtml +=
+                        `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
                 });
 
                 return optionsHtml;
@@ -1492,9 +1547,9 @@
 
             const buildFieldScoringMethodOptions = (fieldType, selectedValue) => {
                 const allowedMethods = resolveAllowedScoringMethods(fieldType);
-                const normalizedSelectedValue = allowedMethods.includes(selectedValue)
-                    ? selectedValue
-                    : resolveDefaultScoringMethod(fieldType);
+                const normalizedSelectedValue = allowedMethods.includes(selectedValue) ?
+                    selectedValue :
+                    resolveDefaultScoringMethod(fieldType);
 
                 return allowedMethods.map((value) => {
                     const selected = value === normalizedSelectedValue ? 'selected' : '';
@@ -1515,7 +1570,8 @@
                 const hasExplicitEnabled = Object.prototype.hasOwnProperty.call(config || {}, 'enabled');
 
                 return {
-                    enabled: hasExplicitEnabled ? normalizeChecked(config?.enabled) : fieldType === likertFieldType,
+                    enabled: hasExplicitEnabled ? normalizeChecked(config?.enabled) : fieldType ===
+                        likertFieldType,
                     profile: String(config?.profile || '').trim(),
                     method: String(config?.method || resolveDefaultScoringMethod(fieldType)).trim(),
                     rubric_code: String(config?.rubric_code || '').trim(),
@@ -1544,7 +1600,9 @@
             const scoringStopWords = new Set(scoringGuidancePreset?.stop_words || []);
             const scoringSynonymLibrary = scoringGuidancePreset?.synonym_library || {};
             const scoringPhraseLibrary = scoringGuidancePreset?.phrase_library || {};
-            const scoringSynonymReverseMap = Object.entries(scoringSynonymLibrary).reduce((carry, [baseWord, variants]) => {
+            const scoringSynonymReverseMap = Object.entries(scoringSynonymLibrary).reduce((carry, [baseWord,
+                variants
+            ]) => {
                 const normalizedBaseWord = String(baseWord || '').trim().toLowerCase();
 
                 if (normalizedBaseWord) {
@@ -1670,8 +1728,10 @@
 
             const estimateScoringMinWords = (text, fieldType) => {
                 const wordCount = Math.max(sanitizeScoringWords(text).split(/\s+/).filter(Boolean).length, 1);
-                const baseline = fieldType === 'textarea' ? 18 : (fieldType === repeaterFieldType ? 12 : (fieldType === 'text' ? 8 : 5));
-                const ratio = fieldType === 'textarea' ? 0.45 : (fieldType === repeaterFieldType ? 0.30 : (fieldType === 'text' ? 0.35 : 0.25));
+                const baseline = fieldType === 'textarea' ? 18 : (fieldType === repeaterFieldType ? 12 : (
+                    fieldType === 'text' ? 8 : 5));
+                const ratio = fieldType === 'textarea' ? 0.45 : (fieldType === repeaterFieldType ? 0.30 : (
+                    fieldType === 'text' ? 0.35 : 0.25));
 
                 return Math.max(baseline, Math.min(Math.round(wordCount * ratio), 60));
             };
@@ -1681,7 +1741,8 @@
                     ...extractCuratedScoringTerms(sourceText),
                     ...extractAdjacentScoringTerms(sourceText),
                     ...extractImportantScoringWords(sourceText),
-                ].filter(Boolean).filter((term, index, allTerms) => allTerms.indexOf(term) === index).slice(0, 6);
+                ].filter(Boolean).filter((term, index, allTerms) => allTerms.indexOf(term) === index).slice(
+                    0, 6);
                 const keywordGroups = mergedTerms
                     .map((term) => buildKeywordGroupFromTerm(term))
                     .filter((group) => group.length);
@@ -1704,17 +1765,18 @@
                 }
 
                 return {
-                    keyword_groups_text: keywordGroups.length
-                        ? keywordGroups.map((group) => group[0]).filter(Boolean).join(', ')
-                        : '',
+                    keyword_groups_text: keywordGroups.length ?
+                        keywordGroups.map((group) => group[0]).filter(Boolean).join(', ') : '',
                     synonym_map_text: synonymLines.join('\n'),
                     min_words: estimateScoringMinWords(sourceText, fieldType),
-                    advanced_rules_text: Object.keys(advancedRules).length ? JSON.stringify(advancedRules, null, 2) : '',
+                    advanced_rules_text: Object.keys(advancedRules).length ? JSON.stringify(advancedRules, null,
+                        2) : '',
                 };
             };
 
             const keywordGroupsFieldSelector = 'textarea[name$="[scoring][keyword_groups_text]"]';
-            const keywordGroupsCommaOnlyMessage = 'Pisahkan kata kunci hanya dengan koma. Contoh: sertifikat, program studi, lembaga. Jangan gunakan Enter, tanda |, atau titik koma.';
+            const keywordGroupsCommaOnlyMessage =
+                'Pisahkan kata kunci hanya dengan koma. Contoh: sertifikat, program studi, lembaga. Jangan gunakan Enter, tanda |, atau titik koma.';
 
             const normalizeKeywordGroupsText = (value) => {
                 return String(value || '')
@@ -1742,7 +1804,8 @@
 
                 const inputElement = $input.get(0);
                 const $clientFeedback = $input.siblings('.keyword-groups-client-feedback');
-                const hasServerFeedback = $input.siblings('.invalid-feedback').not('.keyword-groups-client-feedback').length > 0;
+                const hasServerFeedback = $input.siblings('.invalid-feedback').not(
+                    '.keyword-groups-client-feedback').length > 0;
 
                 if (inputElement?.setCustomValidity) {
                     inputElement.setCustomValidity(message || '');
@@ -1790,7 +1853,9 @@
 
                 $(keywordGroupsFieldSelector).each(function() {
                     const $input = $(this);
-                    const isValid = validateKeywordGroupsField($input, { normalize: true });
+                    const isValid = validateKeywordGroupsField($input, {
+                        normalize: true
+                    });
 
                     if (!isValid && !$firstInvalidField) {
                         $firstInvalidField = $input;
@@ -1821,22 +1886,25 @@
 
             const supportsScoringAssistant = (fieldType, method) => {
                 return (
-                    ['text', 'textarea'].includes(fieldType)
-                    && ['semantic_similarity', 'keyword_coverage'].includes(method)
+                    ['text', 'textarea'].includes(fieldType) && ['semantic_similarity', 'keyword_coverage']
+                    .includes(method)
                 ) || (fieldType === repeaterFieldType && method === 'repeater_completeness');
             };
 
             const applyScoringGuidanceSuggestion = ($fieldCard, options = {}) => {
                 const fieldType = $fieldCard.find('.field-type-select').val() || 'text';
-                const method = $fieldCard.find('.field-scoring-method').val() || resolveDefaultScoringMethod(fieldType);
+                const method = $fieldCard.find('.field-scoring-method').val() || resolveDefaultScoringMethod(
+                    fieldType);
 
                 if (!supportsScoringAssistant(fieldType, method)) {
                     return false;
                 }
 
                 if (options.copyDescriptionToReference) {
-                    const currentReference = $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val()?.trim() || '';
-                    const descriptionText = $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '';
+                    const currentReference = $fieldCard.find('textarea[name$="[scoring][reference_answer]"]')
+                        .val()?.trim() || '';
+                    const descriptionText = $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() ||
+                        '';
 
                     if (!currentReference && descriptionText) {
                         $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val(descriptionText);
@@ -1846,13 +1914,14 @@
                 const sourceText = resolveScoringGuidanceSource($fieldCard);
 
                 if (!sourceText) {
-                    updateScoringAssistantStatus($fieldCard, 'Belum ada deskripsi atau pedoman yang bisa diolah.');
+                    updateScoringAssistantStatus($fieldCard,
+                        'Belum ada deskripsi atau pedoman yang bisa diolah.');
                     return false;
                 }
 
-                const repeaterConfig = fieldType === repeaterFieldType
-                    ? collectRepeaterConfigData($fieldCard)
-                    : null;
+                const repeaterConfig = fieldType === repeaterFieldType ?
+                    collectRepeaterConfigData($fieldCard) :
+                    null;
                 const suggestion = buildScoringGuidanceSuggestion(sourceText, fieldType, {
                     target_rows: repeaterConfig?.min_rows || 1,
                 });
@@ -1869,17 +1938,21 @@
                     }
                 };
 
-                fillIfNeeded('textarea[name$="[scoring][keyword_groups_text]"]', suggestion.keyword_groups_text);
+                fillIfNeeded('textarea[name$="[scoring][keyword_groups_text]"]', suggestion
+                    .keyword_groups_text);
                 fillIfNeeded('textarea[name$="[scoring][synonym_map_text]"]', suggestion.synonym_map_text);
                 fillIfNeeded('input[name$="[scoring][min_words]"]', suggestion.min_words);
-                fillIfNeeded('textarea[name$="[scoring][advanced_rules_text]"]', suggestion.advanced_rules_text);
-                validateKeywordGroupsField($fieldCard.find(keywordGroupsFieldSelector), { normalize: true });
+                fillIfNeeded('textarea[name$="[scoring][advanced_rules_text]"]', suggestion
+                    .advanced_rules_text);
+                validateKeywordGroupsField($fieldCard.find(keywordGroupsFieldSelector), {
+                    normalize: true
+                });
 
                 updateScoringAssistantStatus(
                     $fieldCard,
-                    shouldForce
-                    ? 'Bantuan otomatis diperbarui. Hasilnya masih bisa disesuaikan.'
-                    : 'Saran default disiapkan dari deskripsi dan pedoman yang ada.'
+                    shouldForce ?
+                    'Bantuan otomatis diperbarui. Hasilnya masih bisa disesuaikan.' :
+                    'Saran default disiapkan dari deskripsi dan pedoman yang ada.'
                 );
 
                 return true;
@@ -1920,8 +1993,10 @@
             const buildScoringSummaryHtml = ($fieldCard, fieldType, method) => {
                 const scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]').val()?.trim() || '1';
                 const scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '5';
-                const minWords = $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() || resolveDefaultMinWords(fieldType);
-                const confidence = $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()?.trim() || '0.55';
+                const minWords = $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() ||
+                    resolveDefaultMinWords(fieldType);
+                const confidence = $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()
+                    ?.trim() || '0.55';
                 const summaryPills = [
                     `Cara nilai: ${fieldScoringMethods[method] || method}`,
                     `Skala: ${formatScoringNumber(scaleMin)}-${formatScoringNumber(scaleMax)}`,
@@ -1937,8 +2012,10 @@
                 }
 
                 if (fieldType === likertFieldType && method === 'likert_scale') {
-                    const isNegativeStatement = $fieldCard.find('.field-likert-negative-statement').is(':checked');
-                    summaryPills.push(isNegativeStatement ? 'Pernyataan negatif: skor 6 - X' : 'Pernyataan positif');
+                    const isNegativeStatement = $fieldCard.find('.field-likert-negative-statement').is(
+                        ':checked');
+                    summaryPills.push(isNegativeStatement ? 'Pernyataan negatif: skor 6 - X' :
+                        'Pernyataan positif');
                     summaryPills.push('Indeks: (rata-rata - 1) / 4 x 100');
                 }
 
@@ -1946,7 +2023,8 @@
                     summaryPills.push('Nilai mengikuti target angka');
                 }
 
-                return summaryPills.map((pill) => `<span class="scoring-summary-pill">${escapeHtml(pill)}</span>`).join('');
+                return summaryPills.map((pill) =>
+                    `<span class="scoring-summary-pill">${escapeHtml(pill)}</span>`).join('');
             };
 
             const generateChoiceLabel = (index) => {
@@ -1992,7 +2070,8 @@
 
                 Object.entries(competencyLevels).forEach(([value, label]) => {
                     const selected = value === normalizedValue ? 'selected' : '';
-                    optionsHtml += `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
+                    optionsHtml +=
+                        `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(label)}</option>`;
                 });
 
                 return optionsHtml;
@@ -2067,7 +2146,8 @@
                 const normalizedOptions = options.map((option, index) => ({
                     ...normalizeRadioOptionShape(option),
                     score: option?.score ?? '',
-                    level_kompetensi: normalizeCompetencyLevelValue(option?.level_kompetensi, index),
+                    level_kompetensi: normalizeCompetencyLevelValue(option?.level_kompetensi,
+                        index),
                 }));
 
                 while (normalizedOptions.length < 2) {
@@ -2084,9 +2164,9 @@
 
             const normalizeRepeaterColumnType = (value) => {
                 const normalizedValue = String(value || '').trim();
-                return Object.prototype.hasOwnProperty.call(repeaterColumnFieldTypes, normalizedValue)
-                    ? normalizedValue
-                    : 'text';
+                return Object.prototype.hasOwnProperty.call(repeaterColumnFieldTypes, normalizedValue) ?
+                    normalizedValue :
+                    'text';
             };
 
             const normalizeNonNegativeInteger = (value, fallback = 0) => {
@@ -2102,8 +2182,7 @@
             const buildDefaultRepeaterConfig = () => ({
                 min_rows: 1,
                 max_rows: 10,
-                columns: [
-                    {
+                columns: [{
                         label: 'Kolom 1',
                         nama_field: 'kolom_1',
                         tipe_field: 'text',
@@ -2142,7 +2221,8 @@
                 const rawColumn = column && typeof column === 'object' ? column : {};
                 const label = String(rawColumn.label ?? '').trim();
                 const explicitFieldName = String(rawColumn.nama_field ?? '').trim();
-                const generatedFieldName = slugifyFieldName(explicitFieldName || label || `kolom_${index + 1}`) || `kolom_${index + 1}`;
+                const generatedFieldName = slugifyFieldName(explicitFieldName || label ||
+                    `kolom_${index + 1}`) || `kolom_${index + 1}`;
 
                 return {
                     label: label,
@@ -2151,9 +2231,9 @@
                     placeholder: String(rawColumn.placeholder ?? '').trim(),
                     opsi_field: normalizeRepeaterColumnOptions(rawColumn.opsi_field),
                     is_required: normalizeChecked(rawColumn.is_required),
-                    auto_generated: rawColumn.auto_generated === true
-                        || explicitFieldName === ''
-                        || explicitFieldName === slugifyFieldName(label),
+                    auto_generated: rawColumn.auto_generated === true ||
+                        explicitFieldName === '' ||
+                        explicitFieldName === slugifyFieldName(label),
                 };
             };
 
@@ -2161,17 +2241,17 @@
                 const isBlankString = typeof value === 'string' && String(value).trim() === '';
                 const useDefaultConfig = value === null || value === undefined || isBlankString;
                 const fallbackConfig = buildDefaultRepeaterConfig();
-                const rawConfig = typeof value === 'string'
-                    ? parseJsonSafely(value)
-                    : (value && typeof value === 'object' ? value : null);
+                const rawConfig = typeof value === 'string' ?
+                    parseJsonSafely(value) :
+                    (value && typeof value === 'object' ? value : null);
 
                 if (!rawConfig || typeof rawConfig !== 'object') {
                     return fallbackConfig;
                 }
 
-                const rawColumns = Array.isArray(rawConfig.columns)
-                    ? rawConfig.columns
-                    : (useDefaultConfig ? fallbackConfig.columns : []);
+                const rawColumns = Array.isArray(rawConfig.columns) ?
+                    rawConfig.columns :
+                    (useDefaultConfig ? fallbackConfig.columns : []);
 
                 return {
                     min_rows: normalizeNonNegativeInteger(rawConfig.min_rows, 0),
@@ -2194,7 +2274,8 @@
                             nama_field: normalizedColumn.nama_field,
                             tipe_field: normalizedColumn.tipe_field,
                             placeholder: normalizedColumn.placeholder,
-                            opsi_field: normalizedColumn.tipe_field === 'select' ? normalizedColumn.opsi_field : [],
+                            opsi_field: normalizedColumn.tipe_field === 'select' ?
+                                normalizedColumn.opsi_field : [],
                             is_required: normalizedColumn.is_required,
                         };
                     }),
@@ -2220,15 +2301,14 @@
 
             const normalizeFileFieldConfig = (config = {}) => {
                 const normalizedConfig = config && typeof config === 'object' ? config : {};
-                const accept = Array.isArray(normalizedConfig.accept)
-                    ? normalizedConfig.accept.map((item) => String(item || '').trim()).filter(Boolean)
-                    : [];
-                const maxSizeKb = Number(normalizedConfig.max_size_kb || 0) > 0
-                    ? Number(normalizedConfig.max_size_kb)
-                    : 5120;
-                const maxFiles = Number(normalizedConfig.max_files || 0) > 0
-                    ? Number(normalizedConfig.max_files)
-                    : 1;
+                const accept = Array.isArray(normalizedConfig.accept) ?
+                    normalizedConfig.accept.map((item) => String(item || '').trim()).filter(Boolean) : [];
+                const maxSizeKb = Number(normalizedConfig.max_size_kb || 0) > 0 ?
+                    Number(normalizedConfig.max_size_kb) :
+                    5120;
+                const maxFiles = Number(normalizedConfig.max_files || 0) > 0 ?
+                    Number(normalizedConfig.max_files) :
+                    1;
 
                 return {
                     input_mode: normalizeFileInputMode(normalizedConfig.input_mode),
@@ -2295,10 +2375,11 @@
                 const normalizedColumn = normalizeRepeaterColumnShape(columnData, columnIndex);
                 const showSelectOptions = normalizedColumn.tipe_field === 'select';
                 const optionLines = normalizedColumn.opsi_field.join('\n');
-                const fieldNameHint = normalizedColumn.nama_field
-                    ? `Key penyimpanan: <code>${escapeHtml(normalizedColumn.nama_field)}</code>`
-                    : 'Nama field otomatis dibuat dari label kolom.';
-                const requiredInputId = `repeater-column-required-${Date.now()}-${columnIndex}-${Math.random().toString(36).slice(2, 8)}`;
+                const fieldNameHint = normalizedColumn.nama_field ?
+                    `Key penyimpanan: <code>${escapeHtml(normalizedColumn.nama_field)}</code>` :
+                    'Nama field otomatis dibuat dari label kolom.';
+                const requiredInputId =
+                    `repeater-column-required-${Date.now()}-${columnIndex}-${Math.random().toString(36).slice(2, 8)}`;
 
                 return `
                     <div class="repeater-column-row mb-3" data-column-index="${columnIndex}">
@@ -2386,9 +2467,12 @@
                     optionIndex
                 );
                 const optionScore = optionData?.score ?? optionCompetencyLevel ?? '';
-                const optionTextName = `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][label]`;
-                const optionCodeName = `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][value]`;
-                const optionScoreName = `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][score]`;
+                const optionTextName =
+                    `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][label]`;
+                const optionCodeName =
+                    `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][value]`;
+                const optionScoreName =
+                    `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][score]`;
                 const optionCompetencyLevelName =
                     `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][level_kompetensi]`;
                 const generatedCode = generateChoiceLabel(optionIndex);
@@ -2456,10 +2540,16 @@
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
                 const fileFieldConfig = parseFileFieldConfigJson(fieldData.raw_opsi_field_json || '');
-                const resolvedFileInputMode = normalizeFileInputMode(fieldData.file_input_mode || fileFieldConfig.input_mode);
-                const resolvedAllowOtherInput = supportsSelectOtherInput(fieldType) && normalizeChecked(fieldData.allow_other_input);
+                const resolvedFileInputMode = normalizeFileInputMode(fieldData.file_input_mode ||
+                    fileFieldConfig.input_mode);
+                const resolvedAllowOtherInput = supportsSelectOtherInput(fieldType) && normalizeChecked(
+                    fieldData.allow_other_input);
                 const autofillSourceUserTouched = normalizeChecked(fieldData._autofill_source_user_touched);
-                const lookupSourceUserTouched = normalizeChecked(fieldData._lookup_source_user_touched);
+                const lookupSourceUserTouched = normalizeChecked(
+                    fieldData._lookup_source_user_touched,
+                    Number(fieldData.id || 0) > 0 &&
+                    !String(fieldData.lookup_source || '').trim()
+                );
                 const suggestedAutofillSource = resolveSuggestedParticipantAutofillSource(
                     fieldData.label || '',
                     fieldData.nama_field || ''
@@ -2469,12 +2559,12 @@
                     fieldData.nama_field || '',
                     resolveSelectedTargetKetenagaanValue()
                 );
-                const resolvedAutofillSource = autofillSourceUserTouched
-                    ? (fieldData.autofill_source || '')
-                    : (fieldData.autofill_source || suggestedAutofillSource);
-                const resolvedLookupSource = lookupSourceUserTouched
-                    ? (fieldData.lookup_source || '')
-                    : (fieldData.lookup_source || suggestedLookupSource);
+                const resolvedAutofillSource = autofillSourceUserTouched ?
+                    (fieldData.autofill_source || '') :
+                    (fieldData.autofill_source || suggestedAutofillSource);
+                const resolvedLookupSource = lookupSourceUserTouched ?
+                    (fieldData.lookup_source || '') :
+                    (fieldData.lookup_source || suggestedLookupSource);
                 const fieldPrefix = `forms[${formIndex}][fields][${fieldIndex}]`;
                 const fieldIdName = `${fieldPrefix}[id]`;
                 const labelName = `${fieldPrefix}[label]`;
@@ -2765,10 +2855,10 @@
                                     <div class="font-weight-bold mb-2">Pilihan Skala Likert</div>
                                     <div class="d-flex flex-wrap" style="gap:0.5rem;">
                                         ${defaultLikertOptions.map((option) => `
-                                            <span class="badge badge-light border px-3 py-2">
-                                                ${escapeHtml(option.label)} = ${escapeHtml(option.score)}
-                                            </span>
-                                        `).join('')}
+                                                    <span class="badge badge-light border px-3 py-2">
+                                                        ${escapeHtml(option.label)} = ${escapeHtml(option.score)}
+                                                    </span>
+                                                `).join('')}
                                     </div>
                                     <small class="text-muted d-block mt-2">
                                         Urutan pilihan jawaban tetap sama untuk peserta. Pembalikan skor hanya dilakukan saat pengolahan data.
@@ -3376,9 +3466,9 @@
                         ...(form || {}),
                         urutan: formIndex + 1,
                     };
-                    const rawFields = Array.isArray(form?.fields)
-                        ? form.fields
-                        : createDefaultFormData(formIndex).fields;
+                    const rawFields = Array.isArray(form?.fields) ?
+                        form.fields :
+                        createDefaultFormData(formIndex).fields;
 
                     normalizedForm.fields = rawFields.map((field, fieldIndex) => ({
                         ...createDefaultFieldData(fieldIndex),
@@ -3449,7 +3539,8 @@
             };
 
             const resolveFieldDomIndex = ($fieldCard) => {
-                return $fieldCard.closest('.assessment-field-list').children('.assessment-field-card').index($fieldCard);
+                return $fieldCard.closest('.assessment-field-list').children('.assessment-field-card').index(
+                    $fieldCard);
             };
 
             const focusFormAt = (formIndex) => {
@@ -3487,7 +3578,8 @@
                 const formIndex = Number($formCard.data('form-index'));
                 const fieldIndex = Number($formCard.attr('data-field-counter'));
 
-                $formCard.find('.assessment-field-list').append(buildFieldCard(formIndex, fieldIndex, fieldData));
+                $formCard.find('.assessment-field-list').append(buildFieldCard(formIndex, fieldIndex,
+                    fieldData));
                 $formCard.attr('data-field-counter', fieldIndex + 1);
 
                 const $fieldCard = $formCard.find('.assessment-field-card').last();
@@ -3660,10 +3752,12 @@
                 const optionIndex = Number($fieldCard.attr('data-radio-option-counter') || 0);
                 const normalizedOption = {
                     ...normalizeRadioOptionShape(optionData),
-                    level_kompetensi: normalizeCompetencyLevelValue(optionData?.level_kompetensi, optionIndex),
+                    level_kompetensi: normalizeCompetencyLevelValue(optionData?.level_kompetensi,
+                        optionIndex),
                 };
 
-                $fieldCard.find('.radio-option-list').append(buildRadioOptionRow(formIndex, fieldIndex, optionIndex,
+                $fieldCard.find('.radio-option-list').append(buildRadioOptionRow(formIndex, fieldIndex,
+                    optionIndex,
                     normalizedOption));
                 $fieldCard.attr('data-radio-option-counter', optionIndex + 1);
                 reindexRadioOptions($fieldCard);
@@ -3691,8 +3785,11 @@
 
                     $optionRow.attr('data-option-index', optionIndex);
                     $textInput
-                        .attr('name', `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][label]`)
-                        .attr('placeholder', 'Contoh: Mengenali faktor yang memengaruhi perilaku peserta didik');
+                        .attr('name',
+                            `forms[${formIndex}][fields][${fieldIndex}][radio_options][${optionIndex}][label]`
+                        )
+                        .attr('placeholder',
+                            'Contoh: Mengenali faktor yang memengaruhi perilaku peserta didik');
 
                     $codeInput.attr(
                         'name',
@@ -3712,7 +3809,8 @@
                         .html(buildCompetencyLevelOptions($levelSelect.val(), optionIndex));
                 });
 
-                $fieldCard.attr('data-radio-option-counter', $fieldCard.find('.multiple-choice-option-row').length);
+                $fieldCard.attr('data-radio-option-counter', $fieldCard.find('.multiple-choice-option-row')
+                    .length);
                 updateRemoveRadioOptionState($fieldCard);
             };
 
@@ -3818,7 +3916,8 @@
                 const userTouched = $select.data('userTouched') === true;
 
                 if (isSupported && !currentValue && !userTouched) {
-                    const suggestedSource = resolveSuggestedParticipantAutofillSource(labelValue, fieldNameValue);
+                    const suggestedSource = resolveSuggestedParticipantAutofillSource(labelValue,
+                        fieldNameValue);
 
                     if (suggestedSource) {
                         $select.val(suggestedSource);
@@ -3842,9 +3941,10 @@
                 const targetKetenagaanValue = resolveSelectedTargetKetenagaanValue();
                 const currentValue = $select.val()?.trim() || '';
                 const userTouched = $select.data('userTouched') === true;
-                const usesSuggestedDefault = String($select.data('suggestedDefault') || '') === '1' || $select.data(
-                    'suggestedDefault'
-                ) === true;
+                const usesSuggestedDefault = String($select.data('suggestedDefault') || '') === '1' || $select
+                    .data(
+                        'suggestedDefault'
+                    ) === true;
                 const suggestedSource = resolveSuggestedFieldLookupSource(
                     labelValue,
                     fieldNameValue,
@@ -3892,19 +3992,23 @@
                 const selectedType = $fieldCard.find('.field-type-select').val() || 'text';
                 const $methodSelect = $fieldCard.find('.field-scoring-method');
                 const currentMethod = $methodSelect.val();
-                const normalizedMethod = resolveAllowedScoringMethods(selectedType).includes(currentMethod)
-                    ? currentMethod
-                    : resolveDefaultScoringMethod(selectedType);
+                const normalizedMethod = resolveAllowedScoringMethods(selectedType).includes(currentMethod) ?
+                    currentMethod :
+                    resolveDefaultScoringMethod(selectedType);
                 const scoringEnabled = $fieldCard.find('.field-scoring-enabled').is(':checked');
-                const showNumericConfig = selectedType === 'number' && ['numeric_threshold', 'numeric_range'].includes(normalizedMethod);
+                const showNumericConfig = selectedType === 'number' && ['numeric_threshold', 'numeric_range']
+                    .includes(normalizedMethod);
                 const showTextConfig = supportsScoringAssistant(selectedType, normalizedMethod);
                 const showConfidenceConfig = showTextConfig;
                 const showPresenceConfig = normalizedMethod === 'presence';
-                const showChoiceConfig = ['radio', 'select', 'checkbox'].includes(selectedType) && !showPresenceConfig;
-                const showLikertConfig = selectedType === likertFieldType && normalizedMethod === 'likert_scale';
+                const showChoiceConfig = ['radio', 'select', 'checkbox'].includes(selectedType) && !
+                    showPresenceConfig;
+                const showLikertConfig = selectedType === likertFieldType && normalizedMethod ===
+                    'likert_scale';
                 const advancedPanelVisible = !$fieldCard.find('.scoring-advanced-panel').hasClass('d-none');
 
-                $methodSelect.html(buildFieldScoringMethodOptions(selectedType, normalizedMethod)).val(normalizedMethod);
+                $methodSelect.html(buildFieldScoringMethodOptions(selectedType, normalizedMethod)).val(
+                    normalizedMethod);
 
                 if (showLikertConfig) {
                     const $scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]');
@@ -3920,8 +4024,10 @@
                 }
 
                 $fieldCard.find('.scoring-config-body').toggleClass('d-none', !scoringEnabled);
-                $fieldCard.find('.scoring-main-guidance').text(resolveScoringSummaryMessage(selectedType, normalizedMethod));
-                $fieldCard.find('.scoring-default-summary-content').html(buildScoringSummaryHtml($fieldCard, selectedType, normalizedMethod));
+                $fieldCard.find('.scoring-main-guidance').text(resolveScoringSummaryMessage(selectedType,
+                    normalizedMethod));
+                $fieldCard.find('.scoring-default-summary-content').html(buildScoringSummaryHtml($fieldCard,
+                    selectedType, normalizedMethod));
                 $fieldCard.find('.scoring-numeric-wrapper').toggleClass('d-none', !showNumericConfig);
                 $fieldCard.find('.scoring-text-wrapper').toggleClass('d-none', !showTextConfig);
                 $fieldCard.find('.scoring-presence-wrapper').toggleClass('d-none', !showPresenceConfig);
@@ -3934,7 +4040,8 @@
                 $fieldCard.find('.scoring-synonym-wrapper').toggleClass('d-none', !showTextConfig);
                 $fieldCard.find('.scoring-numeric-score-wrapper').toggleClass('d-none', !showNumericConfig);
                 $fieldCard.find('.btn-toggle-scoring-advanced').text(
-                    advancedPanelVisible ? 'Sembunyikan pengaturan lanjutan' : 'Tampilkan pengaturan lanjutan'
+                    advancedPanelVisible ? 'Sembunyikan pengaturan lanjutan' :
+                    'Tampilkan pengaturan lanjutan'
                 );
 
                 if (showTextConfig) {
@@ -3982,10 +4089,10 @@
 
             const isRepeaterColumnNameAutoGenerated = ($nameInput) => {
                 const autoGeneratedValue = $nameInput.data('autoGenerated');
-                return autoGeneratedValue === true
-                    || autoGeneratedValue === 1
-                    || autoGeneratedValue === '1'
-                    || autoGeneratedValue === 'true';
+                return autoGeneratedValue === true ||
+                    autoGeneratedValue === 1 ||
+                    autoGeneratedValue === '1' ||
+                    autoGeneratedValue === 'true';
             };
 
             const updateRepeaterColumnRowState = ($columnRow) => {
@@ -3995,7 +4102,8 @@
                 const currentName = $nameInput.val()?.trim() || '';
                 const defaultName = getRepeaterColumnDefaultName($columnRow);
                 const autoGenerated = isRepeaterColumnNameAutoGenerated($nameInput);
-                const columnType = normalizeRepeaterColumnType($columnRow.find('.repeater-column-type-select').val() || 'text');
+                const columnType = normalizeRepeaterColumnType($columnRow.find('.repeater-column-type-select')
+                    .val() || 'text');
 
                 $columnRow.find('.repeater-column-row__title').text(`Kolom ${columnIndex + 1}`);
                 $columnRow.find('.repeater-column-row__meta').text(labelValue || 'Label kolom belum diisi');
@@ -4006,9 +4114,9 @@
                 }
 
                 $columnRow.find('.repeater-column-name-hint').html(
-                    $nameInput.val()?.trim()
-                        ? `Key penyimpanan: <code>${escapeHtml($nameInput.val()?.trim() || '')}</code>`
-                        : 'Nama field otomatis dibuat dari label kolom.'
+                    $nameInput.val()?.trim() ?
+                    `Key penyimpanan: <code>${escapeHtml($nameInput.val()?.trim() || '')}</code>` :
+                    'Nama field otomatis dibuat dari label kolom.'
                 );
 
                 $columnRow.find('.repeater-column-type-select').val(columnType);
@@ -4019,19 +4127,28 @@
             };
 
             const collectRepeaterConfigData = ($fieldCard) => {
-                const minRows = normalizeNonNegativeInteger($fieldCard.find('.repeater-min-rows-input').val(), 0);
-                const maxRows = normalizeNonNegativeInteger($fieldCard.find('.repeater-max-rows-input').val(), 0);
+                const minRows = normalizeNonNegativeInteger($fieldCard.find('.repeater-min-rows-input').val(),
+                    0);
+                const maxRows = normalizeNonNegativeInteger($fieldCard.find('.repeater-max-rows-input').val(),
+                    0);
                 const columns = $fieldCard.find('.repeater-column-row').map(function(index) {
                     const $columnRow = $(this);
                     const label = $columnRow.find('.repeater-column-label-input').val()?.trim() || '';
-                    const rawFieldName = $columnRow.find('.repeater-column-name-input').val()?.trim() || '';
-                    const fieldName = slugifyFieldName(rawFieldName || label || `kolom_${index + 1}`) || `kolom_${index + 1}`;
-                    const columnType = normalizeRepeaterColumnType($columnRow.find('.repeater-column-type-select').val() || 'text');
-                    const placeholder = $columnRow.find('.repeater-column-placeholder-input').val()?.trim() || '';
-                    const optionsText = $columnRow.find('.repeater-column-options-input').val()?.trim() || '';
+                    const rawFieldName = $columnRow.find('.repeater-column-name-input').val()?.trim() ||
+                        '';
+                    const fieldName = slugifyFieldName(rawFieldName || label || `kolom_${index + 1}`) ||
+                        `kolom_${index + 1}`;
+                    const columnType = normalizeRepeaterColumnType($columnRow.find(
+                        '.repeater-column-type-select').val() || 'text');
+                    const placeholder = $columnRow.find('.repeater-column-placeholder-input').val()
+                        ?.trim() || '';
+                    const optionsText = $columnRow.find('.repeater-column-options-input').val()
+                        ?.trim() || '';
                     const options = columnType === 'select' ? parseOptionText(optionsText) : [];
-                    const isRequired = $columnRow.find('.repeater-column-required-input').is(':checked');
-                    const hasMeaningfulValue = Boolean(label || rawFieldName || placeholder || optionsText || isRequired || columnType !== 'text');
+                    const isRequired = $columnRow.find('.repeater-column-required-input').is(
+                        ':checked');
+                    const hasMeaningfulValue = Boolean(label || rawFieldName || placeholder ||
+                        optionsText || isRequired || columnType !== 'text');
 
                     if (!hasMeaningfulValue) {
                         return null;
@@ -4077,19 +4194,23 @@
 
             const appendRepeaterColumn = ($fieldCard, columnData = {}) => {
                 const columnIndex = $fieldCard.find('.repeater-column-row').length;
-                $fieldCard.find('.repeater-column-list').append(buildRepeaterColumnRow(columnIndex, columnData));
+                $fieldCard.find('.repeater-column-list').append(buildRepeaterColumnRow(columnIndex,
+                    columnData));
                 syncRepeaterConfigState($fieldCard);
             };
 
             const collectFieldPayload = ($fieldCard, fieldIndex) => {
                 const fieldType = $fieldCard.find('select[name$="[tipe_field]"]').val() || 'text';
-                const scoringMethod = $fieldCard.find('select[name$="[scoring][method]"]').val() || resolveDefaultScoringMethod(fieldType);
+                const scoringMethod = $fieldCard.find('select[name$="[scoring][method]"]').val() ||
+                    resolveDefaultScoringMethod(fieldType);
                 const rawFieldId = $fieldCard.find('.assessment-field-id-input').val();
                 const fieldId = Number(rawFieldId || 0);
-                const rawFileOptionConfig = $fieldCard.find('input[name$="[raw_opsi_field_json]"]').val()?.trim() || '';
-                const fileInputMode = fieldType === fileFieldType
-                    ? normalizeFileInputMode($fieldCard.find('select[name$="[file_input_mode]"]').val() || 'file')
-                    : '';
+                const rawFileOptionConfig = $fieldCard.find('input[name$="[raw_opsi_field_json]"]').val()
+                    ?.trim() || '';
+                const fileInputMode = fieldType === fileFieldType ?
+                    normalizeFileInputMode($fieldCard.find('select[name$="[file_input_mode]"]').val() ||
+                        'file') :
+                    '';
                 const $autofillSourceSelect = $fieldCard.find('select[name$="[autofill_source]"]');
                 const $lookupSourceSelect = $fieldCard.find('select[name$="[lookup_source]"]');
 
@@ -4101,55 +4222,64 @@
                     tipe_field: fieldType,
                     placeholder: $fieldCard.find('input[name$="[placeholder]"]').val()?.trim() || '',
                     bantuan: $fieldCard.find('textarea[name$="[bantuan]"]').val()?.trim() || '',
-                    autofill_source: supportsParticipantAutofill(fieldType)
-                        ? ($autofillSourceSelect.val()?.trim() || '')
-                        : '',
+                    autofill_source: supportsParticipantAutofill(fieldType) ?
+                        ($autofillSourceSelect.val()?.trim() || '') : '',
                     _autofill_source_user_touched: normalizeChecked($autofillSourceSelect.data('userTouched')),
-                    lookup_source: supportsFieldLookup(fieldType)
-                        ? ($lookupSourceSelect.val()?.trim() || '')
-                        : '',
+                    lookup_source: supportsFieldLookup(fieldType) ?
+                        ($lookupSourceSelect.val()?.trim() || '') : '',
                     _lookup_source_user_touched: normalizeChecked($lookupSourceSelect.data('userTouched')),
-                    allow_other_input: supportsSelectOtherInput(fieldType)
-                        ? $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked')
-                        : false,
+                    allow_other_input: supportsSelectOtherInput(fieldType) ?
+                        $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked') : false,
                     file_input_mode: fileInputMode,
                     opsi_field_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
                     opsi_score_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_score_text]"]').val()?.trim() || '' : null,
-                    repeater_config_text: fieldType === repeaterFieldType
-                        ? ($fieldCard.find('.repeater-config-json-input').val()?.trim() || buildRepeaterConfigJson(collectRepeaterConfigData($fieldCard)))
-                        : null,
-                    raw_opsi_field_json: fieldType === fileFieldType
-                        ? buildFileFieldConfigJson(rawFileOptionConfig, fileInputMode)
-                        : rawFileOptionConfig,
-                    radio_options: fieldType === multipleChoiceFieldType ? getMultipleChoiceOptions($fieldCard) : [],
+                    repeater_config_text: fieldType === repeaterFieldType ?
+                        ($fieldCard.find('.repeater-config-json-input').val()?.trim() ||
+                            buildRepeaterConfigJson(collectRepeaterConfigData($fieldCard))) : null,
+                    raw_opsi_field_json: fieldType === fileFieldType ?
+                        buildFileFieldConfigJson(rawFileOptionConfig, fileInputMode) : rawFileOptionConfig,
+                    radio_options: fieldType === multipleChoiceFieldType ? getMultipleChoiceOptions(
+                        $fieldCard) : [],
                     scoring: {
                         enabled: $fieldCard.find('input[name$="[scoring][enabled]"]').is(':checked'),
                         profile: $fieldCard.find('select[name$="[scoring][profile]"]').val()?.trim() || '',
                         method: scoringMethod,
-                        rubric_code: $fieldCard.find('input[name$="[scoring][rubric_code]"]').val()?.trim() || '',
+                        rubric_code: $fieldCard.find('input[name$="[scoring][rubric_code]"]').val()?.trim() ||
+                            '',
                         weight: $fieldCard.find('input[name$="[scoring][weight]"]').val()?.trim() || '',
-                        is_negative_statement: fieldType === likertFieldType
-                            ? $fieldCard.find('input[name$="[scoring][is_negative_statement]"]').is(':checked')
-                            : false,
-                        score_if_answered: $fieldCard.find('input[name$="[scoring][score_if_answered]"]').val()?.trim() || '',
+                        is_negative_statement: fieldType === likertFieldType ?
+                            $fieldCard.find('input[name$="[scoring][is_negative_statement]"]').is(':checked') :
+                            false,
+                        score_if_answered: $fieldCard.find('input[name$="[scoring][score_if_answered]"]').val()
+                            ?.trim() || '',
                         scale_min: $fieldCard.find('input[name$="[scoring][scale_min]"]').val()?.trim() || '',
                         scale_max: $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '',
-                        reference_answer: $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val()?.trim() || '',
-                        keyword_groups_text: $fieldCard.find('textarea[name$="[scoring][keyword_groups_text]"]').val()?.trim() || '',
-                        synonym_map_text: $fieldCard.find('textarea[name$="[scoring][synonym_map_text]"]').val()?.trim() || '',
+                        reference_answer: $fieldCard.find('textarea[name$="[scoring][reference_answer]"]').val()
+                            ?.trim() || '',
+                        keyword_groups_text: $fieldCard.find('textarea[name$="[scoring][keyword_groups_text]"]')
+                            .val()?.trim() || '',
+                        synonym_map_text: $fieldCard.find('textarea[name$="[scoring][synonym_map_text]"]').val()
+                            ?.trim() || '',
                         min_words: $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() || '',
-                        confidence_threshold: $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()?.trim() || '',
+                        confidence_threshold: $fieldCard.find('input[name$="[scoring][confidence_threshold]"]')
+                            .val()?.trim() || '',
                         manual_review_below_confidence: false,
-                        numeric_direction: $fieldCard.find('select[name$="[scoring][numeric_direction]"]').val()?.trim() || '',
-                        min_threshold: $fieldCard.find('input[name$="[scoring][min_threshold]"]').val()?.trim() || '',
-                        target_threshold: $fieldCard.find('input[name$="[scoring][target_threshold]"]').val()?.trim() || '',
-                        max_threshold: $fieldCard.find('input[name$="[scoring][max_threshold]"]').val()?.trim() || '',
+                        numeric_direction: $fieldCard.find('select[name$="[scoring][numeric_direction]"]').val()
+                            ?.trim() || '',
+                        min_threshold: $fieldCard.find('input[name$="[scoring][min_threshold]"]').val()
+                            ?.trim() || '',
+                        target_threshold: $fieldCard.find('input[name$="[scoring][target_threshold]"]').val()
+                            ?.trim() || '',
+                        max_threshold: $fieldCard.find('input[name$="[scoring][max_threshold]"]').val()
+                            ?.trim() || '',
                         min_score: $fieldCard.find('input[name$="[scoring][min_score]"]').val()?.trim() || '',
-                        target_score: $fieldCard.find('input[name$="[scoring][target_score]"]').val()?.trim() || '',
+                        target_score: $fieldCard.find('input[name$="[scoring][target_score]"]').val()?.trim() ||
+                            '',
                         max_score: $fieldCard.find('input[name$="[scoring][max_score]"]').val()?.trim() || '',
-                        advanced_rules_text: $fieldCard.find('textarea[name$="[scoring][advanced_rules_text]"]').val()?.trim() || '',
+                        advanced_rules_text: $fieldCard.find('textarea[name$="[scoring][advanced_rules_text]"]')
+                            .val()?.trim() || '',
                     },
                     urutan: Number($fieldCard.find('input[name$="[urutan]"]').val() || fieldIndex + 1),
                     is_required: $fieldCard.find('input[name$="[is_required]"]').is(':checked'),
@@ -4170,18 +4300,28 @@
                         id: formId > 0 ? formId : null,
                         judul_form: $formCard.find('input[name$="[judul_form]"]').val()?.trim() || '',
                         kode_form: $formCard.find('input[name$="[kode_form]"]').val()?.trim() || '',
-                        deskripsi: $formCard.find('.form-description-input').first().val()?.trim() || '',
+                        deskripsi: $formCard.find('.form-description-input').first().val()?.trim() ||
+                            '',
                         kompetensi: $formCard.find('select[name$="[kompetensi]"]').val()?.trim() || '',
-                        indikator_kode: $formCard.find('input[name$="[indikator_kode]"]').val()?.trim() || '',
-                        indikator_label: $formCard.find('input[name$="[indikator_label]"]').val()?.trim() || '',
+                        indikator_kode: $formCard.find('input[name$="[indikator_kode]"]').val()
+                            ?.trim() || '',
+                        indikator_label: $formCard.find('input[name$="[indikator_label]"]').val()
+                            ?.trim() || '',
                         scoring: {
-                            profile: $formCard.find('select[name$="[scoring][profile]"]').val()?.trim() || '',
-                            weight: $formCard.find('input[name$="[scoring][weight]"]').val()?.trim() || '',
-                            exclude_from_competency: $formCard.find('input[name$="[scoring][exclude_from_competency]"]').is(':checked'),
-                            advanced_rules_text: $formCard.find('textarea[name$="[scoring][advanced_rules_text]"]').val()?.trim() || '',
+                            profile: $formCard.find('select[name$="[scoring][profile]"]').val()
+                                ?.trim() || '',
+                            weight: $formCard.find('input[name$="[scoring][weight]"]').val()?.trim() ||
+                                '',
+                            exclude_from_competency: $formCard.find(
+                                'input[name$="[scoring][exclude_from_competency]"]').is(':checked'),
+                            advanced_rules_text: $formCard.find(
+                                    'textarea[name$="[scoring][advanced_rules_text]"]').val()?.trim() ||
+                                '',
                         },
-                        is_scoreable: $formCard.find('input[name$="[is_scoreable]"]').first().is(':checked'),
-                        urutan: Number($formCard.find('input[name$="[urutan]"]').val() || formIndex + 1),
+                        is_scoreable: $formCard.find('input[name$="[is_scoreable]"]').first().is(
+                            ':checked'),
+                        urutan: Number($formCard.find('input[name$="[urutan]"]').val() || formIndex +
+                            1),
                         is_active: $formCard.find('input[name$="[is_active]"]').first().is(':checked'),
                         fields: fields,
                     };
@@ -4243,24 +4383,27 @@
                     });
                 };
                 const totalForms = forms.length;
-                const totalQuestions = forms.reduce((total, form) => total + getMeaningfulFields(form).length, 0);
+                const totalQuestions = forms.reduce((total, form) => total + getMeaningfulFields(form).length,
+                    0);
                 const activeForms = forms.filter((form) => normalizeChecked(form.is_active)).length;
                 const scoreableForms = forms.filter((form) => {
                     return normalizeChecked(form.is_scoreable) && getMeaningfulFields(form).length > 0;
                 }).length;
                 const autoScoringQuestions = forms.reduce((total, form) => {
-                    return total + getMeaningfulFields(form).filter((field) => normalizeChecked(field.scoring?.enabled)).length;
+                    return total + getMeaningfulFields(form).filter((field) => normalizeChecked(field
+                        .scoring?.enabled)).length;
                 }, 0);
                 const visibleQuestions = forms.reduce((total, form) => {
                     if (!normalizeChecked(form.is_active)) {
                         return total;
                     }
 
-                    return total + getMeaningfulFields(form).filter((field) => normalizeChecked(field.is_active)).length;
+                    return total + getMeaningfulFields(form).filter((field) => normalizeChecked(field
+                        .is_active)).length;
                 }, 0);
                 const previewForms = forms.filter((form) => {
-                    return normalizeChecked(form.is_active)
-                        && getMeaningfulFields(form).some((field) => normalizeChecked(field.is_active));
+                    return normalizeChecked(form.is_active) &&
+                        getMeaningfulFields(form).some((field) => normalizeChecked(field.is_active));
                 }).length;
 
                 return {
@@ -4323,9 +4466,9 @@
                 $('#summary-instrument-label').text(summary.instrumentLabel);
                 $('#summary-scoreable-label').text(`${summary.scoreableForms} form`);
                 $('#summary-display-label').text(
-                    summary.previewForms
-                    ? `${summary.previewForms} form / ${summary.visibleQuestions} soal`
-                    : 'Belum ada form aktif'
+                    summary.previewForms ?
+                    `${summary.previewForms} form / ${summary.visibleQuestions} soal` :
+                    'Belum ada form aktif'
                 );
                 $('#summary-builder-note').text(buildBuilderSummaryNote(summary));
             };
@@ -4363,17 +4506,21 @@
                                 placeholder: field.placeholder || '',
                                 helpText: field.bantuan || '',
                                 autofillSource: field.autofill_source || '',
-                                autofillSourceLabel: participantAutoFillOptions[field.autofill_source || ''] || '',
+                                autofillSourceLabel: participantAutoFillOptions[field
+                                    .autofill_source || ''] || '',
                                 lookupSource: field.lookup_source || '',
-                                lookupSourceLabel: fieldLookupOptions[field.lookup_source || ''] || '',
-                                lookupSourceCount: Number(resolveFieldLookupPreviewMeta(field.lookup_source || '')?.total || 0),
+                                lookupSourceLabel: fieldLookupOptions[field.lookup_source || ''] ||
+                                    '',
+                                lookupSourceCount: Number(resolveFieldLookupPreviewMeta(field
+                                    .lookup_source || '')?.total || 0),
                                 allowOtherInput: normalizeChecked(field.allow_other_input),
                                 fileInputMode: normalizeFileInputMode(
-                                    field.file_input_mode || parseFileFieldConfigJson(field.raw_opsi_field_json || '').input_mode
+                                    field.file_input_mode || parseFileFieldConfigJson(field
+                                        .raw_opsi_field_json || '').input_mode
                                 ),
                                 options: field.tipe_field === multipleChoiceFieldType ?
-                                    (field.radio_options || []) :
-                                    (field.tipe_field === repeaterFieldType ?
+                                    (field.radio_options || []) : (field.tipe_field ===
+                                        repeaterFieldType ?
                                         parseRepeaterConfig(field.repeater_config_text) :
                                         resolvePreviewChoiceOptions(field)),
                                 widthClass: 'col-md-12',
@@ -4406,7 +4553,8 @@
             };
 
             const renderPreviewFieldInput = (field, previewKey) => {
-                const fieldLabel = `${escapeHtml(field.label)}${field.required ? ' <span class="text-danger">*</span>' : ''}`;
+                const fieldLabel =
+                    `${escapeHtml(field.label)}${field.required ? ' <span class="text-danger">*</span>' : ''}`;
                 const placeholder = escapeHtml(field.placeholder);
                 let inputHtml = '';
 
@@ -4434,11 +4582,11 @@
                             ${optionsHtml}
                         </select>
                         ${field.allowOtherInput ? `
-                            <input type="text" class="form-control mt-2"
-                                value=""
-                                placeholder="Tulis jawaban ${escapeHtml(selectOtherOptionLabel.toLowerCase())}"
-                                disabled>
-                        ` : ''}
+                                    <input type="text" class="form-control mt-2"
+                                        value=""
+                                        placeholder="Tulis jawaban ${escapeHtml(selectOtherOptionLabel.toLowerCase())}"
+                                        disabled>
+                                ` : ''}
                     `;
                 } else if (field.type === likertFieldType) {
                     const options = field.options.length ? field.options : defaultLikertOptions;
@@ -4450,21 +4598,36 @@
                                     label: String(option || ''),
                                     value: String(option || ''),
                                 };
-                                const inputId = `${sanitizePreviewKey(previewKey)}-${index}`;
+                                const inputId = `
+                    $ {
+                        sanitizePreviewKey(previewKey)
+                    } - $ {
+                        index
+                    }
+                    `;
 
-                                return `
-                                    <div class="col-md mb-2">
-                                        <label for="${inputId}" class="d-block h-100 rounded border bg-white px-3 py-3">
-                                            <div class="d-flex align-items-center">
-                                                <input type="radio" class="mr-2"
-                                                    id="${inputId}"
-                                                    name="${sanitizePreviewKey(previewKey)}"
-                                                    value="${escapeHtml(normalizedOption.value || '')}">
-                                                <span>${escapeHtml(normalizedOption.label || normalizedOption.value || '')}</span>
-                                            </div>
-                                        </label>
-                                    </div>
-                                `;
+                                return ` <
+                    div class = "col-md mb-2" >
+                    <
+                    label
+                    for = "${inputId}"
+                    class = "d-block h-100 rounded border bg-white px-3 py-3" >
+                    <
+                    div class = "d-flex align-items-center" >
+                    <
+                    input type = "radio"
+                    class = "mr-2"
+                    id = "${inputId}"
+                    name = "${sanitizePreviewKey(previewKey)}"
+                    value = "${escapeHtml(normalizedOption.value || '')}" >
+                        <
+                        span > $ {
+                            escapeHtml(normalizedOption.label || normalizedOption.value || '')
+                        } < /span> < /
+                        div > <
+                        /label> < /
+                        div >
+                        `;
                             }).join('')}
                         </div>
                     `;
@@ -4524,7 +4687,8 @@
                             const type = column.tipe_field || 'text';
 
                             if (type === 'select') {
-                                const options = Array.isArray(column.opsi_field) ? column.opsi_field : [];
+                                const options = Array.isArray(column.opsi_field) ? column.opsi_field :
+                                [];
                                 const optionsHtml = options.map((option) => {
                                     return `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`;
                                 }).join('');
@@ -4595,13 +4759,13 @@
                 } else if (field.type === 'file') {
                     const fileInputMode = normalizeFileInputMode(field.fileInputMode || 'file');
 
-                    inputHtml = fileInputMode === 'link'
-                        ? `
+                    inputHtml = fileInputMode === 'link' ?
+                        `
                             <input type="url" class="form-control"
                                 value=""
                                 placeholder="${placeholder || 'https://drive.google.com/file/d/.../view'}">
+                        ` :
                         `
-                        : `
                             <div class="custom-file">
                                 <input type="file" class="custom-file-input">
                                 <label class="custom-file-label">
@@ -4655,11 +4819,11 @@
                             <h3 class="mb-2">${escapeHtml(data.title)}</h3>
                             ${data.description ? `<p class="text-muted mb-3">${escapeHtml(data.description)}</p>` : ''}
                             ${data.instruction ? `
-                                <div class="alert alert-light border mb-0">
-                                    <div class="font-weight-bold mb-1">Petunjuk Pengisian</div>
-                                    <div>${escapeHtml(data.instruction)}</div>
-                                </div>
-                            ` : ''}
+                                        <div class="alert alert-light border mb-0">
+                                            <div class="font-weight-bold mb-1">Petunjuk Pengisian</div>
+                                            <div>${escapeHtml(data.instruction)}</div>
+                                        </div>
+                                    ` : ''}
                         </div>
                     </div>
                 `;
@@ -4697,14 +4861,14 @@
                                     <h4 class="mb-1">${escapeHtml(form.title)}</h4>
                                     <small class="text-muted">Bagian ${index + 1} • ${escapeHtml(form.code)}</small>
                                     ${(form.kompetensiLabel || form.indikatorKode || form.isScoreable !== undefined) ? `
-                                        <div class="mt-2">
-                                            ${form.kompetensiLabel ? `<span class="badge badge-info mr-1">${escapeHtml(form.kompetensiLabel)}</span>` : ''}
-                                            ${form.indikatorKode ? `<span class="badge badge-light border mr-1">Indikator ${escapeHtml(form.indikatorKode)}</span>` : ''}
-                                            <span class="badge badge-${form.isScoreable ? 'success' : 'secondary'}">
-                                                ${form.isScoreable ? 'Masuk penilaian' : 'Hanya pengumpulan data'}
-                                            </span>
-                                        </div>
-                                    ` : ''}
+                                                <div class="mt-2">
+                                                    ${form.kompetensiLabel ? `<span class="badge badge-info mr-1">${escapeHtml(form.kompetensiLabel)}</span>` : ''}
+                                                    ${form.indikatorKode ? `<span class="badge badge-light border mr-1">Indikator ${escapeHtml(form.indikatorKode)}</span>` : ''}
+                                                    <span class="badge badge-${form.isScoreable ? 'success' : 'secondary'}">
+                                                        ${form.isScoreable ? 'Masuk penilaian' : 'Hanya pengumpulan data'}
+                                                    </span>
+                                                </div>
+                                            ` : ''}
                                 </div>
                             </div>
                             <div class="card-body">
@@ -4850,10 +5014,12 @@
                 schedulePreviewRender();
             });
 
-            $(document).on('input', '.repeater-min-rows-input, .repeater-max-rows-input, .repeater-column-placeholder-input, .repeater-column-options-input', function() {
-                syncRepeaterConfigState($(this).closest('.assessment-field-card'));
-                schedulePreviewRender();
-            });
+            $(document).on('input',
+                '.repeater-min-rows-input, .repeater-max-rows-input, .repeater-column-placeholder-input, .repeater-column-options-input',
+                function() {
+                    syncRepeaterConfigState($(this).closest('.assessment-field-card'));
+                    schedulePreviewRender();
+                });
 
             $(document).on('change', '.repeater-column-type-select, .repeater-column-required-input', function() {
                 syncRepeaterConfigState($(this).closest('.assessment-field-card'));
@@ -4916,9 +5082,11 @@
                 schedulePreviewRender();
             });
 
-            $(document).on('change', '.scoring-config-card input, .scoring-config-card textarea, .scoring-config-card select', function() {
-                toggleScoringWrapper($(this).closest('.assessment-field-card'));
-            });
+            $(document).on('change',
+                '.scoring-config-card input, .scoring-config-card textarea, .scoring-config-card select',
+                function() {
+                    toggleScoringWrapper($(this).closest('.assessment-field-card'));
+                });
 
             $(document).on('click', '.btn-toggle-scoring-advanced', function() {
                 const $fieldCard = $(this).closest('.assessment-field-card');
@@ -4973,13 +5141,16 @@
             });
 
             $('#assessment-builder-form').on('change focusout', keywordGroupsFieldSelector, function() {
-                validateKeywordGroupsField($(this), { normalize: true });
+                validateKeywordGroupsField($(this), {
+                    normalize: true
+                });
             });
 
             $('#assessment-builder-form').on('submit', function(event) {
                 if ($builderShell.hasClass('is-loading')) {
                     event.preventDefault();
-                    setBuilderLoadingState(true, 'Form masih dimuat. Tunggu sebentar sampai seluruh struktur selesai tampil.');
+                    setBuilderLoadingState(true,
+                        'Form masih dimuat. Tunggu sebentar sampai seluruh struktur selesai tampil.');
                     return false;
                 }
 
