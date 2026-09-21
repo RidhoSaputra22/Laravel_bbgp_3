@@ -453,7 +453,10 @@
                             $('#pendidikan').val(data.pendidikan);
                             $('#jabatan').val(data.jabatan);
                             $('#tugas_jabatan').val(data.tugas_jabatan);
-                            $('#status').val(data.status);
+                            // Prefill only when the user has not selected a status yet.
+                            if (!$('#status').val()) {
+                                $('#status').val(data.status);
+                            }
                             $('#instansi').val(data.instansi ?? data.satuan_pendidikan);
                             $('#satuan_pendidikan').val(data.satuan_pendidikan);
                             $('#alamat_satuan').val(data.alamat_satuan);

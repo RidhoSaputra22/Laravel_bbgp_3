@@ -311,8 +311,8 @@
                                                 <label>Status</label>
                                                 <select required name="status" class="form-control ">
                                                     <option value="">-- Kawin/Belum Kawin --</option>
-                                                    <option {{ $getById->status == 'Kawin' ? 'selected' : '' }} value="Kawin">Kawin</option>
-                                                    <option {{ $getById->status == 'Belum Kawin' ? 'selected' : '' }} value="Belum Kawin">Belum Kawin</option>
+                                                    <option {{ $datas->status == 'Kawin' ? 'selected' : '' }} value="Kawin">Kawin</option>
+                                                    <option {{ $datas->status == 'Belum Kawin' ? 'selected' : '' }} value="Belum Kawin">Belum Kawin</option>
                                                 </select>
                                             </div>
                                         </div>

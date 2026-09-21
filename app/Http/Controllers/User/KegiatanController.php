@@ -214,6 +214,7 @@ class KegiatanController extends Controller
                 'alamat_rumah' => $r['alamat_rumah'] ?? $master->alamat_rumah,
                 'kabupaten_rumah' => $r['kabupaten_rumah'] ?? $master->kabupaten_rumah,
                 'jkl' => $r['jkl'] ?? ($r['gender'] ?? $master->jkl),
+                'status' => $r['status'] ?? $master->status,
                 'nip' => $r['nip'] ?? $master->nip,
                 'nama' => $r['nama'] ?? $master->nama,
             ]);
