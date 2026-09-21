@@ -83,15 +83,23 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 'deskripsi' => 'Data identitas peserta dan informasi kegiatan Hari Belajar Guru yang diikuti.',
                 'is_scoreable' => false,
                 'fields' => [
+                    $this->selectField(
+                        '1. Nama Narasumber',
+                        'nama_narasumber',
+                        ['Narasumber 1', 'Narasumber 2', 'Narasumber 3'],
+                        'Pilih narasumber...',
+                        '',
+                        true,
+                    ),
                     $this->textField(
-                        '1. Nama Sekolah',
+                        '2. Nama Sekolah',
                         'nama_sekolah',
                         'Masukkan nama Sekolah',
                         'Nama sekolah dapat terisi otomatis dari data SIM.',
                         'satuan_pendidikan'
                     ),
                     $this->selectField(
-                        '2. Kabupaten/Kota',
+                        '3. Kabupaten/Kota',
                         'kabupaten_kota',
                         [],
                         'Pilih jawaban...',
@@ -101,19 +109,19 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         'Kabupaten / Kota'
                     ),
                     $this->textField(
-                        '3. Materi/Topik',
+                        '4. Materi/Topik',
                         'materi_topik',
                         'Masukan materi/topik kegiatan',
                         'Masukan materi/topik kegiatan',
 
                     ),
                     $this->dateField(
-                        '4. Tanggal Pelaksanaan',
+                        '5. Tanggal Pelaksanaan',
                         'tanggal_pelaksanaan',
                         'Masukkan tanggal pelaksanaan kegiatan.'
                     ),
                     $this->selectField(
-                        '5. Jabatan',
+                        '6. Jabatan',
                         'jabatan',
                         [
                             'Guru',
@@ -132,7 +140,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         false
                     ),
                     $this->textField(
-                        '6. Tempat Pelaksanaan',
+                        '7. Tempat Pelaksanaan',
                         'tempat_pelaksanaan',
                         'Masukkan tempat pelaksanaan kegiatan',
                         'Masukkan tempat pelaksanaan kegiatan'
