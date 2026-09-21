@@ -13,10 +13,11 @@ class EvaluasiPelaksanaanResultController extends Controller
     private const MENU = 'evaluasi-hasil';
 
     private const SCORE_LABELS = [
-        1 => 'Kurang',
-        2 => 'Cukup',
-        3 => 'Baik',
-        4 => 'Sangat Baik',
+        1 => '1',
+        2 => '2',
+        3 => '3',
+        4 => '4',
+
     ];
 
     public function index(Request $request)

@@ -27,7 +27,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'judul' => 'Evaluasi Pelaksanaan Hari Belajar Guru',
             'slug' => Str::slug('Evaluasi Pelaksanaan Hari Belajar Guru'),
             'deskripsi' => 'Instrumen untuk mengevaluasi pelaksanaan kegiatan pelatihan dan kinerja narasumber berdasarkan Kuesioner Evaluasi Pelaksanaan Kegiatan.',
-            'petunjuk' => 'Lengkapi identitas kegiatan terlebih dahulu. Pada bagian B dan C, pilih satu jawaban pada setiap pernyataan menggunakan skala 4, 3, 2, atau 1 sesuai skala penilaian. Saran/masukan pada bagian C bersifat opsional.',
+            'petunjuk' => 'Lengkapi identitas kegiatan terlebih dahulu. Pada bagian B dan C, pilih satu angka pada setiap pernyataan menggunakan skala 1 sampai 5. Saran/masukan pada bagian C bersifat opsional.',
             'instrument_type' => AssessmentInstrumentType::SKALA_LIKERT->value,
             'target_ketenagaan' => null,
             'scoring_config' => $this->assessmentScoringConfig($totalScoredItems),
@@ -100,20 +100,17 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         true,
                         'Kabupaten / Kota'
                     ),
-                    $this->selectField(
-                        '3. Jenjang',
-                        'jenjang',
-                        ['PAUD/TK', 'SD', 'SMP', 'SMA', 'SMK', 'SLB'],
-                        'Pilih jawaban...',
-                        'Pilih jenjang satuan pendidikan peserta.',
-                        true
+                    $this->textField(
+                        '3. Materi/Topik',
+                        'materi_topik',
+                        'Masukan materi/topik kegiatan',
+                        'Masukan materi/topik kegiatan',
+
                     ),
-                    $this->selectField(
-                        '4. Jenis Kelamin',
-                        'jenis_kelamin',
-                        ['Laki-laki', 'Perempuan'],
-                        'Pilih jawaban...',
-                        'Pilih jenis kelamin peserta.'
+                    $this->dateField(
+                        '4. Tanggal Pelaksanaan',
+                        'tanggal_pelaksanaan',
+                        'Masukkan tanggal pelaksanaan kegiatan.'
                     ),
                     $this->selectField(
                         '5. Jabatan',
@@ -134,12 +131,18 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         true,
                         false
                     ),
+                    $this->textField(
+                        '6. Tempat Pelaksanaan',
+                        'tempat_pelaksanaan',
+                        'Masukkan tempat pelaksanaan kegiatan',
+                        'Masukkan tempat pelaksanaan kegiatan'
+                    ),
                 ],
             ],
             [
                 'judul_form' => 'B. Evaluasi Pelaksanaan Kegiatan Pelatihan',
                 'kode_form' => 'FORM-EVALUASI-PELAKSANAAN',
-                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala 4, 3, 2, atau 1.',
+                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 5.',
                 'indikator_kode' => 'B',
                 'indikator_label' => 'Evaluasi pelaksanaan kegiatan pelatihan',
                 'is_scoreable' => true,
@@ -269,96 +272,55 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             [
                 'judul_form' => 'C. Evaluasi Narasumber',
                 'kode_form' => 'FORM-EVALUASI-NARASUMBER',
-                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala 4, 3, 2, atau 1. Saran/masukan dapat diisi pada bagian akhir.',
+                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 5. Saran/masukan dapat diisi pada bagian akhir.',
                 'indikator_kode' => 'C',
                 'indikator_label' => 'Evaluasi narasumber',
                 'is_scoreable' => true,
                 'fields' => array_merge(
                     $this->scaledFields('evaluasi_narasumber', [
                         [
-                            'group' => '1. Aspek Kompetensi & Penguasaan Materi',
-                            'indicator' => 'Penguasaan substansi/materi yang disampaikan',
+                            'group' => 'Kesesuaian materi',
+                            'statement' => 'Materi yang disampaikan sesuai dengan topik pelatihan',
+                        ],
+                        [
+                            'group' => 'Penguasaan materi',
                             'statement' => 'Narasumber menguasai materi yang disampaikan dengan baik',
                         ],
                         [
-                            'group' => '1. Aspek Kompetensi & Penguasaan Materi',
-                            'indicator' => 'Kedalaman dan keluasan wawasan',
+                            'group' => 'Sistematika Penyajian',
+                            'statement' => 'Narasumber mampu menjelaskan konsep secara sistematis',
+                        ],
+                        [
+                            'group' => 'Kedalaman dan keluasan wawasan',
                             'statement' => 'Narasumber memiliki wawasan luas terkait topik yang dibahas',
                         ],
                         [
-                            'group' => '1. Aspek Kompetensi & Penguasaan Materi',
-                            'indicator' => 'Kemampuan menjawab pertanyaan peserta',
-                            'statement' => 'Narasumber mampu menjawab pertanyaan peserta dengan tepat dan jelas',
+                            'group' => 'Kejelasan Materi',
+                            'statement' => 'Narasumber mampu menjelaskan menggunakan bahasa yang lugas dan mudah dipahami',
                         ],
                         [
-                            'group' => '2. Aspek Metode Penyampaian',
-                            'indicator' => 'Kejelasan dalam menjelaskan materi',
-                            'statement' => 'Narasumber menjelaskan materi dengan bahasa yang jelas dan mudah dipahami',
+                            'group' => 'Teknik Penyampaian',
+                            'statement' => 'Narasumber mampu menyampaikan materi dengan menarik',
                         ],
                         [
-                            'group' => '2. Aspek Metode Penyampaian',
-                            'indicator' => 'Sistematika penyampaian (runtut, terstruktur)',
-                            'statement' => 'Narasumber menyampaikan materi secara sistematis dan terstruktur',
-                        ],
-                        [
-                            'group' => '2. Aspek Metode Penyampaian',
-                            'indicator' => 'Variasi metode (interaktif, tidak monoton)',
-                            'statement' => 'Narasumber menggunakan metode penyampaian yang bervariasi',
-                        ],
-                        [
-                            'group' => '2. Aspek Metode Penyampaian',
-                            'indicator' => 'Penggunaan media/alat bantu pembelajaran',
+                            'group' => 'Penggunaan media/alat bantu',
                             'statement' => 'Narasumber menggunakan media/alat bantu pembelajaran secara efektif',
                         ],
                         [
-                            'group' => '3. Aspek Komunikasi & Interaksi',
-                            'indicator' => 'Kemampuan membangun interaksi dengan peserta',
-                            'statement' => 'Narasumber mampu membangun interaksi yang baik dengan peserta',
+                            'group' => 'Kemampuan menjawab',
+                            'statement' => 'Narasumber mampu menjawab pertanyaan peserta dengan baik',
                         ],
                         [
-                            'group' => '3. Aspek Komunikasi & Interaksi',
-                            'indicator' => 'Responsivitas terhadap pertanyaan/masukan',
-                            'statement' => 'Narasumber tanggap dan terbuka terhadap pertanyaan maupun masukan peserta',
+                            'group' => 'Sikap/Pelayanan',
+                            'statement' => 'Narasumber menunjukkan sikap sopan dan profesional selama pelatihan berlangsung',
                         ],
                         [
-                            'group' => '3. Aspek Komunikasi & Interaksi',
-                            'indicator' => 'Bahasa yang digunakan (mudah dipahami)',
-                            'statement' => 'Bahasa yang digunakan narasumber mudah dipahami oleh peserta',
+                            'group' => 'Pembelajaran Mendalam',
+                            'statement' => 'Narasumber menggugah Kesadaran, menghadirkan Kebermaknaan, dan Menggembirakan',
                         ],
                         [
-                            'group' => '3. Aspek Komunikasi & Interaksi',
-                            'indicator' => 'Kemampuan mengelola dinamika kelas/forum',
-                            'statement' => 'Narasumber mampu mengelola dinamika kelas dengan baik',
-                        ],
-                        [
-                            'group' => '4. Aspek Sikap & Profesionalisme',
-                            'indicator' => 'Ketepatan waktu (kehadiran & durasi sesi)',
-                            'statement' => 'Narasumber hadir tepat waktu sesuai jadwal yang ditentukan',
-                        ],
-                        [
-                            'group' => '4. Aspek Sikap & Profesionalisme',
-                            'indicator' => 'Sikap dan etika selama pelatihan',
-                            'statement' => 'Narasumber menunjukkan sikap profesional selama pelatihan berlangsung',
-                        ],
-                        [
-                            'group' => '4. Aspek Sikap & Profesionalisme',
-                            'indicator' => 'Kesiapan bahan presentasi/materi',
-                            'statement' => 'Narasumber tampak siap dengan bahan presentasi/materi yang akan disampaikan',
-                        ],
-                        [
-                            'group' => '4. Aspek Sikap & Profesionalisme',
-                            'indicator' => 'Kesesuaian materi yang disampaikan dengan yang dijanjikan/silabus',
-                            'statement' => 'Materi yang disampaikan narasumber sesuai dengan silabus/topik yang dijanjikan',
-                        ],
-                        [
-                            'group' => '5. Aspek Penilaian Umum',
-                            'indicator' => 'Kepuasan peserta terhadap narasumber',
-                            'statement' => 'Secara keseluruhan, saya puas terhadap kinerja narasumber',
-                        ],
-                        [
-                            'group' => '5. Aspek Penilaian Umum',
-                            'indicator' => 'Rekomendasi keberlanjutan (layak diundang kembali)',
-                            'statement' => 'Saya akan merekomendasikan narasumber ini untuk pelatihan berikutnya',
+                            'group' => 'Kelayakan',
+                            'statement' => 'Narasumber layak diundang kembali pada kegiatan serupa di masa mendatang',
                         ],
                     ]),
                     [
@@ -379,7 +341,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
     }
 
     /**
-     * @param array<int, array{group: string, indicator: string, statement: string}> $items
+     * @param array<int, array{group: string, indicator?: string, statement: string}> $items
      * @return array<int, array<string, mixed>>
      */
     private function scaledFields(string $prefix, array $items): array
@@ -390,7 +352,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 $item['statement'],
                 $prefix . '_' . str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT),
                 $this->scaleOptions(),
-                $item['group'] . ' — ' . $item['indicator'],
+                collect([$item['group'], $item['indicator'] ?? null])->filter()->implode(' — '),
             ))
             ->all();
     }
@@ -402,10 +364,11 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
     {
         return [
 
-            ['label' => 'Kurang', 'value' => '1', 'score' => 1, 'level_kompetensi' => 1],
-            ['label' => 'Cukup', 'value' => '2', 'score' => 2, 'level_kompetensi' => 2],
-            ['label' => 'Baik', 'value' => '3', 'score' => 3, 'level_kompetensi' => 3],
-            ['label' => 'Sangat Baik', 'value' => '4', 'score' => 4, 'level_kompetensi' => 4],
+            ['label' => '1', 'value' => '1', 'score' => 1, 'level_kompetensi' => 1],
+            ['label' => '2', 'value' => '2', 'score' => 2, 'level_kompetensi' => 2],
+            ['label' => '3', 'value' => '3', 'score' => 3, 'level_kompetensi' => 3],
+            ['label' => '4', 'value' => '4', 'score' => 4, 'level_kompetensi' => 4],
+            ['label' => '5', 'value' => '5', 'score' => 5, 'level_kompetensi' => 5],
         ];
     }
 
@@ -422,12 +385,12 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
         return $this->field(
             $label,
             $name,
-            'radio',
+            'likert',
             $options,
             true,
             null,
             $description,
-            'Pilih satu jawaban yang ada',
+            'Pilih salah satu angka 1 sampai 5.',
             null,
             [
                 'enabled' => true,
@@ -435,13 +398,13 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 'method' => 'choice_option_score',
                 'weight' => 1,
                 'scale_min' => 1,
-                'scale_max' => 4,
+                'scale_max' => 5,
                 'advanced_rules' => [
                     'scale' => [
                         'min' => 1,
-                        'max' => 4,
+                        'max' => 5,
                     ],
-                    'scoring_note' => 'Skor diambil langsung dari pilihan skala 1 sampai 4.',
+                    'scoring_note' => 'Skor diambil langsung dari pilihan angka 1 sampai 5.',
                 ],
             ],
         );
@@ -554,20 +517,21 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'profile' => AssessmentInstrumentType::SKALA_LIKERT->value,
             'weight' => AssessmentInstrumentType::SKALA_LIKERT->weight(),
             'scale_min' => 1,
-            'scale_max' => 4,
+            'scale_max' => 5,
             'total_items' => $totalItems,
             'minimum_score' => $totalItems,
-            'maximum_score' => $totalItems * 4,
+            'maximum_score' => $totalItems * 5,
             'empty_response_threshold_percent' => 0,
             'advanced_rules' => [
                 'scale' => [
                     'min' => 1,
-                    'max' => 4,
+                    'max' => 5,
                     'labels' => [
                         '1' => '1',
                         '2' => '2',
                         '3' => '3',
                         '4' => '4',
+                        '5' => '5',
                     ],
                 ],
                 'aggregation' => 'Rata-rata skor seluruh butir penilaian.',
@@ -592,7 +556,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'advanced_rules' => [
                 'scale' => [
                     'min' => 1,
-                    'max' => 4,
+                    'max' => 5,
                 ],
                 'item_count' => $scoredItemCount,
                 'form_formula' => 'Rata-rata skor seluruh jawaban bernilai pada form.',
