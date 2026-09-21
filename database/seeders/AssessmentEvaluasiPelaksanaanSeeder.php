@@ -397,7 +397,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             true,
             null,
             $description,
-            'Pilih salah satu angka 1 sampai 4.',
+            'Pilih nilai 1–4 sesuai penilaian Anda: 1 = Kurang, 2 = Cukup, 3 = Baik, 4 = Sangat Baik.',
             null,
             [
                 'enabled' => true,
