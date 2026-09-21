@@ -69,13 +69,13 @@
       }
 
       .signature {
+         position: absolute;
+         top: 910px;
+         left: 60%;
          width: 40%;
-         margin-top: 15px;
-         margin-left: 60%;
          text-align: left;
          font-size: 14px;
          line-height: 1.35;
-         page-break-inside: avoid;
       }
 
       .signature p {
@@ -90,7 +90,7 @@
       .pakta-container {
          padding: 20px 40px;
          font-size: 12px;
-         line-height: 1.8;
+         line-height: 1.6;
       }
 
       .pakta-header {
@@ -112,7 +112,7 @@
 
       .pakta-content {
          text-align: justify;
-         margin: 20px 0;
+         margin: 14px 0;
       }
 
       .pakta-list {
@@ -121,7 +121,7 @@
       }
 
       .pakta-list ol {
-         margin: 10px 0;
+         margin: 6px 0;
          padding-left: 20px;
       }
 
@@ -131,7 +131,7 @@
       }
 
       .pakta-identity {
-         margin: 20px 0;
+         margin: 12px 0;
       }
 
       .pakta-identity table {
@@ -177,9 +177,8 @@
 
    <div style="text-align: center; margin-top: 10px;">
       <?php
-      setlocale(LC_TIME, 'id_ID.UTF-8');
       $tgl_lahir_val = $peserta->tgl_lahir ?? ($getById?->tgl_lahir ?? null);
-      $tgl_lahir = $tgl_lahir_val ? strftime('%d %B %Y', strtotime($tgl_lahir_val)) : '-';
+      $tgl_lahir = $tgl_lahir_val ? \Carbon\Carbon::parse($tgl_lahir_val)->locale('id')->translatedFormat('d F Y') : '-';
       
       $tgl_kegiatan = $peserta->kegiatan->tgl_kegiatan ?? now();
       $tahun_kegiatan = date('Y', strtotime($tgl_kegiatan));
@@ -272,7 +271,7 @@
             </tr>
          </table>
          <div class="signature">
-            <p>Makassar, {{ strftime('%d %B %Y', strtotime($tgl_kegiatan)) }}</p>
+            <p>Makassar, {{ \Carbon\Carbon::parse($tgl_kegiatan)->locale('id')->translatedFormat('d F Y') }}</p>
             <p style="font-weight: bold;">Peserta,</p>
             <p class="signature-name">{{ $peserta->nama ?? ($getById?->nama ?? '-') }}</p>
             {{-- <p>NIP. {{ $peserta->nip }}</p> --}}
