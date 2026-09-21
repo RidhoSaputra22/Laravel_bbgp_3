@@ -69,8 +69,12 @@
       }
 
       .signature {
-         text-align: right;
-         margin-top: 50px;
+         width: 40%;
+         margin-top: 15px;
+         margin-left: 60%;
+         text-align: left;
+         font-size: 14px;
+         page-break-inside: avoid;
       }
 
       /* Style untuk halaman Pakta Integritas */
@@ -258,22 +262,13 @@
                <td>: {{ $peserta->npwp ?: ($getById->npwp ?: '-') }}</td>
             </tr>
          </table>
-         <footer>
-            <div style="font-size: 14px; margin-top: 15px;">
-               <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border: none !important;">
-                  <tr>
-                     <td width="60%" style="border: none !important;"></td>
-                     <td width="40%" style="text-align: left; border: none !important;">
-                        <p>Makassar, {{ strftime('%d %B %Y', strtotime($tgl_kegiatan)) }}</p>
-                        <p style="font-weight: bold;">Peserta,</p>
-                        <br><br><br>
-                        <p>{{ $peserta->nama ?? ($getById->nama ?? '-') }}</p>
-                        {{-- <p>NIP. {{ $peserta->nip }}</p> --}}
-                     </td>
-                  </tr>
-               </table>
-            </div>
-         </footer>
+         <div class="signature">
+            <p>Makassar, {{ strftime('%d %B %Y', strtotime($tgl_kegiatan)) }}</p>
+            <p style="font-weight: bold;">Peserta,</p>
+            <br><br><br>
+            <p>{{ $peserta->nama ?? ($getById->nama ?? '-') }}</p>
+            {{-- <p>NIP. {{ $peserta->nip }}</p> --}}
+         </div>
       </div>
    </div>
 
