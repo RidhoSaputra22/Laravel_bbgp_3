@@ -27,7 +27,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'judul' => 'Evaluasi Pelaksanaan Hari Belajar Guru',
             'slug' => Str::slug('Evaluasi Pelaksanaan Hari Belajar Guru'),
             'deskripsi' => 'Instrumen untuk mengevaluasi pelaksanaan kegiatan pelatihan dan kinerja narasumber berdasarkan Kuesioner Evaluasi Pelaksanaan Kegiatan.',
-            'petunjuk' => 'Lengkapi identitas kegiatan terlebih dahulu. Pada bagian B dan C, pilih satu angka pada setiap pernyataan menggunakan skala 1 sampai 5. Saran/masukan pada bagian C bersifat opsional.',
+            'petunjuk' => 'Lengkapi identitas kegiatan terlebih dahulu. Pada bagian B dan C, pilih satu angka pada setiap pernyataan menggunakan skala 1 sampai 4. Saran/masukan pada bagian C bersifat opsional.',
             'instrument_type' => AssessmentInstrumentType::SKALA_LIKERT->value,
             'target_ketenagaan' => null,
             'scoring_config' => $this->assessmentScoringConfig($totalScoredItems),
@@ -142,7 +142,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             [
                 'judul_form' => 'B. Evaluasi Pelaksanaan Kegiatan Pelatihan',
                 'kode_form' => 'FORM-EVALUASI-PELAKSANAAN',
-                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 5.',
+                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 4.',
                 'indikator_kode' => 'B',
                 'indikator_label' => 'Evaluasi pelaksanaan kegiatan pelatihan',
                 'is_scoreable' => true,
@@ -272,7 +272,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             [
                 'judul_form' => 'C. Evaluasi Narasumber',
                 'kode_form' => 'FORM-EVALUASI-NARASUMBER',
-                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 5. Saran/masukan dapat diisi pada bagian akhir.',
+                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 4. Saran/masukan dapat diisi pada bagian akhir.',
                 'indikator_kode' => 'C',
                 'indikator_label' => 'Evaluasi narasumber',
                 'is_scoreable' => true,
@@ -368,7 +368,6 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             ['label' => '2', 'value' => '2', 'score' => 2, 'level_kompetensi' => 2],
             ['label' => '3', 'value' => '3', 'score' => 3, 'level_kompetensi' => 3],
             ['label' => '4', 'value' => '4', 'score' => 4, 'level_kompetensi' => 4],
-            ['label' => '5', 'value' => '5', 'score' => 5, 'level_kompetensi' => 5],
         ];
     }
 
@@ -385,12 +384,12 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
         return $this->field(
             $label,
             $name,
-            'likert',
+            'radio',
             $options,
             true,
             null,
             $description,
-            'Pilih salah satu angka 1 sampai 5.',
+            'Pilih salah satu angka 1 sampai 4.',
             null,
             [
                 'enabled' => true,
@@ -398,13 +397,13 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 'method' => 'choice_option_score',
                 'weight' => 1,
                 'scale_min' => 1,
-                'scale_max' => 5,
+                'scale_max' => 4,
                 'advanced_rules' => [
                     'scale' => [
                         'min' => 1,
-                        'max' => 5,
+                        'max' => 4,
                     ],
-                    'scoring_note' => 'Skor diambil langsung dari pilihan angka 1 sampai 5.',
+                    'scoring_note' => 'Skor diambil langsung dari pilihan angka 1 sampai 4.',
                 ],
             ],
         );
@@ -517,21 +516,20 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'profile' => AssessmentInstrumentType::SKALA_LIKERT->value,
             'weight' => AssessmentInstrumentType::SKALA_LIKERT->weight(),
             'scale_min' => 1,
-            'scale_max' => 5,
+            'scale_max' => 4,
             'total_items' => $totalItems,
             'minimum_score' => $totalItems,
-            'maximum_score' => $totalItems * 5,
+            'maximum_score' => $totalItems * 4,
             'empty_response_threshold_percent' => 0,
             'advanced_rules' => [
                 'scale' => [
                     'min' => 1,
-                    'max' => 5,
+                    'max' => 4,
                     'labels' => [
                         '1' => '1',
                         '2' => '2',
                         '3' => '3',
                         '4' => '4',
-                        '5' => '5',
                     ],
                 ],
                 'aggregation' => 'Rata-rata skor seluruh butir penilaian.',
@@ -556,7 +554,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'advanced_rules' => [
                 'scale' => [
                     'min' => 1,
-                    'max' => 5,
+                    'max' => 4,
                 ],
                 'item_count' => $scoredItemCount,
                 'form_formula' => 'Rata-rata skor seluruh jawaban bernilai pada form.',
