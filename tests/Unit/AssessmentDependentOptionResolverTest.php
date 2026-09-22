@@ -22,7 +22,7 @@ class AssessmentDependentOptionResolverTest extends TestCase
         ];
 
         $this->assertSame(
-            [['label' => 'Narasumber Gowa', 'value' => 'narasumber_gowa', 'aliases' => ['narasumber_gowa', 'Narasumber Gowa'], 'score' => null, 'level_kompetensi' => null, 'level_kompetensi_label' => null]],
+            [['label' => 'Narasumber Gowa', 'value' => 'Narasumber Gowa', 'aliases' => ['narasumber_gowa', 'Narasumber Gowa'], 'score' => null, 'level_kompetensi' => null, 'level_kompetensi_label' => null]],
             $resolver->resolveOptions($field, ['kabupaten_kota' => 'Kabupaten Gowa'])
         );
         $this->assertSame([], $resolver->resolveOptions($field, ['kabupaten_kota' => 'Kabupaten Maros']));

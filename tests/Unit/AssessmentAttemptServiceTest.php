@@ -374,7 +374,7 @@ class AssessmentAttemptServiceTest extends TestCase
                     'parent_field' => 'kabupaten_kota',
                     'options_by_parent' => [
                         'Kabupaten Gowa' => [
-                            ['label' => 'Narasumber Gowa', 'value' => 'narasumber_gowa'],
+                            ['label' => 'Narasumber Gowa', 'value' => 'Narasumber Gowa'],
                         ],
                     ],
                 ],
@@ -392,13 +392,13 @@ class AssessmentAttemptServiceTest extends TestCase
 
         $savedAttempt = $service->saveSnapshot(
             $attempt->fresh(),
-            [$childField->id => 'narasumber_gowa'],
+            [$childField->id => 'Narasumber Gowa'],
             [],
             [$childField->id]
         );
         $savedChildAnswer = $savedAttempt->answers->firstWhere('assessment_form_field_id', $childField->id);
 
-        $this->assertSame('narasumber_gowa', $savedChildAnswer?->answer_text);
+        $this->assertSame('Narasumber Gowa', $savedChildAnswer?->answer_text);
         $this->assertSame(
             'Kabupaten Gowa',
             data_get($savedChildAnswer?->answer_payload, 'dependency.parent_value')

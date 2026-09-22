@@ -404,7 +404,7 @@ select.form-control:not([size]):not([multiple]) {
   user-select: none;
   cursor: default;
   display: inline-flex;
-  align-items: center;
+
   margin: 0;
 }
 

@@ -36,7 +36,13 @@ class AssessmentDependentOptionResolver
                 return null;
             }
 
-            $normalizedParentOptions = ChoiceOptionNormalizer::normalizeMany($options);
+            $normalizedParentOptions = array_map(
+                static fn (array $option): array => [
+                    ...$option,
+                    'value' => $option['label'],
+                ],
+                ChoiceOptionNormalizer::normalizeMany($options)
+            );
 
             if ($normalizedParentOptions === []) {
                 return null;

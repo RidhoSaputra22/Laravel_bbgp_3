@@ -253,6 +253,45 @@
             font-size: 0.82rem;
         }
 
+        .dependency-config-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, #f8fbff, #eef5ff);
+            border: 1px solid #dbe8fb;
+            border-radius: 0.5rem;
+        }
+
+
+        .dependency-config-toggle-title {
+            color: #23396b;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .dependency-config-toggle .custom-control {
+            margin: 0;
+        }
+
+        .dependency-config-toggle .custom-control-label {
+            color: #6c757d;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 576px) {
+            .dependency-config-toggle {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .dependency-config-toggle .custom-control-label {
+                white-space: normal;
+            }
+        }
+
         .dependency-options-table th {
             color: #23396b;
             font-size: 0.8rem;
@@ -2364,18 +2403,14 @@
 
             const buildDependencyChildRow = (option = {}) => {
                 const normalizedOption = normalizeDependencyOption(option);
+                const childLabel = normalizedOption.label || normalizedOption.value;
 
                 return `
                     <tr class="dependency-child-row">
                         <td>
                             <input type="text" class="form-control form-control-sm dependency-option-label-input"
-                                value="${escapeHtml(normalizedOption.label)}"
+                                value="${escapeHtml(childLabel)}"
                                 placeholder="Label opsi">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm dependency-option-value-input"
-                                value="${escapeHtml(normalizedOption.value)}"
-                                placeholder="Value opsi">
                         </td>
                         <td class="text-right">
                             <button type="button" class="btn btn-outline-danger btn-sm btn-remove-dependency-option"
@@ -2429,7 +2464,6 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th>Label / Child</th>
-                                        <th>Value Child</th>
                                         <th class="text-right">Aksi</th>
                                     </tr>
                                 </thead>
@@ -2467,7 +2501,7 @@
 
                         return {
                             label: $row.find('.dependency-option-label-input').val()?.trim() || '',
-                            value: $row.find('.dependency-option-value-input').val()?.trim() || '',
+                            value: $row.find('.dependency-option-label-input').val()?.trim() || '',
                         };
                     }).get().filter((option) => option.label || option.value);
 
@@ -3123,20 +3157,22 @@
                                     </div>
                                 </div>
                                 <div class="${dependencyConfigWrapperClass}">
-                                    <label>Mapping Opsi Bergantung Field Lain</label>
                                     <textarea class="d-none ${getInputClass(dependencyConfigTextName, 'field-dependency-config-input')}"
                                         name="${dependencyConfigTextName}">${escapeHtml(fieldData.dependency_config_text || '')}</textarea>
                                     ${buildInvalidFeedback(dependencyConfigTextName)}
-                                    <div class="dependency-config-editor">
-                                        <div class="custom-control custom-switch mb-3">
+                                    <div class="dependency-config-toggle mb-3">
+                                        <span class="dependency-config-toggle-title">Mapping Opsi Bergantung Field Lain</span>
+                                        <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input field-dependency-enabled-checkbox"
                                                 id="field-dependency-enabled-${formIndex}-${fieldIndex}"
                                                 ${dependencyConfig.enabled ? 'checked' : ''}>
                                             <label class="custom-control-label"
                                                 for="field-dependency-enabled-${formIndex}-${fieldIndex}">
-                                                Gunakan mapping opsi bergantung field lain
+
                                             </label>
                                         </div>
+                                    </div>
+                                    <div class="dependency-config-editor ${dependencyConfig.enabled ? '' : 'd-none'}">
                                         <div class="row">
                                             <div class="col-md-7">
                                                 <div class="form-group">
@@ -4260,6 +4296,8 @@
                     .prop('disabled', !showAllowOtherInput || hasDependencyConfig);
                 $fieldCard.find('.field-dependency-config-wrapper')
                     .toggleClass('d-none', !showLookupSource);
+                $fieldCard.find('.dependency-config-editor')
+                    .toggleClass('d-none', !showLookupSource || !dependencyEnabled);
                 $fieldCard.find('.field-dependency-config-input')
                     .prop('disabled', !showLookupSource);
                 $fieldCard.find('.field-dependency-parent-select, .field-dependency-empty-behavior-select, .dependency-config-editor button, .dependency-config-editor input:not(.field-dependency-enabled-checkbox)')
@@ -5425,7 +5463,7 @@
             });
 
             $(document).on('input',
-                '.dependency-option-label-input, .dependency-option-value-input',
+                '.dependency-option-label-input',
                 function() {
                     const $fieldCard = $(this).closest('.assessment-field-card');
 
