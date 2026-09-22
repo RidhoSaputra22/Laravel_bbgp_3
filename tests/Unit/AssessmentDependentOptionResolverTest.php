@@ -43,4 +43,23 @@ class AssessmentDependentOptionResolverTest extends TestCase
             ],
         ]));
     }
+
+    public function test_it_can_disable_a_valid_mapping(): void
+    {
+        $resolver = new AssessmentDependentOptionResolver();
+        $field = [
+            'dependency_config' => [
+                'enabled' => false,
+                'parent_field' => 'kabupaten_kota',
+                'options_by_parent' => [
+                    'Kabupaten Gowa' => [
+                        ['label' => 'Narasumber Gowa', 'value' => 'narasumber_gowa'],
+                    ],
+                ],
+            ],
+        ];
+
+        $this->assertFalse($resolver->isEnabled($field));
+        $this->assertSame([], $resolver->resolveOptions($field, ['kabupaten_kota' => 'Kabupaten Gowa']));
+    }
 }

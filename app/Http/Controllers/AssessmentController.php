@@ -584,7 +584,7 @@ class AssessmentController extends Controller
                     }
 
                     if (
-                        filled($field['dependency_config_text'] ?? null)
+                        $this->isDependencyConfigEnabled($field)
                         && (bool) ($field['allow_other_input'] ?? false)
                     ) {
                         $validator->errors()->add(
@@ -604,7 +604,7 @@ class AssessmentController extends Controller
                     }
 
                     if (in_array($field['tipe_field'] ?? '', $fieldTypesWithTextOptions, true)) {
-                        $hasDependencyConfig = filled($field['dependency_config_text'] ?? null);
+                        $hasDependencyConfig = $this->isDependencyConfigEnabled($field);
 
                         if (($field['tipe_field'] ?? '') === 'select' && $lookupSource) {
                             if ($this->fieldLookupResolver->resolveOptions($lookupSource) === []) {
@@ -861,7 +861,12 @@ class AssessmentController extends Controller
             return $this->parseRepeaterConfigText($fieldData['repeater_config_text'] ?? null);
         }
 
-        if ($fieldType === 'select' && $this->parseDependencyConfig($fieldData['dependency_config_text'] ?? null)) {
+        if (
+            $fieldType === 'select'
+            && $this->dependentOptionResolver->isEnabled([
+                'dependency_config' => $this->parseDependencyConfig($fieldData['dependency_config_text'] ?? null),
+            ])
+        ) {
             return null;
         }
 
@@ -926,6 +931,13 @@ class AssessmentController extends Controller
 
         if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
             return ['Konfigurasi dependency harus berupa JSON object yang valid.'];
+        }
+
+        if (
+            array_key_exists('enabled', $decoded)
+            && filter_var($decoded['enabled'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) === false
+        ) {
+            return [];
         }
 
         $config = $this->dependentOptionResolver->normalizeConfig($decoded);
@@ -1021,6 +1033,13 @@ class AssessmentController extends Controller
         return json_last_error() === JSON_ERROR_NONE
             ? $this->dependentOptionResolver->normalizeConfig($decoded)
             : null;
+    }
+
+    private function isDependencyConfigEnabled(array $field): bool
+    {
+        return $this->dependentOptionResolver->isEnabled([
+            'dependency_config' => $this->parseDependencyConfig($field['dependency_config_text'] ?? null),
+        ]);
     }
 
     private function parseRawFieldOptionsJson(?string $rawOptions): ?array

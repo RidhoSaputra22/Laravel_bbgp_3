@@ -169,7 +169,8 @@
                                     @php
                                         $fieldLabelId = 'preview-field-' . $form->id . '-' . $field->id;
                                         $dependencyConfig = $dependentOptionResolver->normalizeConfig($field->dependency_config);
-                                        $normalizedOptions = $dependencyConfig
+                                        $dependencyEnabled = $dependentOptionResolver->isEnabled($field->toArray());
+                                        $normalizedOptions = $dependencyEnabled
                                             ? []
                                             : ($field->tipe_field === \App\Support\Assessment\LikertScale::FIELD_TYPE
                                             ? $normalizeChoiceOptions($field->opsi_field ?: \App\Support\Assessment\LikertScale::defaultOptions())
@@ -206,7 +207,7 @@
                                                     @endphp
                                                     <select id="{{ $fieldLabelId }}" class="form-control"
                                                         data-preview-field-name="{{ $field->nama_field }}"
-                                                        data-preview-dependent="{{ $dependencyConfig ? '1' : '0' }}"
+                                                        data-preview-dependent="{{ $dependencyEnabled ? '1' : '0' }}"
                                                         data-preview-parent-field="{{ $dependencyConfig['parent_field'] ?? '' }}"
                                                         data-preview-config="{{ json_encode($dependencyConfig ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}">
                                                         <option value="" selected>

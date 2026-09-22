@@ -29,7 +29,7 @@
     $oldValue = old('answers.' . $field['id'], $savedPayload['value'] ?? $savedAnswer['text'] ?? null);
     $dependentOptionResolver = app(\App\Support\Assessment\AssessmentDependentOptionResolver::class);
     $dependencyConfig = $dependentOptionResolver->normalizeConfig($field['dependency_config'] ?? null);
-    $dependencyEnabled = $dependencyConfig !== null;
+    $dependencyEnabled = $dependentOptionResolver->isEnabled($field);
     $dependencyOptions = $dependencyEnabled
         ? $dependentOptionResolver->resolveOptions($field, $dependencyAnswerValues ?? [])
         : [];

@@ -242,6 +242,34 @@
             padding: 1rem;
         }
 
+        .dependency-config-editor {
+            background: #f8fbff;
+            border: 1px solid #dbe8fb;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .dependency-config-editor label {
+            font-size: 0.82rem;
+        }
+
+        .dependency-options-table th {
+            color: #23396b;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .dependency-options-table td {
+            vertical-align: middle;
+        }
+
+        .dependency-option-group {
+            background: #fff;
+            border: 1px solid #dfe7f7;
+            border-radius: 0.5rem;
+            padding: 0.65rem;
+        }
+
         .repeater-config-shell .form-text code,
         .repeater-column-name-hint code {
             background: #eef4ff;
@@ -2296,6 +2324,305 @@
                 }
             };
 
+            const normalizeDependencyOption = (option = {}) => {
+                const rawOption = option && typeof option === 'object' ? option : {};
+                const label = String(rawOption.label ?? '').trim();
+                const value = String(rawOption.value ?? '').trim();
+
+                return {
+                    label: label || value,
+                    value: value || label,
+                };
+            };
+
+            const normalizeDependencyConfigData = (value) => {
+                const rawConfig = typeof value === 'string' ? parseJsonSafely(value) :
+                    (value && typeof value === 'object' ? value : null);
+                const optionsByParent = rawConfig?.options_by_parent && typeof rawConfig.options_by_parent ===
+                    'object' ? rawConfig.options_by_parent : {};
+                const groups = [];
+
+                Object.entries(optionsByParent).forEach(([parentValue, options]) => {
+                    groups.push({
+                        parent_value: String(parentValue).trim(),
+                        options: (Array.isArray(options) ? options : []).map(normalizeDependencyOption),
+                    });
+                });
+
+                return {
+                    enabled: rawConfig?.enabled === undefined
+                        ? Boolean(rawConfig?.parent_field || Object.keys(optionsByParent).length)
+                        : normalizeChecked(rawConfig.enabled),
+                    parent_field: slugifyFieldName(rawConfig?.parent_field || ''),
+                    empty_behavior: rawConfig?.empty_behavior === 'empty' ? 'empty' : 'disabled',
+                    groups: groups.length ? groups : [{
+                        parent_value: '',
+                        options: [{}],
+                    }],
+                };
+            };
+
+            const buildDependencyChildRow = (option = {}) => {
+                const normalizedOption = normalizeDependencyOption(option);
+
+                return `
+                    <tr class="dependency-child-row">
+                        <td>
+                            <input type="text" class="form-control form-control-sm dependency-option-label-input"
+                                value="${escapeHtml(normalizedOption.label)}"
+                                placeholder="Label opsi">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm dependency-option-value-input"
+                                value="${escapeHtml(normalizedOption.value)}"
+                                placeholder="Value opsi">
+                        </td>
+                        <td class="text-right">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-dependency-option"
+                                title="Hapus baris">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            };
+
+            const buildDependencyParentValueOptions = (selectedValue = '', options = []) => {
+                const normalizedSelectedValue = String(selectedValue || '').trim();
+                const normalizedOptions = options.map(normalizeDependencyOption).filter((option) => option.value);
+                const hasSelected = normalizedOptions.some((option) => option.value === normalizedSelectedValue);
+
+                if (normalizedSelectedValue && !hasSelected) {
+                    normalizedOptions.push({
+                        label: normalizedSelectedValue,
+                        value: normalizedSelectedValue,
+                    });
+                }
+
+                return `<option value="">Pilih nilai parent</option>${normalizedOptions.map((option) => `
+                    <option value="${escapeHtml(option.value)}" ${option.value === normalizedSelectedValue ? 'selected' : ''}>
+                        ${escapeHtml(option.label)}
+                    </option>
+                `).join('')}`;
+            };
+
+            const buildDependencyGroup = (group = {}, parentOptions = []) => {
+                const parentValue = String(group.parent_value ?? '').trim();
+                const options = Array.isArray(group.options) && group.options.length ? group.options : [{}];
+
+                return `
+                    <div class="dependency-option-group mb-3">
+                        <div class="d-flex align-items-end mb-2">
+                            <div class="flex-grow-1 mr-2">
+                                <label class="mb-1">Nilai Parent / Group</label>
+                                <select class="form-control form-control-sm dependency-parent-value-select">
+                                    ${buildDependencyParentValueOptions(parentValue, parentOptions)}
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-dependency-group"
+                                title="Hapus group">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-2 dependency-options-table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Label / Child</th>
+                                        <th>Value Child</th>
+                                        <th class="text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="dependency-child-list">
+                                    ${options.map((option) => buildDependencyChildRow(option)).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm btn-add-dependency-child">
+                            <i class="fas fa-plus"></i> Tambah Label / Child
+                        </button>
+                    </div>
+                `;
+            };
+
+            const buildDependencyParentOptions = (selectedValue = '') => {
+                const selected = String(selectedValue || '').trim();
+
+                return `<option value="">Pilih field induk</option>${selected ?
+                    `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : ''}`;
+            };
+
+            const collectDependencyConfigData = ($fieldCard) => {
+                const enabled = $fieldCard.find('.field-dependency-enabled-checkbox').is(':checked');
+                const parentField = $fieldCard.find('.field-dependency-parent-select').val()?.trim() || '';
+                const emptyBehavior = $fieldCard.find('.field-dependency-empty-behavior-select').val() ||
+                    'disabled';
+                const optionsByParent = {};
+
+                $fieldCard.find('.dependency-option-group').each(function() {
+                    const $group = $(this);
+                    const parentValue = $group.find('.dependency-parent-value-select').val()?.trim() || '';
+                    const children = $group.find('.dependency-child-row').map(function() {
+                        const $row = $(this);
+
+                        return {
+                            label: $row.find('.dependency-option-label-input').val()?.trim() || '',
+                            value: $row.find('.dependency-option-value-input').val()?.trim() || '',
+                        };
+                    }).get().filter((option) => option.label || option.value);
+
+                    if (parentValue || children.length) {
+                        optionsByParent[parentValue] = optionsByParent[parentValue] || [];
+                        optionsByParent[parentValue].push(...children);
+                    }
+                });
+
+                return {
+                    enabled,
+                    parent_field: parentField,
+                    empty_behavior: emptyBehavior,
+                    options_by_parent: optionsByParent,
+                };
+            };
+
+            const syncDependencyConfigState = ($fieldCard) => {
+                const config = collectDependencyConfigData($fieldCard);
+                const hasOptions = Object.keys(config.options_by_parent).length > 0;
+                const configText = config.parent_field && hasOptions ? JSON.stringify(config) : '';
+
+                $fieldCard.find('.field-dependency-config-input').val(configText);
+
+                return configText;
+            };
+
+            const refreshDependencyParentOptions = ($formCard) => {
+                const $fields = $formCard.find('.assessment-field-list').first().children('.assessment-field-card');
+
+                $fields.each(function(fieldIndex) {
+                    const $fieldCard = $(this);
+                    const $select = $fieldCard.find('.field-dependency-parent-select');
+
+                    if (!$select.length) {
+                        return;
+                    }
+
+                    let selectedValue = $select.val() || '';
+                    const seen = new Set();
+                    let optionsHtml = '<option value="">Pilih field induk</option>';
+
+                    $fields.slice(0, fieldIndex).each(function() {
+                        const $parentField = $(this);
+                        const label = $parentField.find('.field-label-input').val()?.trim() || '';
+                        const value = slugifyFieldName(label);
+                        const previousValue = String($parentField.data('dependencyFieldName') || '');
+
+                        if (selectedValue && selectedValue === previousValue && previousValue !== value) {
+                            selectedValue = value;
+                        }
+
+                        if (!value || seen.has(value)) {
+                            return;
+                        }
+
+                        seen.add(value);
+                        optionsHtml += `<option value="${escapeHtml(value)}">${escapeHtml(label)} (${escapeHtml(value)})</option>`;
+                    });
+
+                    if (selectedValue && !seen.has(selectedValue)) {
+                        optionsHtml += `<option value="${escapeHtml(selectedValue)}">${escapeHtml(selectedValue)}</option>`;
+                    }
+
+                    $select.html(optionsHtml).val(selectedValue);
+                });
+
+                $fields.each(function() {
+                    const label = $(this).find('.field-label-input').val()?.trim() || '';
+                    $(this).data('dependencyFieldName', slugifyFieldName(label));
+                });
+            };
+
+            const resolveDependencyParentField = ($fieldCard) => {
+                const parentName = $fieldCard.find('.field-dependency-parent-select').val()?.trim() || '';
+
+                if (!parentName) {
+                    return $();
+                }
+
+                const $fields = $fieldCard.closest('.assessment-form-card').find('.assessment-field-list')
+                    .first().children('.assessment-field-card');
+                const fieldIndex = $fields.index($fieldCard);
+
+                return $fields.slice(0, fieldIndex).filter(function() {
+                    return slugifyFieldName($(this).find('.field-label-input').val()?.trim() || '') === parentName;
+                }).first();
+            };
+
+            const resolveDependencyParentOptions = ($parentField) => {
+                if (!$parentField?.length) {
+                    return [];
+                }
+
+                const fieldType = $parentField.find('.field-type-select').val() || '';
+                let options = [];
+
+                if (fieldType === multipleChoiceFieldType) {
+                    options = getMultipleChoiceOptions($parentField);
+                } else if (fieldType === likertFieldType) {
+                    options = defaultLikertOptions;
+                } else {
+                    const lookupSource = $parentField.find('.field-lookup-source-select').val()?.trim() || '';
+                    const optionValues = lookupSource ?
+                        resolvePreviewChoiceOptions({
+                            tipe_field: fieldType,
+                            lookup_source: lookupSource,
+                        }) :
+                        parseOptionText($parentField.find('.field-manual-options-input').val() || '')
+                            .map((value) => ({
+                                label: value,
+                                value: value,
+                            }));
+
+                    options = optionValues;
+                }
+
+                const seen = new Set();
+
+                return options.map(normalizeDependencyOption).filter((option) => {
+                    if (!option.value || seen.has(option.value)) {
+                        return false;
+                    }
+
+                    seen.add(option.value);
+                    return true;
+                });
+            };
+
+            const refreshDependencyGroupOptions = ($fieldCard) => {
+                const $parentField = resolveDependencyParentField($fieldCard);
+                const parentOptions = resolveDependencyParentOptions($parentField);
+                const $groups = $fieldCard.find('.dependency-option-group');
+                const selectedValues = new Set($groups.map(function() {
+                    return $(this).find('.dependency-parent-value-select').val()?.trim() || '';
+                }).get().filter(Boolean));
+
+                $groups.each(function() {
+                    const $group = $(this);
+                    const $select = $group.find('.dependency-parent-value-select');
+                    const selectedValue = $select.val()?.trim() || '';
+                    const availableOptions = parentOptions.filter((option) => {
+                        return option.value === selectedValue || !selectedValues.has(option.value);
+                    });
+
+                    $select.html(buildDependencyParentValueOptions(selectedValue, availableOptions));
+                });
+            };
+
+            const refreshDependencyGroups = ($formCard) => {
+                $formCard.find('.assessment-field-card').each(function() {
+                    refreshDependencyGroupOptions($(this));
+                });
+            };
+
             const normalizeFileInputMode = (value) => String(value || '').trim() === 'link' ? 'link' : 'file';
 
             const normalizeFileFieldConfig = (config = {}) => {
@@ -2538,6 +2865,7 @@
                 const repeaterConfig = normalizeRepeaterConfigData(fieldData.repeater_config_text);
                 const radioOptions = normalizeRadioOptions(fieldData.radio_options);
                 const scoringData = normalizeFieldScoringConfig(fieldData.scoring || {}, fieldType);
+                const dependencyConfig = normalizeDependencyConfigData(fieldData.dependency_config_text || '');
                 const fileFieldConfig = parseFileFieldConfigJson(fieldData.raw_opsi_field_json || '');
                 const resolvedFileInputMode = normalizeFileInputMode(fieldData.file_input_mode ||
                     fileFieldConfig.input_mode);
@@ -2796,14 +3124,53 @@
                                 </div>
                                 <div class="${dependencyConfigWrapperClass}">
                                     <label>Mapping Opsi Bergantung Field Lain</label>
-                                    <textarea class="${getInputClass(dependencyConfigTextName, 'form-control field-dependency-config-input')}"
-                                        name="${dependencyConfigTextName}"
-                                        rows="8"
-                                        placeholder='{"parent_field":"kabupaten_kota","options_by_parent":{"Kota Makassar":[{"label":"Narasumber 1","value":"narasumber_1"}]}}'>${escapeHtml(fieldData.dependency_config_text || '')}</textarea>
+                                    <textarea class="d-none ${getInputClass(dependencyConfigTextName, 'field-dependency-config-input')}"
+                                        name="${dependencyConfigTextName}">${escapeHtml(fieldData.dependency_config_text || '')}</textarea>
                                     ${buildInvalidFeedback(dependencyConfigTextName)}
-                                    <small class="form-text text-muted">
-                                        Isi JSON mapping. Jika diisi, opsi manual dan lookup database tidak digunakan.
-                                    </small>
+                                    <div class="dependency-config-editor">
+                                        <div class="custom-control custom-switch mb-3">
+                                            <input type="checkbox" class="custom-control-input field-dependency-enabled-checkbox"
+                                                id="field-dependency-enabled-${formIndex}-${fieldIndex}"
+                                                ${dependencyConfig.enabled ? 'checked' : ''}>
+                                            <label class="custom-control-label"
+                                                for="field-dependency-enabled-${formIndex}-${fieldIndex}">
+                                                Gunakan mapping opsi bergantung field lain
+                                            </label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-7">
+                                                <div class="form-group">
+                                                    <label>Parent Field</label>
+                                                    <select class="form-control field-dependency-parent-select">
+                                                        ${buildDependencyParentOptions(dependencyConfig.parent_field)}
+                                                    </select>
+                                                    <small class="form-text text-muted">Field induk harus berada sebelum field ini.</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5">
+                                                <div class="form-group">
+                                                    <label>Jika Nilai Parent Kosong</label>
+                                                    <select class="form-control field-dependency-empty-behavior-select">
+                                                        <option value="disabled" ${dependencyConfig.empty_behavior === 'disabled' ? 'selected' : ''}>Nonaktifkan field</option>
+                                                        <option value="empty" ${dependencyConfig.empty_behavior === 'empty' ? 'selected' : ''}>Tampilkan tanpa opsi</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <label class="mb-0">Options by Parent</label>
+                                            <button type="button" class="btn btn-light btn-sm btn-add-dependency-group">
+                                                <i class="fas fa-plus"></i> Tambah Group / Parent
+                                            </button>
+                                        </div>
+                                        <div class="dependency-group-list">
+                                            ${dependencyConfig.groups.map((group) => buildDependencyGroup(group)).join('')}
+                                        </div>
+                                        <small class="text-muted">
+                                            Setiap group mewakili satu nilai parent dan dapat memiliki beberapa label / child. Jika mapping diisi, opsi manual dan lookup database tidak digunakan.
+                                        </small>
+                                    </div>
                                 </div>
                                 <div class="${allowOtherInputWrapperClass}">
                                     <div class="custom-control custom-switch">
@@ -3606,6 +3973,9 @@
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
                 updateFileInputModeState($fieldCard);
+                refreshDependencyParentOptions($formCard);
+                refreshDependencyGroups($formCard);
+                syncDependencyConfigState($fieldCard);
                 syncRepeaterConfigState($fieldCard);
 
                 if (!options.skipInsertControls) {
@@ -3861,7 +4231,10 @@
                 let selectedLookupSource = $lookupSource.val()?.trim() || '';
                 const showLookupSource = selectedType === 'select';
                 const hasDependencyConfig = selectedType === 'select'
+                    && $fieldCard.find('.field-dependency-enabled-checkbox').is(':checked')
                     && ($fieldCard.find('.field-dependency-config-input').val()?.trim() || '') !== '';
+                const dependencyEnabled = selectedType === 'select'
+                    && $fieldCard.find('.field-dependency-enabled-checkbox').is(':checked');
 
                 if (hasDependencyConfig && selectedLookupSource) {
                     $lookupSource
@@ -3889,6 +4262,8 @@
                     .toggleClass('d-none', !showLookupSource);
                 $fieldCard.find('.field-dependency-config-input')
                     .prop('disabled', !showLookupSource);
+                $fieldCard.find('.field-dependency-parent-select, .field-dependency-empty-behavior-select, .dependency-config-editor button, .dependency-config-editor input:not(.field-dependency-enabled-checkbox)')
+                    .prop('disabled', !showLookupSource || !dependencyEnabled);
                 $fieldCard.find('.manual-choice-options-wrapper')
                     .toggleClass('d-none', !showManualChoiceOptions);
                 $fieldCard.find('.field-manual-options-input')
@@ -4235,6 +4610,7 @@
 
             const collectFieldPayload = ($fieldCard, fieldIndex) => {
                 const fieldType = $fieldCard.find('select[name$="[tipe_field]"]').val() || 'text';
+                const dependencyConfigText = fieldType === 'select' ? syncDependencyConfigState($fieldCard) : '';
                 const scoringMethod = $fieldCard.find('select[name$="[scoring][method]"]').val() ||
                     resolveDefaultScoringMethod(fieldType);
                 const rawFieldId = $fieldCard.find('.assessment-field-id-input').val();
@@ -4262,8 +4638,7 @@
                     lookup_source: supportsFieldLookup(fieldType) ?
                         ($lookupSourceSelect.val()?.trim() || '') : '',
                     _lookup_source_user_touched: normalizeChecked($lookupSourceSelect.data('userTouched')),
-                    dependency_config_text: fieldType === 'select' ?
-                        ($fieldCard.find('.field-dependency-config-input').val()?.trim() || '') : '',
+                    dependency_config_text: dependencyConfigText,
                     allow_other_input: supportsSelectOtherInput(fieldType) ?
                         $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked') : false,
                     file_input_mode: fileInputMode,
@@ -4983,6 +5358,7 @@
             $(document).on('click', '.btn-add-radio-option', function() {
                 const $fieldCard = $(this).closest('.assessment-field-card');
                 appendRadioOption($fieldCard);
+                refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
                 schedulePreviewRender();
             });
 
@@ -5003,8 +5379,71 @@
 
                 $(this).closest('.multiple-choice-option-row').remove();
                 reindexRadioOptions($fieldCard);
+                refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
                 schedulePreviewRender();
             });
+
+            $(document).on('click', '.btn-add-dependency-group', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                const $formCard = $fieldCard.closest('.assessment-form-card');
+
+                $fieldCard.find('.dependency-group-list').append(buildDependencyGroup());
+                refreshDependencyGroups($formCard);
+                syncDependencyConfigState($fieldCard);
+                toggleOptionWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-remove-dependency-group', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                const $formCard = $fieldCard.closest('.assessment-form-card');
+
+                $(this).closest('.dependency-option-group').remove();
+                refreshDependencyGroups($formCard);
+                syncDependencyConfigState($fieldCard);
+                toggleOptionWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-add-dependency-child', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+                const $group = $(this).closest('.dependency-option-group');
+
+                $group.find('.dependency-child-list').append(buildDependencyChildRow());
+                syncDependencyConfigState($fieldCard);
+                toggleOptionWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('click', '.btn-remove-dependency-option', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+
+                $(this).closest('.dependency-child-row').remove();
+                syncDependencyConfigState($fieldCard);
+                toggleOptionWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('input',
+                '.dependency-option-label-input, .dependency-option-value-input',
+                function() {
+                    const $fieldCard = $(this).closest('.assessment-field-card');
+
+                    syncDependencyConfigState($fieldCard);
+                    toggleOptionWrapper($fieldCard);
+                    schedulePreviewRender();
+                });
+
+            $(document).on('change',
+                '.field-dependency-enabled-checkbox, .field-dependency-parent-select, .field-dependency-empty-behavior-select, .dependency-parent-value-select',
+                function() {
+                    const $fieldCard = $(this).closest('.assessment-field-card');
+
+                    refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
+                    syncDependencyConfigState($fieldCard);
+                    toggleOptionWrapper($fieldCard);
+                    schedulePreviewRender();
+                });
 
             $(document).on('click', '.btn-add-repeater-column', function() {
                 const $fieldCard = $(this).closest('.assessment-field-card');
@@ -5071,6 +5510,8 @@
                 updateAutoFieldNameHint($fieldCard);
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
+                refreshDependencyParentOptions($fieldCard.closest('.assessment-form-card'));
+                refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
                 syncRepeaterConfigState($fieldCard);
                 schedulePreviewRender();
             });
@@ -5083,6 +5524,7 @@
                 updateFileInputModeState($fieldCard);
                 applyLikertScoringDefaults($fieldCard);
                 toggleScoringWrapper($fieldCard);
+                refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
                 syncRepeaterConfigState($fieldCard);
                 schedulePreviewRender();
             });
@@ -5100,8 +5542,15 @@
 
                 updateFieldLookupState($fieldCard);
                 toggleOptionWrapper($fieldCard);
+                refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
                 schedulePreviewRender();
             });
+
+            $(document).on('input change',
+                '.field-manual-options-input, .radio-option-text, .radio-option-code, .radio-option-level',
+                function() {
+                    refreshDependencyGroups($(this).closest('.assessment-form-card'));
+                });
 
             $(document).on('input', '.field-dependency-config-input', function() {
                 const $fieldCard = $(this).closest('.assessment-field-card');

@@ -9,7 +9,9 @@ class AssessmentDependentOptionResolver
 {
     public function isEnabled(array $field): bool
     {
-        return $this->normalizeConfig($field['dependency_config'] ?? null) !== null;
+        $config = $this->normalizeConfig($field['dependency_config'] ?? null);
+
+        return $config !== null && $config['enabled'];
     }
 
     public function normalizeConfig(mixed $config): ?array
@@ -50,6 +52,7 @@ class AssessmentDependentOptionResolver
         $emptyBehavior = $config['empty_behavior'] ?? 'disabled';
 
         return [
+            'enabled' => (bool) ($config['enabled'] ?? true),
             'parent_field' => $parentField,
             'options_by_parent' => $normalizedOptions,
             'empty_behavior' => in_array(
@@ -70,7 +73,7 @@ class AssessmentDependentOptionResolver
     {
         $config = $this->normalizeConfig($field['dependency_config'] ?? null);
 
-        if ($config === null) {
+        if ($config === null || ! $config['enabled']) {
             return [];
         }
 
@@ -89,7 +92,9 @@ class AssessmentDependentOptionResolver
     {
         $config = $this->normalizeConfig($field['dependency_config'] ?? null);
 
-        return $config['parent_field'] ?? null;
+        return $config !== null && $config['enabled']
+            ? $config['parent_field']
+            : null;
     }
 
     public function normalizeFieldName(mixed $value): string
