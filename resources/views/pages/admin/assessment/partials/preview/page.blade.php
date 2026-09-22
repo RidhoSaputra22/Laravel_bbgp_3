@@ -38,6 +38,7 @@
             is_array($options) ? $options : [],
         );
     };
+    $dependentOptionResolver = app(\App\Support\Assessment\AssessmentDependentOptionResolver::class);
 
 @endphp
 
@@ -133,7 +134,7 @@
                     @php
                         $activeFields = $form->fields->where('is_active', true)->values();
                     @endphp
-                    <div class="card shadow-sm border-0 mb-4">
+                    <div class="card shadow-sm border-0 mb-4 assessment-preview-form" data-preview-form="{{ $form->id }}">
                         <div class="card-header bg-white">
                             <div>
                                 <h4 class="mb-1">{{ $form->judul_form }}</h4>
@@ -167,11 +168,14 @@
                                 @foreach ($activeFields as $field)
                                     @php
                                         $fieldLabelId = 'preview-field-' . $form->id . '-' . $field->id;
-                                        $normalizedOptions = $field->tipe_field === \App\Support\Assessment\LikertScale::FIELD_TYPE
+                                        $dependencyConfig = $dependentOptionResolver->normalizeConfig($field->dependency_config);
+                                        $normalizedOptions = $dependencyConfig
+                                            ? []
+                                            : ($field->tipe_field === \App\Support\Assessment\LikertScale::FIELD_TYPE
                                             ? $normalizeChoiceOptions($field->opsi_field ?: \App\Support\Assessment\LikertScale::defaultOptions())
                                             : (in_array($field->tipe_field, ['select', 'radio', 'checkbox'], true)
                                                 ? $normalizeChoiceOptions($field->opsi_field)
-                                                : []);
+                                                : []));
                                     @endphp
                                     <div class="col-md-12">
                                         <div class="form-group">
@@ -200,7 +204,11 @@
                                                             $normalizedOptions,
                                                         );
                                                     @endphp
-                                                    <select id="{{ $fieldLabelId }}" class="form-control">
+                                                    <select id="{{ $fieldLabelId }}" class="form-control"
+                                                        data-preview-field-name="{{ $field->nama_field }}"
+                                                        data-preview-dependent="{{ $dependencyConfig ? '1' : '0' }}"
+                                                        data-preview-parent-field="{{ $dependencyConfig['parent_field'] ?? '' }}"
+                                                        data-preview-config="{{ json_encode($dependencyConfig ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}">
                                                         <option value="" selected>
                                                             {{ $field->placeholder ?: '-- Pilih salah satu --' }}
                                                         </option>
@@ -377,3 +385,68 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const preview = document.querySelector('.assessment-preview-page');
+
+            if (!preview) {
+                return;
+            }
+
+            const refreshDependentFields = (parentSelect) => {
+                const form = parentSelect.closest('.assessment-preview-form');
+
+                if (!form) {
+                    return;
+                }
+
+                form.querySelectorAll('select[data-preview-dependent="1"]').forEach((childSelect) => {
+                    if (childSelect.dataset.previewParentField !== parentSelect.dataset.previewFieldName) {
+                        return;
+                    }
+
+                    let config = {};
+
+                    try {
+                        config = JSON.parse(childSelect.dataset.previewConfig || '{}');
+                    } catch (error) {
+                        config = {};
+                    }
+
+                    const options = config.options_by_parent?.[parentSelect.value] || [];
+                    const placeholder = childSelect.options[0]?.textContent || '-- Pilih salah satu --';
+
+                    childSelect.replaceChildren(new Option(placeholder, ''));
+                    options.forEach((option) => {
+                        const value = String(option?.value ?? option ?? '').trim();
+                        const label = String(option?.label ?? value).trim();
+
+                        if (value) {
+                            childSelect.add(new Option(label, value));
+                        }
+                    });
+
+                    childSelect.disabled = config.empty_behavior !== 'empty'
+                        && (!parentSelect.value || options.length === 0);
+                });
+            };
+
+            preview.addEventListener('change', (event) => {
+                if (event.target.matches('select[data-preview-field-name]')) {
+                    refreshDependentFields(event.target);
+                }
+            });
+
+            preview.querySelectorAll('select[data-preview-dependent="1"]').forEach((childSelect) => {
+                const parentSelect = childSelect.closest('.assessment-preview-form')
+                    ?.querySelector(`select[data-preview-field-name="${childSelect.dataset.previewParentField}"]`);
+
+                if (parentSelect) {
+                    refreshDependentFields(parentSelect);
+                }
+            });
+        });
+    </script>
+@endpush

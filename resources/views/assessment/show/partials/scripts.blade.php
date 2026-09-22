@@ -1140,6 +1140,18 @@
                                     return;
                                 }
 
+                                const resetDependentFieldIds = this.refreshDependentFieldsForChange(event.target);
+
+                                resetDependentFieldIds.forEach((fieldId) => {
+                                    const dependentWrapper = this.getFieldWrapper(fieldId);
+
+                                    this.markFieldAsDirty(fieldId, 'dependent_reset', {
+                                        assessmentIndex: Number(
+                                            dependentWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex
+                                        ),
+                                    });
+                                });
+
                                 void this.handleFieldChangeAction(event.target);
                             });
                         });
@@ -1193,6 +1205,7 @@
 
                         this.refreshAllTextareaWordCounters();
                         this.refreshAllQuestionStates();
+                        this.refreshAllDependentSelects();
 
                         if (!this.currentQuestionFieldId) {
                             this.currentQuestionFieldId = this.firstQuestionFieldId(this.currentAssessmentIndex);
@@ -1463,6 +1476,149 @@
 
                     this.markFieldAsDirty(fieldId, traceType, {
                         assessmentIndex: Number(fieldWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
+                    });
+
+                    this.markDependencyParentAsDirty(fieldWrapper);
+                },
+                parseDependentConfig(fieldWrapper) {
+                    if (!fieldWrapper || fieldWrapper.dataset.dependentField !== '1') {
+                        return null;
+                    }
+
+                    try {
+                        const config = JSON.parse(fieldWrapper.dataset.dependentConfig || '{}');
+
+                        return config && typeof config === 'object' ? config : null;
+                    } catch (error) {
+                        return null;
+                    }
+                },
+                resolveFieldWrapperByName(fieldName) {
+                    const normalizedName = String(fieldName || '').trim();
+
+                    if (!normalizedName) {
+                        return null;
+                    }
+
+                    return Array.from(this.formElement()?.querySelectorAll('[data-assessment-field]') || [])
+                        .find((wrapper) => String(wrapper.dataset.fieldName || '').trim() === normalizedName) || null;
+                },
+                resolveFieldValue(fieldWrapper) {
+                    const input = fieldWrapper?.querySelector(
+                        'select, textarea, input:not([type="hidden"]):checked'
+                    ) || fieldWrapper?.querySelector('input:not([type="hidden"])');
+
+                    return String(input?.value || '').trim();
+                },
+                resolveDependentOptions(config, parentValue) {
+                    if (
+                        !config
+                        || !parentValue
+                        || !config.options_by_parent
+                        || typeof config.options_by_parent !== 'object'
+                    ) {
+                        return [];
+                    }
+
+                    const options = config.options_by_parent[parentValue];
+
+                    return Array.isArray(options) ? options : [];
+                },
+                populateDependentSelect(fieldWrapper, parentValue, preserveCurrent = false) {
+                    const config = this.parseDependentConfig(fieldWrapper);
+                    const select = fieldWrapper?.querySelector('select');
+
+                    if (!config || !select) {
+                        return false;
+                    }
+
+                    const currentValue = String(select.value || '');
+                    const placeholderText = select.options[0]?.textContent?.trim() || 'Pilih jawaban';
+                    const options = this.resolveDependentOptions(config, String(parentValue || '').trim());
+                    const optionValues = new Set(options.map((option) => String(option?.value ?? option ?? '')));
+                    const nextValue = preserveCurrent && optionValues.has(currentValue) ? currentValue : '';
+
+                    select.replaceChildren(new Option(placeholderText, ''));
+
+                    options.forEach((option) => {
+                        const value = String(option?.value ?? option ?? '').trim();
+                        const label = String(option?.label ?? value).trim();
+
+                        if (!value) {
+                            return;
+                        }
+
+                        select.add(new Option(label, value, false, value === nextValue));
+                    });
+
+                    select.disabled = config.empty_behavior !== 'empty'
+                        && (!String(parentValue || '').trim() || options.length === 0);
+                    select.value = nextValue;
+                    select.dispatchEvent(new Event('change'));
+
+                    return currentValue !== nextValue;
+                },
+                refreshDependentFieldsForChange(target) {
+                    const parentWrapper = target?.closest?.('[data-assessment-field]');
+                    const parentFieldName = String(parentWrapper?.dataset?.fieldName || '').trim();
+
+                    if (!parentFieldName) {
+                        return [];
+                    }
+
+                    const parentValue = this.resolveFieldValue(parentWrapper);
+                    const resetFieldIds = [];
+
+                    Array.from(this.formElement()?.querySelectorAll('[data-dependent-field="1"]') || [])
+                        .forEach((fieldWrapper) => {
+                            const config = this.parseDependentConfig(fieldWrapper);
+
+                            if (!config || String(config.parent_field || '').trim() !== parentFieldName) {
+                                return;
+                            }
+
+                            const preserveCurrent = config.reset_on_parent_change === false;
+
+                            if (this.populateDependentSelect(fieldWrapper, parentValue, preserveCurrent)) {
+                                const fieldId = Number(fieldWrapper.dataset.fieldId || 0);
+
+                                if (fieldId > 0) {
+                                    resetFieldIds.push(fieldId);
+                                }
+                            }
+                        });
+
+                    return resetFieldIds;
+                },
+                refreshAllDependentSelects() {
+                    Array.from(this.formElement()?.querySelectorAll('[data-dependent-field="1"]') || [])
+                        .forEach((fieldWrapper) => {
+                            const config = this.parseDependentConfig(fieldWrapper);
+                            const parentWrapper = this.resolveFieldWrapperByName(config?.parent_field);
+
+                            this.populateDependentSelect(
+                                fieldWrapper,
+                                this.resolveFieldValue(parentWrapper),
+                                true
+                            );
+                        });
+                },
+                markDependencyParentAsDirty(fieldWrapper) {
+                    const config = this.parseDependentConfig(fieldWrapper);
+
+                    if (!config) {
+                        return;
+                    }
+
+                    const parentWrapper = this.resolveFieldWrapperByName(config.parent_field);
+                    const parentFieldId = Number(parentWrapper?.dataset?.fieldId || 0);
+
+                    if (!parentFieldId || parentFieldId === Number(fieldWrapper?.dataset?.fieldId || 0)) {
+                        return;
+                    }
+
+                    this.markFieldAsDirty(parentFieldId, 'dependency_parent_context', {
+                        assessmentIndex: Number(parentWrapper?.dataset?.assessmentIndex ?? this.currentAssessmentIndex),
                     });
                 },
                 async handleFieldChangeAction(target) {

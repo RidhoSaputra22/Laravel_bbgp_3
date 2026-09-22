@@ -194,9 +194,9 @@ class AssessmentCombinationService
             $combination->items()->createMany(
                 collect($selectedRows)
                     ->map(function (array $row) use ($combination) {
-                        return array_merge($row, [
+                        return $this->prepareCombinationItemRow(array_merge($row, [
                             'assessment_combination_id' => $combination->id,
-                        ]);
+                        ]));
                     })
                     ->all()
             );
@@ -290,7 +290,11 @@ class AssessmentCombinationService
         $combination->items()->where('assessment_id', $assessment->id)->delete();
 
         if ($refreshedRows->isNotEmpty()) {
-            $combination->items()->createMany($refreshedRows->all());
+            $combination->items()->createMany(
+                $refreshedRows
+                    ->map(fn (array $row) => $this->prepareCombinationItemRow($row))
+                    ->all()
+            );
         }
 
         $combination->load([
@@ -772,6 +776,7 @@ class AssessmentCombinationService
             'field_help' => $field->bantuan,
             'field_autofill_source' => $field->autofill_source,
             'field_lookup_source' => $field->lookup_source,
+            'field_dependency_config' => $field->dependency_config,
             'field_options' => $field->opsi_field,
             'field_validation' => $field->validasi,
             'field_scoring_config' => $field->scoring_config,
@@ -792,6 +797,15 @@ class AssessmentCombinationService
             ->implode('|');
 
         return $signature !== '' ? hash('sha256', $signature) : '';
+    }
+
+    private function prepareCombinationItemRow(array $row): array
+    {
+        if (! Schema::hasColumn('assessment_combination_items', 'field_dependency_config')) {
+            unset($row['field_dependency_config']);
+        }
+
+        return $row;
     }
 
     private function buildStructureSnapshot(
@@ -854,6 +868,7 @@ class AssessmentCombinationService
                                     'bantuan' => $row['field_help'],
                                     'autofill_source' => $row['field_autofill_source'] ?? null,
                                     'lookup_source' => $row['field_lookup_source'] ?? null,
+                                    'dependency_config' => $row['field_dependency_config'] ?? null,
                                     'opsi_field' => $row['field_options'] ?? [],
                                     'validasi' => $row['field_validation'] ?? [],
                                     'scoring_config' => $row['field_scoring_config'] ?? [],

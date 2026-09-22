@@ -10,6 +10,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentForm;
 use App\Services\Assessment\AssessmentCombinationService;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
+use App\Support\Assessment\AssessmentDependentOptionResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\ParticipantAutoFillResolver;
@@ -29,7 +30,8 @@ class AssessmentController extends Controller
     public function __construct(
         private readonly AssessmentCombinationService $combinationService,
         private readonly ParticipantAutoFillResolver $participantAutoFillResolver,
-        private readonly AssessmentFieldLookupResolver $fieldLookupResolver
+        private readonly AssessmentFieldLookupResolver $fieldLookupResolver,
+        private readonly AssessmentDependentOptionResolver $dependentOptionResolver
     ) {
     }
 
@@ -387,6 +389,7 @@ class AssessmentController extends Controller
                     'string',
                     Rule::in(array_keys($this->fieldLookupResolver->options())),
                 ],
+                'forms.*.fields.*.dependency_config_text' => 'nullable|string',
                 'forms.*.fields.*.allow_other_input' => 'nullable|boolean',
                 'forms.*.fields.*.opsi_field_text' => 'nullable|string',
                 'forms.*.fields.*.opsi_score_text' => 'nullable|string',
@@ -468,6 +471,11 @@ class AssessmentController extends Controller
 
             foreach ($forms as $formIndex => $form) {
                 $usedFieldNames = [];
+                $fieldNamesByIndex = collect($form['fields'] ?? [])
+                    ->mapWithKeys(fn (array $field, int $index) => [
+                        $index => $this->fieldNameCandidates($field),
+                    ])
+                    ->all();
 
                 if (
                     !$this->isEvaluasiPelaksanaan()
@@ -568,6 +576,23 @@ class AssessmentController extends Controller
                         );
                     }
 
+                    foreach ($this->validateDependencyConfig($field, $fieldIndex, $fieldNamesByIndex) as $message) {
+                        $validator->errors()->add(
+                            "forms.$formIndex.fields.$fieldIndex.dependency_config_text",
+                            $message
+                        );
+                    }
+
+                    if (
+                        filled($field['dependency_config_text'] ?? null)
+                        && (bool) ($field['allow_other_input'] ?? false)
+                    ) {
+                        $validator->errors()->add(
+                            "forms.$formIndex.fields.$fieldIndex.allow_other_input",
+                            'Field dependency tidak dapat memakai opsi jawaban "Lainnya".'
+                        );
+                    }
+
                     if (
                         ($field['tipe_field'] ?? '') !== 'select'
                         && (bool) ($field['allow_other_input'] ?? false)
@@ -579,6 +604,8 @@ class AssessmentController extends Controller
                     }
 
                     if (in_array($field['tipe_field'] ?? '', $fieldTypesWithTextOptions, true)) {
+                        $hasDependencyConfig = filled($field['dependency_config_text'] ?? null);
+
                         if (($field['tipe_field'] ?? '') === 'select' && $lookupSource) {
                             if ($this->fieldLookupResolver->resolveOptions($lookupSource) === []) {
                                 $validator->errors()->add(
@@ -586,6 +613,8 @@ class AssessmentController extends Controller
                                     'Sumber lookup database belum memiliki data yang bisa dipakai sebagai opsi.'
                                 );
                             }
+                        } elseif (($field['tipe_field'] ?? '') === 'select' && $hasDependencyConfig) {
+                            // Opsi child field berasal dari dependency_config_text.
                         } elseif (blank($field['opsi_field_text'] ?? null)) {
                             $validator->errors()->add(
                                 "forms.$formIndex.fields.$fieldIndex.opsi_field_text",
@@ -765,6 +794,12 @@ class AssessmentController extends Controller
                 'is_required' => (bool) ($fieldData['is_required'] ?? false),
                 'is_active' => (bool) ($fieldData['is_active'] ?? false),
             ];
+
+            if (Schema::hasColumn('assessment_form_fields', 'dependency_config')) {
+                $fieldAttributes['dependency_config'] = $this->parseDependencyConfig(
+                    $fieldData['dependency_config_text'] ?? null
+                );
+            }
             $submittedFieldId = (int) ($fieldData['id'] ?? 0);
 
             if ($submittedFieldId > 0 && $existingFields->has($submittedFieldId)) {
@@ -826,6 +861,10 @@ class AssessmentController extends Controller
             return $this->parseRepeaterConfigText($fieldData['repeater_config_text'] ?? null);
         }
 
+        if ($fieldType === 'select' && $this->parseDependencyConfig($fieldData['dependency_config_text'] ?? null)) {
+            return null;
+        }
+
         $lookupSource = $this->resolveFieldLookupSource(
             $fieldData['lookup_source'] ?? null,
             $fieldType,
@@ -864,6 +903,124 @@ class AssessmentController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     * @param array<int, array<int, string>> $fieldNamesByIndex
+     * @return array<int, string>
+     */
+    private function validateDependencyConfig(array $field, int $fieldIndex, array $fieldNamesByIndex): array
+    {
+        $rawConfig = trim((string) ($field['dependency_config_text'] ?? ''));
+
+        if ($rawConfig === '') {
+            return [];
+        }
+
+        if (($field['tipe_field'] ?? null) !== 'select') {
+            return ['Konfigurasi dependency hanya tersedia untuk field daftar pilihan.'];
+        }
+
+        $decoded = json_decode($rawConfig, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || ! is_array($decoded)) {
+            return ['Konfigurasi dependency harus berupa JSON object yang valid.'];
+        }
+
+        $config = $this->dependentOptionResolver->normalizeConfig($decoded);
+
+        if ($config === null) {
+            return [
+                'Konfigurasi dependency wajib memiliki parent_field dan options_by_parent yang valid.',
+            ];
+        }
+
+        if (filled($field['lookup_source'] ?? null)) {
+            return ['Field dependency tidak boleh sekaligus memakai lookup database.'];
+        }
+
+        $parentField = $config['parent_field'];
+
+        if (in_array($parentField, $fieldNamesByIndex[$fieldIndex] ?? [], true)) {
+            return ['Field dependency tidak boleh bergantung pada dirinya sendiri.'];
+        }
+
+        $parentIndex = collect($fieldNamesByIndex)
+            ->search(fn (array $fieldNames) => in_array($parentField, $fieldNames, true));
+
+        if ($parentIndex === false) {
+            return ["Field induk {$parentField} tidak ditemukan pada form ini."];
+        }
+
+        if ((int) $parentIndex >= $fieldIndex) {
+            return ['Field induk dependency harus berada sebelum field yang bergantung padanya.'];
+        }
+
+        foreach ($config['options_by_parent'] as $parentValue => $options) {
+            if ($options === []) {
+                return ["Mapping untuk nilai parent {$parentValue} belum memiliki opsi."];
+            }
+
+            $optionValues = [];
+
+            foreach ($options as $option) {
+                $value = trim((string) ($option['value'] ?? ''));
+                $label = trim((string) ($option['label'] ?? ''));
+
+                if ($value === '' || $label === '') {
+                    return ['Setiap opsi dependency wajib memiliki label dan value.'];
+                }
+
+                if (in_array($value, $optionValues, true)) {
+                    return ["Value opsi {$value} tidak boleh duplikat dalam satu mapping parent."];
+                }
+
+                $optionValues[] = $value;
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * @param array<string, mixed> $field
+     * @return array<int, string>
+     */
+    private function fieldNameCandidates(array $field): array
+    {
+        return collect([
+            $field['nama_field'] ?? null,
+            $this->generateFieldNameFromLabel($field['label'] ?? ''),
+        ])
+            ->map(fn ($name) => [
+                trim((string) $name),
+                $this->dependentOptionResolver->normalizeFieldName($name),
+            ])
+            ->filter()
+            ->flatten()
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function parseDependencyConfig(mixed $rawConfig): ?array
+    {
+        if (is_array($rawConfig)) {
+            return $this->dependentOptionResolver->normalizeConfig($rawConfig);
+        }
+
+        $rawConfig = trim((string) $rawConfig);
+
+        if ($rawConfig === '') {
+            return null;
+        }
+
+        $decoded = json_decode($rawConfig, true);
+
+        return json_last_error() === JSON_ERROR_NONE
+            ? $this->dependentOptionResolver->normalizeConfig($decoded)
+            : null;
     }
 
     private function parseRawFieldOptionsJson(?string $rawOptions): ?array
@@ -1272,7 +1429,16 @@ class AssessmentController extends Controller
 
     private function generateFieldNameFromLabel(?string $label): string
     {
-        return Str::slug((string) $label, '_');
+        $normalizedLabel = preg_replace(
+            '/^\s*(?:soal\s*)?\d+\s*[\.\)\-:]\s*/iu',
+            '',
+            (string) $label,
+            1
+        ) ?? (string) $label;
+
+        $normalizedLabel = str_replace(['/', '\\'], ' ', $normalizedLabel);
+
+        return Str::slug($normalizedLabel, '_');
     }
 
     private function resolveFieldAutoFillSource(
@@ -1456,6 +1622,9 @@ class AssessmentController extends Controller
                             $field->nama_field,
                             $assessment->target_ketenagaan
                         ),
+                        'dependency_config_text' => is_array($field->dependency_config ?? null)
+                            ? json_encode($field->dependency_config, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+                            : null,
                         'allow_other_input' => $field->tipe_field === 'select'
                             ? (bool) data_get($field->validasi, 'allow_other_input', false)
                             : false,

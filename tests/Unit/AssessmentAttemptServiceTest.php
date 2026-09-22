@@ -354,6 +354,72 @@ class AssessmentAttemptServiceTest extends TestCase
         $this->assertSame('Jawaban snapshot peserta', optional($savedAttempt->answers->first())->answer_text);
     }
 
+    public function test_save_snapshot_validates_dependent_select_against_saved_parent_answer(): void
+    {
+        ['attempt' => $attempt, 'fields' => [$parentField, $childField]] = $this->createAttemptScenarioWithFields([
+            [
+                'label' => 'Kabupaten/Kota',
+                'nama_field' => 'kabupaten_kota',
+                'tipe_field' => 'select',
+                'opsi_field' => [
+                    ['label' => 'Kabupaten Gowa', 'value' => 'Kabupaten Gowa'],
+                ],
+                'is_required' => true,
+            ],
+            [
+                'label' => 'Nama Narasumber',
+                'nama_field' => 'nama_narasumber',
+                'tipe_field' => 'select',
+                'dependency_config' => [
+                    'parent_field' => 'kabupaten_kota',
+                    'options_by_parent' => [
+                        'Kabupaten Gowa' => [
+                            ['label' => 'Narasumber Gowa', 'value' => 'narasumber_gowa'],
+                        ],
+                    ],
+                ],
+                'is_required' => true,
+            ],
+        ]);
+
+        $service = $this->makeService();
+        $service->saveSnapshot(
+            $attempt,
+            [$parentField->id => 'Kabupaten Gowa'],
+            [],
+            [$parentField->id]
+        );
+
+        $savedAttempt = $service->saveSnapshot(
+            $attempt->fresh(),
+            [$childField->id => 'narasumber_gowa'],
+            [],
+            [$childField->id]
+        );
+        $savedChildAnswer = $savedAttempt->answers->firstWhere('assessment_form_field_id', $childField->id);
+
+        $this->assertSame('narasumber_gowa', $savedChildAnswer?->answer_text);
+        $this->assertSame(
+            'Kabupaten Gowa',
+            data_get($savedChildAnswer?->answer_payload, 'dependency.parent_value')
+        );
+
+        try {
+            $service->saveSnapshot(
+                $savedAttempt,
+                [$childField->id => 'narasumber_makassar'],
+                [],
+                [$childField->id]
+            );
+            $this->fail('Dependent select should reject an option outside the selected parent mapping.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Pilihan jawaban pada pertanyaan Nama Narasumber tidak valid.'],
+                $exception->errors()['answers.'.$childField->id] ?? []
+            );
+        }
+    }
+
     public function test_build_answer_lookup_uses_public_disk_url_for_uploaded_file_answers(): void
     {
         config()->set('filesystems.disks.public.url', 'http://localhost/upload');
@@ -886,8 +952,11 @@ class AssessmentAttemptServiceTest extends TestCase
         ]);
 
         $requiredQuestions = $fields->filter(fn (AssessmentFormField $field) => (bool) $field->is_required)->count();
+        $fieldDefinitions = collect($fieldDefinitions)->values();
         $snapshotFields = $fields
-            ->map(function (AssessmentFormField $field) use ($assessment, $form) {
+            ->map(function (AssessmentFormField $field, int $index) use ($assessment, $form, $fieldDefinitions) {
+                $fieldDefinition = $fieldDefinitions->get($index, []);
+
                 return [
                     'id' => $field->id,
                     'assessment_id' => $assessment->id,
@@ -897,6 +966,7 @@ class AssessmentAttemptServiceTest extends TestCase
                     'tipe_field' => $field->tipe_field,
                     'placeholder' => $field->placeholder,
                     'opsi_field' => $field->opsi_field ?? [],
+                    'dependency_config' => $fieldDefinition['dependency_config'] ?? null,
                     'validasi' => $field->validasi ?? [],
                     'is_required' => (bool) $field->is_required,
                 ];

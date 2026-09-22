@@ -284,6 +284,7 @@ class AssessmentQuestionRandomizerService
             'bantuan' => $field->bantuan,
             'autofill_source' => $field->autofill_source,
             'lookup_source' => $field->lookup_source,
+            'dependency_config' => $field->dependency_config,
             'opsi_field' => $this->mapFieldOptions($field, $instrumentType, $targetId, $assessmentId, $formId),
             'validasi' => $field->validasi,
             'scoring_config' => $field->scoring_config,
@@ -310,6 +311,7 @@ class AssessmentQuestionRandomizerService
             'bantuan' => $field['bantuan'] ?? null,
             'autofill_source' => $field['autofill_source'] ?? null,
             'lookup_source' => $field['lookup_source'] ?? null,
+            'dependency_config' => $field['dependency_config'] ?? null,
             'opsi_field' => $this->mapSnapshotFieldOptions(
                 $field,
                 $instrumentType,
@@ -332,6 +334,10 @@ class AssessmentQuestionRandomizerService
     ): array {
         if (in_array($field->tipe_field, ['repeater', 'file'], true)) {
             return is_array($field->opsi_field) ? $field->opsi_field : [];
+        }
+
+        if (is_array($field->dependency_config ?? null)) {
+            return [];
         }
 
         $lookupSource = $this->fieldLookupResolver->normalizeSource($field->lookup_source, $field->tipe_field);
@@ -358,6 +364,10 @@ class AssessmentQuestionRandomizerService
     ): array {
         if (in_array(($field['tipe_field'] ?? null), ['repeater', 'file'], true)) {
             return is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+        }
+
+        if (is_array($field['dependency_config'] ?? null)) {
+            return [];
         }
 
         $lookupSource = $this->fieldLookupResolver->normalizeSource(

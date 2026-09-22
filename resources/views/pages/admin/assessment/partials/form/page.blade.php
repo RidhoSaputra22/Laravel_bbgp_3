@@ -982,9 +982,7 @@
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Masuk Penilaian</span>
-                                        <strong
-                                            id="summary-scoreable-label">{{ $initialBuilderSummary['scoreable_forms'] }}
-                                            form</strong>
+                                        <strong id="summary-scoreable-label">{{ $initialBuilderSummary['scoreable_forms'] }} form</strong>
                                     </div>
                                     <div class="assessment-summary-row">
                                         <span>Siap Tampil</span>
@@ -1185,7 +1183,8 @@
                 .trim()
                 .replace(/[^a-z0-9]+/g, '_')
                 .replace(/^_+|_+$/g, '')
-                .replace(/_+/g, '_');
+                .replace(/_+/g, '_')
+                .replace(/^(?:soal_)?\d+_/, '');
             const buildAutoFieldNameHint = (labelValue) => {
                 const generatedName = slugifyFieldName(labelValue);
 
@@ -2578,6 +2577,7 @@
                 const urutanName = `${fieldPrefix}[urutan]`;
                 const opsiFieldTextName = `${fieldPrefix}[opsi_field_text]`;
                 const opsiScoreTextName = `${fieldPrefix}[opsi_score_text]`;
+                const dependencyConfigTextName = `${fieldPrefix}[dependency_config_text]`;
                 const repeaterConfigName = `${fieldPrefix}[repeater_config_text]`;
                 const rawOpsiFieldJsonName = `${fieldPrefix}[raw_opsi_field_json]`;
                 const radioOptionsName = `${fieldPrefix}[radio_options]`;
@@ -2621,6 +2621,11 @@
                 const lookupSourceWrapperClass = joinClasses(
                     'form-group',
                     'field-lookup-source-wrapper',
+                    fieldType === 'select' ? '' : 'd-none',
+                );
+                const dependencyConfigWrapperClass = joinClasses(
+                    'form-group',
+                    'field-dependency-config-wrapper',
                     fieldType === 'select' ? '' : 'd-none',
                 );
                 const allowOtherInputWrapperClass = joinClasses(
@@ -2788,6 +2793,17 @@
                                     <div class="field-lookup-source-preview">
                                         ${buildFieldLookupPreview(fieldType, resolvedLookupSource)}
                                     </div>
+                                </div>
+                                <div class="${dependencyConfigWrapperClass}">
+                                    <label>Mapping Opsi Bergantung Field Lain</label>
+                                    <textarea class="${getInputClass(dependencyConfigTextName, 'form-control field-dependency-config-input')}"
+                                        name="${dependencyConfigTextName}"
+                                        rows="8"
+                                        placeholder='{"parent_field":"kabupaten_kota","options_by_parent":{"Kota Makassar":[{"label":"Narasumber 1","value":"narasumber_1"}]}}'>${escapeHtml(fieldData.dependency_config_text || '')}</textarea>
+                                    ${buildInvalidFeedback(dependencyConfigTextName)}
+                                    <small class="form-text text-muted">
+                                        Isi JSON mapping. Jika diisi, opsi manual dan lookup database tidak digunakan.
+                                    </small>
                                 </div>
                                 <div class="${allowOtherInputWrapperClass}">
                                     <div class="custom-control custom-switch">
@@ -3432,6 +3448,7 @@
                 file_input_mode: 'file',
                 opsi_field_text: '',
                 opsi_score_text: '',
+                dependency_config_text: '',
                 repeater_config_text: null,
                 raw_opsi_field_json: '',
                 radio_options: [],
@@ -3840,9 +3857,23 @@
                 const showRepeaterOptions = selectedType === repeaterFieldType;
                 const showFileOptions = selectedType === fileFieldType;
                 const showAllowOtherInput = supportsSelectOtherInput(selectedType);
-                const selectedLookupSource = $fieldCard.find('.field-lookup-source-select').val()?.trim() || '';
+                const $lookupSource = $fieldCard.find('.field-lookup-source-select');
+                let selectedLookupSource = $lookupSource.val()?.trim() || '';
                 const showLookupSource = selectedType === 'select';
-                const showManualChoiceOptions = showTextOptions && (!showLookupSource || !selectedLookupSource);
+                const hasDependencyConfig = selectedType === 'select'
+                    && ($fieldCard.find('.field-dependency-config-input').val()?.trim() || '') !== '';
+
+                if (hasDependencyConfig && selectedLookupSource) {
+                    $lookupSource
+                        .val('')
+                        .data('userTouched', true)
+                        .data('suggestedDefault', false);
+                    selectedLookupSource = '';
+                }
+
+                const showManualChoiceOptions = showTextOptions
+                    && (!showLookupSource || !selectedLookupSource)
+                    && !hasDependencyConfig;
 
                 $fieldCard.find('.standard-option-wrapper')
                     .toggleClass('d-none', !showTextOptions)
@@ -3851,17 +3882,20 @@
                 $fieldCard.find('.field-lookup-source-wrapper')
                     .toggleClass('d-none', !showLookupSource);
                 $fieldCard.find('.field-allow-other-input-wrapper')
-                    .toggleClass('d-none', !showAllowOtherInput);
+                    .toggleClass('d-none', !showAllowOtherInput || hasDependencyConfig);
                 $fieldCard.find('.field-allow-other-input-checkbox')
-                    .prop('disabled', !showAllowOtherInput);
+                    .prop('disabled', !showAllowOtherInput || hasDependencyConfig);
+                $fieldCard.find('.field-dependency-config-wrapper')
+                    .toggleClass('d-none', !showLookupSource);
+                $fieldCard.find('.field-dependency-config-input')
+                    .prop('disabled', !showLookupSource);
                 $fieldCard.find('.manual-choice-options-wrapper')
                     .toggleClass('d-none', !showManualChoiceOptions);
                 $fieldCard.find('.field-manual-options-input')
                     .prop('disabled', !showManualChoiceOptions);
                 $fieldCard.find('.option-score-wrapper')
                     .toggleClass('d-none', !showTextOptions);
-                $fieldCard.find('.field-lookup-source-select')
-                    .prop('disabled', !showLookupSource);
+                $lookupSource.prop('disabled', !showLookupSource || hasDependencyConfig);
 
                 $fieldCard.find('.multiple-choice-wrapper')
                     .toggleClass('d-none', !showMultipleChoiceOptions)
@@ -4228,6 +4262,8 @@
                     lookup_source: supportsFieldLookup(fieldType) ?
                         ($lookupSourceSelect.val()?.trim() || '') : '',
                     _lookup_source_user_touched: normalizeChecked($lookupSourceSelect.data('userTouched')),
+                    dependency_config_text: fieldType === 'select' ?
+                        ($fieldCard.find('.field-dependency-config-input').val()?.trim() || '') : '',
                     allow_other_input: supportsSelectOtherInput(fieldType) ?
                         $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked') : false,
                     file_input_mode: fileInputMode,
@@ -5060,7 +5096,17 @@
             $(document).on('change', '.field-lookup-source-select', function() {
                 $(this).data('userTouched', true);
                 $(this).data('suggestedDefault', false);
-                updateFieldLookupState($(this).closest('.assessment-field-card'));
+                const $fieldCard = $(this).closest('.assessment-field-card');
+
+                updateFieldLookupState($fieldCard);
+                toggleOptionWrapper($fieldCard);
+                schedulePreviewRender();
+            });
+
+            $(document).on('input', '.field-dependency-config-input', function() {
+                const $fieldCard = $(this).closest('.assessment-field-card');
+
+                toggleOptionWrapper($fieldCard);
                 schedulePreviewRender();
             });
 

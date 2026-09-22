@@ -10,6 +10,7 @@ use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\AssessmentTargetTiming;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 
 class AssessmentAttemptLifecycleService
 {
@@ -304,9 +305,15 @@ class AssessmentAttemptLifecycleService
             return $attempt;
         }
 
+        $metadataColumns = ['id', 'autofill_source', 'lookup_source', 'validasi'];
+
+        if (Schema::hasColumn('assessment_form_fields', 'dependency_config')) {
+            $metadataColumns[] = 'dependency_config';
+        }
+
         $fieldMetadata = AssessmentFormField::query()
             ->whereIn('id', $fieldIds)
-            ->get(['id', 'autofill_source', 'lookup_source', 'validasi'])
+            ->get($metadataColumns)
             ->keyBy('id');
 
         if ($fieldMetadata->isEmpty()) {
@@ -345,6 +352,14 @@ class AssessmentAttemptLifecycleService
 
                                 if (($field['lookup_source'] ?? null) !== $sourceField->lookup_source) {
                                     $field['lookup_source'] = $sourceField->lookup_source;
+                                    $wasUpdated = true;
+                                }
+
+                                if (
+                                    Schema::hasColumn('assessment_form_fields', 'dependency_config')
+                                    && ($field['dependency_config'] ?? null) !== $sourceField->dependency_config
+                                ) {
+                                    $field['dependency_config'] = $sourceField->dependency_config;
                                     $wasUpdated = true;
                                 }
 

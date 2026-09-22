@@ -7,6 +7,7 @@ use App\Models\AssessmentAttempt;
 use App\Models\AssessmentAttemptAnswer;
 use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\AssessmentDependentOptionResolver;
 use App\Support\Assessment\AssessmentUrlValidationHelper;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\ValidatorAccess;
@@ -22,10 +23,15 @@ use Illuminate\Validation\ValidationException;
 
 class AssessmentAttemptService
 {
+    private readonly AssessmentDependentOptionResolver $dependentOptionResolver;
+
     public function __construct(
         private readonly AssessmentScoringService $scoringService,
-        private readonly AssessmentAutoScoringService $autoScoringService
-    ) {}
+        private readonly AssessmentAutoScoringService $autoScoringService,
+        ?AssessmentDependentOptionResolver $dependentOptionResolver = null
+    ) {
+        $this->dependentOptionResolver = $dependentOptionResolver ?: new AssessmentDependentOptionResolver();
+    }
 
     public function saveSnapshot(
         AssessmentAttempt $attempt,
@@ -57,7 +63,6 @@ class AssessmentAttemptService
         }
 
         $existingAnswers = $attempt->answers()
-            ->whereIn('assessment_form_field_id', $processedFieldIds)
             ->get()
             ->keyBy('assessment_form_field_id');
         $normalizedAnswers = $this->validateAndNormalizeAnswers(
@@ -65,7 +70,10 @@ class AssessmentAttemptService
             $answers,
             $files,
             $existingAnswers,
-            false
+            false,
+            [],
+            false,
+            $allFields
         );
         $savedAt = now();
 
@@ -516,8 +524,10 @@ class AssessmentAttemptService
         $processedFieldIds = $processPartialPayload
             ? $this->extractFieldIds($fieldsToProcess)
             : $availableFieldIds;
+        // Dependency fields may refer to a previously saved parent that is not
+        // part of a partial submission payload. Keep the full answer context
+        // available for validation, while only persisting processed fields.
         $existingAnswers = $attempt->answers()
-            ->whereIn('assessment_form_field_id', $processedFieldIds)
             ->get()
             ->keyBy('assessment_form_field_id');
         $normalizedAnswers = $this->validateAndNormalizeAnswers(
@@ -527,7 +537,8 @@ class AssessmentAttemptService
             $existingAnswers,
             ! $forceZeroForUnanswered,
             $flaggedFieldIds,
-            ! $forceZeroForUnanswered
+            ! $forceZeroForUnanswered,
+            $fields
         );
         $submittedAt = now();
         $submissionMode = (string) ($options['submission_mode'] ?? ($forceZeroForUnanswered ? 'deadline_auto' : 'manual'));
@@ -661,7 +672,6 @@ class AssessmentAttemptService
         $stageFlaggedFieldIds = array_values(array_intersect($normalizedFlaggedFieldIds, $availableFieldIds));
         $forceZeroForUnanswered = (bool) ($options['force_zero_for_unanswered'] ?? false);
         $existingAnswers = $attempt->answers()
-            ->whereIn('assessment_form_field_id', $availableFieldIds)
             ->get()
             ->keyBy('assessment_form_field_id');
         $normalizedAnswers = $this->validateAndNormalizeAnswers(
@@ -671,7 +681,8 @@ class AssessmentAttemptService
             $existingAnswers,
             ! $forceZeroForUnanswered,
             $stageFlaggedFieldIds,
-            ! $forceZeroForUnanswered
+            ! $forceZeroForUnanswered,
+            $allFields
         );
         $submittedAt = now();
         $submissionMode = (string) ($options['submission_mode'] ?? ($forceZeroForUnanswered ? 'deadline_auto' : 'manual'));
@@ -822,12 +833,18 @@ class AssessmentAttemptService
         Collection $existingAnswers,
         bool $requireRequiredFields,
         array $flaggedFieldIds = [],
-        bool $enforceFlaggedAnswers = false
+        bool $enforceFlaggedAnswers = false,
+        array $contextFields = []
     ): array {
         $messages = [];
         $normalized = [];
         $preserveExistingAnswerFieldIds = [];
         $normalizedFlaggedFieldIds = $this->normalizeFieldIds($flaggedFieldIds);
+        $dependencyAnswerValues = $this->buildDependencyAnswerValues(
+            $contextFields !== [] ? $contextFields : $fields,
+            $answers,
+            $existingAnswers
+        );
 
         foreach ($fields as $field) {
             $fieldId = (string) $field['id'];
@@ -1193,7 +1210,10 @@ class AssessmentAttemptService
                     continue;
                 }
 
-                $matchedOption = collect(ChoiceOptionNormalizer::normalizeMany($field['opsi_field'] ?? []))
+                $optionSource = $this->dependentOptionResolver->isEnabled($field)
+                    ? $this->dependentOptionResolver->resolveOptions($field, $dependencyAnswerValues)
+                    : ($field['opsi_field'] ?? []);
+                $matchedOption = collect(ChoiceOptionNormalizer::normalizeMany($optionSource))
                     ->first(fn (array $option) => in_array($textValue, $option['aliases'] ?? [], true));
 
                 if (! is_array($matchedOption)) {
@@ -1217,6 +1237,14 @@ class AssessmentAttemptService
                         : null,
                     'score' => is_array($matchedOption ?? null) && is_numeric($matchedOption['score'] ?? null)
                         ? (float) $matchedOption['score']
+                        : null,
+                    'dependency' => $this->dependentOptionResolver->isEnabled($field)
+                        ? [
+                            'parent_field' => $this->dependentOptionResolver->parentFieldName($field),
+                            'parent_value' => $dependencyAnswerValues[
+                                $this->dependentOptionResolver->parentFieldName($field) ?? ''
+                            ] ?? null,
+                        ]
                         : null,
                 ], static fn ($value) => $value !== null && $value !== ''),
                 'answer_file_path' => null,
@@ -1433,6 +1461,44 @@ class AssessmentAttemptService
             'columns' => $columns,
             'message' => null,
         ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $fields
+     * @param array<string|int, mixed> $answers
+     * @param Collection<int, AssessmentAttemptAnswer> $existingAnswers
+     * @return array<string, string>
+     */
+    private function buildDependencyAnswerValues(
+        array $fields,
+        array $answers,
+        Collection $existingAnswers
+    ): array {
+        $values = [];
+
+        foreach ($fields as $field) {
+            $fieldName = trim((string) ($field['nama_field'] ?? ''));
+            $fieldId = (int) ($field['id'] ?? 0);
+
+            if ($fieldName === '' || $fieldId <= 0) {
+                continue;
+            }
+
+            if (array_key_exists((string) $fieldId, $answers) || array_key_exists($fieldId, $answers)) {
+                $values[$fieldName] = $this->dependentOptionResolver->normalizeAnswerValue(
+                    $answers[(string) $fieldId] ?? $answers[$fieldId]
+                );
+
+                continue;
+            }
+
+            $existingAnswer = $existingAnswers->get($fieldId);
+            $values[$fieldName] = $this->dependentOptionResolver->normalizeAnswerValue(
+                data_get($existingAnswer?->answer_payload ?? [], 'value', $existingAnswer?->answer_text)
+            );
+        }
+
+        return $values;
     }
 
     private function persistNormalizedAnswers(

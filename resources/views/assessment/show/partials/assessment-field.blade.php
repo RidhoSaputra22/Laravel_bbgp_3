@@ -27,13 +27,29 @@
     }
 
     $oldValue = old('answers.' . $field['id'], $savedPayload['value'] ?? $savedAnswer['text'] ?? null);
+    $dependentOptionResolver = app(\App\Support\Assessment\AssessmentDependentOptionResolver::class);
+    $dependencyConfig = $dependentOptionResolver->normalizeConfig($field['dependency_config'] ?? null);
+    $dependencyEnabled = $dependencyConfig !== null;
+    $dependencyOptions = $dependencyEnabled
+        ? $dependentOptionResolver->resolveOptions($field, $dependencyAnswerValues ?? [])
+        : [];
+    $dependencyParentValue = $dependencyEnabled
+        ? $dependentOptionResolver->normalizeAnswerValue(
+            ($dependencyAnswerValues ?? [])[$dependencyConfig['parent_field']] ?? null
+        )
+        : '';
+    $dependencySelectDisabled = $dependencyEnabled
+        && ($dependencyConfig['empty_behavior'] ?? 'disabled') !== 'empty'
+        && ($dependencyParentValue === '' || $dependencyOptions === []);
     $selectAllowsOtherInput = \App\Support\Assessment\ChoiceFieldOtherOption::isEnabled($field);
     $selectOptionValue = \App\Support\Assessment\ChoiceFieldOtherOption::VALUE;
     $selectOptionLabel = \App\Support\Assessment\ChoiceFieldOtherOption::LABEL;
     $selectOptions = $field['tipe_field'] === 'select'
         ? \App\Support\Assessment\ChoiceFieldOtherOption::appendOption(
             $field,
-            is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [],
+            $dependencyEnabled
+                ? $dependencyOptions
+                : (is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []),
         )
         : [];
     $oldSelectValue = $field['tipe_field'] === 'select'
@@ -106,11 +122,15 @@
     ])
     x-bind:class="fieldWrapperClass({{ (int) $field['id'] }}, {{ $assessmentIndex }})"
     data-assessment-field
-    data-field-id="{{ $field['id'] }}" data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
+    data-field-id="{{ $field['id'] }}" data-field-name="{{ $field['nama_field'] ?? '' }}"
+    data-field-type="{{ $fieldType }}" data-field-label="{{ $displayLabel }}"
     data-required="{{ $isRequired ? '1' : '0' }}" data-has-existing-file="{{ $hasExistingFile ? '1' : '0' }}"
     data-allow-other-input="{{ $selectAllowsOtherInput ? '1' : '0' }}"
     data-select-other-option-value="{{ $selectOptionValue }}"
     data-file-input-mode="{{ $fileInputMode }}"
+    data-dependent-field="{{ $dependencyEnabled ? '1' : '0' }}"
+    data-dependent-parent-field="{{ $dependencyConfig['parent_field'] ?? '' }}"
+    data-dependent-config="{{ json_encode($dependencyConfig ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}"
     data-url-allowed-domains="{{ implode(',', $urlAllowedDomains) }}"
     data-question-number="{{ $displayQuestionNumber }}" data-assessment-index="{{ $assessmentIndex }}">
     <div class="mb-3 flex items-start justify-between gap-4">
@@ -163,6 +183,7 @@
             <div x-data="{ selectValue: @js((string) ($oldSelectValue ?? '')) }" class="space-y-2">
                 <select id="{{ $inputId }}" name="{{ $selectValueName }}"
                     @required($isRequired)
+                    @disabled($dependencySelectDisabled)
                     x-model="selectValue"
                     @class([
                         'w-full rounded-sm border bg-white px-4 py-3 text-slate-800 outline-none transition focus:border-[#1376bd] focus:ring-4 focus:ring-[#1376bd]/15',

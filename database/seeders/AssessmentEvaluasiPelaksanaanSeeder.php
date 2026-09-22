@@ -84,29 +84,32 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 'is_scoreable' => false,
                 'fields' => [
                     $this->selectField(
-                        '1. Nama Narasumber',
+                        '1. Kabupaten/Kota',
+                        'kabupaten_kota',
+                        $this->kabupatenOptions(),
+                        'Pilih jawaban...',
+                        'Data kabupaten/kota dapat terisi otomatis dari data SIM.',
+                        false,
+                        true,
+                        'kabupaten'
+                    ),
+                    $this->selectField(
+                        '2. Nama Narasumber',
                         'nama_narasumber',
-                        ['Narasumber 1', 'Narasumber 2', 'Narasumber 3'],
+                        [],
                         'Pilih narasumber...',
                         '',
+                        false,
                         true,
+                        null,
+                        $this->narasumberByKabupatenConfig(),
                     ),
                     $this->textField(
-                        '2. Nama Sekolah',
+                        '3. Nama Sekolah',
                         'nama_sekolah',
                         'Masukkan nama Sekolah',
                         'Nama sekolah dapat terisi otomatis dari data SIM.',
                         'satuan_pendidikan'
-                    ),
-                    $this->selectField(
-                        '3. Kabupaten/Kota',
-                        'kabupaten_kota',
-                        [],
-                        'Pilih jawaban...',
-                        'Data kabupaten/kota dapat terisi otomatis dari data SIM.',
-                        true,
-                        true,
-                        'Kabupaten / Kota'
                     ),
                     $this->textField(
                         '4. Materi/Topik',
@@ -429,7 +432,8 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
         string $help,
         bool $allowOtherInput = false,
         bool $required = true,
-        ?string $autofillSource = null
+        ?string $autofillSource = null,
+        ?array $dependencyConfig = null
     ): array {
         return $this->field(
             $label,
@@ -443,7 +447,46 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             $autofillSource,
             null,
             $allowOtherInput ? ['allow_other_input' => true] : [],
+            $dependencyConfig,
         );
+    }
+
+    /**
+     * @return array<int, array{label: string, value: string}>
+     */
+    private function kabupatenOptions(): array
+    {
+        return [
+            ['label' => 'Kota Makassar', 'value' => 'Kota Makassar'],
+            ['label' => 'Kabupaten Gowa', 'value' => 'Kabupaten Gowa'],
+            ['label' => 'Kabupaten Maros', 'value' => 'Kabupaten Maros'],
+        ];
+    }
+
+    /**
+     * Mapping contoh yang sengaja tinggal diedit pada definisi form ini.
+     *
+     * @return array<string, mixed>
+     */
+    private function narasumberByKabupatenConfig(): array
+    {
+        return [
+            'parent_field' => 'kabupaten_kota',
+            'empty_behavior' => 'disabled',
+            'reset_on_parent_change' => true,
+            'options_by_parent' => [
+                'Kota Makassar' => [
+                    ['label' => 'Narasumber 1', 'value' => 'narasumber_1'],
+                    ['label' => 'Narasumber 2', 'value' => 'narasumber_2'],
+                ],
+                'Kabupaten Gowa' => [
+                    ['label' => 'Narasumber 3', 'value' => 'narasumber_3'],
+                ],
+                'Kabupaten Maros' => [
+                    ['label' => 'Narasumber 1', 'value' => 'narasumber_1'],
+                ],
+            ],
+        ];
     }
 
     /**
@@ -494,7 +537,8 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
         ?string $help = null,
         ?string $autofillSource = null,
         ?array $scoringConfig = null,
-        array $validationExtra = []
+        array $validationExtra = [],
+        ?array $dependencyConfig = null
     ): array {
         return [
             'label' => $label,
@@ -507,6 +551,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'nilai_default' => null,
             'autofill_source' => $autofillSource,
             'lookup_source' => null,
+            'dependency_config' => $dependencyConfig,
             'validasi' => array_merge(['required' => $required], $validationExtra),
             'scoring_config' => $scoringConfig,
             'urutan' => 1,

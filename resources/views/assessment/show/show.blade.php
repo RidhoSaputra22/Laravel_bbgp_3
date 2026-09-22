@@ -47,6 +47,30 @@
         }
 
         $answerLookup = array_replace($autoFilledAnswerLookup, $answerLookup);
+        $dependencyAnswerValues = [];
+
+        foreach (($snapshot['assessments'] ?? []) as $assessmentEntry) {
+            foreach (($assessmentEntry['forms'] ?? []) as $formEntry) {
+                foreach (($formEntry['fields'] ?? []) as $fieldEntry) {
+                    $fieldId = (int) ($fieldEntry['id'] ?? 0);
+                    $fieldName = trim((string) ($fieldEntry['nama_field'] ?? ''));
+
+                    if ($fieldId < 1 || $fieldName === '') {
+                        continue;
+                    }
+
+                    $savedPayload = is_array($answerLookup[$fieldId]['payload'] ?? null)
+                        ? $answerLookup[$fieldId]['payload']
+                        : [];
+                    $savedValue = $savedPayload['value'] ?? ($answerLookup[$fieldId]['text'] ?? null);
+                    $rawValue = old('answers.' . $fieldId, $savedValue);
+
+                    $dependencyAnswerValues[$fieldName] = is_array($rawValue)
+                        ? trim((string) ($rawValue['value'] ?? ''))
+                        : trim((string) ($rawValue ?? ''));
+                }
+            }
+        }
         $buildDisplayFieldLabel = static function (
             array $field,
             ?int $displayQuestionNumber = null,

@@ -21,6 +21,7 @@ class AssessmentFormField extends Model
         'nilai_default',
         'autofill_source',
         'lookup_source',
+        'dependency_config',
         'validasi',
         'scoring_config',
         'urutan',
@@ -32,6 +33,7 @@ class AssessmentFormField extends Model
         'opsi_field' => 'array',
         'validasi' => 'array',
         'scoring_config' => 'array',
+        'dependency_config' => 'array',
         'is_required' => 'boolean',
         'is_active' => 'boolean',
     ];

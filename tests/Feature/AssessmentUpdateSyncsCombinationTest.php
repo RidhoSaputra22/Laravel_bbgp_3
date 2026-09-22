@@ -236,7 +236,7 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $updatedField = AssessmentFormField::query()->findOrFail($field->id);
 
         $this->assertSame('Form Profil Diperbarui', $updatedForm->judul_form);
-        $this->assertSame('Label Pertanyaan Diperbarui', $updatedField->label);
+        $this->assertSame('1. Label Pertanyaan Diperbarui', $updatedField->label);
         $this->assertSame('label_pertanyaan_diperbarui', $updatedField->nama_field);
         $this->assertSame('master_golongan', $updatedField->lookup_source);
         $this->assertSame('select', $updatedField->tipe_field);
@@ -257,7 +257,7 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame($field->id, (int) $item->assessment_form_field_id);
         $this->assertSame('Assessment Portofolio Diperbarui', $item->assessment_title);
         $this->assertSame('Form Profil Diperbarui', $item->form_title);
-        $this->assertSame('Label Pertanyaan Diperbarui', $item->field_label);
+        $this->assertSame('1. Label Pertanyaan Diperbarui', $item->field_label);
         $this->assertSame('Placeholder diperbarui', $item->field_placeholder);
         $this->assertSame('label_pertanyaan_diperbarui', $item->field_name);
         $this->assertSame('master_golongan', $item->field_lookup_source);
@@ -272,7 +272,7 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
 
         $this->assertSame('Assessment Portofolio Diperbarui', $snapshotAssessment['judul'] ?? null);
         $this->assertSame('Form Profil Diperbarui', $snapshotForm['judul_form'] ?? null);
-        $this->assertSame('Label Pertanyaan Diperbarui', $snapshotField['label'] ?? null);
+        $this->assertSame('1. Label Pertanyaan Diperbarui', $snapshotField['label'] ?? null);
         $this->assertSame('Placeholder diperbarui', $snapshotField['placeholder'] ?? null);
         $this->assertSame('master_golongan', $snapshotField['lookup_source'] ?? null);
     }
@@ -312,7 +312,7 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
                     'fields' => [
                         [
                             'id' => $field->id,
-                            'label' => 'Label Pertanyaan Diperbarui',
+                            'label' => '1. Label Pertanyaan Diperbarui',
                             'deskripsi' => 'Deskripsi field baru.',
                             'tipe_field' => 'select',
                             'placeholder' => 'Placeholder diperbarui',
