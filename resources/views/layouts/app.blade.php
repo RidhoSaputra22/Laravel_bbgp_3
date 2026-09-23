@@ -6,6 +6,7 @@
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} &mdash; BBGTK Sulsel</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('landing/images/favicon.ico') }}">
 
     <!-- General CSS Files -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
