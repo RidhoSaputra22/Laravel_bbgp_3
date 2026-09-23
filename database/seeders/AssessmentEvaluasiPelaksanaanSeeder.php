@@ -27,7 +27,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'judul' => 'Evaluasi Pelaksanaan Hari Belajar Guru',
             'slug' => Str::slug('Evaluasi Pelaksanaan Hari Belajar Guru'),
             'deskripsi' => 'Instrumen untuk mengevaluasi pelaksanaan kegiatan pelatihan dan kinerja narasumber berdasarkan Kuesioner Evaluasi Pelaksanaan Kegiatan.',
-            'petunjuk' => 'Lengkapi identitas kegiatan terlebih dahulu. Pada bagian B dan C, pilih satu angka pada setiap pernyataan menggunakan skala 1 sampai 4. Saran/masukan pada bagian C bersifat opsional.',
+            'petunjuk' => 'Lengkapi identitas kegiatan terlebih dahulu. Pada bagian B, pilih satu angka pada setiap pernyataan menggunakan skala 1 sampai 4. Saran/Masukan/Harapan pada bagian B bersifat opsional.',
             'instrument_type' => AssessmentInstrumentType::SKALA_LIKERT->value,
             'target_ketenagaan' => null,
             'scoring_config' => $this->assessmentScoringConfig($totalScoredItems),
@@ -127,140 +127,10 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 ],
             ],
             [
-                'judul_form' => 'B. Evaluasi Pelaksanaan Kegiatan Pelatihan',
-                'kode_form' => 'FORM-EVALUASI-PELAKSANAAN',
-                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 4.',
-                'indikator_kode' => 'B',
-                'indikator_label' => 'Evaluasi pelaksanaan kegiatan pelatihan',
-                'is_scoreable' => true,
-                'fields' => $this->scaledFields('evaluasi_pelaksanaan', [
-                    [
-                        'group' => '1. Aspek Perencanaan & Persiapan',
-                        'indicator' => 'Kesesuaian jadwal dengan rundown/rencana awal',
-                        'statement' => 'Pelaksanaan kegiatan sesuai dengan jadwal/rundown yang telah ditetapkan',
-                    ],
-                    [
-                        'group' => '1. Aspek Perencanaan & Persiapan',
-                        'indicator' => 'Ketepatan waktu pelaksanaan (mulai, istirahat, selesai)',
-                        'statement' => 'Kegiatan dimulai tepat waktu sesuai jadwal',
-                    ],
-                    [
-                        'group' => '1. Aspek Perencanaan & Persiapan',
-                        'indicator' => 'Kesiapan tempat/venue (ruang, tata letak, kapasitas)',
-                        'statement' => 'Ruangan yang digunakan nyaman dan sesuai dengan kapasitas peserta',
-                    ],
-                    [
-                        'group' => '1. Aspek Perencanaan & Persiapan',
-                        'indicator' => 'Kesiapan sarana & prasarana (proyektor, sound system, internet, dll)',
-                        'statement' => 'Peralatan pendukung (proyektor, sound system, internet) berfungsi dengan baik',
-                    ],
-                    [
-                        'group' => '1. Aspek Perencanaan & Persiapan',
-                        'indicator' => 'Ketersediaan bahan ajar/modul/materi cetak atau digital',
-                        'statement' => 'Modul/materi pelatihan tersedia tepat waktu bagi peserta',
-                    ],
-                    [
-                        'group' => '2. Aspek Administrasi & Logistik',
-                        'indicator' => 'Proses registrasi peserta',
-                        'statement' => 'Proses registrasi peserta berjalan lancar dan tidak memakan waktu lama',
-                    ],
-                    [
-                        'group' => '2. Aspek Administrasi & Logistik',
-                        'indicator' => 'Ketersediaan konsumsi (jika ada)',
-                        'statement' => 'Konsumsi yang disediakan memadai dari segi jumlah',
-                    ],
-                    [
-                        'group' => '2. Aspek Administrasi & Logistik',
-                        'indicator' => 'Kelengkapan ATK dan perlengkapan peserta',
-                        'statement' => 'ATK dan perlengkapan peserta tersedia dengan lengkap',
-                    ],
-                    [
-                        'group' => '2. Aspek Administrasi & Logistik',
-                        'indicator' => 'Sertifikat/dokumentasi kelulusan',
-                        'statement' => 'Proses penerbitan sertifikat dilakukan dengan tertib dan tepat waktu',
-                    ],
-                    [
-                        'group' => '2. Aspek Administrasi & Logistik',
-                        'indicator' => 'Akomodasi & transportasi (jika relevan)',
-                        'statement' => 'Akomodasi yang disediakan (jika ada) memadai dan nyaman',
-                    ],
-                    [
-                        'group' => '3. Aspek Substansi Kegiatan',
-                        'indicator' => 'Kesesuaian materi dengan tujuan/kompetensi yang ditargetkan',
-                        'statement' => 'Materi yang disampaikan sesuai dengan tujuan/kompetensi yang ditargetkan',
-                    ],
-                    [
-                        'group' => '3. Aspek Substansi Kegiatan',
-                        'indicator' => 'Relevansi materi dengan kebutuhan guru di lapangan',
-                        'statement' => 'Materi pelatihan relevan dengan kebutuhan guru di lapangan',
-                    ],
-                    [
-                        'group' => '3. Aspek Substansi Kegiatan',
-                        'indicator' => 'Keseimbangan antara teori dan praktik',
-                        'statement' => 'Porsi antara teori dan praktik dalam pelatihan sudah seimbang',
-                    ],
-                    [
-                        'group' => '3. Aspek Substansi Kegiatan',
-                        'indicator' => 'Metode pelatihan (ceramah, diskusi, simulasi, praktik langsung)',
-                        'statement' => 'Metode pelatihan yang digunakan bervariasi dan tidak membosankan',
-                    ],
-                    [
-                        'group' => '4. Aspek Partisipasi Peserta',
-                        'indicator' => 'Tingkat kehadiran peserta',
-                        'statement' => 'Peserta hadir secara penuh selama rangkaian kegiatan pelatihan',
-                    ],
-                    [
-                        'group' => '4. Aspek Partisipasi Peserta',
-                        'indicator' => 'Keaktifan peserta selama sesi',
-                        'statement' => 'Peserta aktif bertanya dan berdiskusi selama sesi berlangsung',
-                    ],
-                    [
-                        'group' => '4. Aspek Partisipasi Peserta',
-                        'indicator' => 'Pemahaman/penyerapan materi (pre-test & post-test)',
-                        'statement' => 'Terdapat peningkatan pemahaman peserta setelah mengikuti pelatihan',
-                    ],
-                    [
-                        'group' => '4. Aspek Partisipasi Peserta',
-                        'indicator' => 'Kepuasan peserta terhadap keseluruhan kegiatan',
-                        'statement' => 'Peserta merasa puas terhadap keseluruhan pelaksanaan kegiatan',
-                    ],
-                    [
-                        'group' => '5. Aspek Panitia/Penyelenggara',
-                        'indicator' => 'Koordinasi panitia selama acara',
-                        'statement' => 'Panitia menunjukkan koordinasi yang baik selama pelaksanaan kegiatan',
-                    ],
-                    [
-                        'group' => '5. Aspek Panitia/Penyelenggara',
-                        'indicator' => 'Responsivitas terhadap kendala teknis',
-                        'statement' => 'Panitia sigap dalam menangani kendala teknis yang muncul',
-                    ],
-                    [
-                        'group' => '5. Aspek Panitia/Penyelenggara',
-                        'indicator' => 'Kualitas pelayanan kepada peserta dan narasumber',
-                        'statement' => 'Panitia memberikan pelayanan yang ramah kepada peserta',
-                    ],
-                    [
-                        'group' => '6. Aspek Dampak/Tindak Lanjut',
-                        'indicator' => 'Rencana implementasi hasil pelatihan di sekolah',
-                        'statement' => 'Saya memiliki rencana konkret untuk menerapkan hasil pelatihan di sekolah',
-                    ],
-                    [
-                        'group' => '6. Aspek Dampak/Tindak Lanjut',
-                        'indicator' => 'Mekanisme monitoring pasca-pelatihan',
-                        'statement' => 'Terdapat mekanisme tindak lanjut/monitoring pasca-pelatihan yang jelas',
-                    ],
-                    [
-                        'group' => '6. Aspek Dampak/Tindak Lanjut',
-                        'indicator' => 'Umpan balik untuk perbaikan pelatihan berikutnya',
-                        'statement' => 'Kegiatan ini memberikan ruang bagi peserta untuk menyampaikan masukan',
-                    ],
-                ]),
-            ],
-            [
-                'judul_form' => 'C. Evaluasi Narasumber',
+                'judul_form' => 'B. Evaluasi Narasumber',
                 'kode_form' => 'FORM-EVALUASI-NARASUMBER',
-                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 4. Saran/masukan dapat diisi pada bagian akhir.',
-                'indikator_kode' => 'C',
+                'deskripsi' => 'Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 4. Saran/Masukan/Harapan dapat diisi pada bagian akhir.',
+                'indikator_kode' => 'B',
                 'indikator_label' => 'Evaluasi narasumber',
                 'is_scoreable' => true,
                 'fields' => array_merge(
@@ -312,14 +182,14 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                     ]),
                     [
                         $this->field(
-                            'Saran/Masukan',
+                            'Saran/Masukan/Harapan',
                             'saran_masukan',
                             'text',
                             null,
                             false,
-                            'Tuliskan saran atau masukan',
+                            'Tuliskan saran, masukan, atau harapan',
                             null,
-                            'Saran/masukan bersifat opsional.'
+                            'Saran/Masukan/Harapan bersifat opsional.'
                         ),
                     ]
                 ),
