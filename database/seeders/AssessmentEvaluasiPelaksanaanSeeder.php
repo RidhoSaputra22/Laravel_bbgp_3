@@ -97,9 +97,9 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         '2. Nama Narasumber',
                         'nama_narasumber',
                         [],
-                        'Pilih narasumber...',
-                        '',
-                        false,
+                        'Pilih narasumber atau Lainnya...',
+                        'Pilih narasumber sesuai kabupaten/kota atau pilih Lainnya untuk menulis nama lain.',
+                        true,
                         true,
                         null,
                         $this->narasumberByKabupatenConfig(),
@@ -327,14 +327,25 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
     private function kabupatenOptions(): array
     {
         return [
-            ['label' => 'Kota Makassar', 'value' => 'Kota Makassar'],
-            ['label' => 'Kabupaten Gowa', 'value' => 'Kabupaten Gowa'],
-            ['label' => 'Kabupaten Maros', 'value' => 'Kabupaten Maros'],
+            ['label' => 'Kab. Luwu Timur', 'value' => 'Kab. Luwu Timur'],
+            ['label' => 'Kab. Luwu Utara', 'value' => 'Kab. Luwu Utara'],
+            ['label' => 'Kab. Maros', 'value' => 'Kab. Maros'],
+            ['label' => 'Kab. Enrekang', 'value' => 'Kab. Enrekang'],
+            ['label' => 'Kota Parepare', 'value' => 'Kota Parepare'],
+            ['label' => 'Kab. Sinjai', 'value' => 'Kab. Sinjai'],
+            ['label' => 'Kab. Takalar', 'value' => 'Kab. Takalar'],
+            ['label' => 'Kabupaten Wajo', 'value' => 'Kabupaten Wajo'],
+            ['label' => 'Kab. Toraja Utara', 'value' => 'Kab. Toraja Utara'],
+            ['label' => 'Kab. Gowa', 'value' => 'Kab. Gowa'],
+            ['label' => 'Kab. Bantaeng', 'value' => 'Kab. Bantaeng'],
+            ['label' => 'Kab. Kep. Selayar', 'value' => 'Kab. Kep. Selayar'],
+            ['label' => 'Kab. Jeneponto', 'value' => 'Kab. Jeneponto'],
+            ['label' => 'Kota Palopo', 'value' => 'Kota Palopo'],
         ];
     }
 
     /**
-     * Mapping contoh yang sengaja tinggal diedit pada definisi form ini.
+     * Mapping narasumber berdasarkan kabupaten/kota.
      *
      * @return array<string, mixed>
      */
@@ -345,15 +356,61 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'empty_behavior' => 'disabled',
             'reset_on_parent_change' => true,
             'options_by_parent' => [
-                'Kota Makassar' => [
-                    ['label' => 'Narasumber 1', 'value' => 'narasumber_1'],
-                    ['label' => 'Narasumber 2', 'value' => 'narasumber_2'],
+                'Kab. Luwu Timur' => [
+                    ['label' => 'Ninik', 'value' => 'ninik'],
+                    ['label' => 'Nuraeni Amir', 'value' => 'nuraeni_amir'],
                 ],
-                'Kabupaten Gowa' => [
-                    ['label' => 'Narasumber 3', 'value' => 'narasumber_3'],
+                'Kab. Luwu Utara' => [
+                    ['label' => 'Sukimin', 'value' => 'sukimin'],
+                    ['label' => 'Suparmin', 'value' => 'suparmin'],
                 ],
-                'Kabupaten Maros' => [
-                    ['label' => 'Narasumber 1', 'value' => 'narasumber_1'],
+                'Kab. Maros' => [
+                    ['label' => 'Sitti Hajra', 'value' => 'sitti_hajra'],
+                    ['label' => 'Mardiana Suyuti', 'value' => 'mardiana_suyuti'],
+                ],
+                'Kab. Enrekang' => [
+                    ['label' => 'Miradiyah', 'value' => 'miradiyah'],
+                    ['label' => 'Hairuddin', 'value' => 'hairuddin'],
+                ],
+                'Kota Parepare' => [
+                    ['label' => 'Asmuddin', 'value' => 'asmuddin'],
+                    ['label' => 'Syahriani Jarimollah', 'value' => 'syahriani_jarimollah'],
+                ],
+                'Kab. Sinjai' => [
+                    ['label' => 'Adi Wijaya', 'value' => 'adi_wijaya'],
+                    ['label' => 'Asrianingsih', 'value' => 'asrianingsih'],
+                ],
+                'Kab. Takalar' => [
+                    ['label' => 'Abdul Azis', 'value' => 'abdul_azis'],
+                    ['label' => 'Sri Rahayu PM', 'value' => 'sri_rahayu_pm'],
+                ],
+                'Kabupaten Wajo' => [
+                    ['label' => 'Hernawati Syam', 'value' => 'hernawati_syam'],
+                    ['label' => 'Firna Sari', 'value' => 'firna_sari'],
+                ],
+                'Kab. Toraja Utara' => [
+                    ['label' => 'Marwa', 'value' => 'marwa'],
+                    ['label' => 'Ilyas Kalla Lembang', 'value' => 'ilyas_kalla_lembang'],
+                ],
+                'Kab. Gowa' => [
+                    ['label' => 'Dr. Irlidya', 'value' => 'dr_irlidya'],
+                    ['label' => 'Hasanuddin Haris', 'value' => 'hasanuddin_haris'],
+                ],
+                'Kab. Bantaeng' => [
+                    ['label' => 'Abdul Waqif', 'value' => 'abdul_waqif'],
+                    ['label' => 'Bahtiar', 'value' => 'bahtiar'],
+                ],
+                'Kab. Kep. Selayar' => [
+                    ['label' => 'Santy Arbi', 'value' => 'santy_arbi'],
+                    ['label' => 'Herman', 'value' => 'herman'],
+                ],
+                'Kab. Jeneponto' => [
+                    ['label' => 'Herawati', 'value' => 'herawati'],
+                    ['label' => 'Syaharuddin', 'value' => 'syaharuddin'],
+                ],
+                'Kota Palopo' => [
+                    ['label' => 'Nursaidawati', 'value' => 'nursaidawati'],
+                    ['label' => 'Faliha', 'value' => 'faliha'],
                 ],
             ],
         ];
