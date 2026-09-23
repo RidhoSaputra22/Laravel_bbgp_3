@@ -208,6 +208,8 @@
                                                     <select id="{{ $fieldLabelId }}" class="form-control"
                                                         data-preview-field-name="{{ $field->nama_field }}"
                                                         data-preview-dependent="{{ $dependencyEnabled ? '1' : '0' }}"
+                                                        data-preview-allow-other="{{ \App\Support\Assessment\ChoiceFieldOtherOption::isEnabled(['validasi' => $field->validasi ?? []]) ? '1' : '0' }}"
+                                                        data-preview-other-option-value="{{ \App\Support\Assessment\ChoiceFieldOtherOption::VALUE }}"
                                                         data-preview-parent-field="{{ $dependencyConfig['parent_field'] ?? '' }}"
                                                         data-preview-config="{{ json_encode($dependencyConfig ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}">
                                                         <option value="" selected>
@@ -221,6 +223,7 @@
                                                     </select>
                                                     @if (\App\Support\Assessment\ChoiceFieldOtherOption::isEnabled(['validasi' => $field->validasi ?? []]))
                                                         <input type="text" class="form-control mt-2"
+                                                            data-preview-other-input
                                                             placeholder="Tulis jawaban lainnya" disabled>
                                                     @endif
                                                 @break
@@ -396,6 +399,17 @@
                 return;
             }
 
+            const syncOtherInput = (select) => {
+                const otherInput = select.closest('.form-group')?.querySelector('[data-preview-other-input]');
+
+                if (!otherInput) {
+                    return;
+                }
+
+                const otherValue = select.dataset.previewOtherOptionValue || '__other_option__';
+                otherInput.disabled = select.value !== otherValue;
+            };
+
             const refreshDependentFields = (parentSelect) => {
                 const form = parentSelect.closest('.assessment-preview-form');
 
@@ -429,13 +443,22 @@
                         }
                     });
 
+                    if (childSelect.dataset.previewAllowOther === '1') {
+                        childSelect.add(new Option(
+                            'Lainnya',
+                            childSelect.dataset.previewOtherOptionValue || '__other_option__',
+                        ));
+                    }
+
                     childSelect.disabled = config.empty_behavior !== 'empty'
                         && (!parentSelect.value || options.length === 0);
+                    syncOtherInput(childSelect);
                 });
             };
 
             preview.addEventListener('change', (event) => {
                 if (event.target.matches('select[data-preview-field-name]')) {
+                    syncOtherInput(event.target);
                     refreshDependentFields(event.target);
                 }
             });
@@ -446,6 +469,8 @@
 
                 if (parentSelect) {
                     refreshDependentFields(parentSelect);
+                } else {
+                    syncOtherInput(childSelect);
                 }
             });
         });

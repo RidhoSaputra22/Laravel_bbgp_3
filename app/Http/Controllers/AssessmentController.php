@@ -584,16 +584,6 @@ class AssessmentController extends Controller
                     }
 
                     if (
-                        $this->isDependencyConfigEnabled($field)
-                        && (bool) ($field['allow_other_input'] ?? false)
-                    ) {
-                        $validator->errors()->add(
-                            "forms.$formIndex.fields.$fieldIndex.allow_other_input",
-                            'Field dependency tidak dapat memakai opsi jawaban "Lainnya".'
-                        );
-                    }
-
-                    if (
                         ($field['tipe_field'] ?? '') !== 'select'
                         && (bool) ($field['allow_other_input'] ?? false)
                     ) {
