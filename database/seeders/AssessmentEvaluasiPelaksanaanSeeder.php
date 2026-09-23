@@ -356,19 +356,19 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'empty_behavior' => 'disabled',
             'reset_on_parent_change' => true,
             'options_by_parent' => [
-                'Kab. Luwu Timur' => [
+                'Kabupaten Luwu Timur' => [
                     ['label' => 'Ninik', 'value' => 'ninik'],
                     ['label' => 'Nuraeni Amir', 'value' => 'nuraeni_amir'],
                 ],
-                'Kab. Luwu Utara' => [
+                'Kabupaten Luwu Utara' => [
                     ['label' => 'Sukimin', 'value' => 'sukimin'],
                     ['label' => 'Suparmin', 'value' => 'suparmin'],
                 ],
-                'Kab. Maros' => [
+                'Kabupaten Maros' => [
                     ['label' => 'Sitti Hajra', 'value' => 'sitti_hajra'],
                     ['label' => 'Mardiana Suyuti', 'value' => 'mardiana_suyuti'],
                 ],
-                'Kab. Enrekang' => [
+                'Kabupaten Enrekang' => [
                     ['label' => 'Miradiyah', 'value' => 'miradiyah'],
                     ['label' => 'Hairuddin', 'value' => 'hairuddin'],
                 ],
@@ -376,11 +376,11 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                     ['label' => 'Asmuddin', 'value' => 'asmuddin'],
                     ['label' => 'Syahriani Jarimollah', 'value' => 'syahriani_jarimollah'],
                 ],
-                'Kab. Sinjai' => [
+                'Kabupaten Sinjai' => [
                     ['label' => 'Adi Wijaya', 'value' => 'adi_wijaya'],
                     ['label' => 'Asrianingsih', 'value' => 'asrianingsih'],
                 ],
-                'Kab. Takalar' => [
+                'Kabupaten Takalar' => [
                     ['label' => 'Abdul Azis', 'value' => 'abdul_azis'],
                     ['label' => 'Sri Rahayu PM', 'value' => 'sri_rahayu_pm'],
                 ],
@@ -388,23 +388,23 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                     ['label' => 'Hernawati Syam', 'value' => 'hernawati_syam'],
                     ['label' => 'Firna Sari', 'value' => 'firna_sari'],
                 ],
-                'Kab. Toraja Utara' => [
+                'Kabupaten Toraja Utara' => [
                     ['label' => 'Marwa', 'value' => 'marwa'],
                     ['label' => 'Ilyas Kalla Lembang', 'value' => 'ilyas_kalla_lembang'],
                 ],
-                'Kab. Gowa' => [
+                'Kabupaten Gowa' => [
                     ['label' => 'Dr. Irlidya', 'value' => 'dr_irlidya'],
                     ['label' => 'Hasanuddin Haris', 'value' => 'hasanuddin_haris'],
                 ],
-                'Kab. Bantaeng' => [
+                'Kabupaten Bantaeng' => [
                     ['label' => 'Abdul Waqif', 'value' => 'abdul_waqif'],
                     ['label' => 'Bahtiar', 'value' => 'bahtiar'],
                 ],
-                'Kab. Kep. Selayar' => [
+                'Kabupaten Kep. Selayar' => [
                     ['label' => 'Santy Arbi', 'value' => 'santy_arbi'],
                     ['label' => 'Herman', 'value' => 'herman'],
                 ],
-                'Kab. Jeneponto' => [
+                'Kabupaten Jeneponto' => [
                     ['label' => 'Herawati', 'value' => 'herawati'],
                     ['label' => 'Syaharuddin', 'value' => 'syaharuddin'],
                 ],

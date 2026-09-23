@@ -39,6 +39,7 @@
 
 - [Table of Contents](#table-of-contents)
 - [Quick start](#quick-start)
+- [Assessment API](#assessment-api)
 - [License](#license)
 - [Supports](#supports)
 
@@ -57,6 +58,32 @@ Several quick start options are available:
 -   Done
 
 Read the [documentation page](https://getstisla.com/docs) for more information on the framework contents, templates and examples, and more.
+
+## Assessment API
+
+Obtain a Bearer token first:
+
+```bash
+API_BASE_URL="http://127.0.0.1:8000"
+
+curl --fail-with-body --request POST "$API_BASE_URL/api/v1/auth/token" \
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --data '{"username":"USERNAME","password":"PASSWORD","device_name":"curl"}'
+```
+
+Use the returned `access_token` to retrieve the published assessment and save the JSON response:
+
+```bash
+API_TOKEN="PASTE_ACCESS_TOKEN_HERE"
+
+curl --fail-with-body "$API_BASE_URL/api/v1/assessments/ASM-EVAL-PELAKSANAAN-HBG-001" \
+  --header 'Accept: application/json' \
+  --header "Authorization: Bearer $API_TOKEN" \
+  --output assessment-evaluasi-pelaksanaan.json
+```
+
+The assessment endpoint accepts the assessment code or slug. The token must have the `assessment:read` ability.
 
 ## License
 
