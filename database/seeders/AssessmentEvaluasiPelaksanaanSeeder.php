@@ -83,8 +83,21 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                 'deskripsi' => 'Data identitas peserta dan informasi kegiatan Hari Belajar Guru yang diikuti.',
                 'is_scoreable' => false,
                 'fields' => [
+                    $this->textField(
+                        '1. Nama Narasumber',
+                        'nama_narasumber',
+                        'Masukkan nama narasumber',
+                        'Masukkan nama narasumber'
+                    ),
+                    $this->textField(
+                        '2. Nama Sekolah',
+                        'nama_sekolah',
+                        'Masukkan nama Sekolah',
+                        'Nama sekolah dapat terisi otomatis dari data SIM.',
+                        'satuan_pendidikan'
+                    ),
                     $this->selectField(
-                        '1. Kabupaten/Kota',
+                        '3. Kabupaten/Kota',
                         'kabupaten_kota',
                         $this->kabupatenOptions(),
                         'Pilih jawaban...',
@@ -92,24 +105,6 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         false,
                         true,
                         'kabupaten'
-                    ),
-                    $this->selectField(
-                        '2. Nama Narasumber',
-                        'nama_narasumber',
-                        [],
-                        'Pilih narasumber...',
-                        '',
-                        false,
-                        true,
-                        null,
-                        $this->narasumberByKabupatenConfig(),
-                    ),
-                    $this->textField(
-                        '3. Nama Sekolah',
-                        'nama_sekolah',
-                        'Masukkan nama Sekolah',
-                        'Nama sekolah dapat terisi otomatis dari data SIM.',
-                        'satuan_pendidikan'
                     ),
                     $this->textField(
                         '4. Materi/Topik',
@@ -123,27 +118,8 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         'tanggal_pelaksanaan',
                         'Masukkan tanggal pelaksanaan kegiatan.'
                     ),
-                    $this->selectField(
-                        '6. Jabatan',
-                        'jabatan',
-                        [
-                            'Guru',
-                            'Kepala Sekolah',
-                            'KKG',
-                            'MGMP',
-                            'K3S/ MKKS',
-                            'Kombel',
-                            'Pengawas sekolah',
-                            'Pelatih dari balai-balai',
-                            'Pemerintah Daerah & Pusat',
-                        ],
-                        'Pilih jawaban...',
-                        'Pilih jabatan peserta.',
-                        true,
-                        false
-                    ),
                     $this->textField(
-                        '7. Tempat Pelaksanaan',
+                        '6. Tempat Pelaksanaan',
                         'tempat_pelaksanaan',
                         'Masukkan tempat pelaksanaan kegiatan',
                         'Masukkan tempat pelaksanaan kegiatan'
@@ -460,32 +436,6 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             ['label' => 'Kota Makassar', 'value' => 'Kota Makassar'],
             ['label' => 'Kabupaten Gowa', 'value' => 'Kabupaten Gowa'],
             ['label' => 'Kabupaten Maros', 'value' => 'Kabupaten Maros'],
-        ];
-    }
-
-    /**
-     * Mapping contoh yang sengaja tinggal diedit pada definisi form ini.
-     *
-     * @return array<string, mixed>
-     */
-    private function narasumberByKabupatenConfig(): array
-    {
-        return [
-            'parent_field' => 'kabupaten_kota',
-            'empty_behavior' => 'disabled',
-            'reset_on_parent_change' => true,
-            'options_by_parent' => [
-                'Kota Makassar' => [
-                    ['label' => 'Narasumber 1', 'value' => 'narasumber_1'],
-                    ['label' => 'Narasumber 2', 'value' => 'narasumber_2'],
-                ],
-                'Kabupaten Gowa' => [
-                    ['label' => 'Narasumber 3', 'value' => 'narasumber_3'],
-                ],
-                'Kabupaten Maros' => [
-                    ['label' => 'Narasumber 1', 'value' => 'narasumber_1'],
-                ],
-            ],
         ];
     }
 
