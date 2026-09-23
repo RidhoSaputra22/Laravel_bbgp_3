@@ -206,7 +206,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                     ]),
                     [
                         $this->field(
-                            'Saran/Masukan',
+                            "Saran'Masukan/Harapan:",
                             'saran_masukan',
                             'text',
                             null,
