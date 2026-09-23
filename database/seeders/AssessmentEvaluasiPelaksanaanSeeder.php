@@ -400,7 +400,7 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                     ['label' => 'Abdul Waqif', 'value' => 'abdul_waqif'],
                     ['label' => 'Bahtiar', 'value' => 'bahtiar'],
                 ],
-                'Kabupaten Kep. Selayar' => [
+                'Kabupaten Kepulauan Selayar' => [
                     ['label' => 'Santy Arbi', 'value' => 'santy_arbi'],
                     ['label' => 'Herman', 'value' => 'herman'],
                 ],
