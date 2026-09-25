@@ -25,7 +25,6 @@ use App\Models\SatuanPendidikan;
 use App\Models\Sekolah;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -390,12 +389,14 @@ class UserController extends Controller
                 default => 'stakeholder',
             };
 
-            $user = strtolower(str_replace(' ', '', $r['nama_lengkap']));
+            $user = (string) $r['no_ktp'];
+            $passwordPlain = '12345';
+            $r['username'] = $user;
+
             $reg['name'] = $r['nama_lengkap'];
             $reg['username'] = $user;
             $reg['no_ktp'] = (string) $r['no_ktp'];
             $reg['role'] = $role;
-            $passwordPlain = Str::random(16);
             $reg['password'] = bcrypt($passwordPlain);
 
 
