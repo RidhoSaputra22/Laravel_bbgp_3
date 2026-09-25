@@ -115,20 +115,14 @@ class SekolahController extends Controller
             $sekolah = Sekolah::create($validated);
 
             // BUAT AKUN KEPALA SEKOLAH OTOMATIS
-            $akunKepsek = $this->createAkunKepalaSekolah($request, $sekolah);
+            $this->createAkunKepalaSekolah($request, $sekolah);
 
 
 
             // Commit transaction
             DB::commit();
 
-            return redirect()->route('user.index')->with([
-                'message' => 'sukses daftar sekolah',
-                'registration_credentials' => [
-                    'username' => $akunKepsek['username'],
-                    'password' => $akunKepsek['password_plain'],
-                ],
-            ]);
+            return redirect()->route('user.index')->with('message', 'sukses daftar sekolah');
         } catch (\Exception $e) {
             // Rollback jika ada error
             DB::rollBack();
@@ -332,7 +326,7 @@ class SekolahController extends Controller
 
         // Generate password default
         // Bisa menggunakan NPSN atau custom
-        $passwordPlain = Str::random(16);
+        $passwordPlain = '12345'; // Password default, bisa diganti sesuai kebutuhan
 
         // Data akun
         $dataAkun = [

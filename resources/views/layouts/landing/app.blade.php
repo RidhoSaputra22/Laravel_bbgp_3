@@ -574,12 +574,7 @@
 
         @if (session('message') == 'sukses daftar sekolah')
             <script>
-                @if (session('registration_credentials'))
-                    const schoolCredentials = @json(session('registration_credentials'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-                    Swal.fire("Success", `Sekolah berhasil didaftarkan. Username: ${schoolCredentials.username}\nPassword sementara: ${schoolCredentials.password}`, "success");
-                @else
-                    Swal.fire("Success", "Sekolah berhasil didaftarkan. Silakan gunakan kredensial yang diberikan admin.", "success");
-                @endif
+                Swal.fire("Success", "Penginputan data sekolah berhasil.", "success");
             </script>
         @endif
 
