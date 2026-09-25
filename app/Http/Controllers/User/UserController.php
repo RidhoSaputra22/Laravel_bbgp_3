@@ -26,6 +26,7 @@ use App\Models\Sekolah;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -299,32 +300,60 @@ class UserController extends Controller
     }
     public function daftar_guru(Request $request)
     {
+        $jabatanTable = match ($request->input('jenisJabatan')) {
+            'Tenaga Pendidik' => 'jabatan_pendidiks',
+            'Tenaga Kependidikan' => 'jabatan_kependidikans',
+            default => 'jabatan_stake_holders',
+        };
+
         $r = $request->validate([
             'nama_lengkap' => 'required|string|max:255',
-            'no_ktp' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
+            'no_ktp' => 'required|digits:16',
             'jenisJabatan' => 'required|string|in:Tenaga Pendidik,Tenaga Kependidikan,Stakeholder',
-            'jabJenis' => 'nullable|string|max:255',
-            'jabLainnya' => 'nullable|string|max:255',
-            'kabupaten' => 'nullable|string|max:255',
-            'diluarKab' => 'nullable|string|max:255',
+            'jabJenis' => ['required', 'string', 'max:255', Rule::exists($jabatanTable, 'name')],
+            'jabLainnya' => 'nullable|string|max:255|required_if:jabJenis,Lainnya',
+            'kabupaten' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::in(array_merge(['Tidak ada'], Kabupaten::query()->pluck('name')->all())),
+            ],
+            'diluarKab' => 'nullable|string|max:255|required_if:kabupaten,Tidak ada',
             'jabKategori' => 'nullable|string|max:255',
             'jabTugas' => 'nullable|string|max:255',
             'jabLatar' => 'nullable|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'nip' => 'nullable|string|max:50',
-            'npsn_sekolah' => 'nullable|string|max:50',
-            'tempat_lahir' => 'nullable|string|max:255',
-            'tgl_lahir' => 'nullable|date',
-            'gender' => 'nullable|string|max:30',
-            'agama' => 'nullable|string|max:50',
-            'pendidikan' => 'nullable|string|max:100',
-            'alamat_rumah' => 'nullable|string|max:1000',
-            'no_hp' => 'nullable|string|max:30',
-            'no_wa' => 'nullable|string|max:30',
-            'no_rek' => 'nullable|string|max:50',
-            'jenis_bank' => 'nullable|string|max:100',
-            'npwp' => 'nullable|string|max:50',
-            'nuptk' => 'nullable|string|max:50',
+            'email' => 'required|email|max:255',
+            'nip' => 'required|digits:18',
+            'npsn_sekolah' => 'nullable|digits:8',
+            'tempat_lahir' => 'required|string|max:255',
+            'tgl_lahir' => 'required|date|before:today',
+            'gender' => 'required|string|in:Laki-laki,Perempuan',
+            'status_kepegawaian' => 'required|exists:kepegawaians,name',
+            'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Buddha',
+            'pendidikan' => 'required|exists:pendidikans,name',
+            'satuan_pendidikan' => 'required|exists:satuan_pendidikans,name',
+            'alamat_satuan' => 'nullable|string|max:1000',
+            'alamat_rumah' => 'required|string|max:1000',
+            'no_hp' => 'required|digits_between:10,15',
+            'no_wa' => 'required|digits_between:10,15',
+            'no_rek' => 'required|digits_between:1,30',
+            'jenis_bank' => [
+                'required',
+                Rule::in([
+                    'Bank BCA',
+                    'Bank BRI',
+                    'Bank BNI',
+                    'Bank BTN',
+                    'Bank Mandiri',
+                    'Bank Syariah Indonesia',
+                    'Bank SulSelBar',
+                    'Tidak ada',
+                ]),
+            ],
+            'npwp' => 'required|digits_between:15,16',
+            'nuptk' => $request->input('jenisJabatan') === 'Stakeholder'
+                ? 'nullable|digits:16'
+                : 'required|digits:16',
         ]);
 
 
@@ -335,8 +364,9 @@ class UserController extends Controller
             $r['jabatan'] = '';
             $r['pas_foto'] = '';
             $r['status'] = 'Belum Kawin';
-            $r['alamat_satuan'] = '';
+            $r['alamat_satuan'] = $r['alamat_satuan'] ?? '';
             $r['eksternal_jabatan'] = $r['jenisJabatan'] ?? '';
+            $r['agama'] = $r['agama'] === 'Buddha' ? 'Budha' : $r['agama'];
 
             if (($r['jabJenis'] ?? null) == 'Lainnya' && ($r['jabLainnya'] ?? null) != null) {
                 $r['jabJenis'] = $r['jabLainnya'];
@@ -387,7 +417,14 @@ class UserController extends Controller
                 ],
             ]);
         } else {
-            return redirect()->route('user.guru')->with('message', 'nik daftar');
+            return redirect()
+                ->route('user.form_guru', $r['jenisJabatan'])
+                ->withInput()
+                ->withErrors([
+                    'no_ktp' => __('validation.custom.no_ktp.duplicate', [
+                        'attribute' => __('validation.attributes.no_ktp'),
+                    ]),
+                ]);
         }
     }
 

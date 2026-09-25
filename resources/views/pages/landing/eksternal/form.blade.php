@@ -27,27 +27,55 @@
         <div class="row">
 
             <div class="col-md-12 col-lg-12">
-                <form action="{{ route('user.daftar_guru') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('user.daftar_guru') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
+                    @if ($errors->any())
+                        <div class="alert alert-danger" role="alert">
+                            <strong>Periksa kembali data yang diisi:</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nama Lengkap</label>
-                                <input required name="nama_lengkap" type="text" class="form-control">
+                                <input required name="nama_lengkap" type="text" class="form-control"
+                                    value="{{ old('nama_lengkap') }}">
+                                @error('nama_lengkap')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group">
                                 <label>Email</label>
-                                <input required name="email" type="email" class="form-control">
+                                <input required name="email" type="email" class="form-control"
+                                    value="{{ old('email') }}">
+                                @error('email')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nomor KTP</label>
-                                <input required name="no_ktp" type="text" class="form-control">
+                                <input required name="no_ktp" type="text" class="form-control"
+                                    value="{{ old('no_ktp') }}" minlength="16" maxlength="16"
+                                    inputmode="numeric">
+                                @error('no_ktp')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group">
                                 <label>NIP</label>
-                                <input required name="nip" type="text" class="form-control">
+                                <input required name="nip" type="text" class="form-control"
+                                    value="{{ old('nip') }}" minlength="18" maxlength="18"
+                                    inputmode="numeric">
+                                @error('nip')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -56,14 +84,23 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>NPWP</label>
-                                <input required name="npwp" type="text" class="form-control">
+                                <input required name="npwp" type="text" class="form-control"
+                                    value="{{ old('npwp') }}" minlength="15" maxlength="16"
+                                    inputmode="numeric">
+                                @error('npwp')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>NUPTK</label>
                                 <input {{ $jenis == 'Stakeholder' ? '' : 'required' }} name="nuptk" type="text"
-                                    class="form-control">
+                                    class="form-control" value="{{ old('nuptk') }}" minlength="16" maxlength="16"
+                                    inputmode="numeric">
+                                @error('nuptk')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -76,22 +113,35 @@
                                 <select required name="status_kepegawaian" class="form-control select2">
                                     <option value="">-- Pilih status kepegawaian --</option>
                                     @foreach ($status['s_kepegawaian'] as $v)
-                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
+                                        <option value="{{ $v->name }}"
+                                            {{ old('status_kepegawaian') === $v->name ? 'selected' : '' }}>
+                                            {{ $v->name }}</option>
                                     @endforeach
 
                                 </select>
+                                @error('status_kepegawaian')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md">
                             <div class="form-group">
                                 <label>Tempat Lahir</label>
-                                <input required name="tempat_lahir" type="text" class="form-control">
+                                <input required name="tempat_lahir" type="text" class="form-control"
+                                    value="{{ old('tempat_lahir') }}">
+                                @error('tempat_lahir')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md">
                             <div class="form-group">
                                 <label>Tanggal Lahir</label>
-                                <input required name="tgl_lahir" type="date" class="form-control">
+                                <input required name="tgl_lahir" type="date" class="form-control"
+                                    value="{{ old('tgl_lahir') }}">
+                                @error('tgl_lahir')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -102,16 +152,24 @@
                                 <label>Jenis Kelamin</label>
                                 <select required name="gender" class="form-control ">
                                     <option value="">-- Pilih Jenis Kelamin --</option>
-                                    <option value="Laki-laki">Laki-laki</option>
-                                    <option value="Perempuan">Perempuan</option>
+                                    <option value="Laki-laki" {{ old('gender') === 'Laki-laki' ? 'selected' : '' }}>
+                                        Laki-laki</option>
+                                    <option value="Perempuan" {{ old('gender') === 'Perempuan' ? 'selected' : '' }}>
+                                        Perempuan</option>
                                 </select>
+                                @error('gender')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md">
                             <div class="form-group">
                                 <label>Alamat Rumah</label>
                                 <input required type="text" name="alamat_rumah" class="form-control"
-                                    placeholder="isi dengan lengkap ">
+                                    placeholder="isi dengan lengkap " value="{{ old('alamat_rumah') }}">
+                                @error('alamat_rumah')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -123,12 +181,20 @@
                                 <label>Agama</label>
                                 <select required name="agama" class="form-control ">
                                     <option value="">-- Pilih Agama --</option>
-                                    <option value="Islam">Islam</option>
-                                    <option value="Kristen">Kristen</option>
-                                    <option value="Katolik">Katolik</option>
-                                    <option value="Hindu">Hindu</option>
-                                    <option value="Buddha">Buddha</option>
+                                    <option value="Islam" {{ old('agama') === 'Islam' ? 'selected' : '' }}>Islam
+                                    </option>
+                                    <option value="Kristen" {{ old('agama') === 'Kristen' ? 'selected' : '' }}>Kristen
+                                    </option>
+                                    <option value="Katolik" {{ old('agama') === 'Katolik' ? 'selected' : '' }}>Katolik
+                                    </option>
+                                    <option value="Hindu" {{ old('agama') === 'Hindu' ? 'selected' : '' }}>Hindu
+                                    </option>
+                                    <option value="Buddha" {{ old('agama') === 'Buddha' ? 'selected' : '' }}>Buddha
+                                    </option>
                                 </select>
+                                @error('agama')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -137,10 +203,15 @@
                                 <select required name="pendidikan" class="form-control ">
                                     <option value="">-- Pilih pendidikan terakhir --</option>
                                     @foreach ($status['s_gelar'] as $v)
-                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
+                                        <option value="{{ $v->name }}"
+                                            {{ old('pendidikan') === $v->name ? 'selected' : '' }}>
+                                            {{ $v->name }}</option>
                                     @endforeach
 
                                 </select>
+                                @error('pendidikan')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-4">
@@ -149,10 +220,15 @@
                                 <select required name="satuan_pendidikan" class="form-control select2">
                                     <option value="">-- Pilih status Satuan Pendidikan --</option>
                                     @foreach ($status['s_kependidikan'] as $v)
-                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
+                                        <option value="{{ $v->name }}"
+                                            {{ old('satuan_pendidikan') === $v->name ? 'selected' : '' }}>
+                                            {{ $v->name }}</option>
                                     @endforeach
 
                                 </select>
+                                @error('satuan_pendidikan')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -165,12 +241,18 @@
                                 <label>Kabupaten / Kota</label>
                                 <select required name="kabupaten" id="kabupaten" class="form-control select2">
                                     <option value="">-- Pilih Kabupaten / Kota --</option>
-                                    <option value="Tidak ada">Diluar SulSel</option>
+                                    <option value="Tidak ada" {{ old('kabupaten') === 'Tidak ada' ? 'selected' : '' }}>
+                                        Diluar SulSel</option>
                                     @foreach ($status['s_kabupaten'] as $v)
-                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
+                                        <option value="{{ $v->name }}"
+                                            {{ old('kabupaten') === $v->name ? 'selected' : '' }}>
+                                            {{ $v->name }}</option>
                                     @endforeach
 
                                 </select>
+                                @error('kabupaten')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -178,7 +260,10 @@
                             <div class="form-group">
                                 <label>Asal Kabupaten/Kota</label>
                                 <input name="diluarKab" placeholder="jika diluar SulSel" type="text"
-                                    class="form-control">
+                                    class="form-control" value="{{ old('diluarKab') }}">
+                                @error('diluarKab')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -189,13 +274,23 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Nomor Handphone</label>
-                                <input required name="no_hp" type="number" class="form-control">
+                                <input required name="no_hp" type="number" class="form-control"
+                                    value="{{ old('no_hp') }}" min="1000000000" max="999999999999999"
+                                    inputmode="numeric">
+                                @error('no_hp')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Nomor Whatsapp</label>
-                                <input required name="no_wa" type="number" class="form-control">
+                                <input required name="no_wa" type="number" class="form-control"
+                                    value="{{ old('no_wa') }}" min="1000000000" max="999999999999999"
+                                    inputmode="numeric">
+                                @error('no_wa')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -206,23 +301,40 @@
                             <div class="form-group">
                                 <label>Bank</label>
                                 <select required name="jenis_bank" class="form-control" id="jenisBank">
-                                    <option value="Bank BCA">-- Pilih Bank --</option>
-                                    <option value="Bank BCA">Bank BCA</option>
-                                    <option value="Bank BRI">Bank BRI</option>
-                                    <option value="Bank BNI">Bank BNI</option>
-                                    <option value="Bank BTN">Bank BTN</option>
-                                    <option value="Bank Mandiri">Bank Mandiri</option>
-                                    <option value="Bank Syariah Indonesia">Bank Syariah Indonesia</option>
-                                    <option value="Bank SulSelBar">Bank SulSelBar</option>
-                                    <option value="Tidak ada">Tidak ada</option>
+                                    <option value="">-- Pilih Bank --</option>
+                                    <option value="Bank BCA" {{ old('jenis_bank') === 'Bank BCA' ? 'selected' : '' }}>
+                                        Bank BCA</option>
+                                    <option value="Bank BRI" {{ old('jenis_bank') === 'Bank BRI' ? 'selected' : '' }}>
+                                        Bank BRI</option>
+                                    <option value="Bank BNI" {{ old('jenis_bank') === 'Bank BNI' ? 'selected' : '' }}>
+                                        Bank BNI</option>
+                                    <option value="Bank BTN" {{ old('jenis_bank') === 'Bank BTN' ? 'selected' : '' }}>
+                                        Bank BTN</option>
+                                    <option value="Bank Mandiri"
+                                        {{ old('jenis_bank') === 'Bank Mandiri' ? 'selected' : '' }}>Bank Mandiri</option>
+                                    <option value="Bank Syariah Indonesia"
+                                        {{ old('jenis_bank') === 'Bank Syariah Indonesia' ? 'selected' : '' }}>Bank Syariah
+                                        Indonesia</option>
+                                    <option value="Bank SulSelBar"
+                                        {{ old('jenis_bank') === 'Bank SulSelBar' ? 'selected' : '' }}>Bank SulSelBar</option>
+                                    <option value="Tidak ada" {{ old('jenis_bank') === 'Tidak ada' ? 'selected' : '' }}>
+                                        Tidak ada</option>
                                 </select>
+                                @error('jenis_bank')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
                         <div class="col-md-5">
                             <div class="form-group">
                                 <label>Nomor Rekening</label>
-                                <input required type="number" name="no_rek" id="no_rek" class="form-control">
+                                <input required type="number" name="no_rek" id="no_rek" class="form-control"
+                                    value="{{ old('no_rek') }}" min="0" max="999999999999999999999999999999"
+                                    inputmode="numeric">
+                                @error('no_rek')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
 
                             </div>
                         </div>
@@ -244,6 +356,9 @@
                                 <option {{ $jenis == 'Stakeholder' ? 'selected' : 'disabled' }} value="Stakeholder">
                                     Stakeholder</option>
                             </select>
+                            @error('jenisJabatan')
+                                <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
                         </div>
 
                         <div class="col-md-4">
@@ -252,6 +367,9 @@
                                 <select required name="jabJenis" class="form-control " id="jabJenis">
                                     <option value="">-- Pilih Jenis Jabatan --</option>
                                 </select>
+                                @error('jabJenis')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -259,7 +377,11 @@
                             <div class="form-group">
                                 <label>Jabatan </label>
                                 <input type="text" name="jabLainnya" id=""
-                                    placeholder="ketikkan jabatan anda" class="form-control">
+                                    placeholder="ketikkan jabatan anda" class="form-control"
+                                    value="{{ old('jabLainnya') }}">
+                                @error('jabLainnya')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -275,19 +397,27 @@
                                 <option value="">-- Pilih Data Sekolah --</option>
 
                             </select>
+                            @error('npsn_sekolah')
+                                <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Kabupaten Sekolah</label>
                                 <input id="kabupaten_sekolah" type="text" name="kabupaten_sekolah"
-                                    class="form-control" placeholder="Otomatis terisi berdasarkan NPSN Sekolah" readonly>
+                                    class="form-control" placeholder="Otomatis terisi berdasarkan NPSN Sekolah" readonly
+                                    value="{{ old('kabupaten_sekolah') }}">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label>Kecamatan Sekolah</label>
                                 <input id="kecamatan_sekolah" type="text" name="alamat_satuan" class="form-control"
-                                    placeholder="Otomatis terisi berdasarkan NPSN Sekolah" readonly>
+                                    placeholder="Otomatis terisi berdasarkan NPSN Sekolah" readonly
+                                    value="{{ old('alamat_satuan') }}">
+                                @error('alamat_satuan')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
                             </div>
                         </div>
 
@@ -340,6 +470,10 @@
                 const getKabupaten = $('#kabupaten');
                 const fieldKab = $('#diluarKab');
                 fieldKab.hide()
+
+                if (getKabupaten.val() === 'Tidak ada' || @json($errors->has('diluarKab'))) {
+                    fieldKab.show()
+                }
 
                 getKabupaten.on('change', function() {
                     const val = $(this).find(':selected').val()
@@ -718,6 +852,15 @@
                     }
                 });
                 fillterJabatan();
+
+                const oldJabJenis = @json(old('jabJenis'));
+                if (oldJabJenis) {
+                    $('#jabJenis').val(oldJabJenis);
+                }
+
+                if ($('#jabJenis').val() === 'Lainnya' || @json($errors->has('jabLainnya'))) {
+                    fieldLainnya.show()
+                }
 
             });
         </script>
