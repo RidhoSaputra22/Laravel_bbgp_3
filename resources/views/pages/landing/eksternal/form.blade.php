@@ -29,16 +29,6 @@
             <div class="col-md-12 col-lg-12">
                 <form action="{{ route('user.daftar_guru') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
-                    @if ($errors->any())
-                        <div class="alert alert-danger" role="alert">
-                            <strong>Periksa kembali data yang diisi:</strong>
-                            <ul class="mb-0 mt-2">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
@@ -46,14 +36,6 @@
                                 <input required name="nama_lengkap" type="text" class="form-control"
                                     value="{{ old('nama_lengkap') }}">
                                 @error('nama_lengkap')
-                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
-                                @enderror
-                            </div>
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input required name="email" type="email" class="form-control"
-                                    value="{{ old('email') }}">
-                                @error('email')
                                     <small class="text-danger d-block mt-1">{{ $message }}</small>
                                 @enderror
                             </div>
@@ -68,6 +50,21 @@
                                     <small class="text-danger d-block mt-1">{{ $message }}</small>
                                 @enderror
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input required name="email" type="email" class="form-control"
+                                    value="{{ old('email') }}">
+                                @error('email')
+                                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
                             <div class="form-group">
                                 <label>NIP</label>
                                 <input required name="nip" type="text" class="form-control"

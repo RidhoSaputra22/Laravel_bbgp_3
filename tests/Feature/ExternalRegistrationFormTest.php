@@ -129,7 +129,7 @@ class ExternalRegistrationFormTest extends TestCase
             ->assertSessionHasErrors($expectedErrors);
 
         $this->get(route('user.form_guru', $jenis))
-            ->assertSee('Periksa kembali data yang diisi:')
+            ->assertDontSee('Periksa kembali data yang diisi:')
             ->assertSee('Nama lengkap wajib diisi.')
             ->assertSee('Email wajib diisi.')
             ->assertSee('Nomor KTP wajib diisi.');
