@@ -17,7 +17,8 @@ return new class extends Migration
             $table->date('tgl_surat')->nullable();
             $table->string('kode_anggaran')->nullable();
             $table->string('kegiatan_id')->nullable();
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent();
         });
     }
 

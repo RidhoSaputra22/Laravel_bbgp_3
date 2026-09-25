@@ -15,12 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('id_peserta');
             $table->string('kode_anggaran')->nullable();
-            $table->string('golongan');
-            $table->string('jenis_gol');
-            $table->integer('jp_realisasi');
-            $table->integer('jumlah');
-            $table->integer('jumlah_honor');
-            $table->integer('potongan');
+            $table->string('golongan')->nullable();
+            $table->string('jenis_gol')->nullable();
+            $table->integer('jp_realisasi')->nullable();
+            $table->integer('jumlah')->nullable();
+            $table->integer('jumlah_honor')->nullable();
+            $table->integer('potongan')->nullable();
             $table->timestamps();
         });
     }

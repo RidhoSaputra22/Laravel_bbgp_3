@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('internal_ppnpns', function (Blueprint $table) {
             $table->id();
             $table->string('id_pegawai');
+            $table->string('nik')->nullable();
             $table->string('jabatan');
             $table->string('kegiatan');
             $table->string('tempat');

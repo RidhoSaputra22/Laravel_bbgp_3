@@ -19,26 +19,26 @@ return new class extends Migration
         $this->normalizeIsVerifValues();
 
         $this->withRelaxedSqlMode(function () {
-            $this->addColumnIfMissing('internals', 'nik', fn (Blueprint $table) => $table->string('nik')->nullable());
+            $this->addColumnIfMissing('internals', 'nik', fn (Blueprint $table) => $table->string('nik'));
             $this->addColumnIfMissing('internals', 'kota', fn (Blueprint $table) => $table->string('kota')->nullable());
             $this->addColumnIfMissing('internals', 'tgl_selesai_kegiatan', fn (Blueprint $table) => $table->date('tgl_selesai_kegiatan')->nullable());
-            $this->addColumnIfMissing('internals', 'jam_mulai', fn (Blueprint $table) => $table->time('jam_mulai')->nullable());
-            $this->addColumnIfMissing('internals', 'jam_selesai', fn (Blueprint $table) => $table->time('jam_selesai')->nullable());
+            $this->addColumnIfMissing('internals', 'jam_mulai', fn (Blueprint $table) => $table->time('jam_mulai')->nullable()->default('00:00:00'));
+            $this->addColumnIfMissing('internals', 'jam_selesai', fn (Blueprint $table) => $table->time('jam_selesai')->nullable()->default('00:00:00'));
             $this->addColumnIfMissing('internals', 'deskripsi', fn (Blueprint $table) => $table->text('deskripsi')->nullable());
             $this->addColumnIfMissing('internals', 'hotel', fn (Blueprint $table) => $table->string('hotel')->nullable());
-            $this->addColumnIfMissing('internals', 'transport_pergi', fn (Blueprint $table) => $table->unsignedBigInteger('transport_pergi')->default(0));
-            $this->addColumnIfMissing('internals', 'transport_pulang', fn (Blueprint $table) => $table->unsignedBigInteger('transport_pulang')->default(0));
-            $this->addColumnIfMissing('internals', 'bill_penginapan', fn (Blueprint $table) => $table->unsignedBigInteger('bill_penginapan')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_1', fn (Blueprint $table) => $table->unsignedBigInteger('hari_1')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_2', fn (Blueprint $table) => $table->unsignedBigInteger('hari_2')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_3', fn (Blueprint $table) => $table->unsignedBigInteger('hari_3')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_4', fn (Blueprint $table) => $table->unsignedBigInteger('hari_4')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_5', fn (Blueprint $table) => $table->unsignedBigInteger('hari_5')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_6', fn (Blueprint $table) => $table->unsignedBigInteger('hari_6')->default(0));
-            $this->addColumnIfMissing('internals', 'hari_7', fn (Blueprint $table) => $table->unsignedBigInteger('hari_7')->default(0));
+            $this->addColumnIfMissing('internals', 'transport_pergi', fn (Blueprint $table) => $table->integer('transport_pergi')->nullable());
+            $this->addColumnIfMissing('internals', 'transport_pulang', fn (Blueprint $table) => $table->integer('transport_pulang')->nullable());
+            $this->addColumnIfMissing('internals', 'bill_penginapan', fn (Blueprint $table) => $table->integer('bill_penginapan')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_1', fn (Blueprint $table) => $table->integer('hari_1')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_2', fn (Blueprint $table) => $table->integer('hari_2')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_3', fn (Blueprint $table) => $table->integer('hari_3')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_4', fn (Blueprint $table) => $table->integer('hari_4')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_5', fn (Blueprint $table) => $table->integer('hari_5')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_6', fn (Blueprint $table) => $table->integer('hari_6')->default(0));
+            $this->addColumnIfMissing('internals', 'hari_7', fn (Blueprint $table) => $table->integer('hari_7')->default(0));
             $this->addColumnIfMissing('internals', 'bukti_bill', fn (Blueprint $table) => $table->string('bukti_bill')->nullable());
             $this->addColumnIfMissing('internals', 'jenis_data', fn (Blueprint $table) => $table->string('jenis_data')->nullable());
-            $this->addColumnIfMissing('internals', 'is_verif', fn (Blueprint $table) => $table->string('is_verif', 20)->default('belum'));
+            $this->addColumnIfMissing('internals', 'is_verif', fn (Blueprint $table) => $table->enum('is_verif', ['sudah', 'belum', '', ''])->nullable()->default('sudah'));
         });
 
         if (Schema::hasColumn('internals', 'kota') && Schema::hasColumn('internals', 'tempat')) {

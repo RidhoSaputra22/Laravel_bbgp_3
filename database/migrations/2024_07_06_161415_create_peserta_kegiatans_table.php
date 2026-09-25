@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('peserta_kegiatans', function (Blueprint $table) {
             $table->id();
             $table->string('id_pegawai')->nullable();
-            $table->string('id_kegiatan');
+            $table->string('id_kegiatan')->nullable();
             $table->string('nama')->nullable();
-            $table->string('no_ktp')->nullable();
+            $table->string('no_ktp');
             $table->string('nip')->nullable();
             $table->string('alamat')->nullable();
             $table->string('email')->nullable();
@@ -26,11 +26,11 @@ return new class extends Migration
             $table->time('jam_selesai')->nullable();
             $table->string('status')->nullable();
             $table->enum('status_keikutpesertaan', ['peserta', 'panitia', 'narasumber']);
-            $table->string('instansi')->nullable();
+            $table->string('instansi');
             $table->string('golongan')->nullable();
             $table->string('jenis_gol')->nullable();
             $table->string('diluar_gol')->nullable();
-            $table->enum('jkl', ['Laki-laki', 'Perempuan'])->nullable();
+            $table->enum('jkl', ['Laki-laki', 'Perempuan']);
             $table->string('kelengkapan_peserta_transport')->nullable();
             $table->string('kelengkapan_peserta_biodata')->nullable();
             $table->string('no_hp')->nullable();
@@ -42,7 +42,7 @@ return new class extends Migration
             $table->string('alamat_rumah')->nullable();
             $table->string('kabupaten_rumah')->nullable();
             $table->string('npwp')->nullable();
-            $table->string('kabupaten');
+            $table->string('kabupaten')->nullable();
             $table->string('no_surat_tugas')->nullable();
             $table->date('tgl_surat_tugas')->nullable();
             $table->timestamps();

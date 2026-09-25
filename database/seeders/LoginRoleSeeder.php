@@ -96,7 +96,7 @@ class LoginRoleSeeder extends Seeder
                         'pas_foto' => '',
                         'instansi' => 'Kantor BBGTK SulSel',
                         'golongan' => 'III/a',
-                        'jenis_bank' => 'BRI',
+                'jenis_bank' => 'Bank BRI',
                         'no_rek' => '4444444444',
                         'is_verif' => 'sudah',
                     ]
@@ -152,7 +152,7 @@ class LoginRoleSeeder extends Seeder
                         'tenaga kependidikan' => '2222222222',
                         default => '3333333333',
                     },
-                    'jenis_bank' => 'BRI',
+                'jenis_bank' => 'Bank BRI',
                     'npsn_sekolah' => '-',
                     'npwp' => match ($v['role']) {
                         'tenaga pendidik' => '111111111111111',

@@ -20,53 +20,53 @@ return new class extends Migration
             $table->string('npsn_sekolah');
             $table->string('bp_sekolah');
             $table->string('status_sekolah');
-            $table->string('provinsi')->default('-');
+            $table->string('provinsi')->nullable()->default('-');
             $table->string('kecamatan');
             $table->string('kabupaten');
             $table->text('alamat')->nullable();
-            $table->string('akreditasi')->default('-');
-            $table->string('no_telepon')->default('-');
-            $table->string('email')->default('-');
-            $table->string('website_url')->default('-');
-            $table->string('tahun_berdiri')->default('-');
-            $table->string('koordinat')->default('-');
+            $table->string('akreditasi')->nullable()->default('-');
+            $table->string('no_telepon')->nullable()->default('-');
+            $table->string('email')->nullable()->default('-');
+            $table->string('website_url')->nullable()->default('-');
+            $table->string('tahun_berdiri')->nullable()->default('-');
+            $table->string('koordinat')->nullable()->default('-');
 
             // Data Kepala Sekolah
-            $table->string('nama_kepsek');
-            $table->enum('asn_opsi', ['ya', 'tidak']);
-            $table->string('nip_kepsek')->nullable();
+            $table->string('nama_kepsek')->default('-');
+            $table->enum('asn_opsi', ['ya', 'tidak', '-'])->default('-');
+            $table->string('nip_kepsek')->nullable()->default('-');
             $table->string('no_sk')->nullable();
-            $table->string('no_telp_kepsek');
+            $table->string('no_telp_kepsek')->default('-');
             $table->string('email_kepsek')->nullable();
 
             // Data Guru
-            $table->integer('jumlah_guru')->default(0);
-            $table->integer('jumlah_guru_pns')->default(0);
-            $table->integer('jumlah_honorer')->default(0);
-            $table->integer('jumlah_kependidikan')->default(0);
+            $table->integer('jumlah_guru')->nullable()->default(0);
+            $table->integer('jumlah_guru_pns')->nullable()->default(0);
+            $table->integer('jumlah_honorer')->nullable()->default(0);
+            $table->integer('jumlah_kependidikan')->nullable()->default(0);
             $table->text('bidang_studi')->nullable();
 
             // Data Siswa
-            $table->integer('jumlah_siswa')->default(0);
-            $table->integer('jumlah_siswa_pria')->default(0);
-            $table->integer('jumlah_siswa_perempuan')->default(0);
+            $table->integer('jumlah_siswa')->nullable()->default(0);
+            $table->integer('jumlah_siswa_pria')->nullable()->default(0);
+            $table->integer('jumlah_siswa_perempuan')->nullable()->default(0);
             $table->text('jumlah_siswa_per_kelas')->nullable();
 
             // Fasilitas
-            $table->integer('jumlah_kelas')->default(0);
-            $table->string('laboratorium');
-            $table->string('perpustakaan');
-            $table->string('ruang_guru');
-            $table->integer('jumlah_toilet');
-            $table->string('lapangan_olahraga');
+            $table->integer('jumlah_kelas')->nullable()->default(0);
+            $table->string('laboratorium')->default('-');
+            $table->string('perpustakaan')->default('-');
+            $table->string('ruang_guru')->default('-');
+            $table->integer('jumlah_toilet')->default(0);
+            $table->string('lapangan_olahraga')->default('-');
             $table->json('fasilitas_it')->nullable();
             $table->string('fasilitas_it_tambahan')->nullable();
-            $table->string('akses_internet');
+            $table->string('akses_internet')->default('-');
 
             // Program
-            $table->text('ekstrakurikuler');
-            $table->text('program_unggulan');
-            $table->string('jam_belajar');
+            $table->text('ekstrakurikuler')->nullable();
+            $table->text('program_unggulan')->nullable();
+            $table->string('jam_belajar')->default('-');
 
             // Dokumen
             $table->string('foto_depan')->nullable();

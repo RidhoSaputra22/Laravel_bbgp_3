@@ -23,7 +23,7 @@ return new class extends Migration
             $table->bigInteger('hari_1');
             $table->bigInteger('hari_2');
             $table->bigInteger('hari_3');
-            $table->enum('is_verif', ['sudah', 'belum']);
+            $table->enum('is_verif', ['sudah', 'belum', ''])->nullable();
             $table->date('tgl_kegiatan')->nullable();
             $table->string('kabupaten')->nullable();
 

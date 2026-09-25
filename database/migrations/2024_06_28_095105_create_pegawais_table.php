@@ -14,31 +14,34 @@ return new class extends Migration
         Schema::create('pegawais', function (Blueprint $table) {
             $table->id();
             $table->string('username')->nullable();
-            $table->string('nama_lengkap');
-            $table->string('email');
-            $table->string('no_ktp');
-            $table->string('nip');
-            $table->string('tempat_lahir');
-            $table->date('tgl_lahir');
-            $table->enum('gender', ['Laki-laki', 'Perempuan']);
-            $table->string('jabatan');
+            $table->string('nama_lengkap')->nullable();
+            $table->string('email')->nullable();
+            $table->string('no_ktp')->nullable();
+            $table->string('nip')->nullable();
+            $table->string('tempat_lahir')->nullable();
+            $table->date('tgl_lahir')->nullable();
+            $table->enum('gender', ['Laki-laki', 'Perempuan'])->nullable();
+            $table->string('jabatan')->nullable();
             $table->string('jenis_pegawai')->nullable();
-            $table->string('status');
-            $table->string('status_kepegawaian');
-            $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Budha', 'Konghucu']);
-            $table->string('pendidikan');
-            $table->string('kabupaten');
-            $table->string('satuan_pendidikan');
-            $table->string('alamat_satuan');
-            $table->string('alamat_rumah');
-            $table->string('no_hp');
-            $table->string('no_wa');
-            $table->string('pas_foto');
-            $table->string('instansi')->default('Kantor BBGTK SulSel');
+            $table->string('status')->nullable();
+            $table->string('status_kepegawaian')->nullable();
+            $table->enum('agama', ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Budha', 'Konghucu'])->nullable();
+            $table->string('pendidikan')->nullable();
+            $table->string('kabupaten')->nullable();
+            $table->string('satuan_pendidikan')->nullable();
+            $table->string('alamat_satuan')->nullable();
+            $table->string('alamat_rumah')->nullable();
+            $table->string('no_hp')->nullable();
+            $table->string('no_wa')->nullable();
+            $table->string('pas_foto')->nullable();
+            $table->string('instansi')->nullable();
             $table->string('golongan')->nullable();
-            $table->string('jenis_bank');
-            $table->string('no_rek');
-            $table->enum('is_verif', ['sudah', 'belum']);
+            $table->enum('jenis_bank', [
+                'Bank BCA', 'Bank BRI', 'Bank BNI', 'Bank Mandiri',
+                'Bank BTN', 'Bank Syariah Indonesia',
+            ])->nullable();
+            $table->string('no_rek')->nullable();
+            $table->enum('is_verif', ['sudah', 'belum'])->nullable()->default('belum');
 
             $table->timestamps();
         });
