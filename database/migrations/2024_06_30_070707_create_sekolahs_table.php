@@ -60,6 +60,7 @@ return new class extends Migration
             $table->integer('jumlah_toilet');
             $table->string('lapangan_olahraga');
             $table->json('fasilitas_it')->nullable();
+            $table->string('fasilitas_it_tambahan')->nullable();
             $table->string('akses_internet');
 
             // Program

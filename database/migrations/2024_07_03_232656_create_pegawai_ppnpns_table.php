@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('pegawaiPpnpns', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('nama', 100)->nullable();
+            $table->string('jabatan', 100)->nullable();
+            $table->string('nip')->nullable();
+            $table->string('nik')->nullable();
         });
     }
 

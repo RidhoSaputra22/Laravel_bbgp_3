@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('peserta_kegiatans', function (Blueprint $table) {
             $table->id();
+            $table->string('id_pegawai')->nullable();
             $table->string('id_kegiatan');
             $table->string('nama')->nullable();
             $table->string('no_ktp')->nullable();
@@ -21,6 +22,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('mata_pelajaran')->nullable();
             $table->string('signature')->nullable();
+            $table->time('jam_mengajar')->nullable();
+            $table->time('jam_selesai')->nullable();
             $table->string('status')->nullable();
             $table->enum('status_keikutpesertaan', ['peserta', 'panitia', 'narasumber']);
             $table->string('instansi')->nullable();

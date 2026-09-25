@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('username');
             $table->string('no_ktp')->nullable();
-            $table->string('password');
-            $table->enum('role', ['admin','pegawai','tenaga pendidik','kepala','superadmin','tenaga kependidikan','stakeholder']);
+            $table->string('password')->nullable();
+            $table->string('role');
             $table->timestamps();
         });
     }

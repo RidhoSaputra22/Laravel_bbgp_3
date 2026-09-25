@@ -36,6 +36,14 @@ return new class extends Migration
                 if (!Schema::hasColumn('gurus', 'latar_jabatan')) {
                     $table->string('latar_jabatan')->nullable()->after('tugas_jabatan');
                 }
+
+                if (!Schema::hasColumn('gurus', 'username')) {
+                    $table->string('username')->nullable()->after('nama_lengkap');
+                }
+
+                if (!Schema::hasColumn('gurus', 'jenis_data')) {
+                    $table->string('jenis_data')->nullable()->after('is_verif');
+                }
             });
         }
 
@@ -52,8 +60,56 @@ return new class extends Migration
                 if (!Schema::hasColumn('pegawais', 'golongan')) {
                     $table->string('golongan')->nullable()->after('instansi');
                 }
+
+                if (!Schema::hasColumn('pegawais', 'pas_foto')) {
+                    $table->string('pas_foto')->nullable()->after('no_wa');
+                }
             });
         }
+
+        $this->addColumnIfMissing('honors', 'kode_anggaran', fn (Blueprint $table) => $table->string('kode_anggaran')->nullable());
+        $this->addColumnIfMissing('internals', 'jenis_data', fn (Blueprint $table) => $table->string('jenis_data')->nullable());
+        $this->addColumnIfMissing('internal_ppnpns', 'nik', fn (Blueprint $table) => $table->string('nik')->nullable());
+        $this->addColumnIfMissing('kuitansis', 'biaya_penginapan', fn (Blueprint $table) => $table->integer('biaya_penginapan')->default(0)->nullable());
+        $this->addColumnIfMissing('kuitansis', 'uang_harian', fn (Blueprint $table) => $table->integer('uang_harian')->default(0)->nullable());
+        $this->addColumnIfMissing('kuitansis', 'jumlah_malam', fn (Blueprint $table) => $table->integer('jumlah_malam')->nullable());
+        $this->addColumnIfMissing('kuitansis', 'bill_malam', fn (Blueprint $table) => $table->integer('bill_malam')->default(0)->nullable());
+        $this->addColumnIfMissing('kuitansi_lokas', 'pegawai_id', fn (Blueprint $table) => $table->string('pegawai_id')->nullable());
+        $this->addColumnIfMissing('kuitansi_lokas', 'no_bukti', fn (Blueprint $table) => $table->string('no_bukti')->default('-'));
+        $this->addColumnIfMissing('pegawaiPpnpns', 'nama', fn (Blueprint $table) => $table->string('nama', 100)->nullable());
+        $this->addColumnIfMissing('pegawaiPpnpns', 'jabatan', fn (Blueprint $table) => $table->string('jabatan', 100)->nullable());
+        $this->addColumnIfMissing('pegawaiPpnpns', 'nip', fn (Blueprint $table) => $table->string('nip')->nullable());
+        $this->addColumnIfMissing('pegawaiPpnpns', 'nik', fn (Blueprint $table) => $table->string('nik')->nullable());
+        $this->addColumnIfMissing('pendampings', 'nip', fn (Blueprint $table) => $table->string('nip')->nullable());
+        $this->addColumnIfMissing('pendampings', 'nik', fn (Blueprint $table) => $table->string('nik')->nullable());
+        $this->addColumnIfMissing('pendampings', 'tgl_kegiatan', fn (Blueprint $table) => $table->date('tgl_kegiatan')->nullable());
+        $this->addColumnIfMissing('pendampings', 'kabupaten', fn (Blueprint $table) => $table->string('kabupaten')->nullable());
+        $this->addColumnIfMissing('penomoran_kegiatans', 'no_surat', fn (Blueprint $table) => $table->string('no_surat')->nullable());
+        $this->addColumnIfMissing('penomoran_kegiatans', 'tgl_surat', fn (Blueprint $table) => $table->date('tgl_surat')->nullable());
+        $this->addColumnIfMissing('penomoran_kegiatans', 'kode_anggaran', fn (Blueprint $table) => $table->string('kode_anggaran')->nullable());
+        $this->addColumnIfMissing('penomoran_kegiatans', 'kegiatan_id', fn (Blueprint $table) => $table->string('kegiatan_id')->nullable());
+        $this->addColumnIfMissing('sekolahs', 'fasilitas_it_tambahan', fn (Blueprint $table) => $table->string('fasilitas_it_tambahan')->nullable());
+
+        if (Schema::hasTable('berkas') && !Schema::hasColumn('berkas', 'metode_upload')) {
+            if (Schema::hasColumn('berkas', 'metode_uploS')) {
+                Schema::table('berkas', function (Blueprint $table) {
+                    $table->renameColumn('metode_uploS', 'metode_upload');
+                });
+            } else {
+                $this->addColumnIfMissing('berkas', 'metode_upload', fn (Blueprint $table) => $table->string('metode_upload')->nullable());
+            }
+        }
+    }
+
+    private function addColumnIfMissing(string $tableName, string $column, callable $definition): void
+    {
+        if (!Schema::hasTable($tableName) || Schema::hasColumn($tableName, $column)) {
+            return;
+        }
+
+        Schema::table($tableName, function (Blueprint $table) use ($definition) {
+            $definition($table);
+        });
     }
 
     /**

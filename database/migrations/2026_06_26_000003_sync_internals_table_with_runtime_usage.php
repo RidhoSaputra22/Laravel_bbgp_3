@@ -37,6 +37,7 @@ return new class extends Migration
             $this->addColumnIfMissing('internals', 'hari_6', fn (Blueprint $table) => $table->unsignedBigInteger('hari_6')->default(0));
             $this->addColumnIfMissing('internals', 'hari_7', fn (Blueprint $table) => $table->unsignedBigInteger('hari_7')->default(0));
             $this->addColumnIfMissing('internals', 'bukti_bill', fn (Blueprint $table) => $table->string('bukti_bill')->nullable());
+            $this->addColumnIfMissing('internals', 'jenis_data', fn (Blueprint $table) => $table->string('jenis_data')->nullable());
             $this->addColumnIfMissing('internals', 'is_verif', fn (Blueprint $table) => $table->string('is_verif', 20)->default('belum'));
         });
 

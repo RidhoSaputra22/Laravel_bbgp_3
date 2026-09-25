@@ -10,7 +10,5 @@ class Kecamatan extends Model
     use HasFactory;
     protected $fillable = [
         'name',
-        'kabupaten_id',
     ];
 }
-

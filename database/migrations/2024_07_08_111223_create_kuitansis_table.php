@@ -35,6 +35,10 @@ return new class extends Migration
             $table->integer('total_harian');
             $table->integer('jumlah_hari');
             $table->integer('total_terima');
+            $table->integer('biaya_penginapan')->default(0)->nullable();
+            $table->integer('uang_harian')->default(0)->nullable();
+            $table->integer('jumlah_malam')->nullable();
+            $table->integer('bill_malam')->default(0)->nullable();
             $table->timestamps();
         });
     }

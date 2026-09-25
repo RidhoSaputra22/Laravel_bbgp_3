@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('kuitansi_lokas', function (Blueprint $table) {
             $table->id();
+            $table->string('pegawai_id')->nullable();
             $table->string('internal_id');
             $table->string('no_surat_tugas');
             $table->string('tgl_surat_tugas');
             $table->string('kode_anggaran');
             $table->string('tahun_anggaran');
+            $table->string('no_bukti')->default('-');
             $table->timestamps();
         });
     }

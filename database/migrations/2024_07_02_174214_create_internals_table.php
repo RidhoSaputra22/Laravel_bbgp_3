@@ -40,6 +40,7 @@ return new class extends Migration
             $table->unsignedBigInteger('hari_7')->default(0);
             $table->string('bukti_bill')->nullable();
             $table->enum('is_verif', ['sudah', 'belum'])->default('belum');
+            $table->string('jenis_data')->nullable();
             $table->timestamps();
         });
     }

@@ -9,6 +9,7 @@ class PesertaKegiatan extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'id_pegawai',
         'id_kegiatan',
         'nama',
         'no_ktp',
@@ -36,7 +37,10 @@ class PesertaKegiatan extends Model
         'pendidikan',
         'alamat_rumah',
         'kabupaten_rumah',
-        'npwp'
+        'npwp',
+        'signature',
+        'jam_mengajar',
+        'jam_selesai',
     ];
 
     public function kegiatan()

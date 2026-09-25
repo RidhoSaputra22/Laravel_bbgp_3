@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('pendampings', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
+            $table->string('nip');
+            $table->string('nik')->nullable();
             $table->string('kota');
             $table->string('hotel');
             $table->bigInteger('transport_pulang');
@@ -22,6 +24,8 @@ return new class extends Migration
             $table->bigInteger('hari_2');
             $table->bigInteger('hari_3');
             $table->enum('is_verif', ['sudah', 'belum']);
+            $table->date('tgl_kegiatan')->nullable();
+            $table->string('kabupaten')->nullable();
 
             $table->timestamps();
         });

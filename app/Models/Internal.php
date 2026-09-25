@@ -36,6 +36,7 @@ class Internal extends Model
         'hari_7',
         'bill_penginapan',
         'deskripsi',
+        'jenis_data',
     ];
     public function pegawai()
     {

@@ -13,6 +13,7 @@ return new class extends Migration {
         Schema::create('gurus', function (Blueprint $table) {
             $table->id();
             $table->string('nama_lengkap');
+            $table->string('username')->nullable();
             $table->string('email');
             $table->string('no_ktp');
             $table->string('nip');
@@ -42,6 +43,7 @@ return new class extends Migration {
             $table->string('tugas_jabatan');
             $table->string('latar_jabatan')->nullable();
             $table->enum('is_verif', ['sudah', 'belum']);
+            $table->string('jenis_data')->nullable();
 
 
             $table->timestamps();

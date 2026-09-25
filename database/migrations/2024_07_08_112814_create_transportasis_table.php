@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('transportasis', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('kuitansi_id');
-            $table->string('asal_transport');
-            $table->string('tujuan_transport');
-            $table->string('transportasi');
+            $table->unsignedBigInteger('kuitansi_id')->nullable();
+            $table->string('asal_transport')->nullable();
+            $table->string('tujuan_transport')->nullable();
+            $table->string('transportasi')->nullable();
             $table->string('keterangan')->nullable();
-            $table->integer('biaya_transport');
+            $table->integer('biaya_transport')->nullable();
             $table->timestamps();
     
             $table->foreign('kuitansi_id')->references('id')->on('kuitansis')->onUpdate('cascade')->onDelete('cascade');

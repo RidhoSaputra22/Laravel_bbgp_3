@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('honors', function (Blueprint $table) {
             $table->id();
             $table->string('id_peserta');
+            $table->string('kode_anggaran')->nullable();
             $table->string('golongan');
             $table->string('jenis_gol');
             $table->integer('jp_realisasi');

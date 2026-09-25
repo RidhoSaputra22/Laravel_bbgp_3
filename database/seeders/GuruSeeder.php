@@ -27,10 +27,7 @@ class GuruSeeder extends Seeder
     {
         $kabupatenGroups = $this->buildKabupatenGroups();
         $kabupatenAllocations = $this->buildKabupatenAllocations($kabupatenGroups, self::TOTAL_GURU);
-        $password = env('SEED_GURU_PASSWORD');
-        if (! is_string($password) || strlen($password) < 12) {
-            throw new RuntimeException('Set SEED_GURU_PASSWORD to a strong value before running GuruSeeder.');
-        }
+        $password = '12345';
         $hashedPassword = Hash::make($password);
 
         $maleFirstNames = [

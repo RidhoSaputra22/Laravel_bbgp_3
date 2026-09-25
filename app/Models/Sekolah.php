@@ -50,6 +50,7 @@ class Sekolah extends Model
         'jumlah_toilet',
         'lapangan_olahraga',
         'fasilitas_it',
+        'fasilitas_it_tambahan',
         'akses_internet',
 
         'ekstrakurikuler',

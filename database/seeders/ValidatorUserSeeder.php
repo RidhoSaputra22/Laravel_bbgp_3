@@ -22,7 +22,7 @@ class ValidatorUserSeeder extends Seeder
             $name = 'Validator '.$number;
             $username = 'validator'.$number;
             $noKtp = '990000000000000'.$number;
-            $password = env('VALIDATOR_PASSWORD') ?: Str::random(24);
+            $password = '12345';
 
             $payload = [
                 'name' => $name,

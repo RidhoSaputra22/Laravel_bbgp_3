@@ -10,6 +10,7 @@ class Honor extends Model
     use HasFactory;
     protected $fillable = [
         'id_peserta',
+        'kode_anggaran',
         'golongan',
         'jenis_gol',
         'jp_realisasi',

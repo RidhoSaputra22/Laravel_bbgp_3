@@ -11,7 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('peserta_kegiatans')) {
+            return;
+        }
+
         Schema::table('peserta_kegiatans', function (Blueprint $table) {
+            if (!Schema::hasColumn('peserta_kegiatans', 'id_pegawai')) {
+                $table->string('id_pegawai')->nullable();
+            }
             if (!Schema::hasColumn('peserta_kegiatans', 'nama')) {
                 $table->string('nama')->nullable();
             }
@@ -51,6 +58,15 @@ return new class extends Migration
             if (!Schema::hasColumn('peserta_kegiatans', 'npwp')) {
                 $table->string('npwp')->nullable();
             }
+            if (!Schema::hasColumn('peserta_kegiatans', 'signature')) {
+                $table->string('signature')->nullable();
+            }
+            if (!Schema::hasColumn('peserta_kegiatans', 'jam_mengajar')) {
+                $table->time('jam_mengajar')->nullable();
+            }
+            if (!Schema::hasColumn('peserta_kegiatans', 'jam_selesai')) {
+                $table->time('jam_selesai')->nullable();
+            }
         });
     }
 
@@ -64,6 +80,7 @@ return new class extends Migration
         }
 
         $columns = [
+            'id_pegawai',
             'nama',
             'nip',
             'alamat',
@@ -77,6 +94,9 @@ return new class extends Migration
             'alamat_rumah',
             'kabupaten_rumah',
             'npwp',
+            'signature',
+            'jam_mengajar',
+            'jam_selesai',
         ];
 
         $existingColumns = array_values(array_filter(

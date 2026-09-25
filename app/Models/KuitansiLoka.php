@@ -9,6 +9,7 @@ class KuitansiLoka extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'pegawai_id',
         'internal_id',
         'no_surat_tugas',
         'tgl_surat_tugas',

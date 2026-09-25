@@ -11,6 +11,7 @@ class Guru extends Model
 
     protected $fillable = [
         'nama_lengkap',
+        'username',
         'email',
         'no_ktp',
         'nip',
@@ -40,6 +41,7 @@ class Guru extends Model
         'latar_jabatan',
         'jenis_bank',
         'is_verif',
+        'jenis_data',
     ];
 
     public function sekolah()

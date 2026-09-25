@@ -12,7 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('penomoran_kegiatans', function (Blueprint $table) {
-            $table->id();
+            $table->increments('id');
+            $table->string('no_surat')->nullable();
+            $table->date('tgl_surat')->nullable();
+            $table->string('kode_anggaran')->nullable();
+            $table->string('kegiatan_id')->nullable();
             $table->timestamps();
         });
     }

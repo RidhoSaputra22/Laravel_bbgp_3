@@ -10,6 +10,8 @@ class Pendamping extends Model
     use HasFactory;
     protected $fillable = [
         'nama',
+        'nip',
+        'nik',
         'kota',
         'transport_pergi',
         'transport_pulang',
@@ -17,6 +19,8 @@ class Pendamping extends Model
         'hari_1',
         'hari_2',
         'hari_3',
-        'is_verif'
+        'is_verif',
+        'tgl_kegiatan',
+        'kabupaten',
     ];
 }
