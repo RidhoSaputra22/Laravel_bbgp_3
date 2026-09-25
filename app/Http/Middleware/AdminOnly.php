@@ -19,14 +19,17 @@ class AdminOnly
         'keuangan',
     ];
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = Auth::user();
         $role = strtolower(trim((string) ($user?->role ?? session('role'))));
+        $allowedRoles = $roles === []
+            ? self::ROLES
+            : array_map(static fn (string $value): string => strtolower(trim($value)), $roles);
 
         $authenticated = $user !== null || session('cek') === true;
 
-        abort_unless($authenticated && in_array($role, self::ROLES, true), 403);
+        abort_unless($authenticated && in_array($role, $allowedRoles, true), 403);
 
         return $next($request);
     }

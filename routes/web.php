@@ -166,15 +166,15 @@ Route::group(
                 Route::put('/update', 'GuruController@update')->name('guru.update')->middleware('AdminOnly');
                 Route::post('/hapus/{id}', 'GuruController@destroy')->name('guru.hapus')->middleware('AdminOnly');
 
-                Route::get('/export', 'GuruController@export')->name('guru.export')->middleware('AdminOnly');
+                Route::get('/export', 'GuruController@export')->name('guru.export')->middleware('AdminOnly:admin,superadmin,kepala,database');
                 Route::get('/export/{id}', 'GuruController@exportByUser')->name('guru.export.user');
 
                 // untuk login ekternal by user
-                Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly');
+                Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly:admin,superadmin,kepala,database');
                 Route::get('/show/{id}', 'GuruController@show')->name('guru.show');
                 Route::get('/editByUser/{id}', 'GuruController@editByUser')->name('guru.edit.user');
                 Route::put('/updateByUser', 'GuruController@updateByUser')->name('guru.update.user');
-                Route::get('/cari', 'GuruController@cari')->name('guru.cari')->middleware('AdminOnly');
+                Route::get('/cari', 'GuruController@cari')->name('guru.cari')->middleware('AdminOnly:admin,superadmin,kepala,database');
 
                 Route::get('/data-sekolah/{id}', [UserSekolahController::class, 'show'])->name('user.show.data-sekolah');
                 Route::get('/data-sekolah/{id}/edit', [UserSekolahController::class, 'edit'])->name('user.edit.data-sekolah');

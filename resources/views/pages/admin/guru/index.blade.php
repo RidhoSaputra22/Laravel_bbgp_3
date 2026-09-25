@@ -328,7 +328,7 @@
 
          function showDetail(pegawaiId) {
             $.ajax({
-               url: '{{ route('user.pegawai.detail.eksternal') }}',
+               url: '{{ route('admin.eksternal.detail') }}',
                type: 'GET',
                data: {
                   id: pegawaiId
@@ -340,38 +340,42 @@
                },
                success: function(response) {
                   try {
+                     const escapeHtml = (value) => $('<div>').text(value ?? '').html();
                      const dateLahir = response.data.tgl_lahir ? new Date(response.data.tgl_lahir) : null;
                      const tgl_Lahir = dateLahir ?
                         `${String(dateLahir.getDate()).padStart(2, '0')}-${String(dateLahir.getMonth() + 1).padStart(2, '0')}-${dateLahir.getFullYear()}` :
                         '';
+                     const namaSekolah = response.sekolah?.nama_sekolah || response.data?.satuan_pendidikan || '';
+                     const npsnSekolah = response.sekolah?.npsn_sekolah || response.data?.npsn_sekolah || '';
 
                      $('#pegawaiDetailContent').html(`
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>NPSN Sekolah:</strong> ${response.sekolah?.nama_sekolah || ''} (${response.sekolah?.npsn_sekolah || ''})</p>
-                                        <p><strong>Nama Lengkap:</strong> ${response.data?.nama_lengkap || ''}</p>
-                                        <p><strong>NIK:</strong> ${response.data?.no_ktp || ''}</p>
-                                        <p><strong>NIP:</strong> ${response.data?.nip || ''}</p>
-                                        <p><strong>NPWP:</strong> ${response.data?.npwp || ''}</p>
-                                        <p><strong>NUPTK:</strong> ${response.data?.nuptk || ''}</p>
-                                        <p><strong>Email:</strong> ${response.data?.email || ''}</p>
-                                        <p><strong>Asal Kabupaten:</strong> ${response.data?.kabupaten || ''}</p>
-                                        <p><strong>Tempat, Tanggal Lahir:</strong> ${response.data?.tempat_lahir || ''}, ${tgl_Lahir}</p>
-                                        <p><strong>Jenis Kelamin:</strong> ${response.data?.gender || ''}</p>
-                                        <p><strong>Alamat Rumah:</strong> ${response.data?.alamat_rumah || ''}</p>
+                                        <p><strong>NPSN Sekolah:</strong> ${escapeHtml(namaSekolah)} (${escapeHtml(npsnSekolah)})</p>
+                                        <p><strong>Nama Lengkap:</strong> ${escapeHtml(response.data?.nama_lengkap)}</p>
+                                        <p><strong>NIK:</strong> ${escapeHtml(response.data?.no_ktp)}</p>
+                                        <p><strong>NIP:</strong> ${escapeHtml(response.data?.nip)}</p>
+                                        <p><strong>NPWP:</strong> ${escapeHtml(response.data?.npwp)}</p>
+                                        <p><strong>NUPTK:</strong> ${escapeHtml(response.data?.nuptk)}</p>
+                                        <p><strong>Email:</strong> ${escapeHtml(response.data?.email)}</p>
+                                        <p><strong>Asal Kabupaten:</strong> ${escapeHtml(response.data?.kabupaten)}</p>
+                                        <p><strong>Tempat, Tanggal Lahir:</strong> ${escapeHtml(response.data?.tempat_lahir)}, ${escapeHtml(tgl_Lahir)}</p>
+                                        <p><strong>Jenis Kelamin:</strong> ${escapeHtml(response.data?.gender)}</p>
+                                        <p><strong>Agama:</strong> ${escapeHtml(response.data?.agama)}</p>
+                                        <p><strong>Alamat Rumah:</strong> ${escapeHtml(response.data?.alamat_rumah)}</p>
                                     </div>
                                     <div class="col-md-6">    
-                                        <p><strong>Satuan Pendidikan:</strong> ${response.data?.satuan_pendidikan || ''}</p>
-                                        <p><strong>Ketenagaan:</strong> ${response.data?.eksternal_jabatan || ''}</p>
-                                        <p><strong>Kategori Jabatan:</strong> ${response.data?.kategori_jabatan || ''}</p>
-                                        <p><strong>Jenis Jabatan:</strong> ${response.data?.jenis_jabatan || ''}</p>
-                                        <p><strong>Tugas Jabatan:</strong> ${response.data?.tugas_jabatan || ''}</p>
-                                        <p><strong>Latar Jabatan:</strong> ${response.data?.latar_jabatan || 'tidak ada'}</p>
-                                        <p><strong>Bank:</strong> (${response.data?.jenis_bank || ''}) - ${response.data?.no_rek || ''}</p>
-                                        <p><strong>No HP:</strong> ${response.data?.no_hp || ''}</p>
-                                        <p><strong>No WA:</strong> ${response.data?.no_wa || ''}</p>
-                                        <p><strong>Pendidikan Terakhir:</strong> ${response.data?.pendidikan || ''}</p>
-                                        <p><strong>Status Kepegawaian:</strong> ${response.data?.status_kepegawaian || ''}</p>
+                                        <p><strong>Satuan Pendidikan:</strong> ${escapeHtml(response.data?.satuan_pendidikan)}</p>
+                                        <p><strong>Ketenagaan:</strong> ${escapeHtml(response.data?.eksternal_jabatan)}</p>
+                                        <p><strong>Kategori Jabatan:</strong> ${escapeHtml(response.data?.kategori_jabatan)}</p>
+                                        <p><strong>Jenis Jabatan:</strong> ${escapeHtml(response.data?.jenis_jabatan)}</p>
+                                        <p><strong>Tugas Jabatan:</strong> ${escapeHtml(response.data?.tugas_jabatan)}</p>
+                                        <p><strong>Latar Jabatan:</strong> ${escapeHtml(response.data?.latar_jabatan || 'tidak ada')}</p>
+                                        <p><strong>Bank:</strong> (${escapeHtml(response.data?.jenis_bank)}) - ${escapeHtml(response.data?.no_rek)}</p>
+                                        <p><strong>No HP:</strong> ${escapeHtml(response.data?.no_hp)}</p>
+                                        <p><strong>No WA:</strong> ${escapeHtml(response.data?.no_wa)}</p>
+                                        <p><strong>Pendidikan Terakhir:</strong> ${escapeHtml(response.data?.pendidikan)}</p>
+                                        <p><strong>Status Kepegawaian:</strong> ${escapeHtml(response.data?.status_kepegawaian)}</p>
                                     </div>
                                 </div>
                             `);

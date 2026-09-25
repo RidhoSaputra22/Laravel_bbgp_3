@@ -152,25 +152,30 @@ class GuruController extends Controller
 
     public function getDetail(Request $request)
     {
-        try {
-            //code...
-            $pesertaId = $request->integer('id');
-            $peserta = Guru::select([
-                'id', 'nama_lengkap', 'no_ktp', 'nip', 'gender', 'status_kepegawaian',
-                'kabupaten', 'npsn_sekolah', 'eksternal_jabatan', 'jenis_jabatan',
-            ])->findOrFail($pesertaId);
-    
-            return response()->json([
-                'data' => $peserta,
-                'nama_sekolah' => $peserta->sekolah->nama_sekolah ?? '',
-                'kecamatan_sekolah' => $peserta->sekolah->kecamatan ?? '',
-                'kabupaten_sekolah' => $peserta->sekolah->kabupaten ?? '',
-            ]);
-        } catch (\Exception $e) {
-            report($e);
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
 
-            return response()->json(['message' => 'Detail data tidak dapat diproses.'], 500);
-        }
+        // Endpoint ini hanya dipakai oleh halaman admin dan memang boleh
+        // mengembalikan data lengkap. Route-nya dilindungi AdminOnly.
+        $peserta = Guru::with([
+            'sekolah' => fn ($query) => $query->select([
+                'npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten',
+            ]),
+        ])->findOrFail($validated['id']);
+
+        $sekolah = $peserta->sekolah?->only([
+            'npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten',
+        ]);
+
+        return response()->json([
+            'data' => $peserta,
+            'sekolah' => $sekolah,
+            // Tetap kirim key lama agar halaman admin lama tidak rusak.
+            'nama_sekolah' => $sekolah['nama_sekolah'] ?? '',
+            'kecamatan_sekolah' => $sekolah['kecamatan'] ?? '',
+            'kabupaten_sekolah' => $sekolah['kabupaten'] ?? '',
+        ]);
     }
 
     /**
