@@ -66,9 +66,9 @@ Route::group(
         // Menu Sekolah
         Route::get('/data-sekolah', 'SekolahController@index')->name('user.data-sekolah');
         Route::post('/data-sekolah', 'SekolahController@store')->name('user.store.data-sekolah');
-        Route::get('/data-sekolah/{id}', 'SekolahController@show')->name('show.data-sekolah');
-        Route::get('/data-sekolah/{id}/edit', 'SekolahController@edit')->name('edit.data-sekolah');
-        Route::put('/data-sekolah/{id}', 'SekolahController@update')->name('update.data-sekolah');
+        Route::get('/data-sekolah/{id}', 'SekolahController@show')->name('show.data-sekolah')->middleware('ValidasiUser');
+        Route::get('/data-sekolah/{id}/edit', 'SekolahController@edit')->name('edit.data-sekolah')->middleware('ValidasiUser');
+        Route::put('/data-sekolah/{id}', 'SekolahController@update')->name('update.data-sekolah')->middleware('ValidasiUser');
 
         Route::get('/eksternal/form/{jenis}', 'UserController@form_guru')->name('user.form_guru');
         Route::post('/eksternal/daftar', 'UserController@daftar_guru')->name('user.daftar_guru');
@@ -88,15 +88,15 @@ Route::group(
         // trace pesrta dari kegiatan sebelum nya
         Route::get('/peserta/cekData', 'KegiatanController@cekDataPeserta')->name('user.peserta.cekData');
 
-        Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta');
-        Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta');
-        Route::get('/print/absensi-panitia', 'KegiatanController@printAbsensiPanitia')->name('print.absensi.panitia');
-        Route::get('/print/absensi-narasumber', 'KegiatanController@printAbsensiNarasumber')->name('print.absensi.narasumber');
+        Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta')->middleware('AdminOnly');
+        Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta')->middleware('AdminOnly');
+        Route::get('/print/absensi-panitia', 'KegiatanController@printAbsensiPanitia')->name('print.absensi.panitia')->middleware('AdminOnly');
+        Route::get('/print/absensi-narasumber', 'KegiatanController@printAbsensiNarasumber')->name('print.absensi.narasumber')->middleware('AdminOnly');
 
-        Route::get('/print/absensi-tp', 'KegiatanController@printAbsensiTp')->name('print.absensi.tp');
-        Route::get('/print/absensi-tkp', 'KegiatanController@printAbsensiTkp')->name('print.absensi.tkp');
-        Route::get('/print/absensi-stk', 'KegiatanController@printAbsensiStk')->name('print.absensi.stk');
-        Route::get('/print/absensi-pgw', 'KegiatanController@printAbsensiPgw')->name('print.absensi.pgw');
+        Route::get('/print/absensi-tp', 'KegiatanController@printAbsensiTp')->name('print.absensi.tp')->middleware('AdminOnly');
+        Route::get('/print/absensi-tkp', 'KegiatanController@printAbsensiTkp')->name('print.absensi.tkp')->middleware('AdminOnly');
+        Route::get('/print/absensi-stk', 'KegiatanController@printAbsensiStk')->name('print.absensi.stk')->middleware('AdminOnly');
+        Route::get('/print/absensi-pgw', 'KegiatanController@printAbsensiPgw')->name('print.absensi.pgw')->middleware('AdminOnly');
 
         // RTL User
         Route::prefix('rtl')->group(function () {
@@ -143,59 +143,59 @@ Route::group(
         Route::prefix('dashboard')->group(function () {
 
             // Root
-            Route::get('/', 'AdminController@index')->name('dashboard');
-            Route::get('/jadwalKegiatan', 'AdminController@jadwal')->name('dashboard.jadwal');
-            Route::get('/jadwalKegiatan/{nik}', 'AdminController@getJadwalByPegawai')->name('dashboard.jadwal.getByPegawai');
+            Route::get('/', 'AdminController@index')->name('dashboard')->middleware('AdminOnly');
+            Route::get('/jadwalKegiatan', 'AdminController@jadwal')->name('dashboard.jadwal')->middleware('AdminOnly');
+            Route::get('/jadwalKegiatan/{nik}', 'AdminController@getJadwalByPegawai')->name('dashboard.jadwal.getByPegawai')->middleware('AdminOnly');
 
-            Route::get('/getByKegiatan', 'AdminController@getByKegiatan')->name('dashboard.jadwal.getByKegiatan')->withoutMiddleware(['ValidasiUser']);
-            Route::get('/getByKegiatanUser', 'AdminController@getByKegiatanUser')->name('dashboard.jadwal.getByKegiatanUser')->withoutMiddleware(['ValidasiUser']);
+            Route::get('/getByKegiatan', 'AdminController@getByKegiatan')->name('dashboard.jadwal.getByKegiatan')->middleware('AdminOnly');
+            Route::get('/getByKegiatanUser', 'AdminController@getByKegiatanUser')->name('dashboard.jadwal.getByKegiatanUser')->middleware('AdminOnly');
 
             // Profile User yang Login
-            Route::get('/profile/{id}', 'AdminController@profile')->name('profile.index');
-            Route::put('/profile/update', 'AdminController@profile_update')->name('profile.update');
+            Route::get('/profile/{id}', 'AdminController@profile')->name('profile.index')->middleware('AdminOnly');
+            Route::put('/profile/update', 'AdminController@profile_update')->name('profile.update')->middleware('AdminOnly');
 
-            Route::get('/fetch-sekolah', 'GuruController@fetchSekolah')->name('fetchSekolah');
+                Route::get('/fetch-sekolah', 'GuruController@fetchSekolah')->name('fetchSekolah')->middleware('AdminOnly');
 
             // Guru / Eksternal
             Route::prefix('eksternal')->group(function () {
-                Route::get('/', 'GuruController@index')->name('guru.index');
-                Route::get('/create', 'GuruController@create')->name('guru.create');
-                Route::post('/store', 'GuruController@store')->name('guru.store');
-                Route::post('/verifikasi/{id}', 'GuruController@verifikasi')->name('guru.verifikasi');
-                Route::get('/edit/{id}', 'GuruController@edit')->name('guru.edit');
-                Route::put('/update', 'GuruController@update')->name('guru.update');
-                Route::post('/hapus/{id}', 'GuruController@destroy')->name('guru.hapus');
+                Route::get('/', 'GuruController@index')->name('guru.index')->middleware('AdminOnly');
+                Route::get('/create', 'GuruController@create')->name('guru.create')->middleware('AdminOnly');
+                Route::post('/store', 'GuruController@store')->name('guru.store')->middleware('AdminOnly');
+                Route::post('/verifikasi/{id}', 'GuruController@verifikasi')->name('guru.verifikasi')->middleware('AdminOnly');
+                Route::get('/edit/{id}', 'GuruController@edit')->name('guru.edit')->middleware('AdminOnly');
+                Route::put('/update', 'GuruController@update')->name('guru.update')->middleware('AdminOnly');
+                Route::post('/hapus/{id}', 'GuruController@destroy')->name('guru.hapus')->middleware('AdminOnly');
 
-                Route::get('/export', 'GuruController@export')->name('guru.export');
+                Route::get('/export', 'GuruController@export')->name('guru.export')->middleware('AdminOnly');
                 Route::get('/export/{id}', 'GuruController@exportByUser')->name('guru.export.user');
 
                 // untuk login ekternal by user
-                Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail');
+                Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly');
                 Route::get('/show/{id}', 'GuruController@show')->name('guru.show');
                 Route::get('/editByUser/{id}', 'GuruController@editByUser')->name('guru.edit.user');
                 Route::put('/updateByUser', 'GuruController@updateByUser')->name('guru.update.user');
-                Route::get('/cari', 'GuruController@cari')->name('guru.cari');
+                Route::get('/cari', 'GuruController@cari')->name('guru.cari')->middleware('AdminOnly');
 
                 Route::get('/data-sekolah/{id}', [UserSekolahController::class, 'show'])->name('user.show.data-sekolah');
                 Route::get('/data-sekolah/{id}/edit', [UserSekolahController::class, 'edit'])->name('user.edit.data-sekolah');
                 Route::put('/data-sekolah/{id}', [UserSekolahController::class, 'update'])->name('user.update.data-sekolah');
 
-                Route::get('/sekolah', [AdminSekolahController::class, 'index'])->name('admin.data-sekolah.index');
-                Route::get('/sekolah/export', [AdminSekolahController::class, 'export'])->name('admin.data-sekolah.export');
-                Route::get('/sekolah/{id}', [AdminSekolahController::class, 'edit'])->name('admin.data-sekolah.edit');
+                Route::get('/sekolah', [AdminSekolahController::class, 'index'])->name('admin.data-sekolah.index')->middleware('AdminOnly');
+                Route::get('/sekolah/export', [AdminSekolahController::class, 'export'])->name('admin.data-sekolah.export')->middleware('AdminOnly');
+                Route::get('/sekolah/{id}', [AdminSekolahController::class, 'edit'])->name('admin.data-sekolah.edit')->middleware('AdminOnly');
 
             });
 
             // Pegawai
             Route::prefix('pegawai')->group(function () {
-                Route::get('/', 'PegawaiController@index')->name('pegawai.index');
-                Route::get('/create', 'PegawaiController@create')->name('pegawai.create');
-                Route::post('/store', 'PegawaiController@store')->name('pegawai.store');
-                Route::post('/verifikasi/{id}', 'PegawaiController@verifikasi')->name('pegawai.verifikasi');
-                Route::get('/show', 'PegawaiController@showPegawai')->name('admin.pegawai.detail');
-                Route::get('/edit/{id}', 'PegawaiController@edit')->name('pegawai.edit');
-                Route::put('/update', 'PegawaiController@update')->name('pegawai.update');
-                Route::post('/hapus/{id}', 'PegawaiController@destroy')->name('pegawai.hapus');
+                Route::get('/', 'PegawaiController@index')->name('pegawai.index')->middleware('AdminOnly');
+                Route::get('/create', 'PegawaiController@create')->name('pegawai.create')->middleware('AdminOnly');
+                Route::post('/store', 'PegawaiController@store')->name('pegawai.store')->middleware('AdminOnly');
+                Route::post('/verifikasi/{id}', 'PegawaiController@verifikasi')->name('pegawai.verifikasi')->middleware('AdminOnly');
+                Route::get('/show', 'PegawaiController@showPegawai')->name('admin.pegawai.detail')->middleware('AdminOnly');
+                Route::get('/edit/{id}', 'PegawaiController@edit')->name('pegawai.edit')->middleware('AdminOnly');
+                Route::put('/update', 'PegawaiController@update')->name('pegawai.update')->middleware('AdminOnly');
+                Route::post('/hapus/{id}', 'PegawaiController@destroy')->name('pegawai.hapus')->middleware('AdminOnly');
 
                 // untuk login pegawai by user
                 Route::get('/{id}', 'PegawaiController@show')->name('pegawai.show');
@@ -206,23 +206,23 @@ Route::group(
                 Route::put('/updateUser', 'PegawaiController@updateUser')->name('pegawai.update.user');
                 Route::get('/detailUser', 'PegawaiController@detailUser')->name('pegawai.detail.user');
 
-                Route::get('/penugasan/{id}', 'PegawaiController@editPenugasan')->name('pegawai.editPenugasan');
-                Route::get('/pendamping/{id}', 'PegawaiController@editPendamping')->name('pegawai.editPendamping');
+                Route::get('/penugasan/{id}', 'PegawaiController@editPenugasan')->name('pegawai.editPenugasan')->middleware('AdminOnly');
+                Route::get('/pendamping/{id}', 'PegawaiController@editPendamping')->name('pegawai.editPendamping')->middleware('AdminOnly');
             });
 
             // Berkas
-            Route::prefix('berkas')->group(function () {
+                Route::prefix('berkas')->group(function () {
                 Route::get('/', 'BerkasController@index')->name('berkas.index');
                 Route::get('/create', 'BerkasController@create')->name('berkas.create');
                 Route::post('/store', 'BerkasController@store')->name('berkas.store');
                 Route::get('/edit/{id}', 'BerkasController@edit')->name('berkas.edit');
                 Route::put('/update', 'BerkasController@update')->name('berkas.update');
                 Route::post('/hapus/{id}', 'BerkasController@destroy')->name('berkas.hapus');
-                Route::get('/verify/{id}', 'BerkasController@verify')->name('berkas.verify');
+                Route::post('/verify/{id}', 'BerkasController@verify')->name('berkas.verify');
             });
 
             // Kepegawaian
-            Route::prefix('kepegawaian')->group(function () {
+            Route::prefix('kepegawaian')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'KepegawaianController@index')->name('kepegawaian.index');
                 Route::get('/create', 'KepegawaianController@create')->name('kepegawaian.create');
                 Route::post('/store', 'KepegawaianController@store')->name('kepegawaian.store');
@@ -232,7 +232,7 @@ Route::group(
             });
 
             // Kepegawaian
-            Route::prefix('penyewaan')->group(function () {
+            Route::prefix('penyewaan')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'PenyewaanRuanganController@index')->name('penyewaan.index');
                 Route::get('/create', 'PenyewaanRuanganController@create')->name('penyewaan.create');
                 Route::post('/store', 'PenyewaanRuanganController@store')->name('penyewaan.store');
@@ -244,7 +244,7 @@ Route::group(
             });
 
             // Kepegawaian
-            Route::prefix('kependidikan')->group(function () {
+            Route::prefix('kependidikan')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'KependidikanController@index')->name('kependidikan.index');
                 Route::get('/create', 'KependidikanController@create')->name('kependidikan.create');
                 Route::post('/store', 'KependidikanController@store')->name('kependidikan.store');
@@ -254,7 +254,7 @@ Route::group(
             });
 
             // Internal
-            Route::prefix('internal')->group(function () {
+            Route::prefix('internal')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'InternalController@index')->name('internal.index');
 
                 Route::get('/calendar', 'InternalController@calendar')->name('internal.calendar');
@@ -308,7 +308,7 @@ Route::group(
             });
 
             // Pendamping
-            Route::prefix('pendamping')->group(function () {
+            Route::prefix('pendamping')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'PendampingController@index')->name('pendamping.index');
 
                 Route::get('/tabel', 'PendampingController@tabel')->name('pendamping.tabel');
@@ -322,7 +322,7 @@ Route::group(
             });
 
             // Akun
-            Route::prefix('akun')->group(function () {
+            Route::prefix('akun')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'AkunController@index')->name('akun.index');
                 Route::get('/akun/data', 'AkunController@getAkunData')->name('akun.data');
 
@@ -334,7 +334,7 @@ Route::group(
                 Route::post('/hapus/{id}', 'AkunController@destroy')->name('akun.hapus');
             });
 
-            Route::prefix('assessment')->group(function () {
+            Route::prefix('assessment')->middleware('AdminOnly')->group(function () {
                 Route::prefix('validator')->group(function () {
                     Route::get('/', 'ValidatorPanelController@index')->name('assessment.validator.index');
 
@@ -434,7 +434,7 @@ Route::group(
                 });
             });
 
-            Route::prefix('evaluasi-pelaksanaan')->group(function () {
+            Route::prefix('evaluasi-pelaksanaan')->middleware('AdminOnly')->group(function () {
                     Route::prefix('bank-soal')->group(function () {
                         Route::get('/', 'AssessmentController@index')->name('evaluasi.pelaksanaan.bank-soal.index');
                         Route::get('/create', 'AssessmentController@create')->name('evaluasi.pelaksanaan.bank-soal.create');
@@ -450,7 +450,7 @@ Route::group(
             });
 
             // Kegiatan
-            Route::prefix('kegiatan')->group(function () {
+            Route::prefix('kegiatan')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'KegiatanController@index')->name('kegiatan.index');
                 Route::get('/create', 'KegiatanController@create')->name('kegiatan.create');
                 Route::post('/store', 'KegiatanController@store')->name('kegiatan.store');
@@ -460,7 +460,7 @@ Route::group(
             });
 
             // Peserta Kegiatan
-            Route::prefix('peserta')->group(function () {
+            Route::prefix('peserta')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'PesertaKegiatanController@index')->name('peserta.index');
                 Route::get('/create', 'PesertaKegiatanController@create')->name('peserta.create');
                 Route::post('/store', 'PesertaKegiatanController@store')->name('peserta.store');
@@ -468,12 +468,14 @@ Route::group(
                 Route::put('/update', 'PesertaKegiatanController@update')->name('peserta.update');
                 Route::post('/hapus/{id}', 'PesertaKegiatanController@destroy')->name('peserta.hapus');
                 Route::get('/cetak/{id}', 'PesertaKegiatanController@cetak')->name('peserta.cetak');
-                Route::get('/cetakByUser/{id}', 'PesertaKegiatanController@cetakByUser')->name('peserta.cetakByUser')->withoutMiddleware(['ValidasiUser']);
+                Route::get('/cetakByUser/{id}', 'PesertaKegiatanController@cetakByUser')
+                    ->name('peserta.cetakByUser')
+                    ->withoutMiddleware(['ValidasiUser', 'AdminOnly']);
                 Route::get('/export/{id_kegiatan}', 'PesertaKegiatanController@export')->name('peserta.export');
             });
 
             // Honor
-            Route::prefix('honor')->group(function () {
+            Route::prefix('honor')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'HonorController@index')->name('honor.index');
                 Route::get('/create', 'HonorController@create')->name('honor.create');
                 Route::post('/store', 'HonorController@store')->name('honor.store');
@@ -498,7 +500,7 @@ Route::group(
             });
 
             //kuitansi
-            Route::prefix('kuitansi')->group(function () {
+            Route::prefix('kuitansi')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'KuitansiController@index')->name('kuitansi.index');
                 Route::get('/create', 'KuitansiController@create')->name('kuitansi.create');
                 Route::post('/store', 'KuitansiController@store')->name('kuitansi.store');
@@ -526,7 +528,7 @@ Route::group(
             });
 
             //kuitansiLoka
-            Route::prefix('kuitansiLoka')->group(function () {
+            Route::prefix('kuitansiLoka')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'KuitansiLokaController@index')->name('kuitansiLoka.index');
                 Route::get('/create', 'KuitansiLokaController@create')->name('kuitansiLoka.create');
                 Route::post('/store', 'KuitansiLokaController@store')->name('kuitansiLoka.store');
@@ -552,39 +554,8 @@ Route::group(
                 Route::get('/storeNomor', 'KuitansiLokaController@storeNomor')->name('kuitansiLoka.storeNomor');
             });
 
-            // Master Jabatan Pegawai BBGP
-            Route::prefix('kependudukan')->group(function () {
-                Route::get('/', 'KependudukanController@index')->name('kependudukan.index');
-                Route::get('/create', 'KependudukanController@create')->name('kependudukan.create');
-                Route::post('/store', 'KependudukanController@store')->name('kependudukan.store');
-                Route::get('/edit/{id}', 'KependudukanController@edit')->name('kependudukan.edit');
-                Route::put('/update', 'KependudukanController@update')->name('kependudukan.update');
-                Route::post('/hapus/{id}', 'KependudukanController@hapus')->name('kependudukan.hapus');
-                Route::get('/cetak/{id}', 'KependudukanController@cetak')->name('kependudukan.cetak');
-            });
-
-            // Route::prefix('kependudukan')->group(function () {
-            //     Route::get('/', 'KependudukanController@index')->name('kependudukan.index');
-            //     Route::get('/create', 'KependudukanController@create')->name('kependudukan.create');
-            //     Route::post('/store', 'KependudukanController@store')->name('kependudukan.store');
-            //     Route::get('/edit/{id}', 'KependudukanController@edit')->name('kependudukan.edit');
-            //     Route::put('/update', 'KependudukanController@update')->name('kependudukan.update');
-            //     Route::post('/hapus/{id}', 'KependudukanController@hapus')->name('kependudukan.hapus');
-            //     Route::get('/cetak/{id}', 'KependudukanController@cetak')->name('kependudukan.cetak');
-            // });
-
-            // Route::prefix('kependudukan')->group(function () {
-            //     Route::get('/', 'KependudukanController@index')->name('kependudukan.index');
-            //     Route::get('/create', 'KependudukanController@create')->name('kependudukan.create');
-            //     Route::post('/store', 'KependudukanController@store')->name('kependudukan.store');
-            //     Route::get('/edit/{id}', 'KependudukanController@edit')->name('kependudukan.edit');
-            //     Route::put('/update', 'KependudukanController@update')->name('kependudukan.update');
-            //     Route::post('/hapus/{id}', 'KependudukanController@hapus')->name('kependudukan.hapus');
-            //     Route::get('/cetak/{id}', 'KependudukanController@cetak')->name('kependudukan.cetak');
-            // });
-
             // Agenda
-            Route::prefix('agenda')->group(function () {
+            Route::prefix('agenda')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'AgendaController@index')->name('agenda.index');
                 Route::get('/create', 'AgendaController@create')->name('agenda.create');
                 Route::post('/store', 'AgendaController@store')->name('agenda.store');
@@ -594,7 +565,7 @@ Route::group(
             });
 
             // Berita
-            Route::prefix('berita')->group(function () {
+            Route::prefix('berita')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'BeritaController@index')->name('berita.index');
                 Route::get('/create', 'BeritaController@create')->name('berita.create');
                 Route::post('/store', 'BeritaController@store')->name('berita.store');
@@ -604,7 +575,7 @@ Route::group(
             });
 
             // Artikels
-            Route::prefix('artikel')->group(function () {
+            Route::prefix('artikel')->middleware('AdminOnly')->group(function () {
                 Route::get('/', 'ArtikelController@index')->name('artikel.index');
                 Route::get('/create', 'ArtikelController@create')->name('artikel.create');
                 Route::post('/store', 'ArtikelController@store')->name('artikel.store');
@@ -614,7 +585,7 @@ Route::group(
             });
 
             // RTL Admin
-            Route::prefix('rtl')->group(function () {
+            Route::prefix('rtl')->middleware('AdminOnly')->group(function () {
                 Route::get('/', [RtlController::class, 'index'])->name('rtl.index');
                 Route::get('/{id}', [RtlController::class, 'show'])->name('rtl.show');
                 Route::post('/update/{id}', [RtlController::class, 'update'])->name('rtl.update');
@@ -624,7 +595,9 @@ Route::group(
 );
 
 // handle route sekolah
-Route::get('/get-sekolahs', [AdminSekolahController::class, 'getSekolahs'])->name('getSekolahs');
+Route::get('/get-sekolahs', [AdminSekolahController::class, 'getSekolahs'])
+    ->middleware('throttle:60,1')
+    ->name('getSekolahs');
 
 // Auth
 Route::group(['prefix' => 'auth', 'namespace' => 'App\Http\Controllers'], function () {
@@ -632,10 +605,12 @@ Route::group(['prefix' => 'auth', 'namespace' => 'App\Http\Controllers'], functi
     Route::get('/login_admin', 'AuthController@login_admin')->name('login.admin');
     // Route::get('/reset', 'AuthController@reset')->name('reset');
     // Route::get('/reset_password', 'AuthController@reset_password')->name('reset.password');
-    Route::post('/login', 'AuthController@login_action')->name('login_action');
-    Route::post('/login/admin', 'AuthController@login_action_admin')->name('login_action_admin');
+    Route::post('/login', 'AuthController@login_action')->middleware('throttle:6,1')->name('login_action');
+    Route::post('/login/admin', 'AuthController@login_action_admin')->middleware('throttle:6,1')->name('login_action_admin');
     Route::get('/logout', function () {
-        Session::flush();
+        auth()->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
 
         return redirect()->route(
             'user.index'
@@ -647,13 +622,13 @@ Route::get('/repair-link', function () {
     $target = base_path('storage/app/public');
     $link = public_path('upload'); // Ganti dari storage ke upload
 
-    // Hapus jika sudah ada (bisa jadi broken link atau folder asli)
+    abort_unless(is_dir($target), 500, 'Storage target tidak tersedia.');
+
     if (file_exists($link)) {
         if (is_link($link)) {
-            unlink($link);
+            return response()->json(['message' => 'Link upload sudah tersedia.']);
         } else {
-            // Jika itu folder asli, kita coba rename dulu untuk backup.
-            rename($link, $link.'_old_'.time());
+            return response()->json(['message' => 'Folder upload sudah ada dan tidak diubah.'], 409);
         }
     }
 
@@ -661,8 +636,10 @@ Route::get('/repair-link', function () {
         // Buat Symbolic Link bernama 'upload'
         app()->make('files')->link($target, $link);
 
-        return "Symbolic link 'upload' created successfully!<br>Target: $target <br>Link: $link <br><br>Sekarang file bisa diakses via <b>domain.com/upload/...</b>";
+        return response()->json(['message' => "Symbolic link 'upload' created successfully."]);
     } catch (\Exception $e) {
-        return 'Failed to create link: '.$e->getMessage();
+        report($e);
+
+        return response()->json(['message' => 'Failed to create link.'], 500);
     }
-});
+})->middleware('AdminOnly');

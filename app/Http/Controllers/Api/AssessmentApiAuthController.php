@@ -19,8 +19,11 @@ class AssessmentApiAuthController extends Controller
         ]);
 
         $user = User::query()
-            ->where('username', $credentials['username'])
-            ->orWhere('no_ktp', $credentials['username'])
+            ->where(function ($query) use ($credentials) {
+                $query->where('username', $credentials['username'])
+                    ->orWhere('no_ktp', $credentials['username']);
+            })
+            ->whereIn('role', ['tenaga pendidik', 'tenaga kependidikan', 'stakeholder'])
             ->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {

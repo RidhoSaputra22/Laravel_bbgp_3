@@ -11,6 +11,11 @@ class AssessmentConfigurationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $request->validate([
+            'kategori' => 'nullable|string|max:100',
+            'kode_assessment' => 'nullable|string|max:100',
+        ]);
+
         $assessments = $this->publishedQuery()
             ->when($request->filled('kategori'), fn ($query) => $query->where('kategori', $request->string('kategori')))
             ->when($request->filled('kode_assessment'), fn ($query) => $query->where('kode_assessment', $request->string('kode_assessment')))
@@ -28,6 +33,8 @@ class AssessmentConfigurationController extends Controller
 
     public function show(string $identifier): JsonResponse
     {
+        abort_if(strlen($identifier) > 100, 404);
+
         $assessment = $this->publishedQuery()
             ->where(function ($query) use ($identifier) {
                 $query->where('slug', $identifier)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Artikel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ArtikelController extends Controller
 {
@@ -38,6 +39,9 @@ class ArtikelController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'thumbnail' => 'required|image|mimes:jpeg,jpg,png,webp|max:512',
+        ]);
         $r = $request->all();
 
         $file = $request->file('thumbnail');
@@ -48,10 +52,10 @@ class ArtikelController extends Controller
         }
 
         $foto = $request->file('thumbnail');
-        $ext = $foto->getClientOriginalExtension();
+        $ext = $foto->extension();
         // $r['pas_foto'] = $request->file('pas_foto');
 
-        $nameFoto = date('Y-m-d_H-i-s_') . str_replace(' ', '-', $r['judul']) . "." . $ext;
+        $nameFoto = Str::uuid() . "." . $ext;
         $destinationPath = public_path('upload/artikel');
 
         $foto->move($destinationPath, $nameFoto);
@@ -91,6 +95,10 @@ class ArtikelController extends Controller
      */
     public function update(Request $request)
     {
+        $request->validate([
+            'id' => 'required|integer|exists:artikels,id',
+            'thumbnail' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:512',
+        ]);
         $r = $request->all();
         $data = Artikel::find($r['id']);
 
@@ -103,8 +111,8 @@ class ArtikelController extends Controller
             if ($foto->getSize() / 1024 >= 512) {
                 return redirect()->route('artikel.edit', $r['id'])->with('message', 'size gambar');
             }
-            $ext = $foto->getClientOriginalExtension();
-            $nameFoto = date('Y-m-d_H-i-s_') . $r['judul'] . "." . $ext;
+            $ext = $foto->extension();
+            $nameFoto = Str::uuid() . "." . $ext;
             $destinationPath = public_path('upload/artikel');
 
             $foto->move($destinationPath, $nameFoto);

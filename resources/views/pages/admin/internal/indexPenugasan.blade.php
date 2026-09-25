@@ -150,7 +150,7 @@
                                                         {{ $data->tgl_selesai_kegiatan }}
                                                     </td>
                                                     <td>{{ $data->jam_mulai }} WITA - {{ $data->jam_selesai }} WITA</td>
-                                                    <td>{!! $data->deskripsi !!}</td>
+                                                    <td>{!! safe_rich_text($data->deskripsi) !!}</td>
                                                     {{-- <td>
                                                         <a href="{{ route('internal.index.pegawai', $data->nik) }}"
                                                             class="btn btn-primary mb-2">Lihat Penugasan</a>

@@ -23,9 +23,11 @@ class KepegawaianController extends Controller
      */
     public function store(Request $request)
     {
-        $r = $request->all();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
 
-        Kepegawaian::create($r);
+        Kepegawaian::create($validated);
 
         return redirect()->route('kepegawaian.index')->with('message', 'store');
     }
@@ -49,10 +51,12 @@ class KepegawaianController extends Controller
      */
     public function update(Request $request)
     {
-        //
-        $r = $request->all();
-        $data = Kepegawaian::find($r['id'])->first();
-        $data->update($r);
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'exists:kepegawaians,id'],
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+        $data = Kepegawaian::findOrFail($validated['id']);
+        $data->update(['name' => $validated['name']]);
         return redirect()->route('kepegawaian.index')->with('message', 'update');
     }
 

@@ -10,6 +10,9 @@ use App\Models\Internal;
 use App\Models\Kegiatan;
 use App\Models\PesertaKegiatan;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AdminController extends Controller
 {
@@ -184,7 +187,11 @@ class AdminController extends Controller
      */
     public function profile($id)
     {
-        $data = Admin::find($id);
+        abort_unless((int) $id === (int) Auth::id(), 403);
+
+        $user = Auth::user();
+        $data = Admin::where('username', $user->username)->firstOrFail();
+
         return view('pages.admin.profile.index', ['menu' => 'profile', 'data' => $data]);
     }
 
@@ -193,19 +200,36 @@ class AdminController extends Controller
      */
     public function profile_update(Request $request)
     {
-        $r = $request->all();
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:admins,id',
+            'name' => 'required|string|max:255',
+            'username' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('admins', 'username')->ignore($request->integer('id')),
+            ],
+            'password' => 'nullable|string|min:8|max:255',
+        ]);
 
+        $user = Auth::user();
+        $admin = Admin::findOrFail($validated['id']);
+        abort_unless($admin->username === $user->username, 403);
 
-        $admin = Admin::find($r['id']);
-        $user = User::find($r['id']);
-        if ($r['password'] != null) {
-            $r['password'] = bcrypt($r['password']);
-        } else {
-            unset($r['password']);
+        $payload = [
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+        ];
+        if (!empty($validated['password'])) {
+            $payload['password'] = Hash::make($validated['password']);
         }
 
-        $admin->update($r);
-        $user->update($r);
+        $admin->update($payload);
+        $user->update($payload);
+        $request->session()->put([
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+        ]);
 
         return redirect()->route('dashboard')->with('message', 'update profile');
     }

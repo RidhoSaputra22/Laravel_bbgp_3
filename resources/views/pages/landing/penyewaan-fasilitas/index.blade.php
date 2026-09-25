@@ -410,7 +410,7 @@
 
                                         @if ($asrama->rincian_harga)
                                             <div class="room-details text-white">
-                                                {!! $asrama->rincian_harga !!}
+                                                {!! safe_rich_text($asrama->rincian_harga) !!}
                                             </div>
                                         @endif
 

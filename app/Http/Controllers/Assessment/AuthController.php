@@ -59,6 +59,8 @@ class AuthController extends Controller
                 ]);
         }
 
+        $request->session()->regenerate();
+
         return redirect()
             ->route('assessment.portal.dashboard')
             ->with('assessment_portal_success', 'Login assessment berhasil. Selamat mengerjakan.');

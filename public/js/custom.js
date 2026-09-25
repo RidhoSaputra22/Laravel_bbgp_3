@@ -119,11 +119,17 @@ function register(data) {
             name: data.nama_lengkap, // Data diambil dari respons verifikasi
             no_ktp: data.no_ktp,    // Data diambil dari respons verifikasi
             role: data.eksternal_jabatan == undefined ? 'pegawai' : data.eksternal_jabatan,      // Data diambil dari respons verifikasi
-            password: '12345'   // Data diambil dari respons verifikasi
         },
         success: function (res) {
             console.log('regist');
             console.log(res);
+            if (res.credentials) {
+                swal(
+                    "Akun dibuat",
+                    `Username: ${res.credentials.username}\nPassword sementara: ${res.credentials.password}`,
+                    "success"
+                );
+            }
         },
         error: function (error) {
             console.error("AJAX Error:", error);

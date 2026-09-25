@@ -67,7 +67,7 @@
                                             <div class="form-group">
                                                 <label>Keterangan Kegiatan</label>
                                                 <textarea name="deskripsi_kegiatan" style="height: 100px;" placeholder="Deskripsi tentang kegiatan " class="form-control summernote-simple" id="" cols="30" rows="10">
-                                                    {!! $datas->deskripsi_kegiatan !!}
+                                                    {{ safe_rich_text($datas->deskripsi_kegiatan) }}
                                                 </textarea>
 
                                             </div>

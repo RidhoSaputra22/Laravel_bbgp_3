@@ -64,7 +64,7 @@
                             </div><!-- header end -->
 
                             <div class="entry-content">
-                                {!! $data->deskripsi_kegiatan !!}
+                                {!! safe_rich_text($data->deskripsi_kegiatan) !!}
                             </div>
 
                             <div class="tags-area d-flex align-items-center justify-content-between">

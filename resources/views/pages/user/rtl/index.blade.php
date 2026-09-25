@@ -114,7 +114,9 @@
                                        <td>
                                           @if ($rtl->status != 'approved')
                                              <button class="btn btn-primary btn-sm"
-                                                onclick="addFile({{ $rtl->id_kegiatan }}, '{{ $rtl->kegiatan->nama_kegiatan }}')">
+                                                data-kegiatan-id="{{ $rtl->id_kegiatan }}"
+                                                data-kegiatan-name="{{ $rtl->kegiatan->nama_kegiatan }}"
+                                                onclick="addFile(this.dataset.kegiatanId, this.dataset.kegiatanName)">
                                                 <i class="fas fa-upload"></i> Tambah File
                                              </button>
                                           @endif
@@ -220,6 +222,8 @@
 
    @push('scripts')
       <script>
+         const escapeHtml = (value) => $('<div>').text(value ?? '').html();
+
          $(document).ready(function() {
             $('.select2').select2({
                dropdownParent: $('#uploadRtlModal')
@@ -260,8 +264,8 @@
                $('#prevDocsList').empty();
                data.documents.forEach(doc => {
                   let li = `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${doc.original_name}
-                    <button class="btn btn-sm btn-primary" onclick="showFile('${doc.url}')">
+                    ${escapeHtml(doc.original_name)}
+                    <button class="btn btn-sm btn-primary" onclick="showFile('${encodeURI(doc.url)}')">
                         <i class="fas fa-eye"></i> Preview
                     </button>
                 </li>`;

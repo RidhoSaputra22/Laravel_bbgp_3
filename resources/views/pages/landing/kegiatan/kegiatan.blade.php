@@ -165,7 +165,11 @@
       <script src="{{ asset('library/datatables.net-select-bs4/js/select.bootstrap4.min.js') }}"></script>
       <script src="{{ asset('js/page/modules-datatables.js') }}"></script>
 
-      <script>
+   <script>
+      function escapeHtml(value) {
+         return $('<div>').text(value ?? '').html();
+      }
+
          function formatTanggalIndo(dateStr) {
             const options = {
                day: '2-digit',
@@ -251,11 +255,11 @@
 
                if (namaKegiatan && tglKegiatan && tglSelesai && tempat) {
                   console.log(namaKegiatan);
-                  $('#rincianKegiatan').html(`${namaKegiatan}`);
-                  $('#rincianTgl').html(`${tglKegiatan} - ${tglSelesai}`);
-                  $('#rincianJam').html(`${formatJamMenit(mulai)} - ${formatJamMenit(selesai)} WITA`);
-                  $('#rincianLokasi').html(`${tempat}`);
-                  $('#rincianKeterangan').html(`${namaKegiatan}`);
+                  $('#rincianKegiatan').text(namaKegiatan);
+                  $('#rincianTgl').text(`${tglKegiatan} - ${tglSelesai}`);
+                  $('#rincianJam').text(`${formatJamMenit(mulai)} - ${formatJamMenit(selesai)} WITA`);
+                  $('#rincianLokasi').text(tempat);
+                  $('#rincianKeterangan').text(namaKegiatan);
                } else {
                   $('#rincianKegiatan').html('');
                   $('#rincianTgl').html('');
@@ -286,22 +290,22 @@
                            response.data.forEach((peserta, index) => {
                               let kelengkapanTransport = peserta
                                  .status_keikutpesertaan === 'peserta' ?
-                                 `<td>${peserta.kelengkapan_peserta_transport ?? ''}</td>` :
+                                 `<td>${escapeHtml(peserta.kelengkapan_peserta_transport)}</td>` :
                                  '<td>Hanya untuk peserta</td>';
                               let kelengkapanBiodata = peserta
                                  .status_keikutpesertaan === 'peserta' ?
-                                 `<td>${peserta.kelengkapan_peserta_biodata ?? ''}</td>` :
+                                 `<td>${escapeHtml(peserta.kelengkapan_peserta_biodata)}</td>` :
                                  '<td>Hanya untuk peserta</td>';
 
                               $('#kegiatanPeserta').append(`
                                         <tr>
                                             <td>${index + 1}</td>
-                                            <td>${peserta.no_ktp}</td>
-                                            <td>${peserta.nama}</td>
-                                            <td>${peserta.status_keikutpesertaan}</td>
-                                            <td>${peserta.jkl ?? ''}</td>
-                                            <td>${peserta.no_wa ?? ''}</td>
-                                            <td>${peserta.kabupaten ?? ''}</td>
+                                            <td>${escapeHtml(peserta.no_ktp)}</td>
+                                            <td>${escapeHtml(peserta.nama)}</td>
+                                            <td>${escapeHtml(peserta.status_keikutpesertaan)}</td>
+                                            <td>${escapeHtml(peserta.jkl)}</td>
+                                            <td>${escapeHtml(peserta.no_wa)}</td>
+                                            <td>${escapeHtml(peserta.kabupaten)}</td>
                                             <td>
                                                 <button class="btn btn-info" onclick="showDetail(${peserta.id})">
                                                     Detail
@@ -533,12 +537,12 @@
 
                   kelengkapanPesertaTransport = response.statusKeikutpesertaan == 'peserta' ? `
                         <p>
-                            <strong>Kelengkapan Peserta Transport:</strong> ${response.kelengkapan_peserta_transport ?? ''}
+                            <strong>Kelengkapan Peserta Transport:</strong> ${escapeHtml(response.kelengkapan_peserta_transport)}
                         </p>` : '';
 
                   kelengkapanPesertaBiodata = response.statusKeikutpesertaan == 'peserta' ? `
                         <p>
-                            <strong>Kelengkapan Peserta Biodata:</strong> ${response.kelengkapan_peserta_biodata ?? ''}
+                            <strong>Kelengkapan Peserta Biodata:</strong> ${escapeHtml(response.kelengkapan_peserta_biodata)}
                         </p>` : '';
 
                   let formattedDate = '';
@@ -551,30 +555,30 @@
                   $('#pesertaDetailContent').html(`
                         <div class="row">
                             <div class="col-md-6">
-                                <p><strong>Nama:</strong> ${response.nama ?? ''}</p>
-                                <p><strong>NIK:</strong> ${response.no_ktp ?? ''}</p>
+                                <p><strong>Nama:</strong> ${escapeHtml(response.nama)}</p>
+                                <p><strong>NIK:</strong> ${escapeHtml(response.no_ktp)}</p>
                                 <p>
-                                    <strong>Status Keikutpesertaan:</strong> ${response.status_keikutpesertaan ?? ''}
+                                    <strong>Status Keikutpesertaan:</strong> ${escapeHtml(response.status_keikutpesertaan)}
                                 </p>
                                 <p>
-                                    <strong>Nomor Surat:</strong> ${response.no_surat_tugas ?? ''}
+                                    <strong>Nomor Surat:</strong> ${escapeHtml(response.no_surat_tugas)}
                                 </p>
                                 <p>
                                     <strong>Tanggal Surat:</strong> ${formattedDate}
                                 </p>
-                                <p><strong>Kabupaten:</strong> ${response.kabupaten ?? ''}</p>
+                                <p><strong>Kabupaten:</strong> ${escapeHtml(response.kabupaten)}</p>
 
 
                             </div>
                             <div class="col-md-6">
-                                <p><strong>Jenis Kelamin:</strong> ${response.jkl ?? ''}</p>
+                                <p><strong>Jenis Kelamin:</strong> ${escapeHtml(response.jkl)}</p>
                                 ${kelengkapanPesertaBiodata}
                                 ${kelengkapanPesertaTransport}
-                                <p><strong>Nomor Handphone:</strong> ${response.no_hp ?? ''}</p>
-                                <p><strong>Nomor WhatsApp:</strong> ${response.no_wa ?? ''}</p>
-                                <p><strong>Instansi:</strong> ${response.instansi ?? ''}</p>
-                                <p><strong>Jenis Golongan:</strong> ${response.jenis_gol ?? ''}</p>
-                                <p><strong>Golongan:</strong> ${response.golongan ?? ''}</p>
+                                <p><strong>Nomor Handphone:</strong> ${escapeHtml(response.no_hp)}</p>
+                                <p><strong>Nomor WhatsApp:</strong> ${escapeHtml(response.no_wa)}</p>
+                                <p><strong>Instansi:</strong> ${escapeHtml(response.instansi)}</p>
+                                <p><strong>Jenis Golongan:</strong> ${escapeHtml(response.jenis_gol)}</p>
+                                <p><strong>Golongan:</strong> ${escapeHtml(response.golongan)}</p>
                             </div>
                         </div>
                         <div class="text-right mt-3">

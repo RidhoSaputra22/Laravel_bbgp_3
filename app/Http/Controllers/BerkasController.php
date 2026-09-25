@@ -7,8 +7,8 @@ use App\Models\Berkas;
 use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class BerkasController extends Controller
 {
@@ -17,7 +17,7 @@ class BerkasController extends Controller
      */
     public function index()
     {
-        if (auth()->user()->role === 'admin' || auth()->user()->role === 'superadmin') {
+        if ($this->canManageAllBerkas()) {
             $users = Pegawai::with(['berkas' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             }])
@@ -45,49 +45,30 @@ class BerkasController extends Controller
      */
     public function store(Request $r)
     {
+        $validated = $r->validate([
+            'nama_berkas' => 'nullable|file|mimes:pdf,doc,docx|max:10024',
+            'nama_link' => 'nullable|url:http,https|max:2048',
+            'nama_kegiatan' => 'required|string|max:255',
+            'metode_upload' => 'required|in:upload,link',
+        ]);
+
+        abort_unless(session('no_ktp'), 403);
+
         try {
             $berkas = new Berkas();
-
             if ($r->hasFile('nama_berkas')) {
-                $validator = Validator::make($r->all(), [
-                    'nama_berkas' => 'required|mimes:pdf,doc,docx|max:10024',
-                    'nama_kegiatan' => 'required',
-                ]);
-
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'errors' => $validator->messages()
-                    ], 422);
-                }
-
-                $foto = $r->file('nama_berkas');
-                $ext = $foto->getClientOriginalExtension();
-                // $r['pas_foto'] = $request->file('pas_foto');
-
-                $fileName = date('Y-m-d_H-i-s') . "." . $ext;
-                $destinationPath = '/home/simbbgps/public_html/upload/berkas';
-
-                $foto->move($destinationPath, $fileName);
-
-                $berkas->nama_berkas = $fileName;
+                $file = $r->file('nama_berkas');
+                $fileName = Str::uuid() . '.' . $file->extension();
+                Storage::disk('public')->putFileAs('berkas', $file, $fileName);
+                $validated['nama_berkas'] = $fileName;
             } else {
-                $validator = Validator::make($r->all(), [
-                    'nama_link' => 'required',
-                    'nama_kegiatan' => 'required',
-                ]);
-
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'errors' => $validator->messages()
-                    ], 422);
-                }
-                $berkas->nama_berkas = $r->nama_link;
+                abort_unless(!empty($validated['nama_link']), 422, 'Link laporan wajib diisi.');
+                $validated['nama_berkas'] = $validated['nama_link'];
             }
 
-            $berkas->nama_kegiatan = $r->nama_kegiatan;
-            $berkas->metode_upload = $r->metode_upload;
+            $berkas->nama_berkas = $validated['nama_berkas'];
+            $berkas->nama_kegiatan = $validated['nama_kegiatan'];
+            $berkas->metode_upload = $validated['metode_upload'];
             $berkas->status = 'proses';
             $berkas->nik = session('no_ktp');
             $berkas->save();
@@ -97,9 +78,10 @@ class BerkasController extends Controller
                 'message' => 'Laporan telah di buat'
             ]);
         } catch (\Exception $e) {
+            report($e);
             return response()->json([
                 'status' => 'error',
-                'message' => $e
+                'message' => 'Gagal menyimpan berkas.'
             ], 500);
         }
     }
@@ -113,7 +95,9 @@ class BerkasController extends Controller
      */
     public function edit(string $id)
     {
-        $data = Berkas::find($id);
+        $data = Berkas::findOrFail($id);
+        $this->authorizeBerkas($data);
+
         return response()->json([
             'data' => $data
         ]);
@@ -138,73 +122,33 @@ class BerkasController extends Controller
      */
     public function update(Request $r)
     {
+        $validated = $r->validate([
+            'formId' => 'required|integer|exists:berkas,id',
+            'nama_berkas' => 'nullable|file|mimes:pdf,doc,docx|max:10024',
+            'nama_link' => 'nullable|url:http,https|max:2048',
+            'nama_kegiatan' => 'required|string|max:255',
+            'metode_upload' => 'required|in:upload,link',
+        ]);
+
+        $data = Berkas::findOrFail($validated['formId']);
+        $this->authorizeBerkas($data);
+
         try {
-            $data = Berkas::find($r->formId);
-
-            if (!$r->hasFile('nama_berkas') && empty($r->nama_link)) {
-                $validator = Validator::make($r->all(), [
-                    'nama_kegiatan' => 'required',
-                ]);
-
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'errors' => $validator->messages()
-                    ], 422);
-                }
-
-                $data->update([
-                    'nama_kegiatan' => $r->nama_kegiatan,
-                    'nik' => session('no_ktp'),
-                ]);
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Data updated successfully'
-                ]);
-            }
-
             if ($r->hasFile('nama_berkas')) {
-                $validator = Validator::make($r->all(), [
-                    'nama_berkas' => 'mimes:pdf,doc,docx|max:10024',
-                    'nama_kegiatan' => 'required',
-                ]);
-
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'errors' => $validator->messages()
-                    ], 422);
-                }
-
-                $foto = $r->file('nama_berkas');
-                $ext = $foto->getClientOriginalExtension();
-                $fileName = date('Y-m-d_H-i-s') . "." . $ext;
-                $destinationPath = '/home/simbbgps/public_html/upload/berkas';
-
-                $foto->move($destinationPath, $fileName);
-
-                $data->nama_berkas = $fileName;
+                $file = $r->file('nama_berkas');
+                $fileName = Str::uuid() . '.' . $file->extension();
+                Storage::disk('public')->putFileAs('berkas', $file, $fileName);
+                $validated['nama_berkas'] = $fileName;
+            } elseif (!empty($validated['nama_link'])) {
+                $validated['nama_berkas'] = $validated['nama_link'];
             } else {
-                $validator = Validator::make($r->all(), [
-                    'nama_link' => 'required',
-                    'nama_kegiatan' => 'required',
-                ]);
-
-                if ($validator->fails()) {
-                    return response()->json([
-                        'status' => 'error',
-                        'errors' => $validator->messages()
-                    ], 422);
-                }
-                $data->nama_berkas = $r->nama_link;
+                $validated['nama_berkas'] = $data->nama_berkas;
             }
 
             $data->update([
-                'metode_upload' => $r->metode_upload,
-                'nama_kegiatan' => $r->nama_kegiatan,
-                'nama_berkas' => $data->nama_berkas,
-                'nik' => session('no_ktp'),
+                'metode_upload' => $validated['metode_upload'],
+                'nama_kegiatan' => $validated['nama_kegiatan'],
+                'nama_berkas' => $validated['nama_berkas'],
             ]);
 
             return response()->json([
@@ -212,6 +156,7 @@ class BerkasController extends Controller
                 'message' => 'Data updated successfully'
             ]);
         } catch (\Exception $e) {
+            report($e);
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to upload file'
@@ -224,16 +169,21 @@ class BerkasController extends Controller
      */
     public function destroy(string $id)
     {
-
-        $data = Berkas::find($id);
+        $data = Berkas::findOrFail($id);
+        $this->authorizeBerkas($data);
+        if ($data->nama_berkas && !filter_var($data->nama_berkas, FILTER_VALIDATE_URL)) {
+            Storage::disk('public')->delete('berkas/' . basename($data->nama_berkas));
+        }
         $data->delete();
         return response()->json($data);
     }
 
     public function verify($id)
     {
+        $this->authorizeAdmin();
+        $berkas = Berkas::findOrFail($id);
+
         try {
-            $berkas = Berkas::findOrFail($id);
             $berkas->update(['status' => 'selesai']);
 
             return response()->json([
@@ -246,5 +196,30 @@ class BerkasController extends Controller
                 'message' => 'Gagal memverifikasi berkas'
             ], 500);
         }
+    }
+
+    private function authorizeBerkas(Berkas $berkas): void
+    {
+        abort_unless(
+            $this->canManageAllBerkas() || (string) $berkas->nik === (string) session('no_ktp'),
+            403
+        );
+    }
+
+    private function authorizeAdmin(): void
+    {
+        abort_unless($this->canManageAllBerkas(), 403);
+    }
+
+    private function canManageAllBerkas(): bool
+    {
+        $role = auth()->user()?->role ?? session('role');
+
+        return in_array(strtolower(trim((string) $role)), [
+            'admin',
+            'superadmin',
+            'kepala',
+            'database',
+        ], true);
     }
 }

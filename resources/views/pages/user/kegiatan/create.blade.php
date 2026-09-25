@@ -349,7 +349,7 @@
                     url: '{{ route('user.peserta.cekData') }}',
                     type: 'GET',
                     data: {
-                        nik: '{{ session('nik') }}'
+                        nik: {!! json_encode(session('nik'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
                     },
                     success: function(response) {
                         console.log(response.data.nip);

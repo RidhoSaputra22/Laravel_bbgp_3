@@ -222,35 +222,65 @@ class UserController extends Controller
     }
     public function daftar_pegawai(Request $request)
     {
-        $r = $request->all();
-        // $foto = $request->file('pas_foto');
-        // $ext = $foto->getClientOriginalExtension();
-        // // $r['pas_foto'] = $request->file('pas_foto');
+        $validated = $request->validate([
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'no_ktp' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
+            'nip' => 'required|string|max:50',
+            'tempat_lahir' => 'required|string|max:255',
+            'tgl_lahir' => 'required|date',
+            'gender' => 'required|in:Laki-laki,Perempuan',
+            'status_kepegawaian' => 'required|string|max:100',
+            'agama' => 'required|in:Islam,Kristen,Katolik,Hindu,Budha,Konghucu',
+            'pendidikan' => 'required|string|max:100',
+            'kabupaten' => 'required|string|max:255',
+            'diluarKab' => 'nullable|string|max:255',
+            'satuan_pendidikan' => 'required|string|max:255',
+            'alamat_satuan' => 'nullable|string|max:1000',
+            'alamat_rumah' => 'required|string|max:1000',
+            'no_hp' => 'required|string|max:30',
+            'no_wa' => 'required|string|max:30',
+            'jabatan' => 'required|string|max:255',
+            'jenisJabatan' => 'nullable|string|max:100',
+            'jenis_bank' => 'required|string|max:100',
+            'no_rek' => 'required|string|max:50',
+        ]);
 
-        // $nameFoto = date('Y-m-d_H-i-s_') . $r['no_ktp'] . "." . $ext;
-        // $destinationPath = public_path('upload/pegawai');
-
-        // $foto->move($destinationPath, $nameFoto);
-
-        // $fileUrl = asset('upload/pegawai/' . $nameFoto);
-
-        // $r['pas_foto'] = $nameFoto;
-        // dd($r);
-        $findNik = Guru::where('no_ktp', $r['no_ktp'])->first();
+        $findNik = Guru::where('no_ktp', $validated['no_ktp'])->first()
+            ?? Pegawai::where('no_ktp', $validated['no_ktp'])->first();
 
         if ($findNik != null)
             return redirect()->route('user.pegawai')->with('message', 'nik sudah ada');
 
-        $r['pas_foto'] = '';
-        $r['status'] = 'Belum Kawin';
-        $r['alamat_satuan'] = '';
-        $r['eksternal_jabatan'] = $r['jenisJabatan'];
-        $r['jenis_jabatan'] = $r['jabJenis'];
-        $r['kategori_jabatan'] = $r['jabKategori'];
-        $r['tugas_jabatan'] = $r['jabTugas'];
-        $r['is_verif'] = 'belum';
+        $kabupaten = $validated['kabupaten'] === 'Tidak ada'
+            ? ($validated['diluarKab'] ?: 'Tidak ada')
+            : $validated['kabupaten'];
 
-        Pegawai::create($r);
+        Pegawai::create([
+            'nama_lengkap' => $validated['nama_lengkap'],
+            'email' => $validated['email'],
+            'no_ktp' => $validated['no_ktp'],
+            'nip' => $validated['nip'],
+            'tempat_lahir' => $validated['tempat_lahir'],
+            'tgl_lahir' => $validated['tgl_lahir'],
+            'gender' => $validated['gender'],
+            'jabatan' => $validated['jabatan'],
+            'jenis_pegawai' => $validated['jenisJabatan'] ?? null,
+            'status' => 'Belum Kawin',
+            'status_kepegawaian' => $validated['status_kepegawaian'],
+            'agama' => $validated['agama'],
+            'pendidikan' => $validated['pendidikan'],
+            'kabupaten' => $kabupaten,
+            'satuan_pendidikan' => $validated['satuan_pendidikan'],
+            'alamat_satuan' => $validated['alamat_satuan'] ?? '',
+            'alamat_rumah' => $validated['alamat_rumah'],
+            'no_hp' => $validated['no_hp'],
+            'no_wa' => $validated['no_wa'],
+            'pas_foto' => '',
+            'jenis_bank' => $validated['jenis_bank'],
+            'no_rek' => $validated['no_rek'],
+            'is_verif' => 'belum',
+        ]);
 
         return redirect()->route('user.pegawai')->with('message', 'user daftar');
     }
@@ -279,7 +309,33 @@ class UserController extends Controller
     }
     public function daftar_guru(Request $request)
     {
-        $r = $request->all();
+        $r = $request->validate([
+            'nama_lengkap' => 'required|string|max:255',
+            'no_ktp' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
+            'jenisJabatan' => 'required|string|in:Tenaga Pendidik,Tenaga Kependidikan,Stakeholder',
+            'jabJenis' => 'nullable|string|max:255',
+            'jabLainnya' => 'nullable|string|max:255',
+            'kabupaten' => 'nullable|string|max:255',
+            'diluarKab' => 'nullable|string|max:255',
+            'jabKategori' => 'nullable|string|max:255',
+            'jabTugas' => 'nullable|string|max:255',
+            'jabLatar' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'nip' => 'nullable|string|max:50',
+            'npsn_sekolah' => 'nullable|string|max:50',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tgl_lahir' => 'nullable|date',
+            'gender' => 'nullable|string|max:30',
+            'agama' => 'nullable|string|max:50',
+            'pendidikan' => 'nullable|string|max:100',
+            'alamat_rumah' => 'nullable|string|max:1000',
+            'no_hp' => 'nullable|string|max:30',
+            'no_wa' => 'nullable|string|max:30',
+            'no_rek' => 'nullable|string|max:50',
+            'jenis_bank' => 'nullable|string|max:100',
+            'npwp' => 'nullable|string|max:50',
+            'nuptk' => 'nullable|string|max:50',
+        ]);
         // $foto = $request->file('pas_foto');
         // $ext = $foto->getClientOriginalExtension();
         // // $r['pas_foto'] = $request->file('pas_foto');
@@ -301,14 +357,14 @@ class UserController extends Controller
             $r['alamat_satuan'] = '';
             $r['eksternal_jabatan'] = $r['jenisJabatan'] ?? '';
 
-            if ($r['jabJenis'] == 'Lainnya' && $r['jabLainnya'] != null) {
+            if (($r['jabJenis'] ?? null) == 'Lainnya' && ($r['jabLainnya'] ?? null) != null) {
                 $r['jabJenis'] = $r['jabLainnya'];
-                $r['jenis_jabatan'] = $r['jabJenis'];
+                $r['jenis_jabatan'] = $r['jabJenis'] ?? '';
             } else {
                 $r['jenis_jabatan'] = $r['jabJenis'];
             }
 
-            if ($r['kabupaten'] == 'Tidak ada' && $r['diluarKab'] != null) {
+            if (($r['kabupaten'] ?? null) == 'Tidak ada' && ($r['diluarKab'] ?? null) != null) {
                 $r['kabupaten'] = $r['diluarKab'];
             }
 
@@ -317,7 +373,11 @@ class UserController extends Controller
             $r['latar_jabatan'] = $r['jabLatar'] ?? '';
             $r['is_verif'] = 'sudah';
 
-            $role = strtolower($r['jenisJabatan']);
+            $role = match ($r['jenisJabatan']) {
+                'Tenaga Pendidik' => 'tenaga pendidik',
+                'Tenaga Kependidikan' => 'tenaga kependidikan',
+                default => 'stakeholder',
+            };
 
             $user = strtolower(str_replace(' ', '', $r['nama_lengkap']));
             // dd($role);
@@ -325,7 +385,8 @@ class UserController extends Controller
             $reg['username'] = $user;
             $reg['no_ktp'] = (string) $r['no_ktp'];
             $reg['role'] = $role;
-            $reg['password'] = bcrypt('12345');
+            $passwordPlain = Str::random(16);
+            $reg['password'] = bcrypt($passwordPlain);
 
             // dump($r);
             // dd($reg);
@@ -340,7 +401,13 @@ class UserController extends Controller
 
 
 
-            return redirect()->route('user.guru')->with('message', 'user daftar');
+            return redirect()->route('user.guru')->with([
+                'message' => 'user daftar',
+                'registration_credentials' => [
+                    'username' => $user,
+                    'password' => $passwordPlain,
+                ],
+            ]);
         } else {
             return redirect()->route('user.guru')->with('message', 'nik daftar');
         }
@@ -348,8 +415,11 @@ class UserController extends Controller
 
     public function getPenugasanDetail(Request $request)
     {
-        $pesertaId = $request->input('id');
-        $peserta = Internal::find($pesertaId);
+        $pesertaId = $request->integer('id');
+        $peserta = Internal::select([
+            'id', 'nama', 'nip', 'kota', 'kegiatan', 'tempat',
+            'tgl_kegiatan', 'tgl_selesai_kegiatan', 'jam_mulai', 'jam_selesai',
+        ])->findOrFail($pesertaId);
 
         return response()->json($peserta);
     }
@@ -358,8 +428,14 @@ class UserController extends Controller
     {
         $data = array(
 
-            'dataPenugasanPegawai' => Internal::where('jenis', 'Penugasan Pegawai')->get(),
-            'dataPenugasanPpnpn' => Internal::where('jenis', 'Penugasan PPNPN')->get(),
+            'dataPenugasanPegawai' => Internal::select([
+                'id', 'nama', 'nip', 'kota', 'kegiatan', 'tempat',
+                'tgl_kegiatan', 'tgl_selesai_kegiatan', 'jam_mulai', 'jam_selesai',
+            ])->where('jenis', 'Penugasan Pegawai')->get(),
+            'dataPenugasanPpnpn' => Internal::select([
+                'id', 'nama', 'nip', 'kota', 'kegiatan', 'tempat',
+                'tgl_kegiatan', 'tgl_selesai_kegiatan', 'jam_mulai', 'jam_selesai',
+            ])->where('jenis', 'Penugasan PPNPN')->get(),
         );
 
         return response()->json([
@@ -370,20 +446,26 @@ class UserController extends Controller
 
     public function getPenugasanDetailLoka(Request $request)
     {
-        $pesertaId = $request->input('id');
-        $peserta = Pendamping::find($pesertaId);
+        $pesertaId = $request->integer('id');
+        $peserta = Pendamping::select([
+            'id', 'nama', 'kota', 'hotel', 'transport_pergi',
+            'transport_pulang', 'hari_1', 'hari_2', 'hari_3',
+        ])->findOrFail($pesertaId);
 
         return response()->json($peserta);
     }
 
     public function getPenugasanDetailEksternal(Request $request)
     {
-        $pesertaId = $request->input('id');
-        $peserta = Guru::find($pesertaId);
+        $pesertaId = $request->integer('id');
+        $peserta = Guru::select([
+            'id', 'nama_lengkap', 'gender', 'status_kepegawaian', 'kabupaten',
+            'npsn_sekolah', 'eksternal_jabatan', 'jenis_jabatan',
+        ])->findOrFail($pesertaId);
 
         return response()->json([
             'data' => $peserta,
-            'sekolah' => $peserta->sekolah
+            'sekolah' => $peserta->sekolah?->only(['npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten']),
         ]);
     }
 

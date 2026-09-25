@@ -8,6 +8,7 @@ use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class LoginRoleSeeder extends Seeder
 {
@@ -16,33 +17,38 @@ class LoginRoleSeeder extends Seeder
      */
     public function run(): void
     {
+        $password = env('SEED_LOGIN_PASSWORD');
+        if (! is_string($password) || strlen($password) < 12) {
+            throw new RuntimeException('Set SEED_LOGIN_PASSWORD to a strong value before running LoginRoleSeeder.');
+        }
+
         $akun = [
             [
                 'name' => 'Tenaga Pendidik',
                 'username' => 'tenaga pendidik',
                 'no_ktp' => '1111111111111111',
-                'password' => 'tenaga_pendidik',
+                'password' => $password,
                 'role' => 'tenaga pendidik',
             ],
             [
                 'name' => 'Tenaga Kependidikan',
                 'username' => 'tenaga kependidikan',
                 'no_ktp' => '2222222222222222',
-                'password' => 'tenaga_kependidikan',
+                'password' => $password,
                 'role' => 'tenaga kependidikan',
             ],
             [
                 'name' => 'Stakeholder',
                 'username' => 'stakeholder',
                 'no_ktp' => '3333333333333333',
-                'password' => 'stakeholder',
+                'password' => $password,
                 'role' => 'stakeholder',
             ],
             [
                 'name' => 'Pegawai BBGTK',
                 'username' => 'pegawai',
                 'no_ktp' => '4444444444444444',
-                'password' => 'pegawai',
+                'password' => $password,
                 'role' => 'pegawai',
             ],
         ];

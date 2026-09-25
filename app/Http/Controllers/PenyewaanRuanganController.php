@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PenyewaanRuangan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PenyewaanRuanganController extends Controller
 {
@@ -52,8 +54,8 @@ class PenyewaanRuanganController extends Controller
         // Handle file upload
         if ($request->hasFile('foto_utama')) {
             $file = $request->file('foto_utama');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('../../public_html/upload/penyewaan'), $filename);
+            $filename = Str::uuid() . '.' . $file->extension();
+            Storage::disk('public')->putFileAs('penyewaan', $file, $filename);
             $validated['foto_utama'] = $filename;
         }
 
@@ -106,13 +108,13 @@ class PenyewaanRuanganController extends Controller
         // Handle file upload
         if ($request->hasFile('foto_utama')) {
             // Delete old file
-            if ($data->foto_utama && file_exists(public_path('../../public_html/upload/penyewaan/' . $data->foto_utama))) {
-                unlink(public_path('../../public_html/upload/penyewaan/' . $data->foto_utama));
+            if ($data->foto_utama) {
+                Storage::disk('public')->delete('penyewaan/' . basename($data->foto_utama));
             }
 
             $file = $request->file('foto_utama');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('../../public_html/upload/penyewaan/'), $filename);
+            $filename = Str::uuid() . '.' . $file->extension();
+            Storage::disk('public')->putFileAs('penyewaan', $file, $filename);
             $validated['foto_utama'] = $filename;
         }
 
@@ -132,8 +134,8 @@ class PenyewaanRuanganController extends Controller
         $data = PenyewaanRuangan::findOrFail($id);
 
         // Delete file
-        if ($data->foto_utama && file_exists(public_path('upload/penyewaan/' . $data->foto_utama))) {
-            unlink(public_path('upload/penyewaan/' . $data->foto_utama));
+        if ($data->foto_utama) {
+            Storage::disk('public')->delete('penyewaan/' . basename($data->foto_utama));
         }
 
         $data->delete();

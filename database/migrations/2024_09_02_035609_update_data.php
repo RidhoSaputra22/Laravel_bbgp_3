@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $hashedPassword = bcrypt('12345');
+        $password = env('MIGRATION_PASSWORD_RESET');
+        if (! is_string($password) || strlen($password) < 12) {
+            throw new RuntimeException('Set MIGRATION_PASSWORD_RESET before running this migration.');
+        }
+        $hashedPassword = bcrypt($password);
 
         if (Schema::hasTable('users')) {
             DB::table('users')->update([

@@ -154,8 +154,11 @@ class GuruController extends Controller
     {
         try {
             //code...
-            $pesertaId = $request->input('id');
-            $peserta = Guru::find(id: $pesertaId);
+            $pesertaId = $request->integer('id');
+            $peserta = Guru::select([
+                'id', 'nama_lengkap', 'no_ktp', 'nip', 'gender', 'status_kepegawaian',
+                'kabupaten', 'npsn_sekolah', 'eksternal_jabatan', 'jenis_jabatan',
+            ])->findOrFail($pesertaId);
     
             return response()->json([
                 'data' => $peserta,
@@ -164,7 +167,9 @@ class GuruController extends Controller
                 'kabupaten_sekolah' => $peserta->sekolah->kabupaten ?? '',
             ]);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            report($e);
+
+            return response()->json(['message' => 'Detail data tidak dapat diproses.'], 500);
         }
     }
 
@@ -276,8 +281,10 @@ class GuruController extends Controller
 
     public function exportByUser($id)
     {
+        $this->authorizeUserGuru((string) $id);
+
         // Mendapatkan data guru dari model Guru
-        $data = Guru::find($id);
+        $data = Guru::findOrFail($id);
 
         $pdf = PDF::loadView('pages.admin.guru.cetakByUser', compact('data'));
 
@@ -337,6 +344,8 @@ class GuruController extends Controller
 
     public function editByUser(string $id)
     {
+        $this->authorizeUserGuru($id);
+
         $sekolahs = [];
         Sekolah::select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')
             ->chunk(500, function ($sekolahChunk) use (&$sekolahs) {
@@ -370,38 +379,81 @@ class GuruController extends Controller
 
     public function updateByUser(Request $request)
     {
-        //
-        $r = $request->all();
-        // dd($r);
-        $data = Guru::find($r['id']);
-        // dd($data);
-        // $foto = $request->file('pas_foto');
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:gurus,id',
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'no_ktp' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
+            'nip' => 'nullable|string|max:50',
+            'npwp' => 'nullable|string|max:50',
+            'nuptk' => 'nullable|string|max:50',
+            'status_kepegawaian' => 'nullable|string|max:100',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tgl_lahir' => 'nullable|date',
+            'gender' => 'nullable|string|max:30',
+            'alamat_rumah' => 'nullable|string|max:1000',
+            'agama' => 'nullable|string|max:50',
+            'pendidikan' => 'nullable|string|max:100',
+            'satuan_pendidikan' => 'nullable|string|max:255',
+            'kabupaten' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:100',
+            'no_hp' => 'nullable|string|max:30',
+            'no_wa' => 'nullable|string|max:30',
+            'jabatan' => 'nullable|string|max:255',
+            'jenis_bank' => 'nullable|string|max:100',
+            'no_rek' => 'nullable|string|max:50',
+            'jenisJabatan' => 'required|string|max:100',
+            'jabJenis' => 'required|string|max:255',
+            'jabLainnya' => 'nullable|string|max:255',
+            'jabKategori' => 'nullable|string|max:255',
+            'jabTugas' => 'nullable|string|max:255',
+            'npsn_sekolah' => 'nullable|string|max:50',
+            'pas_foto' => 'nullable|file|image|mimes:jpeg,jpg,png|max:2048',
+        ]);
 
-        // if ($request->hasFile('pas_foto')) {
-        //     $ext = $foto->getClientOriginalExtension();
-        //     $nameFoto = date('Y-m-d_H-i-s_') . $r['no_ktp'] . "." . $ext;
-        //     $destinationPath = public_path('upload/guru');
+        $this->authorizeUserGuru((string) $validated['id']);
+        $data = Guru::findOrFail($validated['id']);
 
-        //     $foto->move($destinationPath, $nameFoto);
+        $data->update([
+            'nama_lengkap' => $validated['nama_lengkap'],
+            'email' => $validated['email'] ?? null,
+            'nip' => $validated['nip'] ?? null,
+            'npwp' => $validated['npwp'] ?? null,
+            'nuptk' => $validated['nuptk'] ?? null,
+            'status_kepegawaian' => $validated['status_kepegawaian'] ?? null,
+            'tempat_lahir' => $validated['tempat_lahir'] ?? null,
+            'tgl_lahir' => $validated['tgl_lahir'] ?? null,
+            'gender' => $validated['gender'] ?? null,
+            'alamat_rumah' => $validated['alamat_rumah'] ?? null,
+            'agama' => $validated['agama'] ?? null,
+            'pendidikan' => $validated['pendidikan'] ?? null,
+            'satuan_pendidikan' => $validated['satuan_pendidikan'] ?? null,
+            'kabupaten' => $validated['kabupaten'] ?? null,
+            'status' => 'Belum Kawin',
+            'no_hp' => $validated['no_hp'] ?? null,
+            'no_wa' => $validated['no_wa'] ?? null,
+            'jabatan' => $validated['jabatan'] ?? null,
+            'jenis_bank' => $validated['jenis_bank'] ?? null,
+            'no_rek' => $validated['no_rek'] ?? null,
+            'npsn_sekolah' => $validated['npsn_sekolah'] ?? null,
+            'pas_foto' => '',
+            'alamat_satuan' => '',
+            'eksternal_jabatan' => $validated['jenisJabatan'],
+            'jenis_jabatan' => $validated['jabJenis'] === 'Lainnya'
+                ? ($validated['jabLainnya'] ?? '')
+                : $validated['jabJenis'],
+            'kategori_jabatan' => $validated['jabKategori'] ?? '',
+            'tugas_jabatan' => $validated['jabTugas'] ?? '',
+        ]);
 
-        //     $fileUrl = asset('upload/guru/' . $nameFoto);
-        //     $r['pas_foto'] = $nameFoto;
-        // } else {
-        //     $r['pas_foto'] = $request->pas_fotoLama;
-        // }
-        $r['pas_foto'] = '';
-        $r['status'] = 'Belum Kawin';
-        $r['alamat_satuan'] = '';
-        $r['eksternal_jabatan'] = $r['jenisJabatan'];
-        $r['jenis_jabatan'] = $r['jabJenis'];
-        $r['kategori_jabatan'] = $r['jabKategori'] ?? '';
-        $r['tugas_jabatan'] = $r['jabTugas'] ?? '';
-        // $r['is_verif'] = 'sudah';
-        // $r['is_verif'] = 'belum';
-        // dd($r['jenis_bank']);
+        return redirect()->route('guru.show', $data->id)->with('message', 'update');
+    }
 
-        $data->update($r);
-        return redirect()->route('guru.show', $r['id'])->with('message', 'update');
+    private function authorizeUserGuru(?string $id): void
+    {
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+
+        abort_unless($isAdmin || (int) session('guru_id') === (int) $id, 403);
     }
 
     public function cari(Request $request)

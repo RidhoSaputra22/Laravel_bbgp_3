@@ -12,6 +12,7 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class GuruSeeder extends Seeder
 {
@@ -27,7 +28,11 @@ class GuruSeeder extends Seeder
     {
         $kabupatenGroups = $this->buildKabupatenGroups();
         $kabupatenAllocations = $this->buildKabupatenAllocations($kabupatenGroups, self::TOTAL_GURU);
-        $hashedPassword = Hash::make('password');
+        $password = env('SEED_GURU_PASSWORD');
+        if (! is_string($password) || strlen($password) < 12) {
+            throw new RuntimeException('Set SEED_GURU_PASSWORD to a strong value before running GuruSeeder.');
+        }
+        $hashedPassword = Hash::make($password);
 
         $maleFirstNames = [
             'Ahmad', 'Andi', 'Rizal', 'Fadli', 'Ilham',

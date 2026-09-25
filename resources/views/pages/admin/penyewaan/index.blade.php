@@ -96,7 +96,7 @@
                                                     {{-- <td>{!! Str::limit($data->rincian_harga ?? '-', 50) !!}</td> --}}
                                                     <td>
                                                         @if ($data->tipe_ruangan == 'asrama')
-                                                            {!! $data->rincian_harga !!}
+                                                            {!! safe_rich_text($data->rincian_harga) !!}
                                                         @else
                                                             -
                                                         @endif

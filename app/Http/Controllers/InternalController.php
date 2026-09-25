@@ -14,6 +14,7 @@ use App\Models\Pendamping;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class InternalController extends Controller
 {
@@ -226,14 +227,14 @@ class InternalController extends Controller
             }
 
             $bukti = $request->file('bukti_bill');
-            $ext = $bukti->getClientOriginalExtension();
+            $ext = strtolower((string) $bukti->extension());
             // dd($ext);
-            if ($ext != 'pdf') {
+            if ($ext != 'pdf' || $bukti->getMimeType() !== 'application/pdf') {
                 return session('role') == 'pegawai' ? redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti') : redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti');
             }
             // $r['bukti_bill'] = $request->file('bukti_bill');
 
-            $nameBukti = date('Y-m-d_H-i-s_').$r['nik'].'.'.$ext;
+            $nameBukti = Str::uuid().'.pdf';
             $destinationPath = public_path('upload/bukti_bill');
 
             $bukti->move($destinationPath, $nameBukti);
@@ -346,14 +347,14 @@ class InternalController extends Controller
             }
 
             $bukti = $request->file('bukti_bill');
-            $ext = $bukti->getClientOriginalExtension();
+            $ext = strtolower((string) $bukti->extension());
             // dd($ext);
-            if ($ext != 'pdf') {
+            if ($ext != 'pdf' || $bukti->getMimeType() !== 'application/pdf') {
                 return session('role') == 'pegawai' ? redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti') : redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti');
             }
             // $r['bukti_bill'] = $request->file('bukti_bill');
 
-            $nameBukti = date('Y-m-d_H-i-s_').$r['nik'].'.'.$ext;
+            $nameBukti = Str::uuid().'.pdf';
             $destinationPath = public_path('upload/bukti_bill');
 
             $bukti->move($destinationPath, $nameBukti);

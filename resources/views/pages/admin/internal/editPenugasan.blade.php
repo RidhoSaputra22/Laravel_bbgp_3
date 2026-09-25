@@ -169,7 +169,7 @@
                                                 <label>Keterangan Kegiatan</label>
                                                 <textarea class="form-control summernote-simple" required placeholder="Deskripsi Kegiatan yang ditugaskan"
                                                     name="deskripsi" id="" cols="30" rows="100">
-                                                    {!! $penugasan->deskripsi !!}
+                                                    {{ safe_rich_text($penugasan->deskripsi) }}
                                                 </textarea>
                                                 {{-- <input value="{{ $penugasan->kegiatan }}" required name="deskripsi" type="text" class="form-control"> --}}
                                             </div>

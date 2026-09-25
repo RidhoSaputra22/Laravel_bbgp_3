@@ -942,6 +942,25 @@ class AssessmentAttemptService
                     continue;
                 }
 
+                $allowedMimeTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-powerpoint',
+                    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp',
+                ];
+
+                if (! in_array((string) $uploadedFile->getMimeType(), $allowedMimeTypes, true)) {
+                    $messages[$fieldKey] = "Tipe file untuk pertanyaan {$fieldLabel} tidak diizinkan.";
+
+                    continue;
+                }
+
                 $normalized[(int) $fieldId] = [
                     'assessment_id' => $field['assessment_id'],
                     'assessment_form_id' => $field['assessment_form_id'],

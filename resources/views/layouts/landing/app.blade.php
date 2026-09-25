@@ -577,7 +577,12 @@
 
         @if (session('message') == 'user daftar')
             <script>
-                Swal.fire("Berhasil", "Berhasil registrasi sebagai eksternal BBGTK SulSel", "success");
+                @if (session('registration_credentials'))
+                    const registrationCredentials = @json(session('registration_credentials'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+                    Swal.fire("Berhasil", `Registrasi berhasil. Username: ${registrationCredentials.username}\nPassword sementara: ${registrationCredentials.password}`, "success");
+                @else
+                    Swal.fire("Berhasil", "Berhasil registrasi sebagai eksternal BBGTK SulSel", "success");
+                @endif
             </script>
         @endif
 
@@ -589,9 +594,12 @@
 
         @if (session('message') == 'sukses daftar sekolah')
             <script>
-                Swal.fire("Success",
-                    "Sekolah berhasil didaftarkan, silahkan login dengan nama yang telah anda input dengan password 12345(bisa diubah ketika login). untuk meliha data sekolah yang telah anda daftarkan",
-                    "success");
+                @if (session('registration_credentials'))
+                    const schoolCredentials = @json(session('registration_credentials'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+                    Swal.fire("Success", `Sekolah berhasil didaftarkan. Username: ${schoolCredentials.username}\nPassword sementara: ${schoolCredentials.password}`, "success");
+                @else
+                    Swal.fire("Success", "Sekolah berhasil didaftarkan. Silakan gunakan kredensial yang diberikan admin.", "success");
+                @endif
             </script>
         @endif
 
@@ -617,7 +625,7 @@
 
                         success: function(response) {
                             console.log(response);
-                            console.log(val, '{{ session('no_ktp') }}');
+                            console.log(val);
                             Swal.fire("Berhasil", "Berhasil registrasi Kegiatan", "success").then((result) => {
                                 if (result.isConfirmed) {
                                     // Arahkan ke URL PDF untuk memulai download

@@ -9,6 +9,7 @@ use App\Support\Assessment\ValidatorAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -27,17 +28,38 @@ class AuthController extends Controller
 
     public function login_action(Request $request)
     {
-        if ($request->role == null && $request->nik == 'admin') {
-            $request->role = 'admin';
-        }
+        $validated = $request->validate([
+            'nik' => 'required|string|max:50',
+            'password' => 'required|string|max:255',
+            'role' => [
+                'nullable',
+                'string',
+                Rule::in([
+                    'pegawai',
+                    'tenaga pendidik',
+                    'tenaga kependidikan',
+                    'stakeholder',
+                    'admin',
+                    'superadmin',
+                    'kepala',
+                    'database',
+                    'kepegawaian',
+                    'kegiatan',
+                    'keuangan',
+                ]),
+            ],
+        ]);
 
-        if ($request->role == null) {
+        $role = $validated['role'] ?? ($validated['nik'] === 'admin' ? 'admin' : null);
+
+        if ($role === null) {
             return redirect()->back()->with('message', 'gagal login');
         }
 
-        $credentials = ['no_ktp' => $request->nik, 'password' => $request->password, 'role' => $request->role];
+        $credentials = ['no_ktp' => $validated['nik'], 'password' => $validated['password'], 'role' => $role];
 
         if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
             $user = Auth::user();
             $guru = Guru::where('no_ktp', $user->no_ktp)->first();
 
@@ -72,19 +94,24 @@ class AuthController extends Controller
 
     public function login_action_admin(Request $request)
     {
-        $user_found = User::where('username', $request->username)->first();
+        $validated = $request->validate([
+            'username' => 'required|string|max:255',
+            'password' => 'required|string|max:255',
+        ]);
+        $user_found = User::where('username', $validated['username'])->first();
 
         if (! $user_found || ! in_array($user_found->role, ['admin', 'superadmin', 'kepala'])) {
             return redirect()->back()->with('message', 'gagal login');
         }
 
         $credentials = [
-            'username' => $request->username,
-            'password' => $request->password,
+            'username' => $validated['username'],
+            'password' => $validated['password'],
             'role' => $user_found->role,
         ];
 
         if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
             $user = Auth::user();
 
             Session::put('user_id', $user->id);

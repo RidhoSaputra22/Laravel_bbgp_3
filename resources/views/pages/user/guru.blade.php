@@ -287,7 +287,7 @@
                     var jabTugas = $('#jabTugas');
                     var jabKategori = $('#jabKategori');
                     var option = '';
-                    const dataJab = {!! json_encode($status) !!};
+                    const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                     jabJenis.empty();
 
@@ -350,7 +350,7 @@
                     var jabKategori = $('#jabKategori').val();
                     var jabTugas = $('#jabTugas');
                     var option = '';
-                    const dataJab = {!! json_encode($status) !!};
+                    const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                     jabTugas.empty();
 
@@ -394,7 +394,7 @@
                     var jabTugas = $('#jabTugas');
                     // var jabJenis = $(this);
                     var option = '';
-                    const dataJab = {!! json_encode($status) !!};
+                    const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                     // jabJenis.empty();
 
@@ -440,7 +440,7 @@
                     var jabTugas = $('#jabTugas');
                     var jabJenis = $(this);
                     var option = '';
-                    const dataJab = {!! json_encode($status) !!};
+                    const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                     jabKategori.empty();
                     jabKategori.append($('<option>', {

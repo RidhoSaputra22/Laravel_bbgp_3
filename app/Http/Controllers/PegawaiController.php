@@ -210,6 +210,9 @@ class PegawaiController extends Controller
 
     public function show(string $id)
     {
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+        abort_unless($isAdmin || (string) session('no_ktp') === (string) $id, 403);
+
         $kota = Kabupaten::get();
         // $findPegawai = Pegawai::find($id);
         $findPegawai = Pegawai::where('no_ktp', $id)->first();
@@ -244,6 +247,8 @@ class PegawaiController extends Controller
     {
         $pesertaId = $request->input('id');
         $peserta = Internal::find($pesertaId);
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+        abort_unless($peserta && ($isAdmin || (string) $peserta->nik === (string) session('no_ktp')), 403);
 
         return response()->json($peserta);
     }
@@ -305,6 +310,7 @@ class PegawaiController extends Controller
     public function editUser(string $id)
     {
         $data = Pegawai::find($id);
+        abort_unless($data && (string) session('no_ktp') === (string) $data->no_ktp, 403);
         $datas = array(
             's_kepegawaian' => Kepegawaian::get(),
             's_kependidikan' => SatuanPendidikan::get(),
@@ -330,35 +336,49 @@ class PegawaiController extends Controller
      */
     public function updateuser(Request $request)
     {
-        $r = $request->all();
-        $data = Pegawai::find($r['id']);
-        // $foto = $request->file('pas_foto');
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:pegawais,id',
+            'nama_lengkap' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'no_ktp' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
+            'nip' => 'nullable|string|max:50',
+            'status_kepegawaian' => 'nullable|string|max:100',
+            'tempat_lahir' => 'nullable|string|max:255',
+            'tgl_lahir' => 'nullable|date',
+            'gender' => 'nullable|string|max:30',
+            'alamat_rumah' => 'nullable|string|max:1000',
+            'agama' => 'nullable|string|max:50',
+            'pendidikan' => 'nullable|string|max:100',
+            'satuan_pendidikan' => 'nullable|string|max:255',
+            'kabupaten' => 'nullable|string|max:255',
+            'alamat_satuan' => 'nullable|string|max:1000',
+            'status' => 'nullable|string|max:100',
+            'no_hp' => 'nullable|string|max:30',
+            'no_wa' => 'nullable|string|max:30',
+            'golongan' => 'nullable|string|max:100',
+            'jenis_bank' => 'nullable|string|max:100',
+            'no_rek' => 'nullable|string|max:50',
+            'pas_foto' => 'nullable|file|image|mimes:jpeg,jpg,png|max:2048',
+        ]);
 
-        // if ($request->hasFile('pas_foto')) {
-        //     $ext = $foto->getClientOriginalExtension();
-        //     $nameFoto = date('Y-m-d_H-i-s_') . $r['no_ktp'] . "." . $ext;
-        //     $destinationPath = public_path('upload/pegawai');
+        $data = Pegawai::findOrFail($validated['id']);
+        abort_unless((string) session('no_ktp') === (string) $data->no_ktp, 403);
 
-        //     $foto->move($destinationPath, $nameFoto);
-        //     $fileUrl = asset('upload/pegawai/' . $nameFoto);
-        //     $r['pas_foto'] = $nameFoto;
-        // } else {
-        // }
-        $r['pas_foto'] = '';
-        $r['is_verif'] = 'sudah';
-        // dump($data);
-        // dd($r);
-        if (isset($r['jabatan'])) {
-            $r['jabatan'] = ucwords(strtolower($r['jabatan']));
-            JabatanPenugasanPegawai::firstOrCreate(['name' => $r['jabatan']]);
+        $payload = collect($validated)->only([
+            'nama_lengkap', 'email', 'nip', 'status_kepegawaian', 'tempat_lahir',
+            'tgl_lahir', 'gender', 'alamat_rumah', 'agama', 'pendidikan',
+            'satuan_pendidikan', 'kabupaten', 'alamat_satuan', 'status',
+            'no_hp', 'no_wa', 'golongan', 'jenis_bank', 'no_rek',
+        ])->all();
+        $payload['pas_foto'] = '';
+        $payload['is_verif'] = 'sudah';
+
+        if (! empty($payload['golongan'])) {
+            $payload['golongan'] = ucwords(strtolower($payload['golongan']));
+            JabatanPenugasanGolongan::firstOrCreate(['name' => $payload['golongan']]);
         }
 
-        if (isset($r['golongan']) && $r['golongan'] != '') {
-            $r['golongan'] = ucwords(strtolower($r['golongan']));
-            JabatanPenugasanGolongan::firstOrCreate(['name' => $r['golongan']]);
-        }
-        
-        $data->update($r);
+        $data->update($payload);
         return redirect()->route('pegawai.show', session('no_ktp'))->with('message', 'update');
         // return redirect()->route('pegawai.index')->with('message', 'update');
     }

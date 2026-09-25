@@ -50,7 +50,7 @@
                                         <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Isi
                                             Artikel</label>
                                         <div class="col-sm-12 col-md-7">
-                                            <textarea required name="isi" class="summernote">{!! $data->isi !!}"</textarea>
+                                            <textarea required name="isi" class="summernote">{{ safe_rich_text($data->isi) }}</textarea>
                                         </div>
                                     </div>
 

@@ -18,14 +18,16 @@ class SekolahController extends Controller
     }
     public function getSekolahs(Request $request)
     {
-        $perPage = $request->input('per_page', 500); // Items per page, default to 500
-        $page = $request->input('page', 1); // Current page
-        $search = $request->input('q', ''); // Search term
+        $perPage = min(max($request->integer('per_page', 50), 1), 100);
+        $page = max($request->integer('page', 1), 1);
+        $search = trim((string) $request->input('q', ''));
 
         $query = Sekolah::select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')
-            ->when($search, function ($query, $search) {
-                return $query->where('nama_sekolah', 'like', "%$search%")
-                    ->orWhere('npsn_sekolah', 'like', "%$search%");
+            ->when($search !== '', function ($query) use ($search) {
+                return $query->where(function ($query) use ($search) {
+                    $query->where('nama_sekolah', 'like', "%{$search}%")
+                        ->orWhere('npsn_sekolah', 'like', "%{$search}%");
+                });
             });
 
         $sekolahs = $query->paginate($perPage, ['*'], 'page', $page);
@@ -42,7 +44,9 @@ class SekolahController extends Controller
 
             return view('pages.admin.sekolah.index', compact('menu', 'datas', 'provinsiList'));
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            report($e);
+
+            return response()->json(['message' => 'Data sekolah tidak dapat diproses.'], 500);
         }
     }
 
@@ -53,7 +57,9 @@ class SekolahController extends Controller
             $menu = $this->menu;
             return view('pages.admin.sekolah.edit', compact('sekolah', 'menu'));
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            report($e);
+
+            return response()->json(['message' => 'Data sekolah tidak dapat diproses.'], 500);
         }
     }
 
@@ -76,7 +82,9 @@ class SekolahController extends Controller
 
             return Excel::download(new SekolahsExport($filters), $filename);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            report($e);
+
+            return response()->json(['message' => 'Export data sekolah gagal.'], 500);
         }
     }
 }

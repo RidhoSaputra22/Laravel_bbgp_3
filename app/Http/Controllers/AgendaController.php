@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Agenda;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class AgendaController extends Controller
 {
@@ -34,6 +35,9 @@ class AgendaController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'thumbnail' => 'required|image|mimes:jpeg,jpg,png,webp|max:512',
+        ]);
         $r = $request->all();
 
         $file = $request->file('thumbnail');
@@ -44,10 +48,10 @@ class AgendaController extends Controller
         }
 
         $foto = $request->file('thumbnail');
-        $ext = $foto->getClientOriginalExtension();
+        $ext = $foto->extension();
         // $r['pas_foto'] = $request->file('pas_foto');
 
-        $nameFoto = date('Y-m-d_H-i-s_') . "." . $ext;
+        $nameFoto = Str::uuid() . "." . $ext;
         $destinationPath = public_path('upload/agenda');
 
         $foto->move($destinationPath, $nameFoto);
@@ -88,6 +92,10 @@ class AgendaController extends Controller
      */
     public function update(Request $request)
     {
+        $request->validate([
+            'id' => 'required|integer|exists:agendas,id',
+            'thumbnail' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:512',
+        ]);
         $r = $request->all();
         $data = Agenda::find($r['id']);
 
@@ -99,8 +107,8 @@ class AgendaController extends Controller
             if ($foto->getSize() / 1024 >= 512) {
                 return redirect()->route('agenda.edit', $r['id'])->with('message', 'size gambar');
             }
-            $ext = $foto->getClientOriginalExtension();
-            $nameFoto = date('Y-m-d_H-i-s_') . "." . $ext;
+            $ext = $foto->extension();
+            $nameFoto = Str::uuid() . "." . $ext;
             $destinationPath = public_path('upload/agenda');
 
             $foto->move($destinationPath, $nameFoto);

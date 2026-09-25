@@ -65,6 +65,8 @@ class AssessmentPortalAuthService
     {
         session()->forget(self::LOGOUT_FLAG);
 
+        session()->regenerate();
+
         session()->put(self::SESSION_KEY, [
             'user_id' => $user->id,
             'guru_id' => $guru->id,

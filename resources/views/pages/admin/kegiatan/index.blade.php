@@ -137,7 +137,7 @@
                                                     <td>{{ $data->tempat_kegiatan ?? '' }}</td>
                                                     <td>{{ $data->tgl_kegiatan . ' - ' . $data->tgl_selesai ?? '' }}</td>
                                                     <td>{{ $data->jam_mulai }} - {{ $data->jam_selesai }} WITA</td>
-                                                    <td>{!! Str::limit($data->deskripsi_kegiatan ?? '', 100) !!}</td>
+                                                    <td>{{ Str::limit(strip_tags(safe_rich_text($data->deskripsi_kegiatan ?? '')), 100) }}</td>
                                                     <td>
                                                         @if ($data->status == 'true')
                                                             <span class="badge badge-success">Aktif</span>

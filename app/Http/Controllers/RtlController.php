@@ -17,7 +17,7 @@ class RtlController extends Controller
         $role = session('role');
         $no_ktp = session('no_ktp');
 
-        if (in_array($role, ['admin', 'superadmin', 'kepala'])) {
+        if (in_array($role, ['admin', 'superadmin', 'kepala', 'database'], true)) {
             $rtls = Rtl::with(['kegiatan', 'user', 'documents'])->orderByDesc('created_at')->get();
             return view('pages.admin.rtl.index', [
                 'menu' => 'rtl',
@@ -52,8 +52,9 @@ class RtlController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'id_kegiatan' => 'required',
-            'files.*' => 'required|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'id_kegiatan' => 'required|integer|exists:kegiatans,id',
+            'files' => 'required|array|max:10',
+            'files.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
         ]);
 
         $no_ktp = session('no_ktp');
@@ -61,6 +62,10 @@ class RtlController extends Controller
         if (!$no_ktp) {
             return redirect()->back()->with('error', 'Sesi Anda berakhir. Silakan login kembali.');
         }
+
+        abort_unless(PesertaKegiatan::where('no_ktp', $no_ktp)
+            ->where('id_kegiatan', $request->integer('id_kegiatan'))
+            ->exists(), 403);
 
         $rtl = Rtl::where('no_ktp', $no_ktp)
                   ->where('id_kegiatan', $request->id_kegiatan)
@@ -97,13 +102,21 @@ class RtlController extends Controller
 
     public function update(Request $request, $id)
     {
+        abort_unless(in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true), 403);
+
         $rtl = Rtl::findOrFail($id);
 
         if ($request->has('status')) {
-            $rtl->status = $request->status;
-            $rtl->admin_notes = $request->admin_notes;
+            $validated = $request->validate([
+                'status' => 'required|in:pending,approved,rejected',
+                'admin_notes' => 'nullable|string|max:5000',
+                'certificate' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            ]);
 
-            if ($request->status == 'approved' && $request->hasFile('certificate')) {
+            $rtl->status = $validated['status'];
+            $rtl->admin_notes = $validated['admin_notes'] ?? null;
+
+            if ($validated['status'] == 'approved' && $request->hasFile('certificate')) {
                 // Simpan sertifikat ke storage
                 $path = $request->file('certificate')->store('sertifikat', 'public');
                 $rtl->certificate_file = $path;
@@ -119,6 +132,8 @@ class RtlController extends Controller
     public function deleteDocument($id)
     {
         $doc = RtlDocument::findOrFail($id);
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+        abort_unless($isAdmin || (string) $doc->rtl->no_ktp === (string) session('no_ktp'), 403);
         if ($doc->rtl->status == 'approved') {
             return response()->json(['success' => false, 'message' => 'Tidak bisa menghapus dokumen yang sudah disetujui.']);
         }
@@ -133,6 +148,35 @@ class RtlController extends Controller
     public function show($id)
     {
         $rtl = Rtl::with(['kegiatan', 'user', 'documents'])->findOrFail($id);
+
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+        abort_unless($isAdmin || (string) $rtl->no_ktp === (string) session('no_ktp'), 403);
+
         return response()->json($rtl);
+    }
+
+    public function reupload(Request $request, $id)
+    {
+        $rtl = Rtl::findOrFail($id);
+        abort_unless((string) $rtl->no_ktp === (string) session('no_ktp'), 403);
+
+        $request->validate([
+            'files' => 'required|array|max:10',
+            'files.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+        ]);
+
+        abort_if($rtl->status === 'approved', 422, 'RTL yang sudah disetujui tidak dapat diubah.');
+
+        foreach ($request->file('files') as $file) {
+            RtlDocument::create([
+                'rtl_id' => $rtl->id,
+                'file_path' => $file->store('rtl', 'public'),
+                'original_name' => $file->getClientOriginalName(),
+            ]);
+        }
+
+        $rtl->update(['status' => 'pending']);
+
+        return redirect()->back()->with('message', 'Dokumen RTL berhasil diunggah.');
     }
 }

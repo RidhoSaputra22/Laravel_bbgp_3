@@ -58,7 +58,7 @@
                             </div><!-- header end -->
 
                             <div class="entry-content">
-                                {!! $data->isi !!}
+                                {!! safe_rich_text($data->isi) !!}
                             </div>
 
                             <div class="tags-area d-flex align-items-center justify-content-between">

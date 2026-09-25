@@ -7,15 +7,14 @@ use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class ValidatorUserSeeder extends Seeder
 {
     /**
      * Membuat lima akun Stakeholder yang dapat mengakses panel validator.
      *
-     * Kredensial default:
-     * username: validator1 sampai validator5
-     * password: validator1 sampai validator5
+     * Password dapat disediakan melalui VALIDATOR_PASSWORD saat seeding.
      */
     public function run(): void
     {
@@ -23,7 +22,7 @@ class ValidatorUserSeeder extends Seeder
             $name = 'Validator '.$number;
             $username = 'validator'.$number;
             $noKtp = '990000000000000'.$number;
-            $password = '12345';
+            $password = env('VALIDATOR_PASSWORD') ?: Str::random(24);
 
             $payload = [
                 'name' => $name,

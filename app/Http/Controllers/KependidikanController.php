@@ -22,9 +22,11 @@ class KependidikanController extends Controller
      */
     public function store(Request $request)
     {
-        $r = $request->all();
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
 
-        SatuanPendidikan::create($r);
+        SatuanPendidikan::create($validated);
 
         return redirect()->route('kependidikan.index')->with('message', 'store');
     }
@@ -48,10 +50,12 @@ class KependidikanController extends Controller
      */
     public function update(Request $request)
     {
-        //
-        $r = $request->all();
-        $data = SatuanPendidikan::find($r['id'])->first();
-        $data->update($r);
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'exists:satuan_pendidikans,id'],
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+        $data = SatuanPendidikan::findOrFail($validated['id']);
+        $data->update(['name' => $validated['name']]);
         return redirect()->route('kependidikan.index')->with('message', 'update');
     }
 

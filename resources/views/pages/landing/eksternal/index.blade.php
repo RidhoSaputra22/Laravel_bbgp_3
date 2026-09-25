@@ -201,6 +201,8 @@
 
    @push('scripts')
       <script>
+         const escapeHtml = (value) => $('<div>').text(value ?? '').html();
+
          function showDetail(pegawaiId) {
             $.ajax({
                url: '{{ route('user.pegawai.detail.eksternal') }}', // Sesuaikan dengan route yang benar
@@ -220,15 +222,15 @@
                   $('#detailContent').html(`
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Nama Lengkap:</strong> ${response.data.nama_lengkap ?? ''}</p>
+                                    <p><strong>Nama Lengkap:</strong> ${escapeHtml(response.data.nama_lengkap)}</p>
                                     
-                                    <p><strong>Asal Kabupaten:</strong> ${response.data.kabupaten ?? ''}</p>
+                                    <p><strong>Asal Kabupaten:</strong> ${escapeHtml(response.data.kabupaten)}</p>
                                     
                                     </div>
                                     <div class="col-md-6">    
-                                        <p><strong>Jenis Kelamin:</strong> ${response.data.gender ?? ''}</p>
+                                    <p><strong>Jenis Kelamin:</strong> ${escapeHtml(response.data.gender)}</p>
                                  
-                                    <p><strong>Status Kepegawaian:</strong> ${response.data.status_kepegawaian ?? ''}</p>
+                                    <p><strong>Status Kepegawaian:</strong> ${escapeHtml(response.data.status_kepegawaian)}</p>
                                 </div>
                             </div>
                         `);
@@ -421,7 +423,7 @@
                var colJabatan = $('#colJabatan');
                var jabKategori = $('#jabKategori');
                var option = '';
-               const dataJab = {!! json_encode($status) !!};
+               const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                jabJenis.empty();
 
@@ -490,7 +492,7 @@
                var jabKategori = $('#jabKategori').val();
                var jabTugas = $('#jabTugas');
                var option = '';
-               const dataJab = {!! json_encode($status) !!};
+               const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                jabTugas.empty();
 
@@ -532,7 +534,7 @@
                var jabTugas = $('#jabTugas');
 
                var option = '';
-               const dataJab = {!! json_encode($status) !!};
+               const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                var selectedOption = $(this).find('option:selected');
                var seletJenis = jabJenis.find('option:selected');
@@ -597,7 +599,7 @@
                var jabLatar = $('#jabLatar');
                var jabJenis = $(this);
                var option = '';
-               const dataJab = {!! json_encode($status) !!};
+               const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                jabKategori.empty();
                jabKategori.append($('<option>', {
@@ -704,7 +706,7 @@
                var jabTugas = $('#jabTugas');
 
                var option = '';
-               const dataJab = {!! json_encode($status) !!};
+               const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
                var selectedOption = $(this).find('option:selected');
                var seletTugas = jabTugas.find('option:selected');

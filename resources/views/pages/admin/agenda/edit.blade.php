@@ -59,7 +59,7 @@
                                         <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Isi
                                             Agenda</label>
                                         <div class="col-sm-12 col-md-7">
-                                            <textarea required name="deskripsi_kegiatan"  class="summernote">{!! $data->deskripsi_kegiatan !!}</textarea>
+                                            <textarea required name="deskripsi_kegiatan"  class="summernote">{{ safe_rich_text($data->deskripsi_kegiatan) }}</textarea>
                                         </div>
                                     </div>
 

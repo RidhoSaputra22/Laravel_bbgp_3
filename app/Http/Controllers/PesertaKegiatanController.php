@@ -274,8 +274,9 @@ class PesertaKegiatanController extends Controller
 
     public function cetakByUser($id)
     {
-        // dd('gas user');
-        $peserta = PesertaKegiatan::find($id);
+        abort_unless(session('id') && (int) session('id') === (int) $id, 403);
+
+        $peserta = PesertaKegiatan::findOrFail($id);
         // dd($peserta);
 
         $namaKegiatan = $peserta->kegiatan->nama_kegiatan;

@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class AdminSeeder extends Seeder
 {
@@ -14,23 +15,28 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
+        $password = env('SEED_ADMIN_PASSWORD');
+        if (! is_string($password) || strlen($password) < 12) {
+            throw new RuntimeException('Set SEED_ADMIN_PASSWORD to a strong value before running AdminSeeder.');
+        }
+
         $akun = [
             [
                 'name' => 'Administrator',
                 'username' => 'admin',
-                'password' => 'admin',
+                'password' => $password,
                 'role' => 'admin',
             ],
             [
                 'name' => 'Kepala',
                 'username' => 'kepala',
-                'password' => 'kepala',
+                'password' => $password,
                 'role' => 'kepala',
             ],
             [
                 'name' => 'Super Admin',
                 'username' => 'superadmin',
-                'password' => 'superadmin',
+                'password' => $password,
                 'role' => 'superadmin',
             ],
         ];

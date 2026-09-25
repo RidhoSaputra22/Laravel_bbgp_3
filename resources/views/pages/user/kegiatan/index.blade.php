@@ -123,6 +123,10 @@
 
 @push('scripts')
     <script>
+        function escapeHtml(value) {
+            return $('<div>').text(value ?? '').html();
+        }
+
         $(document).ready(function() {
             $('#btnGroup').hide(); // Menyembunyikan semua tombol saat tidak ada kegiatan dipilih
             $('#daftarKegiatan').on('change', function() {
@@ -187,17 +191,17 @@
                                     $('#kegiatanPeserta').append(`
                                         <tr>
                                             <td>${index + 1}</td>
-                                            <td>${peserta.no_ktp}</td>
-                                            <td>${peserta.status_keikutpesertaan}</td>
-                                            <td>${peserta.instansi}</td>
-                                            <td>${peserta.golongan ?? ''}</td>
-                                            <td>${peserta.jenis_gol ?? ''}</td>
-                                            <td>${peserta.jkl ?? ''}</td>
-                                            <td>${peserta.kelengkapan_peserta_transport ?? ''}</td>
-                                            <td>${peserta.kelengkapan_peserta_biodata ?? ''}</td>
-                                            <td>${peserta.no_hp ?? ''}</td>
-                                            <td>${peserta.no_wa ?? ''}</td>
-                                            <td>${peserta.kabupaten ?? ''}</td>
+                                            <td>${escapeHtml(peserta.no_ktp)}</td>
+                                            <td>${escapeHtml(peserta.status_keikutpesertaan)}</td>
+                                            <td>${escapeHtml(peserta.instansi)}</td>
+                                            <td>${escapeHtml(peserta.golongan)}</td>
+                                            <td>${escapeHtml(peserta.jenis_gol)}</td>
+                                            <td>${escapeHtml(peserta.jkl)}</td>
+                                            <td>${escapeHtml(peserta.kelengkapan_peserta_transport)}</td>
+                                            <td>${escapeHtml(peserta.kelengkapan_peserta_biodata)}</td>
+                                            <td>${escapeHtml(peserta.no_hp)}</td>
+                                            <td>${escapeHtml(peserta.no_wa)}</td>
+                                            <td>${escapeHtml(peserta.kabupaten)}</td>
                                             <td>
                                                 <button class="btn btn-info" onclick="showDetail(${peserta.id})">
                                                     Detail
@@ -310,22 +314,21 @@
                 },
                 success: function(response) {
                     $('#pesertaDetailContent').html(`
-                        <p><strong>NIK:</strong> ${response.no_ktp ?? ''}</p>
-                        <p><strong>Nama:</strong> ${response.nama ?? ''}</p>
-                        <p><strong>Status11:</strong> ${response.status_keikutpesertaan ?? ''}</p>
+                        <p><strong>NIK:</strong> ${escapeHtml(response.no_ktp)}</p>
+                        <p><strong>Nama:</strong> ${escapeHtml(response.nama)}</p>
+                        <p><strong>Status11:</strong> ${escapeHtml(response.status_keikutpesertaan)}</p>
                         <p>
-                            <strong>Nomor Surat dan Tanggal Surat:</strong> ${response.no_surat_tugas ?? ''} Tanggal ${response.tgl_surat_tugas}
+                            <strong>Nomor Surat dan Tanggal Surat:</strong> ${escapeHtml(response.no_surat_tugas)} Tanggal ${escapeHtml(response.tgl_surat_tugas)}
                         </p>
-                        <p><strong>Instansi:</strong> ${response.instansi ?? ''}</p>
-                        <p><strong>Golongan:</strong> ${response.golongan ?? ''}</p>
-                        <p><strong>jenis_gol:</strong> ${response.jenis_gol ?? ''}</p>
-                        <p><strong>Jenis Kelamin:</strong> ${response.jkl ?? ''}</p>
-                        <p><strong>Kelengkapan Peserta Transport:</strong> ${response.kelengkapan_peserta_transport ?? ''}</p>
-                        <p><strong>Kelengkapan Peserta Biodata:</strong> ${response.kelengkapan_peserta_biodata ?? ''}</p>
-                        <p><strong>Nomor Handphone:</strong> ${response.no_hp ?? ''}</p>
-                        <p><strong>Nomor WhatsApp:</strong> ${response.no_wa ?? ''}</p>
-                        <p><strong>Kabupaten:</strong> ${response.kabupaten ?? ''}</p>
-                        ${response.signature ? `<p><img src="{{ asset('${response.signature}') }}" alt="Signature" style="width: 300px; height: auto;"></p>` : 'N/A'}
+                        <p><strong>Instansi:</strong> ${escapeHtml(response.instansi)}</p>
+                        <p><strong>Golongan:</strong> ${escapeHtml(response.golongan)}</p>
+                        <p><strong>jenis_gol:</strong> ${escapeHtml(response.jenis_gol)}</p>
+                        <p><strong>Jenis Kelamin:</strong> ${escapeHtml(response.jkl)}</p>
+                        <p><strong>Kelengkapan Peserta Transport:</strong> ${escapeHtml(response.kelengkapan_peserta_transport)}</p>
+                        <p><strong>Kelengkapan Peserta Biodata:</strong> ${escapeHtml(response.kelengkapan_peserta_biodata)}</p>
+                        <p><strong>Nomor Handphone:</strong> ${escapeHtml(response.no_hp)}</p>
+                        <p><strong>Nomor WhatsApp:</strong> ${escapeHtml(response.no_wa)}</p>
+                        <p><strong>Kabupaten:</strong> ${escapeHtml(response.kabupaten)}</p>
                     `);
                     $('#pesertaDetailModal').modal('show');
                 },
@@ -446,17 +449,17 @@
                                     $('#kegiatanPeserta').append(`
                                         <tr>
                                             <td>${index + 1}</td>
-                                            <td>${peserta.no_ktp}</td>
-                                            <td>${peserta.status_keikutpesertaan}</td>
-                                            <td>${peserta.instansi}</td>
-                                            <td>${peserta.golongan ?? 'Tidak '}</td>
-                                            <td>${peserta.jenis_gol ?? 'Tidak '}</td>
-                                            <td>${peserta.jkl ?? ''}</td>
-                                            <td>${peserta.kelengkapan_peserta_transport ?? ''}</td>
-                                            <td>${peserta.kelengkapan_peserta_biodata ?? ''}</td>
-                                            <td>${peserta.no_hp ?? ''}</td>
-                                            <td>${peserta.no_wa ?? ''}</td>
-                                            <td>${peserta.kabupaten ?? ''}</td>
+                                            <td>${escapeHtml(peserta.no_ktp)}</td>
+                                            <td>${escapeHtml(peserta.status_keikutpesertaan)}</td>
+                                            <td>${escapeHtml(peserta.instansi)}</td>
+                                            <td>${escapeHtml(peserta.golongan || 'Tidak ')}</td>
+                                            <td>${escapeHtml(peserta.jenis_gol || 'Tidak ')}</td>
+                                            <td>${escapeHtml(peserta.jkl)}</td>
+                                            <td>${escapeHtml(peserta.kelengkapan_peserta_transport)}</td>
+                                            <td>${escapeHtml(peserta.kelengkapan_peserta_biodata)}</td>
+                                            <td>${escapeHtml(peserta.no_hp)}</td>
+                                            <td>${escapeHtml(peserta.no_wa)}</td>
+                                            <td>${escapeHtml(peserta.kabupaten)}</td>
                                             <td>
                                                 <button class="btn btn-info" onclick="showDetail(${peserta.id})">
                                                     Detail
@@ -542,26 +545,25 @@
                 },
                 success: function(response) {
                     $('#pesertaDetailContent').html(`
-                        <p><strong>NIK:</strong> ${response.no_ktp ?? ''}</p>
-                        <p><strong>Nama:</strong> ${response.nama ?? ''}</p>
-                        <p><strong>Status:</strong> ${response.status_keikutpesertaan ?? ''}</p>
+                        <p><strong>NIK:</strong> ${escapeHtml(response.no_ktp)}</p>
+                        <p><strong>Nama:</strong> ${escapeHtml(response.nama)}</p>
+                        <p><strong>Status:</strong> ${escapeHtml(response.status_keikutpesertaan)}</p>
                         <p>
-                            <strong>Nomor Surat:</strong> ${response.no_surat_tugas ?? ''} 
+                            <strong>Nomor Surat:</strong> ${escapeHtml(response.no_surat_tugas)}
                         </p>
                         <p>
-                            <strong>Tanggal Surat:</strong> ${response.tgl_surat_tugas}
+                            <strong>Tanggal Surat:</strong> ${escapeHtml(response.tgl_surat_tugas)}
                         </p>
 
-                        <p><strong>Instansi:</strong> ${response.instansi ?? ''}</p>
-                        <p><strong>Golongan:</strong> ${response.golongan ?? ''}</p>
-                        <p><strong>Golongan:</strong> ${response.jenis_gol ?? ''}</p>
-                        <p><strong>Jenis Kelamin:</strong> ${response.jkl ?? ''}</p>
-                        <p><strong>Kelengkapan Peserta Transport:</strong> ${response.kelengkapan_peserta_transport ?? ''}</p>
-                        <p><strong>Kelengkapan Peserta Biodata:</strong> ${response.kelengkapan_peserta_biodata ?? ''}</p>
-                        <p><strong>Nomor Handphone:</strong> ${response.no_hp ?? ''}</p>
-                        <p><strong>Nomor WhatsApp:</strong> ${response.no_wa ?? ''}</p>
-                        <p><strong>Kabupaten:</strong> ${response.kabupaten ?? ''}</p>
-                        ${response.signature ? `<p><img src="{{ asset('${response.signature}') }}" alt="Signature" style="width: 300px; height: auto;"></p>` : 'N/A'}
+                        <p><strong>Instansi:</strong> ${escapeHtml(response.instansi)}</p>
+                        <p><strong>Golongan:</strong> ${escapeHtml(response.golongan)}</p>
+                        <p><strong>Golongan:</strong> ${escapeHtml(response.jenis_gol)}</p>
+                        <p><strong>Jenis Kelamin:</strong> ${escapeHtml(response.jkl)}</p>
+                        <p><strong>Kelengkapan Peserta Transport:</strong> ${escapeHtml(response.kelengkapan_peserta_transport)}</p>
+                        <p><strong>Kelengkapan Peserta Biodata:</strong> ${escapeHtml(response.kelengkapan_peserta_biodata)}</p>
+                        <p><strong>Nomor Handphone:</strong> ${escapeHtml(response.no_hp)}</p>
+                        <p><strong>Nomor WhatsApp:</strong> ${escapeHtml(response.no_wa)}</p>
+                        <p><strong>Kabupaten:</strong> ${escapeHtml(response.kabupaten)}</p>
                     `);
                     $('#pesertaDetailModal').modal('show');
                 },

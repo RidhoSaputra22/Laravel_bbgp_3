@@ -284,7 +284,7 @@
                                                             <td>{{ $tgl ?? '' }} - {{ $tgl_selesai }}</td>
                                                             <td>{{ $data->jam_mulai }} - {{ $data->jam_selesai }} WITA
                                                             </td>
-                                                            <td>{!! $data->deskripsi !!}
+                                                            <td>{!! safe_rich_text($data->deskripsi) !!}
                                                             </td>
 
                                                             {{-- <td>Pergi : Rp. {{ $data->transport_pergi ?? '' }} <br> Pulang : Rp.
@@ -349,7 +349,7 @@
                                                                 {{ $data->tgl_selesai_kegiatan }}</td>
                                                             <td>{{ $data->jam_mulai }} - {{ $data->jam_selesai }} WITA
                                                             </td>
-                                                            <td>{!! $data->deskripsi !!}</td>
+                                                            <td>{!! safe_rich_text($data->deskripsi) !!}</td>
                                                             {{-- <td>Pergi : Rp. {{ $data->transport_pergi ?? '' }} <br> Pulang : Rp.
                                                     {{ $data->transport_pulang ?? '' }}</td>
                                                 <td>Rp. {{ $data->hari_1 ?? '' }}</td>

@@ -283,6 +283,8 @@
         <script src="{{ asset('js/page/gmaps-simple.js') }}"></script>
 
         <script>
+            const escapeHtml = (value) => $('<div>').text(value ?? '').html();
+
             $(document).ready(function() {
                 // Initialize DataTables
                 var tablePenugasan = $('#table-penugasan').DataTable({
@@ -486,20 +488,19 @@
                         $('#pegawaiDetailContent').html(`
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Nama:</strong> ${response.nama ?? ''}</p>
-                                    <p><strong>NIK:</strong> ${response.nik ?? ''}</p>
-                                    <p><strong>NIP:</strong> ${response.nip ?? ''}</p>
+                                    <p><strong>Nama:</strong> ${escapeHtml(response.nama)}</p>
+                                    <p><strong>NIP:</strong> ${escapeHtml(response.nip)}</p>
                                     <p>
-                                        <strong>Kabupaten/Kota:</strong> ${response.kota ?? ''}
+                                        <strong>Kabupaten/Kota:</strong> ${escapeHtml(response.kota)}
                                     </p>
                                 
                                     
                                 </div>    
                                 <div class="col-md-6">
-                                    <p><strong>Kegiatan:</strong> ${response.kegiatan ?? ''}</p>
-                                    <p><strong>Lokasi Kegiatan:</strong> ${response.tempat ?? ''}</p>
+                                    <p><strong>Kegiatan:</strong> ${escapeHtml(response.kegiatan)}</p>
+                                    <p><strong>Lokasi Kegiatan:</strong> ${escapeHtml(response.tempat)}</p>
                                     <p><strong>Tanggal Kegiatan:</strong> ${tgl_kegiatan ?? ''} - ${tgl_selesai}</p>
-                                    <p><strong>Pukul:</strong> ${response.jam_mulai ?? ''} - ${response.jam_selesai} WITA</p>
+                                    <p><strong>Pukul:</strong> ${escapeHtml(response.jam_mulai)} - ${escapeHtml(response.jam_selesai)} WITA</p>
                                 </div>    
                             </div>
                         `);
@@ -548,10 +549,10 @@
                         $('#lokaDetailContent').html(`
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Nama:</strong> ${response.nama ?? ''}</p>
-                            <p><strong>Kabupaten/Kota:</strong> ${response.kota ?? ''}</p>
+                            <p><strong>Nama:</strong> ${escapeHtml(response.nama)}</p>
+                            <p><strong>Kabupaten/Kota:</strong> ${escapeHtml(response.kota)}</p>
                             <p>
-                                <strong>Hotel:</strong> ${response.hotel ?? ''}
+                                <strong>Hotel:</strong> ${escapeHtml(response.hotel)}
                             </p>
                             
                         </div>    

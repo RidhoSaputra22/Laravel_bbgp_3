@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SekolahController extends Controller
 {
@@ -128,43 +129,58 @@ class SekolahController extends Controller
             // Commit transaction
             DB::commit();
 
-            return redirect()->route('user.index')->with('message', 'sukses daftar sekolah');
+            return redirect()->route('user.index')->with([
+                'message' => 'sukses daftar sekolah',
+                'registration_credentials' => [
+                    'username' => $akunKepsek['username'],
+                    'password' => $akunKepsek['password_plain'],
+                ],
+            ]);
         } catch (\Exception $e) {
             // Rollback jika ada error
             DB::rollBack();
+            report($e);
 
             return back()->withInput()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->with('error', 'Terjadi kesalahan saat menyimpan data sekolah.');
         }
     }
 
     // Tampilkan detail
     public function show($id)
     {
+        $this->authorizeSchoolOwner($id);
+
         try {
             $sekolah = Sekolah::find($id);
             // return view('pages.admin.guru.sekolah.show', compact('sekolah'));
             return view('pages.admin.guru.showSekolah', ['sekolah' => $sekolah, 'menu' => 'data-sekolah']);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            report($e);
+            return response()->json(['message' => 'Data sekolah tidak dapat ditampilkan.'], 500);
         }
     }
 
     // Tampilkan form edit
     public function edit($id)
     {
+        $this->authorizeSchoolOwner($id);
+
         try {
             $sekolah = Sekolah::where('id', $id)
                 ->firstOrFail();
             return view('pages.admin.guru.editSekolah', ['sekolah' => $sekolah, 'menu' => 'edit-data-sekolah']);
         } catch (\Exception $e) {
-            return response()->json($e->getMessage());
+            report($e);
+            return response()->json(['message' => 'Data sekolah tidak dapat ditampilkan.'], 500);
         }
     }
 
     // Update data
     public function update(Request $request, $id)
     {
+        $this->authorizeSchoolOwner($id);
+
         $sekolah = Sekolah::where('id', $id)
             ->firstOrFail();
         // Validasi (NPSN unique kecuali milik sendiri)
@@ -220,8 +236,8 @@ class SekolahController extends Controller
         $foto_depan = $request->file('foto_depan');
 
         if ($request->hasFile('foto_depan')) {
-            $ext = $foto_depan->getClientOriginalExtension();
-            $nameFoto = date('Y-m-d_H-i-s_') . "." . $ext;
+            $ext = strtolower((string) $foto_depan->extension());
+            $nameFoto = Str::uuid() . "." . $ext;
             $destinationPath = public_path('../../public_html/upload/sekolah/foto_depan/');
 
             if (!file_exists($destinationPath)) {
@@ -237,8 +253,8 @@ class SekolahController extends Controller
         $logo_sekolah = $request->file('logo_sekolah');
 
         if ($request->hasFile('logo_sekolah')) {
-            $ext = $logo_sekolah->getClientOriginalExtension();
-            $nameFoto = date('Y-m-d_H-i-s_') . "." . $ext;
+            $ext = strtolower((string) $logo_sekolah->extension());
+            $nameFoto = Str::uuid() . "." . $ext;
             $destinationPath = public_path('../../public_html/upload/sekolah/logo_sekolah/');
 
             if (!file_exists($destinationPath)) {
@@ -254,8 +270,8 @@ class SekolahController extends Controller
         $denah_lokasi = $request->file('denah_lokasi');
 
         if ($request->hasFile('denah_lokasi')) {
-            $ext = $denah_lokasi->getClientOriginalExtension();
-            $nameFoto = date('Y-m-d_H-i-s_') . "." . $ext;
+            $ext = strtolower((string) $denah_lokasi->extension());
+            $nameFoto = Str::uuid() . "." . $ext;
             $destinationPath = public_path('../../public_html/upload/sekolah/denah_lokasi/');
 
             if (!file_exists($destinationPath)) {
@@ -271,8 +287,8 @@ class SekolahController extends Controller
         $struktur_organisasi = $request->file('struktur_organisasi');
 
         if ($request->hasFile('struktur_organisasi')) {
-            $ext = $struktur_organisasi->getClientOriginalExtension();
-            $nameFoto = date('Y-m-d_H-i-s_') . "." . $ext;
+            $ext = strtolower((string) $struktur_organisasi->extension());
+            $nameFoto = Str::uuid() . "." . $ext;
             $destinationPath = public_path('../../public_html/upload/sekolah/struktur_organisasi/');
 
             if (!file_exists($destinationPath)) {
@@ -284,13 +300,14 @@ class SekolahController extends Controller
             $fileUrl = asset('../../public_html/upload/sekolah/struktur_organisasi/' . $nameFoto);
             $validated['struktur_organisasi'] = $nameFoto;
         }
-        $user = User::where('id', Auth::id())->first();
+        $user = Auth::user();
+        $currentRole = strtolower(trim((string) ($user?->role ?? session('role'))));
 
 
         // Update data
         $sekolah->update($validated);
 
-        if ($user->role == 'admin' || $user->role == 'superadmin' || $user->role == 'kepala') {
+        if (in_array($currentRole, ['admin', 'superadmin', 'kepala', 'database'], true)) {
             return redirect()->route('admin.data-sekolah.index')
                 ->with('message', 'update');
         }
@@ -323,8 +340,7 @@ class SekolahController extends Controller
 
         // Generate password default
         // Bisa menggunakan NPSN atau custom
-        $passwordPlain = '12345'; // Menggunakan NPSN sebagai password default
-        // Atau bisa pakai: $passwordPlain = '12345';
+        $passwordPlain = Str::random(16);
 
         // Data akun
         $dataAkun = [
@@ -349,12 +365,6 @@ class SekolahController extends Controller
 
         $guru = Guru::create($dataGuru);
 
-        $getSekolah = Sekolah::latest()->first();
-        $getSekolah->update([
-            'user_id' => $guru->id
-        ]);
-        $getSekolah->save();
-
         // Buat di tabel Admin
         Admin::create($dataAkun);
 
@@ -362,13 +372,26 @@ class SekolahController extends Controller
         $user = User::create($dataAkun);
 
         // Update user_id di sekolah ke user yang baru dibuat (opsional)
-        // Jika ingin akun baru yang kelola, uncomment baris ini:
-        // $sekolah->update(['user_id' => $user->id]);
+        $sekolah->update(['user_id' => $user->id]);
 
         return [
             'username' => $username,
             'password_plain' => $passwordPlain,
             'user_id' => $user->id
         ];
+    }
+
+    private function authorizeSchoolOwner(int|string $id): void
+    {
+        $sekolah = Sekolah::findOrFail($id);
+        $currentUser = Auth::user();
+        $currentUserId = $currentUser?->id;
+        if (! $currentUserId && session('no_ktp')) {
+            $currentUserId = User::where('no_ktp', session('no_ktp'))->value('id');
+        }
+        $currentRole = strtolower(trim((string) ($currentUser?->role ?? session('role'))));
+        $isAdmin = in_array($currentRole, ['admin', 'superadmin', 'kepala', 'database'], true);
+
+        abort_unless($isAdmin || ($currentUserId && (int) $sekolah->user_id === (int) $currentUserId), 403);
     }
 }
