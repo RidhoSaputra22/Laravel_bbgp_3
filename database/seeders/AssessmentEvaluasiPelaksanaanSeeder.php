@@ -327,20 +327,29 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
     private function kabupatenOptions(): array
     {
         return [
-            ['label' => 'Kab. Luwu Timur', 'value' => 'Kab. Luwu Timur'],
-            ['label' => 'Kab. Luwu Utara', 'value' => 'Kab. Luwu Utara'],
-            ['label' => 'Kab. Maros', 'value' => 'Kab. Maros'],
-            ['label' => 'Kab. Enrekang', 'value' => 'Kab. Enrekang'],
+            ['label' => 'Kabupaten Soppeng', 'value' => 'Kabupaten Soppeng'],
+            ['label' => 'Kabupaten Tana Toraja', 'value' => 'Kabupaten Tana Toraja'],
+            ['label' => 'Kabupaten Pinrang', 'value' => 'Kabupaten Pinrang'],
+            ['label' => 'Kabupaten Bulukumba', 'value' => 'Kabupaten Bulukumba'],
+            ['label' => 'Kabupaten Sidrap', 'value' => 'Kabupaten Sidrap'],
+            ['label' => 'Kabupaten Barru', 'value' => 'Kabupaten Barru'],
+            ['label' => 'Kabupaten Pangkep', 'value' => 'Kabupaten Pangkep'],
+            ['label' => 'Kabupaten Bone', 'value' => 'Kabupaten Bone'],
+            ['label' => 'Kabupaten Luwu Timur', 'value' => 'Kabupaten Luwu Timur'],
+            ['label' => 'Kabupaten Luwu Utara', 'value' => 'Kabupaten Luwu Utara'],
+            ['label' => 'Kabupaten Maros', 'value' => 'Kabupaten Maros'],
+            ['label' => 'Kabupaten Enrekang', 'value' => 'Kabupaten Enrekang'],
             ['label' => 'Kota Parepare', 'value' => 'Kota Parepare'],
-            ['label' => 'Kab. Sinjai', 'value' => 'Kab. Sinjai'],
-            ['label' => 'Kab. Takalar', 'value' => 'Kab. Takalar'],
+            ['label' => 'Kabupaten Sinjai', 'value' => 'Kabupaten Sinjai'],
+            ['label' => 'Kabupaten Kepulauan Selayar', 'value' => 'Kabupaten Kepulauan Selayar'],
+            ['label' => 'Kabupaten Takalar', 'value' => 'Kabupaten Takalar'],
             ['label' => 'Kabupaten Wajo', 'value' => 'Kabupaten Wajo'],
-            ['label' => 'Kab. Toraja Utara', 'value' => 'Kab. Toraja Utara'],
-            ['label' => 'Kab. Gowa', 'value' => 'Kab. Gowa'],
-            ['label' => 'Kab. Bantaeng', 'value' => 'Kab. Bantaeng'],
-            ['label' => 'Kab. Kep. Selayar', 'value' => 'Kab. Kep. Selayar'],
-            ['label' => 'Kab. Jeneponto', 'value' => 'Kab. Jeneponto'],
+            ['label' => 'Kabupaten Toraja Utara', 'value' => 'Kabupaten Toraja Utara'],
+            ['label' => 'Kabupaten Gowa', 'value' => 'Kabupaten Gowa'],
+            ['label' => 'Kabupaten Bantaeng', 'value' => 'Kabupaten Bantaeng'],
+            ['label' => 'Kabupaten Jeneponto', 'value' => 'Kabupaten Jeneponto'],
             ['label' => 'Kota Palopo', 'value' => 'Kota Palopo'],
+            ['label' => 'Kota Makassar', 'value' => 'Kota Makassar'],
         ];
     }
 
@@ -356,61 +365,96 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
             'empty_behavior' => 'disabled',
             'reset_on_parent_change' => true,
             'options_by_parent' => [
+                'Kabupaten Soppeng' => [
+                    ['label' => 'Dr. Alphian Sahruddin, S.Pd., M.Pd.', 'value' => 'Dr. Alphian Sahruddin, S.Pd., M.Pd.'],
+                    ['label' => 'Haeruddin, S.Pd., Gr., M.Pd.', 'value' => 'Haeruddin, S.Pd., Gr., M.Pd.'],
+                ],
+                'Kabupaten Tana Toraja' => [
+                    ['label' => 'Herawati, S.Pd., M.Pd.', 'value' => 'Herawati, S.Pd., M.Pd.'],
+                    ['label' => 'Mustafa, S.ST.Par., M.Pd.', 'value' => 'Mustafa, S.ST.Par., M.Pd.'],
+                ],
+                'Kabupaten Pinrang' => [
+                    ['label' => 'Ninik Wijiningsih, M.Pd.', 'value' => 'Ninik Wijiningsih, M.Pd.'],
+                    ['label' => 'Nuraini Amir, S.Pd.', 'value' => 'Nuraini Amir, S.Pd.'],
+                ],
+                'Kabupaten Bulukumba' => [
+                    ['label' => 'Nursaidahwaty, S.Kom., M.Kom.', 'value' => 'Nursaidahwaty, S.Kom., M.Kom.'],
+                    ['label' => 'Dr. Iskandar, MM.', 'value' => 'Dr. Iskandar, MM.'],
+                ],
+                'Kabupaten Sidrap' => [
+                    ['label' => 'Hernawati Syam, S.Psi., M.A.', 'value' => 'Hernawati Syam, S.Psi., M.A.'],
+                    ['label' => 'Dr. Sitti Fatimah Ahmad, S.Kom., M.Pd.', 'value' => 'Dr. Sitti Fatimah Ahmad, S.Kom., M.Pd.'],
+                ],
+                'Kabupaten Barru' => [
+                    ['label' => 'Ismail, S.Pd., M.Pd.', 'value' => 'Ismail, S.Pd., M.Pd.'],
+                    ['label' => 'Dr. Jabaruddin, M.Pd.', 'value' => 'Dr. Jabaruddin, M.Pd.'],
+                ],
+                'Kabupaten Pangkep' => [
+                    ['label' => 'Sukimin Suhlian, S.Kom., M.Pd.', 'value' => 'Sukimin Suhlian, S.Kom., M.Pd.'],
+                    ['label' => 'Herman Hariadi', 'value' => 'Herman Hariadi'],
+                ],
+                'Kabupaten Bone' => [
+                    ['label' => 'Ady Wijaya, S.Kom., M.Kom.', 'value' => 'Ady Wijaya, S.Kom., M.Kom.'],
+                    ['label' => 'Suryaningsih, M.Pd.', 'value' => 'Suryaningsih, M.Pd.'],
+                ],
                 'Kabupaten Luwu Timur' => [
-                    ['label' => 'Ninik', 'value' => 'ninik'],
-                    ['label' => 'Nuraeni Amir', 'value' => 'nuraeni_amir'],
+                    ['label' => 'Nuraini Amir, S.Pd.', 'value' => 'Nuraini Amir, S.Pd.'],
+                    ['label' => 'Ninik Wijiningsih, M.Pd.', 'value' => 'Ninik Wijiningsih, M.Pd.'],
                 ],
                 'Kabupaten Luwu Utara' => [
-                    ['label' => 'Sukimin', 'value' => 'sukimin'],
-                    ['label' => 'Suparmin', 'value' => 'suparmin'],
+                    ['label' => 'Sukimin Suhlian, M.Pd.', 'value' => 'Sukimin Suhlian, M.Pd.'],
+                    ['label' => 'Suparmin, S.Pd., M.Pd.', 'value' => 'Suparmin, S.Pd., M.Pd.'],
                 ],
                 'Kabupaten Maros' => [
-                    ['label' => 'Sitti Hajra', 'value' => 'sitti_hajra'],
-                    ['label' => 'Mardiana Suyuti', 'value' => 'mardiana_suyuti'],
+                    ['label' => 'Sitti Hajrah, S.Pd., M.Pd.', 'value' => 'Sitti Hajrah, S.Pd., M.Pd.'],
+                    ['label' => 'Dr. Mardiana Suyuti, S.Si., M.Pd.', 'value' => 'Dr. Mardiana Suyuti, S.Si., M.Pd.'],
                 ],
                 'Kabupaten Enrekang' => [
-                    ['label' => 'Miradiyah', 'value' => 'miradiyah'],
-                    ['label' => 'Hairuddin', 'value' => 'hairuddin'],
+                    ['label' => 'Mi’radiyah', 'value' => 'Mi’radiyah'],
+                    ['label' => 'Hairuddin, S.Pd., Gr., M.Pd.', 'value' => 'Hairuddin, S.Pd., Gr., M.Pd.'],
                 ],
                 'Kota Parepare' => [
-                    ['label' => 'Asmuddin', 'value' => 'asmuddin'],
-                    ['label' => 'Syahriani Jarimollah', 'value' => 'syahriani_jarimollah'],
+                    ['label' => 'Asmuddin, S.T.P., M.A.P.', 'value' => 'Asmuddin, S.T.P., M.A.P.'],
+                    ['label' => 'Syahriani Jarimollah', 'value' => 'Syahriani Jarimollah'],
                 ],
                 'Kabupaten Sinjai' => [
-                    ['label' => 'Adi Wijaya', 'value' => 'adi_wijaya'],
-                    ['label' => 'Asrianingsih', 'value' => 'asrianingsih'],
-                ],
-                'Kabupaten Takalar' => [
-                    ['label' => 'Abdul Azis', 'value' => 'abdul_azis'],
-                    ['label' => 'Sri Rahayu PM', 'value' => 'sri_rahayu_pm'],
-                ],
-                'Kabupaten Wajo' => [
-                    ['label' => 'Hernawati Syam', 'value' => 'hernawati_syam'],
-                    ['label' => 'Firna Sari', 'value' => 'firna_sari'],
-                ],
-                'Kabupaten Toraja Utara' => [
-                    ['label' => 'Marwa', 'value' => 'marwa'],
-                    ['label' => 'Ilyas Kalla Lembang', 'value' => 'ilyas_kalla_lembang'],
-                ],
-                'Kabupaten Gowa' => [
-                    ['label' => 'Dr. Irlidya', 'value' => 'dr_irlidya'],
-                    ['label' => 'Hasanuddin Haris', 'value' => 'hasanuddin_haris'],
-                ],
-                'Kabupaten Bantaeng' => [
-                    ['label' => 'Abdul Waqif', 'value' => 'abdul_waqif'],
-                    ['label' => 'Bahtiar', 'value' => 'bahtiar'],
+                    ['label' => 'Ady Wijaya, S.Kom., M.Pd.', 'value' => 'Ady Wijaya, S.Kom., M.Pd.'],
+                    ['label' => 'Asrianingsih, S.Pd., M.Pd.', 'value' => 'Asrianingsih, S.Pd., M.Pd.'],
                 ],
                 'Kabupaten Kepulauan Selayar' => [
-                    ['label' => 'Santy Arbi', 'value' => 'santy_arbi'],
-                    ['label' => 'Herman', 'value' => 'herman'],
+                    ['label' => 'Santi Arby', 'value' => 'Santi Arby'],
+                    ['label' => 'Herman', 'value' => 'Herman'],
+                ],
+                'Kabupaten Takalar' => [
+                    ['label' => 'Sri Rahayu, PM. S.Pd.Gr.', 'value' => 'Sri Rahayu, PM. S.Pd.Gr.'],
+                    ['label' => 'Dr. Abdul Aziz, M.Pd.', 'value' => 'Dr. Abdul Aziz, M.Pd.'],
+                ],
+                'Kabupaten Wajo' => [
+                    ['label' => 'Hernawati Syam, S.Psi., M.A.', 'value' => 'Hernawati Syam, S.Psi., M.A.'],
+                    ['label' => 'Firna Sari', 'value' => 'Firna Sari'],
+                ],
+                'Kabupaten Toraja Utara' => [
+                    ['label' => 'Marwah, S.Pd., M.Pd.', 'value' => 'Marwah, S.Pd., M.Pd.'],
+                    ['label' => 'Ilyas Kala Lembang', 'value' => 'Ilyas Kala Lembang'],
+                ],
+                'Kabupaten Gowa' => [
+                    ['label' => 'Dr. Irlidya, M.Pd.', 'value' => 'Dr. Irlidya, M.Pd.'],
+                    ['label' => 'Hasanuddin Haris, M.Pd.', 'value' => 'Hasanuddin Haris, M.Pd.'],
+                ],
+                'Kabupaten Bantaeng' => [
+                    ['label' => 'Dr. Abdul Waqif', 'value' => 'Dr. Abdul Waqif'],
+                    ['label' => 'Bahtiar, M.Pd.', 'value' => 'Bahtiar, M.Pd.'],
                 ],
                 'Kabupaten Jeneponto' => [
-                    ['label' => 'Herawati', 'value' => 'herawati'],
-                    ['label' => 'Syaharuddin', 'value' => 'syaharuddin'],
+                    ['label' => 'Dr. Herawati, M.Pd.', 'value' => 'Dr. Herawati, M.Pd.'],
+                    ['label' => 'Syahruddin, S.Pd., M.Pd.', 'value' => 'Syahruddin, S.Pd., M.Pd.'],
                 ],
                 'Kota Palopo' => [
-                    ['label' => 'Nursaidawati', 'value' => 'nursaidawati'],
-                    ['label' => 'Faliha', 'value' => 'faliha'],
+                    ['label' => 'Nursaidahwaty', 'value' => 'Nursaidahwaty'],
+                    ['label' => 'Dr. Faliha', 'value' => 'Dr. Faliha'],
+                ],
+                'Kota Makassar' => [
+                    ['label' => 'Dr. Alphian Sahruddin, S.Pd., M.Pd.', 'value' => 'Dr. Alphian Sahruddin, S.Pd., M.Pd.'],
                 ],
             ],
         ];
