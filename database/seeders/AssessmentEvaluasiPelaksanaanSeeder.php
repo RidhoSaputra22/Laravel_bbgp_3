@@ -123,27 +123,9 @@ class AssessmentEvaluasiPelaksanaanSeeder extends Seeder
                         'tanggal_pelaksanaan',
                         'Masukkan tanggal pelaksanaan kegiatan.'
                     ),
-                    $this->selectField(
-                        '6. Jabatan',
-                        'jabatan',
-                        [
-                            'Guru',
-                            'Kepala Sekolah',
-                            'KKG',
-                            'MGMP',
-                            'K3S/ MKKS',
-                            'Kombel',
-                            'Pengawas sekolah',
-                            'Pelatih dari balai-balai',
-                            'Pemerintah Daerah & Pusat',
-                        ],
-                        'Pilih jawaban...',
-                        'Pilih jabatan peserta.',
-                        true,
-                        false
-                    ),
+
                     $this->textField(
-                        '7. Tempat Pelaksanaan',
+                        '6. Tempat Pelaksanaan',
                         'tempat_pelaksanaan',
                         'Masukkan tempat pelaksanaan kegiatan',
                         'Masukkan tempat pelaksanaan kegiatan'
