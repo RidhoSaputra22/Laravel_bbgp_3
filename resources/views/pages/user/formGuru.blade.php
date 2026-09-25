@@ -163,16 +163,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Status</label>
-                                                <select required name="status" class="form-control ">
-                                                    <option value="">-- Kawin/Belum Kawin --</option>
-                                                    <option value="Kawin">Kawin</option>
-                                                    <option value="Belum Kawin">Belum Kawin</option>
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
 
 
@@ -192,16 +182,6 @@
                                     </div>
 
                                     <div class="row">
-                                        {{-- <div class="col-md-6 mb-4">
-                                            <label>Jabatan Sekolah</label>
-                                            <select required name="jabatan" class="form-control select2">
-                                                <option value="">-- Pilih Jabatan Sekolah --</option>
-                                                @foreach ($status['s_jabatan'] as $v)
-                                                    <option value="{{ $v->name }}">{{ $v->name }}</option>
-                                                @endforeach
-
-                                            </select>
-                                        </div> --}}
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Bank</label>
@@ -225,54 +205,10 @@
                                             </div>
                                         </div>
                                         
-                                        {{-- <div class="col-md-4 mb-4">
-                                            <label>Jenis Jabatan Eksternal</label>
-                                            <select required name="jenisJabatan" class="form-control " readonly id="jabEksternal">
-                                                <option value="">-- Pilih Jabatan Eksternal --</option>
-                                                <option {{ $jenis == 'Tenaga Pendidik' ? 'selected' : 'disabled' }}
-                                                    value="Tenaga Pendidik">Tenaga Pendidik</option>
-                                                <option {{ $jenis == 'Tenaga Kependidikan' ? 'selected' : 'disabled' }}
-                                                    value="Tenaga Kependidikan">Tenaga Kependidikan</option>
-                                                <option {{ $jenis == 'Stakeholder' ? 'selected' : 'disabled' }}
-                                                    value="Stakeholder">Stakeholder</option>
-                                            </select>
-                                        </div> --}}
 
                                     </div>
 
 
-                                    {{-- <div class="row">
-
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>Jabatan (Pilih Eksternal dulu)</label>
-                                                <select name="jabJenis" class="form-control " id="jabJenis">
-                                                    <option value="">-- Pilih Jenis Jabatan --</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 mb-4">
-                                            <label>Kategori Jabatan (Pilih Eksternal dulu) </label>
-                                            <select name="jabKategori" class="form-control " id="jabKategori">
-                                                <option value="">-- Pilih Kategori --</option>
-
-                                            </select>
-                                        </div>
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label> {{ $jenis == 'Tenaga Kependidikan' ? 'Latar Belakang' : 'Jenis Tugas'}}</label>
-                                                <select name="jabTugas" class="form-control " id="jabTugas">
-                                                    <option value="">-- Pilih Tugas Jabatan --</option>
-
-                                                </select>
-                                            </div>
-                                        </div>
-
-
-                                    </div> --}}
 
                                     <div class="row">
                                         <div class="col-md-4 mb-4">
@@ -359,7 +295,6 @@
             $(document).ready(function() {
                 
                 const jenisEksternal = {!! json_encode($jenis, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
-                console.log(jenisEksternal);
                 
                 // jabatan ketenagaan
                 function fillterJabatan() {
@@ -452,20 +387,11 @@
 
                 // fix
                 $('#jabKategori').on('change', function() {
-                    // fillterKategori();
                     var jabTugas = $('#jabTugas');
-                    // var jabJenis = $(this);
                     var option = '';
                     const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
-                    // jabJenis.empty();
 
-                    // jabJenis.append($('<option>', {
-                    //     value: '',
-                    //     text: '-- Pilih Jabatan --',
-                    //     disabled: true,
-                    //     selected: true
-                    // }));
 
                     var selectedOption = $(this).find('option:selected');
 
@@ -491,13 +417,9 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabTugas):', selectedOption.val());
-                    console.log('Selected Text (jabTugas):', selectedOption.text());
                 });
 
                 $('#jabJenis').on('change', function() {
-                    // fillterKategori();
-                    // var jabEksternal = $('#jabEksternal').val();
                     var jabKategori = $('#jabKategori');
                     var jabTugas = $('#jabTugas');
                     var jabJenis = $(this);
@@ -564,11 +486,8 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabKategori):', selectedOption.val());
-                    console.log('Selected Text (jabKategori):', selectedOption.text());
                 });
 
-                // alert("Window Loaded");
                 fillterJabatan();
             
             });

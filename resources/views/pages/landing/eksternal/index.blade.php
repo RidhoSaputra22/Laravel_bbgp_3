@@ -107,31 +107,8 @@
             </div>
          </div>
 
-         {{-- <div class="col-md-3 mb-4">
-                <label>Kategori Jabatan </label>
-                <select name="jabKategori" class="form-control" id="jabKategori">
-                    <option value="">-- Pilih Kategori --</option>
-                </select>
-            </div> --}}
 
-         {{-- <div class="col-md-3" id="colJabatan">
-                <div class="form-group">
-                    <label>Latar Jabatan</label>
-                    <select name="jabLatar" class="form-control" id="jabLatar">
-                        <option value="">-- Pilih Latar Jabatan --</option>
 
-                    </select>
-                </div>
-            </div> --}}
-
-         {{-- <div class="col-md-3">
-                <div class="form-group">
-                    <label>Jenis Tugas</label>
-                    <select name="jabTugas" class="form-control" id="jabTugas">
-                        <option value="">-- Pilih Tugas Jabatan --</option>
-                    </select>
-                </div>
-            </div> --}}
 
       </div>
 
@@ -144,7 +121,6 @@
                   <th style="width: 1%" class="text-center">#</th>
                   <th style="width: 20%">NPSN Sekolah</th>
                   <th style="width: 30%">Nama Lengkap</th>
-                  {{-- <th>NIK</th> --}}
                   <th>Status Kepegawaian</th>
                   <th>Ketenagaan</th>
                   <th>Kategori Jabatan</th>
@@ -154,26 +130,6 @@
                   <th>Detail</th>
                </tr>
             </thead>
-            {{-- <tbody>
-                    @foreach ($datas as $i => $data)
-                        <tr>
-                            <td>{{ ++$i }}</td>
-                            <td>{{ $data->npsn_sekolah }} <br> {{ $data->sekolah->nama_sekolah ?? '' }}</td>
-                            <td>{{ $data->nama_lengkap }} </td>
-                            <td>{{ $data->status_kepegawaian }}</td>
-                            <td>{{ $data->eksternal_jabatan }}</td>
-                            <td>{{ $data->kategori_jabatan }}</td>
-                            <td>{{ $data->jenis_jabatan }}</td>
-                            <td>{{ $data->tugas_jabatan }}</td>
-                            <td>{{ $data->latar_jabatan ?? 'tidak ada' }}</td>
-                            <td>
-                                <button class="btn btn-info" onclick="showDetail({{ $data->id }})">
-                                    Detail
-                                </button>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody> --}}
          </table>
       </div>
    </div>
@@ -211,7 +167,6 @@
                   id: pegawaiId
                },
                success: function(response) {
-                  // console.log(response)
                   const dateLahir = new Date(response.data.tgl_lahir);
                   const dayLahir = String(dateLahir.getDate()).padStart(2, '0');
                   const monthLahir = String(dateLahir.getMonth() + 1).padStart(2,
@@ -371,8 +326,6 @@
             const namaInput = document.querySelector('#namaFilter');
             const jabEksternal = document.querySelector('#jabEksternal');
             const jabJenis = document.querySelector('#jabJenis');
-            // const jabKategori = document.querySelector('#jabKategori');
-            // const jabTugas = document.querySelector('#jabTugas');
             const noDataMessage = document.querySelector('.data-not-found');
 
             // Function to apply search filters
@@ -380,18 +333,11 @@
                const searchText = namaInput.value.trim();
                const jabEksternalValue = jabEksternal.value;
                const jabJenisValue = jabJenis.value;
-               // const jabKategoriValue = jabKategori.value;
-               // const jabTugasValue = jabTugas.value;
 
-               console.log('Search Text:', searchText);
-               console.log('Select Value 13:', jabEksternalValue);
-               // console.log('Select Value 14:', jabTugasValue);
 
                table.column(2).search(searchText).draw();
                table.column(4).search(jabEksternalValue).draw();
                table.column(6).search(jabJenisValue).draw();
-               // tableGuru.column(5).search(jabKategoriValue).draw();
-               // tableGuru.column(7).search(jabTugasValue).draw();
 
                const info = table.page.info();
                if (info.recordsDisplay === 0) {
@@ -404,8 +350,6 @@
             namaInput.addEventListener('keyup', applySearch);
             jabEksternal.addEventListener('change', applySearch);
             jabJenis.addEventListener('change', applySearch);
-            // jabKategori.addEventListener('change', applySearch);
-            // jabTugas.addEventListener('change', applySearch);
             resetBtn.addEventListener('click', function() {
                location.reload();
             })
@@ -538,8 +482,6 @@
 
                var selectedOption = $(this).find('option:selected');
                var seletJenis = jabJenis.find('option:selected');
-               console.log(selectedOption);
-               console.log(seletJenis);
                if (selectedOption.text() == 'GP (Guru Penggerak)' && seletJenis.text() ==
                   'Kepala Sekolah') {
                   let dataJabValue = dataJab['s_jabKategoriKepsek'].map((item, i) => {
@@ -589,8 +531,6 @@
                   }));
                }
 
-               console.log('Selected Value (jabTugas):', selectedOption.val());
-               console.log('Selected Text (jabTugas):', selectedOption.text());
             });
 
             $('#jabJenis').on('change', function() {
@@ -644,13 +584,6 @@
                      jabKategori.append(option);
                   });
 
-                  // dataJab['s_jabKategoriPengawas'].map((item, i) => {
-                  //     option = $("<option>")
-                  //         .text(item)
-                  //         .attr('value', item)
-                  //         .removeAttr('disabled');
-                  //     jabLatar.append(option);
-                  // });
 
                } else if (selectedOption.text() == 'Kepala Sekolah') {
                   let dataJabValue = dataJab['s_jabKategori'].map((item, i) => {
@@ -661,13 +594,6 @@
                      jabKategori.append(option);
                   });
 
-                  // dataJab['s_jabKategoriKepsek'].map((item, i) => {
-                  //     option = $("<option>")
-                  //         .text(item)
-                  //         .attr('value', item)
-                  //         .removeAttr('disabled');
-                  //     jabLatar.append(option);
-                  // });
 
 
 
@@ -697,8 +623,6 @@
                   }));
                }
 
-               console.log('Selected Value (jabKategori):', selectedOption.val());
-               console.log('Selected Text (jabKategori):', selectedOption.text());
             });
 
             $('#jabLatar').on('change', function() {
@@ -710,8 +634,6 @@
 
                var selectedOption = $(this).find('option:selected');
                var seletTugas = jabTugas.find('option:selected');
-               console.log(selectedOption);
-               console.log(seletTugas);
 
                jabTugas.empty();
                jabTugas.append($('<option>', {

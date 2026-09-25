@@ -102,15 +102,6 @@
                                 </div>
 
                                 <!-- Filter Section -->
-                                {{-- <h5>Pencarian Data Internal BBGTK</h5>
-                                <div class="row mb-2">
-                                    <div class="col-md-8">
-                                        <div class="form-group">
-                                            <input name="nama" id="namaFilter" type="text"
-                                                placeholder="Masukkan nama anda" class="form-control">
-                                        </div>
-                                    </div>
-                                </div> --}}
 
 
 
@@ -202,9 +193,6 @@
 
 
 
-                                                    {{-- <div id="pagination" class="mt-3">
-                                                        <!-- Pagination links will be injected here -->
-                                                    </div> --}}
                                                 </div>
                                             </div>
                                         </div>
@@ -287,7 +275,6 @@
                                                 <th style="width: 150px">NIP</th>
                                                 <th>Jabatan</th>
                                                 <th>Penugasan</th>
-                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -313,21 +300,7 @@
                                                             Menu Lokakarya
                                                         </button>
 
-                                                        {{-- <a href="{{ route('internal.create.ppnp', $data->id) }}"
-                                                            class="btn btn-primary my-2">Penugasan PPNPN</a> --}}
-                                                        {{-- <a href="{{ route('internal.create.lokakarya', $data->id) }}"
-                                                            class="btn btn-info my-2">Penugasan Lokakarya</a> --}}
                                                     </td>
-                                                    {{-- <td>
-
-                                                        <a href="{{ route('internal.edit.ppnpn', $data->id) }}"
-                                                            class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-                                                        <button onclick="deleteData({{ $data->id }}, 'ppnpn')"
-                                                            class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                        
-                                                    </td> --}}
 
                                                 </tr>
                                             @endforeach
@@ -348,7 +321,6 @@
                                                 <th>NIK</th>
                                                 <th>NIP</th>
                                                 <th>Penugasan</th>
-                                                {{-- <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -361,8 +333,6 @@
                                                     <td>{{ $data->no_ktp }}</td>
                                                     <td>{{ $data->nip }}</td>
                                                     <td>
-                                                        {{-- <a href="{{ route('internal.index.pegawai', $data->no_ktp) }}"
-                                                            class="btn btn-primary mb-2">Lihat Penugasan</a> --}}
                                                         <button class="btn btn-primary my-2"
                                                             data-nama="{{ $data->nama_lengkap }}"
                                                             data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
@@ -377,24 +347,8 @@
                                                             Menu Lokakarya
                                                         </button>
 
-                                                        {{-- <a href="{{ route('internal.create.pegawai', $data->id) }}"
-                                                            class="btn btn-primary mb-2">Penugasan Pegawai</a> --}}
 
-                                                        {{-- <a href="{{ route('internal.create.lokakarya', $data->id) }}"
-                                                            class="btn btn-info mb-2">Pendamping Lokakarya</a> --}}
                                                     </td>
-                                                    {{-- <td>
-                                                        <a href="#"
-                                                            class="btn btn-info my-2"><i class="fas fa-info"></i></a>
-
-                                                        <a href="{{ route('pegawai.edit', $data->id) }}"
-                                                            class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-
-                                                        <button onclick="deleteData({{ $data->id }}, 'bbgp')"
-                                                            class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </td> --}}
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -562,63 +516,6 @@
     </div>
 
     <!-- Edit Modal -->
-    {{-- <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit Pegawai</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm">
-                        <input type="hidden" id="editId">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="editNama">Nama Pegawai</label>
-                                <input type="text" class="form-control" id="editNama" readonly>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="editHotel">Hotel</label>
-                                <input type="text" class="form-control" id="editHotel">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="editTransportPergi">Transport Pergi</label>
-                                <input type="text" class="form-control rupiah-input" id="editTransportPergi">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="editTransportPulang">Transport Pulang</label>
-                                <input type="text" class="form-control rupiah-input" id="editTransportPulang">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="editBillPenginapan">Bill Penginapan</label>
-                                <input type="text" class="form-control rupiah-input" id="editBillPenginapan">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group col-md-4">
-                                <label for="editHari1">Hari 1</label>
-                                <input type="text" class="form-control rupiah-input" id="editHari1">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="editHari2">Hari 2</label>
-                                <input type="text" class="form-control rupiah-input" id="editHari2">
-                            </div>
-                            <div class="form-group col-md-4">
-                                <label for="editHari3">Hari 3</label>
-                                <input type="text" class="form-control rupiah-input" id="editHari3">
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary" id="saveEditButton">Simpan Perubahan</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div> --}}
 
 
     <!-- Edit Modal -->
@@ -750,7 +647,6 @@
 
                 var lihatLink = "{{ route('internal.index.lokakarya', ':nik') }}".replace(':nik', nik);
                 var tambahLink = "{{ route('internal.create.lokakarya', ':id') }}".replace(':id', button.data('id'));
-                console.log(nik);
                 // Update href dari link di dalam modal
                 $('.modal-title-lokakarya').text(`Pegawai ${nama}`);
                 $('#lihatLokakaryaLink').attr('href', lihatLink);
@@ -830,7 +726,6 @@
                     $('.table-internal').hide();
                     $('#kegiatan-lokakarya').hide();
 
-                    // $('#filter-pegawai').show();
                     $('#status-pegawai').show();
                     $('#title-text').text('Data Status Pegawai')
                     $('.table-kegiatan').hide();
@@ -841,7 +736,6 @@
                 $('#daftarKegiatan').on('click', function(event) {
                     event.preventDefault();
                     $('.table-internal').hide();
-                    // $('#filter-pegawai').show();
                     $('#kegiatan-lokakarya').show();
                     $('#title-text').text('Data Kegiatan Lokakarya')
 
@@ -858,7 +752,6 @@
                     $('.table-internal').hide();
                     $('#kegiatan-lokakarya').hide();
 
-                    // $('#filter-pegawai').show();
                     $('#table-internal-bbgp').show();
                     $('#title-text').text('Data Penugasan Pegawai')
 
@@ -879,9 +772,7 @@
                     tablePpnpn.columns.adjust().draw(); // Adjust column widths on table show
                     $('#title-text').text('Data Penugasan PPNPN')
 
-                    // $('#status-pegawai').hide();
                     $('#table-internal-bbgp').hide();
-                    // $('#filter-pegawai').hide();
 
                     $('#status-pegawai').hide();
                     $('.table-kegiatan').hide();
@@ -894,7 +785,6 @@
                 // Filter tables based on dropdown selection
                 $('#rekapan').on('change', function() {
                     let jenis = $(this).val().toLowerCase().replace(/ /g, '-');
-                    console.log(jenis);
                     // Hide all tables initially
                     $('.table-internal').hide();
 
@@ -934,7 +824,6 @@
                             status: status
                         },
                         success: function(response) {
-                            console.log(response)
                             moment.locale('id'); // Set locale to Indonesian
                             let monthName = moment().year(response.year).month(response.month - 1).format(
                                 'MMMM YYYY');
@@ -945,7 +834,6 @@
                             $('#monthHeader').attr('colspan', response.dates.length);
                             $('#dateHeader').empty();
                             $.each(response.dates, function(index, date) {
-                                // console.log(index)
                                 $('#dateHeader').append(
                                     '<th class="text-center" style="border: 2px solid #000;">' +
                                     (index + 1) + '</th>');
@@ -954,7 +842,6 @@
                             $('#employeeData').empty();
 
                             $.each(response.employees, function(index, employee) {
-                                // console.log(employee)
                                 let row = '<tr>';
                                 row +=
                                     '<td class="text-center" style="border: 2px solid #000; background-color: white;">' +
@@ -1051,12 +938,6 @@
                     loadCalendarData(year, month);
                 });
 
-                // Handle pagination click
-                // $(document).on('click', '#pagination a', function(e) {
-                //     e.preventDefault();
-                //     let page = $(this).attr('href').split('page=')[1];
-                //     loadCalendarData(year, month, page, $('#namaStatus').val(), $('#filterStatus').val());
-                // });
 
                 // Handle name search
                 $('#namaStatus').on('keyup', function() {
@@ -1066,7 +947,6 @@
                 // Handle status filter
                 $('#filterStatus').on('change', function() {
                     var selectedOption = $(this).find('option:selected');
-                    console.log(selectedOption.val())
                     loadCalendarData(year, month, 1, $('#namaStatus').val(), selectedOption.val());
                 });
 
@@ -1128,7 +1008,6 @@
 
                     // Tambahkan setiap pegawai ke dalam tabel
                     $.each(pegawai, function(index, pegawaiItem) {
-                        console.log(pegawaiItem)
                         // Parse nilai ke integer dan hitung total
                         var transportPergi = parseInt(pegawaiItem.transport_pergi) || 0;
                         var transportPulang = parseInt(pegawaiItem.transport_pulang) || 0;
@@ -1225,7 +1104,6 @@
                 // Handle Delete Button Click
                 $(document).on('click', '.delete-button', function() {
                     var id = $(this).data('id');
-                    console.log(id)
                     swal({
                         title: "Konfirmasi",
                         text: "Apakah Anda yakin ingin menghapus data ini?",
@@ -1234,14 +1112,9 @@
                         dangerMode: true,
                     }).then((willDelete) => {
                         if (willDelete) {
-                            console.log('hapus')
                             deleteDataLoka(id, 'internal');
-                            // $('#pegawaiTableBody').find(`button[data-id='${id}']`).closest(
-                            //     'tr').remove();
-                            // location.reload();
 
                             // Recalculate column totals
-                            // recalculateColumnTotals();
                         }
                     });
                 });
@@ -1257,12 +1130,10 @@
                         type: "POST",
                         url: `${tabel}/hapus/${id}`,
                         success: function(response) {
-                            console.log(response);
                             if (response) {
                                 swal("Terhapus", "Data telah dihapus", "success").then(
                                     () => {
                                         // Here, you can make an AJAX request to delete the data from the server
-                                        console.log(`Deleting data with ID: ${id} of type: ${tabel}`);
 
                                         // For now, remove the row from the table for demonstration purposes
                                         $('#pegawaiTableBody').find(`button[data-id='${id}']`).closest(
@@ -1316,9 +1187,6 @@
                                 value = parseInt($(cell).text().replace(/[^\d.-]/g, '').replace(',',
                                     '.')) || 0;
                             }
-                            console.log(cell)
-                            console.log(inputField.val())
-                            console.log(indnex)
 
                             switch (index) {
                                 case 3:
@@ -1378,7 +1246,6 @@
                 $('#switch_penginapan').change(function() {
                      let getGolongan = $('#golongan');
                     let cutString = getGolongan.val().split('/');
-                    console.log(cutString)
 
                     if ($(this).is(':checked')) {
 
@@ -1463,7 +1330,6 @@
                                 hari7: hari7,
                                 total: total
                             };
-                            console.log(JSON.stringify(updatedData))
 
                             // AJAX POST request
                             $.ajax({
@@ -1599,7 +1465,6 @@
             $(document).on('click', '.assignment-cell', function() {
                 let assignments = JSON.parse(decodeURIComponent($(this).data('assignments')));
                 let nama = $(this).data('name');
-                console.log('tes', nama)
                 let cellColor = $(this).data('cell-color');
                 let modalBodyContent = '';
 
@@ -1618,7 +1483,6 @@
                     modalBodyContent += '</div>';
                 } else if (assignments.length === 1) {
                     let assignment = assignments[0];
-                    // console.log(assignment)
                     modalBodyContent += `
                 <p><strong>Penugasan:</strong> ${assignment.title}</p>
                 <p><strong>Tipe Penugasan:</strong> ${assignment.type}</p>

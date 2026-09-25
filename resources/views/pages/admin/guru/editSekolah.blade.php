@@ -264,14 +264,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>* NIP</label>
-                                                <input required name="nik_kepsek" id="nik_kepsek" type="text"
-                                                    placeholder="" class="form-control"
-                                                    value="{{ old('nik_kepsek', $sekolah->nik_kepsek) }}">
-                                            </div>
-                                        </div> --}}
                                     </div>
 
                                     <div class="row">

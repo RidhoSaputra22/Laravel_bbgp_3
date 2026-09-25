@@ -37,7 +37,6 @@
                                                 <th class="text-center">#</th>
                                                 <th>Thumbnail</th>
                                                 <th>Judul Artikel</th>
-                                                {{-- <th>Isi Artikel</th> --}}
                                                 <th>Author</th>
                                                 <th>Status</th>
                                                 <th>Action</th>
@@ -53,7 +52,6 @@
                                                             alt="Thumbnail artikel">
                                                     </td>
                                                     <td>{{ $data->judul ?? '' }}</td>
-                                                    {{-- <td>{!! $data->isi ?? '' !!}</td> --}}
                                                     <td>{{ $data->status }} </td>
                                                     <td>
                                                         @if ($data->status == 'publish')

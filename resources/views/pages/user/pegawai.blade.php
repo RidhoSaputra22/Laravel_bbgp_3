@@ -8,11 +8,6 @@
         <section class="section">
             <div class="section-header d-flex justify-content-between">
                 <h1 class="text-primary"><u> Data Internal BBGTK Sulawesi Selatan</u> </h1>
-                {{-- <div class=" mt-3">
-                    <a href="{{ route('user.form_pegawai') }}" target="_blank" class="btn btn-primary"><i
-                            class="fas fa-users mr-2"></i> Daftar
-                        Internal BBGTK</a>
-                </div> --}}
 
             </div>
 
@@ -24,29 +19,6 @@
                                 <!-- Navigation Buttons -->
                                 <div class="row">
                                     <div class="col">
-                                        {{-- <h4>Registrasi Data Internal</h4>
-                                        <div class="d-flex mt-3 mb-5">
-                                            <div class="">
-                                                <a href="{{ route('internal.create', 'penugasan pegawai') }}" class="btn btn-primary btn-lg p-2">
-                                                    <i class="fas fa-chalkboard-teacher mr-1"></i>Penugasan Pegawai
-                                                </a>
-                                            </div>
-                                            <div class="mx-3">
-                                                <a href="{{ route('internal.create', 'penugasan ppnpn') }}" class="btn btn-info btn-lg p-2">
-                                                    <i class="fas fa-school mr-1"></i>Penugasan PPNPN
-                                                </a>
-                                            </div>
-                                            <div class="">
-                                                <a href="{{ route('internal.create', 'pendamping') }}" class="btn btn-warning btn-lg p-2">
-                                                    <i class="fas fa-layer-group mr-1"></i>Pendamping Lokakarya
-                                                </a>
-                                            </div>
-                                            <div class="">
-                                                <button id="resetBtn" class="btn btn-success btn-lg mx-4">
-                                                    <i class="fas fa-redo-alt"></i>
-                                                </button>
-                                            </div>
-                                        </div> --}}
                                     </div>
                                 </div>
 
@@ -101,8 +73,6 @@
                                                 <th>Kegiatan</th>
                                                 <th>Tempat</th>
                                                 <th>Tanggal Kegiatan</th>
-                                                {{-- <th>Verifkasi</th>
-                                                <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -116,22 +86,6 @@
                                                     <td>{{ $data->kegiatan ?? '' }}</td>
                                                     <td>{{ $data->tempat ?? '' }}</td>
                                                     <td>{{ $data->tgl_kegiatan ?? '' }}</td>
-                                                    {{-- <td>
-                                                        @if ($data->is_verif == 'sudah')
-                                                            <span class="badge badge-success">Sudah Verifikasi</span>
-                                                        @else
-                                                            <span class="badge badge-danger">Belum Verifikasi</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        <a href="#"
-                                                                onclick="verifikasi({{ $data->id }}, 'internal', '{{ $data->is_verif }}')"
-                                                                class="btn btn-primary mb-2">Verifikasi</a>
-                                                        <a href="{{ route('internal.edit', $data->id) }} " class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-                                                        <button onclick="deleteData({{ $data->id }}, 'internal')" class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </td> --}}
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -147,11 +101,6 @@
                                                 <th>Nama</th>
                                                 <th>Jenis Penugasan</th>
                                                 <th>Jabatan</th>
-                                                {{-- <th>Kegiatan</th>
-                                                <th>Tempat</th>
-                                                <th>Tanggal Kegiatan</th> --}}
-                                                {{-- <th>Verifkasi</th>
-                                                <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -162,25 +111,6 @@
                                                     <td>{{ $data->nama ?? '' }}</td>
                                                     <td>{{ $data->jenis ?? '' }}</td>
                                                     <td>{{ $data->jabatan . ' - (Golongan : ' . $data->golongan . ')' ?? '' }}</td>
-                                                    {{-- <td>{{ $data->kegiatan ?? '' }}</td>
-                                                    <td>{{ $data->tempat ?? '' }}</td>
-                                                    <td>{{ $data->tgl_kegiatan ?? '' }}</td> --}}
-                                                    {{-- <td>
-                                                        @if ($data->is_verif == 'sudah')
-                                                            <span class="badge badge-success">Sudah Verifikasi</span>
-                                                        @else
-                                                            <span class="badge badge-danger">Belum Verifikasi</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        <a href="#"
-                                                                onclick="verifikasi({{ $data->id }}, 'internal', '{{ $data->is_verif }}')"
-                                                                class="btn btn-primary mb-2">Verifikasi</a>
-                                                        <a href="{{ route('internal.edit', $data->id) }} " class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-                                                        <button onclick="deleteData({{ $data->id }}, 'internal')" class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </td> --}}
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -200,9 +130,6 @@
                                                 <th>Hari 1</th>
                                                 <th>Hari 2</th>
                                                 <th>Hari 3</th>
-                                                {{-- <th>Verifkasi</th>
-
-                                                <th>Action</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -217,22 +144,6 @@
                                                     <td>Rp. {{ $data->hari_1 ?? '' }}</td>
                                                     <td>Rp. {{ $data->hari_2 ?? '' }}</td>
                                                     <td>Rp. {{ $data->hari_3 ?? '' }}</td>
-                                                    {{-- <td>
-                                                        @if ($data->is_verif == 'sudah')
-                                                            <span class="badge badge-success">Sudah Verifikasi</span>
-                                                        @else
-                                                            <span class="badge badge-danger">Belum Verifikasi</span>
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        <a href="#"
-                                                                onclick="verifikasi({{ $data->id }}, 'pendamping', '{{ $data->is_verif }}')"
-                                                                class="btn btn-primary mb-2">Verifikasi</a>
-                                                        <a href="{{ route('internal.edit', $data->id) }} " class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-                                                        <button onclick="deleteData({{ $data->id }}, 'pendamping')" class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </td> --}}
                                                 </tr>
                                             @endforeach
                                         </tbody>

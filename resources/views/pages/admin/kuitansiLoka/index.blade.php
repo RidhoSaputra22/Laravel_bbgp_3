@@ -52,22 +52,6 @@
 
 
                                     </div>
-                                    {{-- {{ dd($title) }} --}}
-                                    {{-- <div class="col-md-3">
-                                        <div class="form-group">
-                                            <select name="" class="form-control" id="kegiatanSelect">
-                                                <option value="">-- pilih kegiatan --</option>
-                                                @foreach ($datas as $v)
-                                                    <?php
-                                                    setlocale(LC_TIME, 'id_ID.UTF-8');
-                                                    $tgl_kegiatan = strftime('%d %B', strtotime($v->tgl_kegiatan));
-                                                    $tgl_selesai = strftime('%d %B %Y', strtotime($v->tgl_selesai));
-                                                    ?>
-                                                    <option value="{{ $v->id }}">{{ $v->nama_kegiatan }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div> --}}
 
                                 </div>
 
@@ -129,15 +113,9 @@
                                                 <option value="">-- pilih kegiatan --</option>
                                                 @foreach ($datas as $v)
                                                     <?php
-                                                    // setlocale(LC_TIME, 'id_ID.UTF-8');
                                                     
-                                                    // $tgl_kegiatan = strftime('%d %B', strtotime($v->tgl_kegiatan));
-                                                    // $tgl_selesai = strftime('%d %B %Y', strtotime($v->tgl_selesai));
                                                     ?>
                                                     <option data-id="{{ $v['id'] }}" value="{{ $v['kegiatan'] }}">{{ $v['kegiatan'] }}
-                                                        {{-- ( {{ $tgl_kegiatan }} -
-                                                        {{ $tgl_selesai }}
-                                                    ) --}}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -145,18 +123,6 @@
                                     </div>
 
 
-                                    {{-- <div class="col-md-3">
-
-                                        <div class="form-group">
-                                            <select name="" class="form-control" id="jabatanKegiatan">
-                                                <option value="">-- pilih status keikutsertaan --</option>
-                                                <option value="peserta">Peserta</option>
-                                                <option value="panitia">Panitia</option>
-                                                <option value="narasumber">Narasumber</option>
-
-                                            </select>
-                                        </div>
-                                    </div> --}}
 
 
                                 </div>
@@ -165,58 +131,10 @@
 
                                 <div id="btnGroup">
                                     <div class="row">
-                                        {{-- <div class="col-md-9">
-                                            <h6>Print semua data dari :</h6>
-                                            <a href="#" id="printAllKuitansi" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Kuitansi </a>
-
-                                            <a href="#" id="printAllRill" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Pengeluaran Rill Peserta </a>
-
-                                            <a href="#" id="printAllPJ" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>PJ Mutlak Peserta</a>
-
-                                            <a href="#" id="printAllAmplop" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Amplop Peserta</a>
-                                        </div> --}}
                                     </div>
 
 
 
-                                    {{-- <div class="row">
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Nomor Surat</label>
-                                                <div class="input-group">
-                                                    <input type="text" class="form-control"
-                                                        placeholder="masukkan nomor surat" id="no_surat" name="no_surat">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Tanggal Surat</label>
-                                                <div class="input-group">
-                                                    <input type="date" class="form-control" id="tgl_surat"
-                                                        name="tgl_surat">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Kode Anggaran</label>
-                                                <div class="input-group">
-                                                    <input type="text" class="form-control"
-                                                        placeholder="masukkan kode anggaran" id="kode_anggaran"
-                                                        name="kode_anggaran">
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div> --}}
 
 
                                 </div>
@@ -236,13 +154,6 @@
                                                 <th class="text-nowrap">Kode dan Tahun Anggaran</th>
                                                 <th>Cetak</th>
                                                 <th>Action</th>
-                                                {{-- <th>Transport Pergi</th>
-                                                    <th>Transport Pulang</th>
-                                                    <th>Bill Penginapan</th>
-                                                    <th>Hari 1</th>
-                                                    <th>Hari 2</th>
-                                                    <th>Hari 3</th>
-                                                    <th>Total</th> --}}
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -294,10 +205,6 @@
                                                         </div>
                                                     </td>
                                                     <td class="">
-                                                        {{-- <button class="btn btn-primary btn-detail"
-                                                                data-id="{{ $v->id }}">
-                                                                <i class="fas fa-eye"></i>
-                                                            </button> --}}
 
                                                         <a href="#" class="btn btn-warning btn-edit-kuitansi my-2"
                                                             data-id="{{ $v->id }}"
@@ -326,24 +233,6 @@
                                                             class="btn btn-danger "><i class="fas fa-trash-alt"></i>
                                                         </button>
                                                     </td>
-                                                    {{-- <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->transport_pergi ?? 0, 0, ',', '.') }}
-                                                        </td>
-                                                        <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->transport_pulang ?? 0, 0, ',', '.') }}
-                                                        </td>
-                                                        <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->bill_penginapan ?? 0, 0, ',', '.') }}
-                                                        </td>
-                                                        <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->hari_1 ?? 0, 0, ',', '.') }}</td>
-                                                        <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->hari_2 ?? 0, 0, ',', '.') }}</td>
-                                                        <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->hari_3 ?? 0, 0, ',', '.') }}</td>
-                                                        <td class="text-nowrap">Rp.
-                                                            {{ number_format($v->internal->transport_pergi ?? 0, 0, ',', '.') }}
-                                                        </td> --}}
                                                 </tr>
                                             @endforeach
                                             <!-- Populate this table with data from the server or use JavaScript to add rows -->
@@ -777,22 +666,16 @@
                         btnGroup.hide();
                         return;
                     }
-                    console.log(kegiatanValue);
 
                     tableKuitansiLokakarya.column(2).search(kegiatanValue).draw();
                     kegiatan = kegiatanValue;
                     btnGroup.show();
 
-                    // var totalFilteredRows = tableKuitansi.rows({
-                    //     search: 'applied'
-                    // }).count();
-                    // console.log("Total number of filtered rows: " + totalFilteredRows);
                 });
 
                 $('#jabatanKegiatan').on('change', function(e) {
                     e.preventDefault();
                     jabatan = $(this).val();
-                    console.log(jabatan);
 
                     tableKuitansi.column(5).search(jabatan).draw();
                 });
@@ -829,7 +712,6 @@
                                         kegiatan_id: kegiatan,
                                     },
                                     success: function(response) {
-                                        console.log(kegiatan);
 
                                         // Construct the URL dynamically
                                         var printUrl =
@@ -962,7 +844,6 @@
                 var totalAmount = $(this).data('total');
 
                 var currenyYear = new Date();
-                // console.log(id ,transportPergi, transportPulang, billPenginapan, hari1, hari2, hari3)
                 // Fill the form in the modal
                 $('#tahun_anggaran').val(currenyYear.getFullYear());
                 $('#pegawaiName').val(pegawaiName);
@@ -1003,7 +884,6 @@
                 var kodeAnggaran = $(this).data('kodeanggaran');
                 var tahunAnggaran = $(this).data('tahunanggaran');
                 var noBukti = $(this).data('nobukti');
-                console.log(tahunAnggaran)
                 // Fill the form in the modal
                 $('#editIdPegawai').val(id);
                 $('#editPegawaiName').val(pegawaiName);
@@ -1089,7 +969,6 @@
                     
                     var id = selectedOption.data('id');
 
-                    console.log('halo',selectedOption.data('id'));
 
                     var rowIds = [];
 
@@ -1097,7 +976,6 @@
                     $('#table_kuitansi_lokakarya tbody tr').each(function() {
                         var rowId = $(this).data(
                             'id'); // Assuming the rows have data-id attribute with their ID
-                        // console.log(rowId)
                         if (rowId) {
                             rowIds.push(rowId);
                         }

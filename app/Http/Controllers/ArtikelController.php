@@ -46,14 +46,12 @@ class ArtikelController extends Controller
 
         $file = $request->file('thumbnail');
 
-        // dd($file->getSize() / 1024);
         if ($file->getSize() / 1024 >= 512) {
             return redirect()->route('artikel.create')->with('message', 'size gambar');
         }
 
         $foto = $request->file('thumbnail');
         $ext = $foto->extension();
-        // $r['pas_foto'] = $request->file('pas_foto');
 
         $nameFoto = Str::uuid() . "." . $ext;
         $destinationPath = public_path('upload/artikel');
@@ -61,13 +59,11 @@ class ArtikelController extends Controller
         $foto->move($destinationPath, $nameFoto);
 
         $fileUrl = asset('upload/artikel/' . $nameFoto);
-        // dd($destinationPath);
         $r['thumbnail'] = $nameFoto;
 
         Artikel::create($r);
 
 
-        // dd(true);
         return redirect()->route('artikel.index')->with('message', 'store');
     }
 
@@ -105,7 +101,6 @@ class ArtikelController extends Controller
         $foto = $request->file('thumbnail');
 
 
-        // dd($file->getSize() / 1024);
 
         if ($request->hasFile('thumbnail')) {
             if ($foto->getSize() / 1024 >= 512) {
@@ -123,7 +118,6 @@ class ArtikelController extends Controller
             $r['thumbnail'] = $request->thumbnail_old;
         }
 
-        // dd($r);
         $data->update($r);
 
         return redirect()->route('artikel.index')->with('message', 'update');

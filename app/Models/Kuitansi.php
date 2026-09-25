@@ -12,7 +12,6 @@ class kuitansi extends Model
         // berelasi dengan peserta kegiatan
         'pegawai_id',
         'no_bukti',
-        // 'nip',
         'no_MAK',
         'no_surat_tugas',
         'tgl_surat_tugas',

@@ -35,17 +35,6 @@
                                                 class="form-control">
                                         </div>
                                     </div>
-                                    {{-- <div class="form-group row mb-4">
-                                        <label
-                                            class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Kategori</label>
-                                        <div class="col-sm-12 col-md-7">
-                                            <select required name="kategori_id" class="form-control selectric">
-                                                <option>Tech</option>
-                                                <option>News</option>
-                                                <option>Political</option>
-                                            </select>
-                                        </div>
-                                    </div> --}}
                                     <div class="form-group row mb-4">
                                         <label class="col-form-label text-md-right col-12 col-md-3 col-lg-3">Isi
                                             Artikel</label>

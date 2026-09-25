@@ -27,13 +27,6 @@
                                                 <input required name="nama" type="text" class="form-control">
                                             </div>
                                         </div>
-                                        {{-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Tempat</label>
-                                                <input required name="tempat" type="text" class="form-control">
-                                            </div>
-
-                                        </div> --}}
 
                                     </div>
                                     <div class="row">

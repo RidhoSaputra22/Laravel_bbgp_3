@@ -34,16 +34,6 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-4 text-right">
-                                    {{-- <div id="btnGroup">
-                                        <button id="btnPrintPeserta" class="btn btn-primary"><i
-                                                class="fas fa-print mr-2"></i>Print Absensi Peserta</button>
-                                        <button id="btnPrintRegisPeserta" class="btn btn-primary"><i
-                                                class="fas fa-print mr-2"></i>Print Absensi Registrasi Peserta</button>
-                                        <button id="btnPrintPanitia" class="btn btn-info"><i
-                                                class="fas fa-print mr-2"></i>Print Absensi Panitia</button>
-                                        <button id="btnPrintNarsum" class="btn btn-warning"><i
-                                                class="fas fa-print mr-2"></i>Print Absensi Narasumber</button>
-                                    </div> --}}
                                 </div>
                             </div>
 
@@ -132,7 +122,6 @@
             $('#daftarKegiatan').on('change', function() {
                 let kegiatanId = $(this).val();
                 let textKegiatan = $(this).find('option:selected');
-                console.log(kegiatanId);
                 if (kegiatanId === '') {
                     $('#searchSection').hide();
                     $('#showKegiatan').hide();
@@ -185,7 +174,6 @@
                         },
                         success: function(response) {
                             $('#kegiatanPeserta').empty();
-                            console.log(response);
                             if (response.data.length > 0) {
                                 response.data.forEach((peserta, index) => {
                                     $('#kegiatanPeserta').append(`
@@ -229,7 +217,6 @@
 
                                 $('#showKegiatan').hide();
                                 var pesertaAda;
-                                // console.log(nik);
                                 $.ajax({
                                     url: '{{ route('user.peserta.cekData') }}',
                                     type: 'GET',
@@ -238,9 +225,7 @@
                                         nik: nik
                                     },
                                     success: function(response) {
-                                        console.log(response);
                                         pesertaAda = response.success;
-                                        console.log('pernah ikut : ', pesertaAda);
 
                                         // ada 2 alert, yg sdh pernah ikut dan belum pernah
                                         if (response.success) {
@@ -389,7 +374,6 @@
                 let kegiatanId = $(this).val();
                 let id_k = $(this).val();
                 let textKegiatan = $(this).find('option:selected');
-                // console.log(kegiatanId);
                 if (kegiatanId === '') {
                     $('#searchSection').hide();
                     $('#showKegiatan').hide();
@@ -443,7 +427,6 @@
                         },
                         success: function(response) {
                             $('#kegiatanPeserta').empty();
-                            // console.log(response);
                             if (response.data.length > 0) {
                                 response.data.forEach((peserta, index) => {
                                     $('#kegiatanPeserta').append(`

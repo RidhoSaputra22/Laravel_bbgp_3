@@ -136,7 +136,6 @@
                                                     <td class="text-nowrap"><b> Rp.
                                                             {{ number_format($total, 0, ',', '.') }} </b></td>
                                                     <td>
-                                                        {{-- {{ dump($data->bukti_bill) }} --}}
                                                         <a target="_blank" href="{{ asset('upload/bukti_bill/'. $data->bukti_bill) }}" class="btn btn-info">
                                                             <i class="fas fa-print"></i>
                                                         </a>
@@ -151,7 +150,6 @@
                                                     </td>
                                                 </tr>
                                             @endforeach
-                                            {{-- {{ dd(1) }} --}}
                                         </tbody>
                                     </table>
                                 </div>
@@ -190,9 +188,7 @@
                     titlePdf.val('Preview Bukti'); // Update dengan nama file
                 }
 
-                console.log('PDF File Name:', pdfFileName);
                 var pdfUrl = '{{ asset('upload/bukti_bill') }}/' + pdfFileName; // Gabungkan dengan URL
-                console.log('PDF URL:', pdfUrl);
 
                 // Tampilkan modal
                 document.getElementById('pdfModal').style.display = 'block';
@@ -286,7 +282,6 @@
         <script>
             // swal btn hps data
             const deleteDataLoka = (id, tabel) => {
-                console.log(id, tabel);
                 let token = $("meta[name='csrf-token']").attr("content");
 
                 swal({
@@ -296,7 +291,6 @@
                     buttons: true,
                     dangerMode: true,
                 }).then((willDelete) => {
-                    console.log(willDelete);
 
                     if (willDelete) {
                         $.ajax({
@@ -307,7 +301,6 @@
                             url: `{{ route('internal.hapus.loka', ['id' => 'PLACEHOLDER_ID']) }}`
                                 .replace('PLACEHOLDER_ID', id),
                             success: function(response) {
-                                console.log(response);
                                 if (response) {
                                     swal("Terhapus", "Data telah dihapus", "success").then(() => {
                                         location.reload();

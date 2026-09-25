@@ -9,11 +9,6 @@
         <section class="section">
             <div class="section-header">
                 <h1>Edit Data Eksternal BBGTK</h1>
-                {{-- <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Bootstrap Components</a></div>
-                    <div class="breadcrumb-item">Form</div>
-                </div> --}}
             </div>
 
             <div class="section-body">
@@ -192,16 +187,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Status</label>
-                                                <select required name="status" class="form-control ">
-                                                    <option value="">-- Kawin/Belum Kawin --</option>
-                                                    <option value="Kawin">Kawin</option>
-                                                    <option value="Belum Kawin">Belum Kawin</option>
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
 
 
@@ -222,17 +207,6 @@
 
                                     </div>
                                     <div class="row">
-                                        {{-- <div class="col-md-6 mb-4">
-                                            <label>Jabatan Sekolah</label>
-                                            <select required name="jabatan" class="form-control select2">
-                                                <option value="">-- Pilih Jabatan Sekolah --</option>
-                                                @foreach ($status['s_jabatan'] as $v)
-                                                    <option {{ $datas->jabatan == $v->name ? 'selected' : '' }}
-                                                        value="{{ $v->name }}">{{ $v->name }}</option>
-                                                @endforeach
-
-                                            </select>
-                                        </div> --}}
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Bank</label>
@@ -262,12 +236,6 @@
                                                     value="{{ $datas->no_rek }}">
                                             </div>
                                         </div>
-                                        {{-- <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Pas Foto</label>
-                                                <input required type="file" name="pas_foto" class="form-control">
-                                            </div>
-                                        </div> --}}
 
 
                                         <div class="col-md-4 mb-4">
@@ -300,7 +268,6 @@
                                                     id="jabJenis"
                                                     data-selected-value="{{ old('jabJenis', $datas->jenis_jabatan) }}">
                                                     <option disabled value="">-- Pilih Jenis Jabatan --</option>
-                                                    {{-- <option id="valJabJenis" value="">-- Pilih Jabatan</option> --}}
 
                                                 </select>
                                             </div>
@@ -312,7 +279,6 @@
                                                 data-selected-value="{{ old('jabKategori', $datas->kategori_jabatan) }}"
                                                 id="jabKategori">
                                                 <option value="">-- Pilih Jenis Jabatan --</option>
-                                                {{-- <option id="valJabJenis" value="">-- Pilih Jabatan</option> --}}
                                             </select>
                                         </div>
 
@@ -395,7 +361,6 @@
             });
 
             function updateLocation() {
-                console.log('object');
                 const selectElement = document.getElementById('data_sekolah');
                 const kecamatanInput = document.getElementById('kecamatan_sekolah');
                 const kabupatenInput = document.getElementById('kabupaten_sekolah');
@@ -422,7 +387,6 @@
                     var jabJenis = $('#jabJenis');
                     var option = '';
                     const dataJab = {!! json_encode($status) !!};
-                    // console.log( dataJab['s_jabKependidikan']);
                     jabJenis.empty();
 
                     jabJenis.append($('<option>', {
@@ -466,7 +430,6 @@
                     var jabTugas = $('#jabTugas');
                     var option = '';
                     const dataJab = {!! json_encode($status) !!};
-                    // console.log(dataJab);
                     jabTugas.empty();
 
                     jabTugas.append($('<option>', {
@@ -500,7 +463,6 @@
                     var jabTugas = $('#jabTugas');
                     var option = '';
                     const dataJab = {!! json_encode($status) !!};
-                    console.log(dataJab['s_jabKategoriPengawas']);
                     jabKategori.empty();
                     jabKategori.append($('<option>', {
                         value: '',

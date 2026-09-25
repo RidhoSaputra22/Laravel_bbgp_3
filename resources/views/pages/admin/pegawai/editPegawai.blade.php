@@ -9,11 +9,6 @@
       <section class="section">
          <div class="section-header">
             <h1>Edit Data Pegawai BBGTK</h1>
-            {{-- <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Bootstrap Components</a></div>
-                    <div class="breadcrumb-item">Form</div>
-                </div> --}}
          </div>
 
          <div class="section-body">
@@ -171,22 +166,6 @@
 
 
                            <div class="row">
-                              {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Alamat Satuan Pendidikan</label>
-                                                <input type="text" name="alamat_satuan" class="form-control">
-                                            </div>
-                                        </div> --}}
-                              {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Status</label>
-                                                <select required name="status" class="form-control ">
-                                                    <option value="">-- Kawin/Belum Kawin --</option>
-                                                    <option value="Kawin">Kawin</option>
-                                                    <option value="Belum Kawin">Belum Kawin</option>
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
 
 
@@ -259,12 +238,6 @@
                                        class="form-control">
                                  </div>
                               </div>
-                              {{-- <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Pas Foto</label>
-                                                <input required type="file" name="pas_foto" class="form-control">
-                                            </div>
-                                        </div> --}}
 
 
                            </div>

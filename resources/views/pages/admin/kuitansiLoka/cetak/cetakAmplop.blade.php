@@ -84,25 +84,14 @@
     <?php
     setlocale(LC_ALL, 'id_ID.UTF-8');
     
-    // $tgl_kegiatan = strftime('%d %B', strtotime($data->peserta->kegiatan->tgl_kegiatan ?? ''));
-    // $tgl_selesai = strftime('%d %B %Y', strtotime($data->peserta->kegiatan->tgl_selesai ?? ''));
     
     ?>
 
     <div class="container">
         <ul>
             <li>
-                {{-- <span><b>Nama Kegiatan</b></span> --}}
                 <span style="margin-left: 55px"> {{ $data->internal->kegiatan }}</span>
             </li>
-            {{-- <li>
-                <span><b>Lokasi Kegiatan</b></span>
-                <span>: {{ $data->peserta->kegiatan->tempat_kegiatan }}</span>
-            </li>
-            <li>
-                <span><b>Tanggal Kegiatan</b></span>
-                <span>:{{ $tgl_kegiatan ?? '' }} s.d {{ $tgl_selesai ?? '' }}</span>
-            </li> --}}
             <!-- Tambahkan baris selanjutnya sesuai kebutuhan -->
         </ul>
 
@@ -120,16 +109,10 @@
                     <td></td>
                     <td style="width: 350px; text-align: right;">Rp.
                         {{ number_format($total ?? 0, 0, ',', '.') }}</td>
-                    {{-- <td style="width: 200px">Rp. {{ number_format($data->total_transport ?? 0, 0, ',', '.') }} </td>
-                    <td style="width: 320px; " colspan="2"><b> Keterangan </b></td> --}}
                 </tr>
 
                 <tr>
-                    {{-- <td></td> --}}
                     {{-- loop --}}
-                    {{-- <td>{{ $data->kabupaten->name . ' - ' . $data->lokasi_tujuan }}</td>
-                    <td>Rp. {{ number_format($data->total_transport ?? 0, 0, ',', '.') }}</td>
-                    <td colspan="2">{{ $data->jenis_angkutan }}</td> --}}
 
                 </tr>
                 <!-- Tambahkan baris selanjutnya sesuai kebutuhan -->

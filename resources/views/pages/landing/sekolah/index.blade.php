@@ -60,10 +60,8 @@
                         </ul>
                     </div>
                 @endif
-                {{-- <form action="{{ route('user.kegiatan_store') }}" method="POST" enctype="multipart/form-data"> --}}
                 <form action="{{ route('user.store.data-sekolah') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    {{-- {{ dd($_GET['kegiatan_id']) }} --}}
                     <div class="card-body">
 
                         <div class="h3">Identitas Sekolah</div>
@@ -170,15 +168,6 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="col-md-2">
-                                <div class="form-group">
-                                    <label>Kelurahan</label>
-                                    <select required name="kelurahan" id="kelurahan" class="form-control select2"
-                                        disabled>
-                                        <option value="">-- pilih kelurahan --</option>
-                                    </select>
-                                </div>
-                            </div> --}}
 
                         </div>
 
@@ -476,11 +465,6 @@
                                             value="proyektor" id="it_proyektor">
                                         <label class="form-check-label" for="it_proyektor">Proyektor</label>
                                     </div>
-                                    {{-- <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="fasilitas_it[]"
-                                            value="lainnya" id="it_lainnya">
-                                        <label class="form-check-label" for="it_lainnya">Lainnya</label>
-                                    </div> --}}
                                     <input type="text" name="fasilitas_it_tambahan" class="form-control mt-2"
                                         placeholder="Tambahan (opsional), pakai koma (,) untuk pemisah">
                                     <small class="text-muted">Contoh: Smart TV, Tablet, Laptop</small>
@@ -590,7 +574,6 @@
                 $('.select2').select2();
 
                 $('#asn_opsi').on('change', function() {
-                    // console.log($(this).val())
                     let status = $(this).val()
                     $('#nip_opsi').hide()
                     return status == 'ya' ? $('#nip_opsi').show() : $('#nip_opsi').hide()
@@ -635,9 +618,6 @@
                     // Reset dropdown kelurahan
                     resetDropdown('#kelurahan');
 
-                    // if (kecamatanId) {
-                    //     loadKelurahan(kecamatanId);
-                    // }
                 });
 
                 // Fungsi untuk load Provinsi
@@ -706,27 +686,6 @@
                     });
                 }
 
-                // Fungsi untuk load Kelurahan
-                // function loadKelurahan(kecamatanId) {
-                //     $.ajax({
-                //         url: `${API_BASE_URL}/villages/${kecamatanId}.json`,
-                //         type: 'GET',
-                //         dataType: 'json',
-                //         success: function(data) {
-                //             let options = '<option value="">-- pilih kelurahan --</option>';
-                //             data.forEach(function(kelurahan) {
-                //                 options +=
-                //                     `<option value="${kelurahan.id}">${kelurahan.name}</option>`;
-                //             });
-                //             $('#kelurahan').html(options);
-                //             $('#kelurahan').prop('disabled', false);
-                //         },
-                //         error: function(xhr, status, error) {
-                //             console.error('Error loading kelurahan:', error);
-                //             alert('Gagal memuat data kelurahan');
-                //         }
-                //     });
-                // }
 
                 // Fungsi untuk reset dropdown
                 function resetDropdown(selector) {

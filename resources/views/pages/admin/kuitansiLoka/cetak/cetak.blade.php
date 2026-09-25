@@ -230,23 +230,6 @@
                                     {{ $data->internal->kota }} , PP
                                 </li>
 
-                                {{-- <table style="padding-top: 55px" border="0" cellspacing:="0" cellpadding="0">
-                                    <tr>
-                                        <td style="border:solid 0px white;">
-                                            <li>Uang Harian {{ $data->jumlah_hari }} hari Rp.
-                                                {{ number_format($data->uang_harian ?? 0, 0, ',', '.') }} </li>
-                                        </td>
-                                    </tr>
-                                </table>
-
-                                <table border="0" cellspacing:="0" cellpadding="0">
-                                    <tr>
-                                        <td style="border:solid 0px white;">
-                                            <li>Penginapan 4 hari
-                                                {{ number_format($data->biaya_penginapan ?? 0, 0, ',', '.') }}</li>
-                                        </td>
-                                    </tr>
-                                </table> --}}
 
                             </ul>
 
@@ -255,7 +238,6 @@
                         <td>Rp.
                             {{ number_format($data->internal->transport_pergi + $data->internal->transport_pulang ?? 0, 0, ',', '.') }}
                         </td>
-                        {{-- <td> {{ $data->jenis_angkutan }} </td> --}}
                         <td> </td>
                     </tr>
 
@@ -293,7 +275,6 @@
                         <td>Rp.
                             {{ number_format($data->internal->hari_1 + $data->internal->hari_2 + $data->hari_3 + $data->internal->bill_penginapan ?? 0, 0, ',', '.') }}
                         </td>
-                        {{-- <td> Rp. {{ number_format($data->biaya_penginapan ?? 0, 0, ',', '.') }} * 30% </td> --}}
                         <td> </td>
                     </tr>
 

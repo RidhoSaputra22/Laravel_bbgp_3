@@ -136,27 +136,6 @@
                                         </div>
                                     </div>
                                     <div class="row ">
-                                        {{-- <div class="col-md-6">
-                                            <label>Jabatan</label>
-                                            <select required name="jabatan" class="form-control select2">
-                                                <option value="">-- Pilih Jabatan --</option>
-                                                @foreach ($datas['jabatanPegawai'] as $v)
-                                                    <option  value="{{ $v->name }}">{{ $v->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div> --}}
-                                        {{-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Golongan</label>
-                                                <select required name="golongan" class="form-control select2">
-                                                    <option value="">-- Pilih Golongan --</option>
-                                                    @foreach ($datas['golongan'] as $v)
-                                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                        </div> --}}
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6">

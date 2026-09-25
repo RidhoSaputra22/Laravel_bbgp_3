@@ -42,14 +42,12 @@ class AgendaController extends Controller
 
         $file = $request->file('thumbnail');
 
-        // dd($file->getSize() / 1024);
         if ($file->getSize() / 1024 >= 512) {
             return redirect()->route('agenda.create')->with('message', 'size gambar');
         }
 
         $foto = $request->file('thumbnail');
         $ext = $foto->extension();
-        // $r['pas_foto'] = $request->file('pas_foto');
 
         $nameFoto = Str::uuid() . "." . $ext;
         $destinationPath = public_path('upload/agenda');
@@ -57,11 +55,9 @@ class AgendaController extends Controller
         $foto->move($destinationPath, $nameFoto);
 
         $fileUrl = asset('upload/agenda/' . $nameFoto);
-        // dd($destinationPath);
         $r['thumbnail'] = $nameFoto;
         $r['nama_kegiatan'] = $r['judul'];
         $r['tempat_kegiatan'] = $r['lokasi_kegiatan'];
-        // dd($r);
         Agenda::create($r);
 
 
@@ -122,7 +118,6 @@ class AgendaController extends Controller
         $r['nama_kegiatan'] = $r['judul'];
         $r['tempat_kegiatan'] = $r['lokasi_kegiatan'];
 
-        // dd($r);
         $data->update($r);
 
         return redirect()->route('agenda.index')->with('message', 'update');

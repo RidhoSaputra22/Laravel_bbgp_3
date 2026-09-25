@@ -111,11 +111,8 @@
                 </div>
                 <div class="modal-body" id="modalBodyContent">
                     <p><strong>Penugasan:</strong> <span id="eventTitle"></span></p>
-                    {{-- <p><strong>Tipe Penugasan:</strong> <span id="eventType"></span></p> --}}
                     <div id="eventNama"></div> <!-- Nama penugasan akan ditampilkan di sini -->
                     <p><strong>Tanggal Kegiatan:</strong> <span id="eventStart"></span></p>
-                    {{-- <p><strong>Deskripsi:</strong></p>
-                    <p id="eventDescription"></p> --}}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
@@ -128,23 +125,17 @@
 
 
     @push('scripts')
-        {{-- <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script> --}}
         <script src="{{ asset('library/jqvmap/dist/jquery.vmap.min.js') }}"></script>
         <script src="{{ asset('library/jqvmap/dist/maps/jquery.vmap.world.js') }}"></script>
         <script src="{{ asset('library/summernote/dist/summernote-bs4.js') }}"></script>
         <script src="{{ asset('library/fullcalendar/dist/fullcalendar.min.js') }}"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/id.min.js"></script>
-        {{-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> --}}
         <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
 
 
         <script>
             $(document).ready(function() {
 
-                // $('.has-dropdown').click(function(e) {
-                //     e.preventDefault();
-                //     $(this).next('.dropdown-menu').slideToggle();
-                // });
                 moment.locale('id');
                 let token = $("meta[name='csrf-token']").attr("content");
                 $.ajax({
@@ -195,8 +186,6 @@
 
                                 // Mengatur isi modal untuk setiap jenis penugasan
                                 let penugasanContent = '';
-                                // console.log(typeof(event.penugasan_pegawai))
-                                // console.log(typeof(event.penugasan_ppnpn))
 
                                 // Validasi dan penanganan penugasan pegawai
                                 if (Array.isArray(event.penugasan_pegawai)) {
@@ -266,7 +255,6 @@
                     url: `dashboard/jadwalKegiatan/{{ session('no_ktp') }}`,
                     success: function(response) {
                         var data = [];
-                        console.log(response);
 
                         response.jadwal.forEach(element => {
                             var mulai = element.tgl_kegiatan + ' ' + (element.jam_mulai ??
@@ -304,7 +292,6 @@
                             editable: true,
                             events: data,
                             eventClick: function(event, jsEvent, view) {
-                                console.log(event);
 
                                 // Set the information in the modal
                                 $("#eventTitle").text(event.title == '' || event.title ==
@@ -376,7 +363,6 @@
                 btnPrint.hide();
 
                 $('#kegiatanSelect').change(function() {
-                    console.log($(this).val());
                     const val = $(this).val()
                     $.ajax({
                         url: '{{ route('dashboard.jadwal.getByKegiatan') }}', // Ganti dengan route yang sesuai untuk mengambil status
@@ -386,8 +372,6 @@
                             nik: '{{ session('no_ktp') }}'
                         },
                         success: function(response) {
-                            // console.log(response.status);
-                            console.log(response.data.id);
                             const idPeserta = response.data.id
                             if (response.status) {
                                 var url = '{{ route('peserta.cetak', ['id' => ':id']) }}'
@@ -694,7 +678,6 @@
             // Tenaga Kependidikan
             const tenagaKependidikData = <?= json_encode($datas['tenaga_kependidik']) ?>;
 
-            console.log(tenagaKependidikData);
             // Filter data for Pengawas, Kepala Sekolah, and other Tenaga Kependidikan
             const pengawasLabels = Object.keys(tenagaKependidikData).filter(key => key.includes('pengawas'));
             const pengawasValues = pengawasLabels.map(key => tenagaKependidikData[key]);
@@ -984,7 +967,6 @@
 
             // Stakeholder
             const stakeholderData = <?= json_encode($datas['stakeholder']) ?>;
-            console.log(stakeholderData);
 
             const otherStakeholderLabels = Object.keys(stakeholderData).filter(key => !key.includes('pengawas') && !key
                 .includes('kepsek'));

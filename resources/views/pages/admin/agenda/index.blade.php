@@ -37,7 +37,6 @@
                                                 <th class="text-center">#</th>
                                                 <th>Thumbnail</th>
                                                 <th>Judul Agenda</th>
-                                                {{-- <th>Isi Agenda</th> --}}
                                                 <th>Lokasi Agenda</th>
                                                 <th>Tanggal Agenda</th>
                                                 <th>Jam Agenda</th>
@@ -62,7 +61,6 @@
                                                             alt="Thumbnail Agenda">
                                                     </td>
                                                     <td>{{ $data->nama_kegiatan ?? '' }}</td>
-                                                    {{-- <td>{!! $data->isi ?? '' !!}</td> --}}
                                                     <td>{{ $data->tempat_kegiatan }} </td>
                                                     <td>{{ $data->tgl_kegiatan }} - {{ $data->tgl_selesai }} </td>
                                                     <td>{{ $data->jam_mulai }} - {{ $data->jam_selesai }} WITA </td>

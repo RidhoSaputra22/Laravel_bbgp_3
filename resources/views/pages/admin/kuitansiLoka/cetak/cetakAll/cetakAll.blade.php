@@ -102,7 +102,6 @@
 
 <body>
 
-    {{-- {{ dd($datas) }} --}}
 
     @foreach ($datas as $i => $data)
         <?php
@@ -117,7 +116,6 @@
         $total = $data->internal->transport_pergi + $data->internal->transport_pulang + $data->internal->bill_penginapan + $data->internal->hari_1 + $data->internal->hari_2 + $data->internal->hari_3;
         
         ?>
-        {{-- {{ dd($tgl_sekarang) }} --}}
         <div class="container">
             @if ($i > 0)
                 <div class="page-break"></div>
@@ -242,23 +240,6 @@
                                         {{ $data->internal->kota }} , PP
                                     </li>
 
-                                    {{-- <table style="padding-top: 55px" border="0" cellspacing:="0" cellpadding="0">
-                                        <tr>
-                                            <td style="border:solid 0px white;">
-                                                <li>Uang Harian {{ $data->jumlah_hari }} hari Rp.
-                                                    {{ number_format($data->uang_harian ?? 0, 0, ',', '.') }} </li>
-                                            </td>
-                                        </tr>
-                                    </table>
-    
-                                    <table border="0" cellspacing:="0" cellpadding="0">
-                                        <tr>
-                                            <td style="border:solid 0px white;">
-                                                <li>Penginapan 4 hari
-                                                    {{ number_format($data->biaya_penginapan ?? 0, 0, ',', '.') }}</li>
-                                            </td>
-                                        </tr>
-                                    </table> --}}
 
                                 </ul>
 
@@ -267,7 +248,6 @@
                             <td>Rp.
                                 {{ number_format($data->internal->transport_pergi + $data->internal->transport_pulang ?? 0, 0, ',', '.') }}
                             </td>
-                            {{-- <td> {{ $data->jenis_angkutan }} </td> --}}
                             <td> </td>
                         </tr>
 
@@ -298,14 +278,12 @@
                             <td valign="top">
                                 3
                             </td>
-                            {{-- {{ dd($hari - 1 < 0 ? 0 : $hari) }} --}}
                             <td>Penginapan {{ $hari - 1 < 0 ? 0 : $hari }} malam
                                 Rp. {{ number_format($data->biaya_penginapan ?? 0, 0, ',', '.') }}
                             </td>
                             <td>Rp.
                                 {{ number_format($data->internal->hari_1 + $data->internal->hari_2 + $data->hari_3 + $data->internal->bill_penginapan ?? 0, 0, ',', '.') }}
                             </td>
-                            {{-- <td> Rp. {{ number_format($data->biaya_penginapan ?? 0, 0, ',', '.') }} * 30% </td> --}}
                             <td> </td>
                         </tr>
 

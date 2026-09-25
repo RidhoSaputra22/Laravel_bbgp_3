@@ -23,7 +23,6 @@
                     <div class="col-md-12 col-lg-12">
                         <form action="{{ route('user.kegiatan_store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
-                            {{-- {{ dd($_GET['kegiatan_id']) }} --}}
                             <input type="hidden" name="kegiatan_id" id="kegiatan_id"
                                 value="{{ $_GET['kegiatan_id'] ?? $kegiatan_id }}">
                             <div class="card">
@@ -31,32 +30,6 @@
 
                                     <div class="row">
 
-                                        {{-- <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Nama dan NIK</label>
-                                                <input  name="no_ktp" id="no_ktp" type="text"
-                                                    class="form-control" required>
-                                                <select required name="id_pegawai" id="id_pegawai"
-                                                    class="form-control select2">
-                                                    <option value="">-- Pilih pegawai --</option>
-                                                    @foreach ($merge as $v)
-                                                        <option data-no_ktp="{{ $v->no_ktp }}"
-                                                            data-nama="{{ $v->nama_lengkap }}"
-                                                            data-golongan="{{ $v->golongan }}"
-                                                            data-kabupaten="{{ $v->kabupaten }}"
-                                                            data-gender="{{ $v->gender }}"
-                                                            data-jabatan="{{ $v->jabatan ?? $v->status_kepegawaian }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            data-wa="{{ $v->no_wa }}"
-                                                            data-hp="{{ $v->no_hp }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            value="{{ $v->id }}">
-                                                            {{ $v->no_ktp }} - {{ $v->nama_lengkap }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
                                         <div class="col-md-4">
                                             <div class="form-group">
@@ -96,8 +69,6 @@
                                                         <option value=" {{ $v->name }} ">{{ $v->name }}</option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input readonly name="kabupaten" id="kabupaten" type="text"
-                                                    class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -123,29 +94,12 @@
                                                     <option value="Laki-laki">Laki-laki</option>
                                                     <option value="Perempuan">Perempuan</option>
                                                 </select>
-                                                {{-- <input name="gender" id="gender" type="text" class="form-control"
-                                                    required> --}}
                                             </div>
                                         </div>
                                         @if (session('dataAda'))
-                                            {{-- {{ dump(session('dataAda') ) }} --}}
 
 
 
-                                            {{-- <div class="col-md-3">
-                                                <div class="form-group">
-                                                    <label>Golongan</label>
-
-                                                    <select name="golongan" id="" class="form-control select2">
-                                                    <option value="">-- pilih golongan --</option>
-                                                    @foreach ($status['golongan'] as $v)
-                                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                    <input name="golongan" id="golongan" type="text"
-                                                        class="form-control" required>
-                                                </div>
-                                            </div> --}}
 
                                             <div class="col-md-2">
                                                 <div class="form-group">
@@ -179,8 +133,6 @@
                                                             <option value="{{ $v->name }}">{{ $v->name }}</option>
                                                         @endforeach
                                                     </select>
-                                                    {{-- <input readonly name="golongan_pns" id="golongan_pns" type="text"
-                                                        class="form-control" required> --}}
                                                 </div>
                                             </div>
 
@@ -197,8 +149,6 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    {{-- <input readonly name="golongan_p3k" id="golongan_p3k" type="text"
-                                                        class="form-control" required> --}}
                                                 </div>
                                             </div>
                                         @else
@@ -236,8 +186,6 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    {{-- <input  name="golongan" id="golongan" type="text"
-                                                    class="form-control" required> --}}
                                                 </div>
                                             </div>
 
@@ -254,8 +202,6 @@
                                                             </option>
                                                         @endforeach
                                                     </select>
-                                                    {{-- <input  name="golongan" id="golongan" type="text"
-                                                    class="form-control" required> --}}
                                                 </div>
                                             </div>
                                         @endif
@@ -313,14 +259,6 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             {{-- Uncomment if using signature --}}
-                                            {{-- <div class="form-group">
-                                                <label for="signature">Tanda Tangan Digital</label>
-                                                <div id="signature-pad" class="signature-pad">
-                                                    <canvas width="600" height="200"></canvas>
-                                                </div>
-                                                <input type="hidden" name="signature" id="signature">
-                                                <button id="clear" class="btn btn-secondary mt-2">Clear</button>
-                                            </div> --}}
                                         </div>
                                     </div>
 
@@ -339,7 +277,6 @@
             </div>
         </section>
     </div>
-    {{-- {{ dd(session('message')); }} --}}
     @push('scripts')
         <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
         <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
@@ -352,17 +289,13 @@
                         nik: {!! json_encode(session('nik'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
                     },
                     success: function(response) {
-                        console.log(response.data.nip);
-                        // console.log(response);
                         let kb = $.trim(response.data.kabupaten);
                         let jenis_gol = $.trim(response.data.jenis_gol);
-                        console.log(kb.length);
 
                         $('#no_ktp').val(response.data.no_ktp);
                         $('#nip').val(response.data.nip);
                         $('#nama').val(response.data.nama);
                         $('#jabatan').val(response.data.jabatan);
-                        // $('#gender').val(response.data.jkl);
                         $(`#gender option[value="${response.data.jkl}"]`).prop('selected', true);
 
                         // change jenis golongan 
@@ -380,7 +313,6 @@
                                 .removeAttr('disabled')
                                 .prop('selected', true)
                             );
-                            // $(`#jenis_gol option[value="${golongan}"]`).prop('selected', true);
                         } else if (jenis_gol == 'P3K') {
                             gol_p3k.show();
                             gol = response.data.golongan
@@ -396,9 +328,6 @@
                             $('#diluar_gol').val(gol)
                         }
 
-                        // $(`#kabupaten option[value="${response.data.kabupaten}"]`).prop('selected', true);
-                        // $('#kabupaten').select2();
-                        // $('#kabupaten').val(kb).trigger('change');
                         let selectedKab = $('#kabupaten')
 
                         selectedKab.append($("<option>")
@@ -407,20 +336,14 @@
                             .removeAttr('disabled')
                             .prop('selected', true)
                         );
-                        console.log(selectedKab);
-                        // console.log('Selected value:', $('#kabupaten').val());
 
-                        // $('#kabupaten').val(kb);
 
                         $('#golongan').val(response.data.golongan);
                         $('#jenis_gol').val(response.data.jenis_gol);
                         $('#instansi').val(response.data.instansi);
                         $('#no_hp').val(response.data.no_hp);
                         $('#no_wa').val(response.data.no_wa);
-                        // $('#no_surat_tugas').val(response.data.no_surat_tugas);
-                        // $('#tgl_surat_tugas').val(response.data.tgl_surat_tugas);
 
-                        // console.log($('#no_wa').val(response.data.no_wa));
 
                     },
                     error: function(error) {
@@ -467,7 +390,6 @@
 
                 $('#jenis_gol').change(function() {
                     let status = $(this).val();
-                    console.log(status);
                     if (status == 'PNS') {
                         gol_pns.show();
                         gol_p3k.hide().val('');
@@ -492,7 +414,6 @@
 
                 $('#id_pegawai').change(function() {
                     var selectedOption = $(this).find('option:selected');
-                    // console.log(selectedOption);
                     var jabatan = selectedOption.data('jabatan');
                     var nama = selectedOption.data('nama');
                     var no_ktp = selectedOption.data('no_ktp');
@@ -504,10 +425,8 @@
                     var instansi = selectedOption.data('instansi');
                     var no_hp = selectedOption.data('hp');
                     var no_wa = selectedOption.data('wa');
-                    // console.log(kabupaten);
 
                     // Isi input form dengan data yang sesuai
-                    console.log(gender);
                     $('#no_ktp').val(no_ktp);
                     $('#nip').val(nip);
                     $('#nama').val(`${nama}`);

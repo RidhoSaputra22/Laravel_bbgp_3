@@ -47,7 +47,6 @@
                                         <div class="form-group">
                                             <select name="jabatanKegiatan" class="form-control" id="jabatanKegiatan">
                                                 <option value="">-- pilih status keikutsertaan --</option>
-                                                {{-- <option value="peserta">Peserta</option> --}}
 
                                                 <option value="panitia">Panitia</option>
                                                 <option value="narasumber">Narasumber</option>
@@ -186,7 +185,6 @@
                         showPrint.hide();
                         return
                     }
-                    console.log(kegiatanValue);
 
                     tableKegiatan.column(3).search(kegiatanValue).draw();
                     showPrint.show();
@@ -201,7 +199,6 @@
                 $('#jabatanKegiatan').on('change', function(e) {
                     e.preventDefault();
                     var jabatanValue = $(this).val();
-                    console.log(jabatanValue);
 
                     tableKegiatan.column(2).search(jabatanValue).draw();
 
@@ -244,7 +241,6 @@
                                         kegiatan_id: kegiatan,
                                     },
                                     success: function(response) {
-                                        console.log(kegiatan, jabatan);
 
                                         if (jabatan != 'panitia') {
                                             jabatan = 'panitia'
@@ -301,7 +297,6 @@
                                         kegiatan_id: kegiatan,
                                     },
                                     success: function(response) {
-                                        console.log(kegiatan, jabatan);
 
                                         if (jabatan != 'narasumber') {
                                             jabatan = 'narasumber'
@@ -358,7 +353,6 @@
                                         kegiatan_id: kegiatan,
                                     },
                                     success: function(response) {
-                                        console.log(kegiatan, jabatan);
 
                                         if (jabatan != 'peserta') {
                                             jabatan = 'peserta'
@@ -386,9 +380,6 @@
 
 
                 function updatePrintLink(kegiatan, jabatan) {
-                    // var printLinkNarasumber = '{{ route('honor.cetakExcelNarasumber', [':kegiatan', ':jabatan']) }}';
-                    // printLinkNarasumber = printLinkNarasumber.replace(':kegiatan', encodeURIComponent(kegiatan)).replace(':jabatan', 'narasumber');
-                    // $('#printHonorNarasumber').attr('href', printLinkNarasumber);
                 }
             });
         </script>

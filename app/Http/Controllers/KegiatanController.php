@@ -47,7 +47,6 @@ class KegiatanController extends Controller
         $r['tgl_selesai'] = $selesai_kegiatan[0];
         $r['jam_selesai'] = $selesai_kegiatan[1];
         
-        // dd($r->all());
         
         Kegiatan::create($r->all());
 
@@ -83,7 +82,6 @@ class KegiatanController extends Controller
         $r['jam_selesai'] = $selesai_kegiatan[1];
 
         $datas = Kegiatan::find($r->id);
-        // dd($r->all());
         $datas->update($r->all());
         $menu = $this->menu;
 

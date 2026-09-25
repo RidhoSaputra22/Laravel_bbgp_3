@@ -11,9 +11,6 @@
                         <ul>
                             <li><a href="https://www.facebook.com/bbgtksulsel/" aria-label="Facebook"><i
                                         class="fab fa-facebook-f"></i></a></li>
-                            {{-- <li><a href="https://twitter.com/themefisher" aria-label="Twitter"><i
-                                        class="fab fa-twitter"></i></a>
-                            </li> --}}
                             <li><a href="https://www.instagram.com/bbgtksulsel/" aria-label="Instagram"><i
                                         class="fab fa-instagram"></i></a></li>
                         </ul>
@@ -46,16 +43,6 @@
                     </div>
                 </div><!-- Col end -->
 
-                {{-- <div class="col-lg-3 col-md-6 mt-5 mt-lg-0 footer-widget">
-                    <h3 class="widget-title">Hubungi Kami</h3>
-                    <ul class="list-arrow">
-                        <li><a href="service-single.html"></a></li>
-                        <li><a href="service-single.html">General Contracting</a></li>
-                        <li><a href="service-single.html">Construction Management</a></li>
-                        <li><a href="service-single.html">Design and Build</a></li>
-                        <li><a href="service-single.html">Self-Perform Construction</a></li>
-                    </ul>
-                </div><!-- Col end --> --}}
 
             </div><!-- Row end -->
         </div><!-- Container end -->
@@ -74,17 +61,6 @@
                     </div>
                 </div>
 
-                {{-- <div class="col-md-6">
-                    <div class="footer-menu text-center text-md-right">
-                        <ul class="list-unstyled">
-                            <li><a href="about.html">About</a></li>
-                            <li><a href="team.html">Our people</a></li>
-                            <li><a href="faq.html">Faq</a></li>
-                            <li><a href="news-left-sidebar.html">Blog</a></li>
-                            <li><a href="pricing.html">Pricing</a></li>
-                        </ul>
-                    </div>
-                </div> --}}
 
             </div><!-- Row end -->
 

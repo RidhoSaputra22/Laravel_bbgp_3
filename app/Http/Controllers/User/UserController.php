@@ -42,20 +42,17 @@ class UserController extends Controller
             'api_key' => env('YOUTUBE_API_KEY', ''),
             'channel_id' => env('CHANNEL_ID', '')
         );
-        // return view('pages.user.index', ['menu' => 'profil']);
         return view('pages.landing.index', ['menu' => 'profil'], compact('datas'));
     }
 
     public function kontak()
     {
         return view('pages.landing.kontak', ['menu' => 'kontak']);
-        // return view('pages.user.kontak', ['menu' => 'kontak']);
     }
 
 
     public function detail($jenis, $id)
     {
-        // dd($jenis);
         if ($jenis == 'berita') {
             $data = Berita::find($id);
             $latest_post = Berita::orderByDesc('id')->skip(0)->take(5)->get();
@@ -79,7 +76,6 @@ class UserController extends Controller
             'jenis' => $jenis,
             'latest_post' => $latest_post
         ]);
-        // return view('pages.user.kontak', ['menu' => 'kontak']);
     }
 
 
@@ -201,24 +197,19 @@ class UserController extends Controller
 
     public function pegawai()
     {
-        // $data = Pegawai::where('is_verif', 'sudah')->orderBy('id', 'DESC')->get();
         $kota = Kabupaten::get();
-        // $data = Internal::get();
         $data = array(
 
             'dataPenugasanPegawai' => Internal::where('jenis', 'Penugasan Pegawai')->get(),
             'dataPenugasanPpnpn' => Internal::where('jenis', 'Penugasan PPNPN')->get(),
         );
         $dataPendamping = Pendamping::get();
-        // $merge = $data->merge($dataPendamping);
         return view('pages.landing.internal.index', ['menu' => 'data', 'datas' => $data, 'dataPendamping' => $dataPendamping]);
-        // return view('pages.user.pegawai', ['menu' => 'pegawai', 'datas' => $data, 'dataPendamping' => $dataPendamping]);
     }
     public function form_pegawai()
     {
         $data = Pegawai::get();
         return view('pages.landing.eksternal.form', ['menu' => 'data']);
-        // return view('pages.user.formPegawai', ['menu' => 'pegawai']);
     }
     public function daftar_pegawai(Request $request)
     {
@@ -305,7 +296,6 @@ class UserController extends Controller
         );
         $data = Guru::get();
         return view('pages.landing.eksternal.form', ['menu' => 'guru', 'status' => $datas, 'jenis' => $jenis]);
-        // return view('pages.user.formGuru', ['menu' => 'guru', 'status' => $datas, 'jenis' => $jenis]);
     }
     public function daftar_guru(Request $request)
     {
@@ -336,20 +326,11 @@ class UserController extends Controller
             'npwp' => 'nullable|string|max:50',
             'nuptk' => 'nullable|string|max:50',
         ]);
-        // $foto = $request->file('pas_foto');
-        // $ext = $foto->getClientOriginalExtension();
-        // // $r['pas_foto'] = $request->file('pas_foto');
 
-        // $nameFoto = date('Y-m-d_H-i-s_') . $r['no_ktp'] . "." . $ext;
-        // $destinationPath = public_path('upload/guru');
 
-        // $foto->move($destinationPath, $nameFoto);
 
-        // $fileUrl = asset('upload/guru/' . $nameFoto);
 
-        // $r['pas_foto'] = $nameFoto;
         $getNik = Guru::where('no_ktp', $r['no_ktp'])->first();
-        // dd($getNik);
         if ($getNik == null) {
             $r['jabatan'] = '';
             $r['pas_foto'] = '';
@@ -380,7 +361,6 @@ class UserController extends Controller
             };
 
             $user = strtolower(str_replace(' ', '', $r['nama_lengkap']));
-            // dd($role);
             $reg['name'] = $r['nama_lengkap'];
             $reg['username'] = $user;
             $reg['no_ktp'] = (string) $r['no_ktp'];
@@ -388,8 +368,6 @@ class UserController extends Controller
             $passwordPlain = Str::random(16);
             $reg['password'] = bcrypt($passwordPlain);
 
-            // dump($r);
-            // dd($reg);
 
 
 
@@ -491,7 +469,6 @@ class UserController extends Controller
     public function getMonthStatistics($month)
     {
         $jumlah_kegiatan = Kegiatan::whereMonth('tgl_kegiatan', $month)->count();
-        // \Log::info('Fetching statistics for month: ' . $month);
         return response()->json(['jumlah_kegiatan' => $jumlah_kegiatan]);
     }
 

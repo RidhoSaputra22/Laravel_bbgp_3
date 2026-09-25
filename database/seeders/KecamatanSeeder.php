@@ -54,7 +54,6 @@ class KecamatanSeeder extends Seeder
             "Rappocini", "Tamalanrea", "Tallo", "Makasar", "Mamajang", "Ujung Pandang", "Bontoala", "Mariso", "Ujung Tanah",
             "Wajo", "Kepulauan Sangkarrang"
         ];
-        // dd($daftar_kecamatan[0]);
         
         foreach ($daftar_kecamatan as $key => $v) {
             Kecamatan::create([

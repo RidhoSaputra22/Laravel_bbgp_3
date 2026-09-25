@@ -48,21 +48,6 @@
                                                 <select required name="id_pegawai" id="idPeserta"
                                                     class="form-control select2">
                                                     <option value="">-- Pilih peserta --</option>
-                                                    {{-- @foreach ($datas['peserta'] as $i => $v)
-                                                        <option data-no_ktp="{{ $v->no_ktp }}"
-                                                            data-nama="{{ $v->nama }}"
-                                                            data-golongan="{{ $v->golongan }}"
-                                                            data-kabupaten="{{ $v->kabupaten }}"
-                                                            data-jabatan="{{ $v->jabatan ?? $v->status_kepegawaian }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            data-no_surat_tugas="{{ $v->no_surat_tugas }}"
-                                                            data-tgl_surat_tugas="{{ $v->tgl_surat_tugas }}"
-                                                            data-status_keikutpesertaan="{{ $v->status_keikutpesertaan }}"
-                                                            value="{{ $v->id }}">
-                                                            {{ $v->pegawai->nip ?? '' }} - {{ $v->nama }} (
-                                                            {{ $v->status_keikutpesertaan }} )
-                                                        </option>
-                                                    @endforeach --}}
                                                 </select>
                                             </div>
                                         </div>
@@ -77,8 +62,6 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Nama </label>
-                                                {{-- <input readonly required name="nip" id="nip" type="hidden"
-                                                    class="form-control"> --}}
                                                 <input readonly required name="nama" id="nama" type="text"
                                                     class="form-control">
                                             </div>
@@ -167,13 +150,10 @@
                                         <div class="col-md-4">
                                             <div class="form-group">
                                                 <label>Lokasi Asal</label>
-                                                {{-- <input required name="biaya_penginapan" type="number"
-                                                    class="form-control"> --}}
                                                 <select required name="lokasi_asal" id="lokasi_asal"
                                                     class="form-control select2">
                                                     <option value="">-- Pilih kabupaten / kota --</option>
                                                     @foreach ($datas['kabupaten'] as $i => $v)
-                                                        {{-- {{ dd($v->pegawai->nip) }} --}}
                                                         <option value="{{ $v->id }}">
                                                             {{ $v->name ?? '' }}
                                                         </option>
@@ -402,94 +382,13 @@
                                     </div>
 
 
-                                    {{-- <div class="row">
-
-                                        <div class="col-md-2">
-                                            <div class="form-group">
-                                                <label>Jumlah Hari</label>
-                                                <input required name="jumlah_hari" placeholder="diisi jika ada" type="text"
-                                                    class="form-control">
-                                            </div>
-                                        </div>
-    
-
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>Durasi Penginapan (hari)</label>
-                                                <input required name="durasi_penginapan" type="text"
-                                                    class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>Durasi Uang Harian (hari)</label>
-                                                <input required name="durasi_uang_harian" type="text"
-                                                    class="form-control">
-                                            </div>
-                                        </div>
-                                    </div> --}}
 
 
                                     {{-- Inputan Transportasi --}}
-                                    {{-- <div class="row">
-                                        <div class="col-md-12">
-                                            <h5>Transportasi</h5>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group">
-                                                <label>Jenis Transportasi</label>
-                                                <input required name="transportasis[0][transportasi]" type="text"
-                                                    class="form-control"
-                                                    placeholder="selain kendaraan, wajb isi keterangan">
-                                            </div>
-                                        </div>
-                                        <div class="col-md">
-                                            <div class="form-group">
-                                                <label>Asal Transportasi</label>
-                                                <input required name="transportasis[0][asal_transport]" type="text"
-                                                    class="form-control">
-                                            </div>
-                                        </div>
-                                        <span>
-                                        </span>
-                                        <div class="col-md">
-                                            <div class="form-group">
-                                                <label>Tujuan Transportasi</label>
-                                                <input required name="transportasis[0][tujuan_transport]" type="text"
-                                                    class="form-control">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md">
-                                            <div class="form-group">
-                                                <label>Biaya Transportasi</label>
-                                                <input required name="transportasis[0][biaya_transport]" type="text"
-                                                    class="form-control">
-                                            </div>
-
-                                        </div>
-
-
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Keterangan</label>
-                                                <input name="transportasis[0][keterangan]" type="text"
-                                                    class="form-control" placeholder="Keterangan transportasi">
-                                            </div>
-                                        </div>
-                                    </div> --}}
 
                                     <div id="transportasi_fields"></div>
 
                                     <!-- Tombol untuk menambahkan transportasi -->
-                                    {{-- <div class="row">
-                                        <div class="col-md-12">
-                                            <button class="btn btn-primary add_transportasi_field" type="button">Tambah
-                                                Transportasi</button>
-                                        </div>
-                                    </div> --}}
 
 
 
@@ -532,39 +431,10 @@
                         numeralThousandsGroupStyle: 'thousand'
                     });
                 });
-                // var max_fields = 10; // maximum input fields allowed
-                // var wrapper = $("#transportasi_fields"); // fields wrapper
-                // var add_button = $(".add_transportasi_field"); // Add button ID
 
-                // var x = 1; // initial text box count
-                // $(add_button).click(function(e) { // on add input button click
-                //     e.preventDefault();
-                //     if (x < max_fields) { // max input box allowed
-                //         x++; // text box increment
-                //         $(wrapper).append(
-                //             '<div class="row"><div class="col-md"><div class="form-group"><label>Asal Transportasi</label><input required name="transportasis[' +
-                //             x +
-                //             '][asal_transport]" type="text" class="form-control"></div></div><div class="col-md"><div class="form-group"><label>Tujuan Transportasi</label><input required name="transportasis[' +
-                //             x +
-                //             '][tujuan_transport]" type="text" class="form-control"></div></div><div class="col-md"><div class="form-group"><label>Jenis Transportasi</label><input required name="transportasis[' +
-                //             x +
-                //             '][transportasi]" type="text" class="form-control"></div></div><div class="col-md"><div class="form-group"><label>Keterangan</label><input name="transportasis[' +
-                //             x +
-                //             '][keterangan]" type="text" class="form-control"></div></div><div class="col-md"><div class="form-group"><label>Biaya Transportasi</label><input required name="transportasis[' +
-                //             x +
-                //             '][biaya_transport]" type="number" class="form-control"></div></div><div class="col-md-1"><a href="#" class="btn btn-danger remove_field"><i class="fas fa-minus"></i></a></div></div>'
-                //         ); // add input box
-                //     }
-                // });
 
-                // $(wrapper).on("click", ".remove_field", function(e) { // user click on remove text
-                //     e.preventDefault();
-                //     $(this).parent('div').parent('div').remove();
-                //     x--;
-                // })
 
                 $('#kegiatan').change(function() {
-                    console.log($(this).val())
 
                     var kegiatan = $(this).val();
 
@@ -587,7 +457,6 @@
                             var options = '<option value="">-- pilih peserta --</option>';
 
                             $.each(response, function(index, peserta) {
-                                console.log(peserta)
                                 options += `<option data-jabatan="${peserta.status_keikutpesertaan}" 
                                 data-golongan="${peserta.golongan}" 
                                 data-nama="${peserta.nama}" 
@@ -615,7 +484,6 @@
 
                 $('#idPeserta').change(function() {
                     var selectedOption = $(this).find('option:selected');
-                    // console.log(selectedOption);
                     var status_keikutpesertaan = selectedOption.data('jabatan');
                     var jabatan = selectedOption.data('jabatan');
                     var nama = selectedOption.data('nama');
@@ -629,7 +497,6 @@
                     var no_surat_tugas = selectedOption.data('no_surat_tugas');
                     var tgl_surat_tugas = selectedOption.data('tgl_surat_tugas');
                     var no_wa = selectedOption.data('wa');
-                    console.log(status_keikutpesertaan);
 
                     // Isi input form dengan data yang sesuai
                     $('#nip').val(nip);
@@ -651,7 +518,6 @@
 
                 $('#switch_penginapan').change(function() {
 
-                    console.log($(this).val())
                     if ($(this).is(':checked')) {
 
                         bill_penginapan.val(formatRupiah(210000)); // Set nilai 210000
@@ -716,11 +582,6 @@
                     calculateTotalBiaya();
                 }
 
-                // function calculateRepresentasi() {
-                //     var biayaRepresentasi = parseFloat($('#biaya_representasi').val()) || 0;
-                //     var jumlahHariRepresentasi = parseFloat($('#jumlah_hari_representasi').val()) || 0;
-                //     $('#jumlah_biaya_representasi').val(biayaRepresentasi * jumlahHariRepresentasi);
-                // }
 
                 function calculateTotalBiaya() {
                     var jumlahBiayaTiket = parseFloat($('#jumlah_biaya_tiket').val().replace(/[^0-9]/g, '')) || 0;
@@ -729,7 +590,6 @@
                     var jumlahBiayaPenginapan = parseFloat($('#total_penginapan').val().replace(/[^0-9]/g, '')) || 0;
 
                     var jumlahBiayaHarian = parseFloat($('#biaya_harian').val().replace(/[^0-9]/g, '')) || 0;
-                    // var potongan = parseFloat($('#potongan').val().replace(/[^0-9]/g, '')) || 0;
 
                     var jumlahBiayaDiterima = jumlahBiayaTiket + jumlahBiayaTransport + jumlahBiayaPenginapan +
                         jumlahBiayaHarian;
@@ -742,8 +602,6 @@
                 $('#biaya_penginapan, #jumlah_hari, #bill_penginapan').on('input', calculatePenginapan);
                 $('#uang_harian, #jumlah_hari').on('input', calculateHarian);
 
-                // $('#jumlah_biaya_tiket, #pajak_bandara , #jumlah_hari, #tujuan, #uang_harian, #potongan')
-                //     .on('input', calculateTotalBiaya);
                 $('#jumlah_biaya_tiket, #total_transport, #total_penginapan, #biaya_harian', '#jumlah_hari').on('input',
                     calculateTotalBiaya);
 

@@ -101,21 +101,9 @@ class BerkasController extends Controller
         return response()->json([
             'data' => $data
         ]);
-        // return view('pages.admin.berkas.index', ['menu' => 'berkas'])->with('datas', json_encode($data));
     }
 
-    // public function verifikasi(string $id)
-    // {
 
-    //     $data = Berkas::find($id);
-    //     $getData = Berkas::find($id);
-    //     $data->is_verif = 'sudah';
-    //     $data->save();
-    //     return response()->json([
-    //         'status' => $data,
-    //         'data' => $getData,
-    //     ]);
-    // }
 
     /**
      * Update the specified resource in storage.

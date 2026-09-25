@@ -68,7 +68,6 @@ class JabatanPenugasanPegawaiController extends Controller
     public function update(Request $request)
     {
         $datas = JabatanPenugasanPegawai::find($request->id);
-        // dd($r->all());
         $datas->update($request->all());
         $menu = $this->menu;
 

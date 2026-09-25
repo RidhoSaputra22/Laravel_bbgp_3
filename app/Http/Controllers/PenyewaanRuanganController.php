@@ -41,7 +41,6 @@ class PenyewaanRuanganController extends Controller
      */
     public function store(Request $request)
     {
-        // dd($request->all());
         $validated = $request->validate([
             'tipe_ruangan' => 'required|in:asrama,aula,kelas,laboratorium',
             'nama_ruangan' => 'required|string|max:255',

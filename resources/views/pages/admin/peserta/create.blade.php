@@ -48,8 +48,6 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input  name="golongan" id="golongan" type="text"
-                                                    class="form-control" required> --}}
                                             </div>
 
                                         </div>
@@ -57,32 +55,6 @@
 
                                     <div class="row">
 
-                                        {{-- <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Nama dan NIK</label>
-                                                <input  name="no_ktp" id="no_ktp" type="text"
-                                                    class="form-control" required>
-                                                <select required name="id_pegawai" id="id_pegawai"
-                                                    class="form-control select2">
-                                                    <option value="">-- Pilih pegawai --</option>
-                                                    @foreach ($merge as $v)
-                                                        <option data-no_ktp="{{ $v->no_ktp }}"
-                                                            data-nama="{{ $v->nama_lengkap }}"
-                                                            data-golongan="{{ $v->golongan }}"
-                                                            data-kabupaten="{{ $v->kabupaten }}"
-                                                            data-gender="{{ $v->gender }}"
-                                                            data-jabatan="{{ $v->jabatan ?? $v->status_kepegawaian }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            data-wa="{{ $v->no_wa }}"
-                                                            data-hp="{{ $v->no_hp }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            value="{{ $v->id }}">
-                                                            {{ $v->no_ktp }} - {{ $v->nama_lengkap }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
                                         <div class="col-md-4">
                                             <div class="form-group">
@@ -128,8 +100,6 @@
                                                     @endforeach
                                                     <option id="selectedKabLainnya" value="lainnya">Lainnya</option>
                                                 </select>
-                                                {{-- <input readonly name="kabupaten" id="kabupaten" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -165,8 +135,6 @@
                                                     <option value="Laki-laki">Laki-laki</option>
                                                     <option value="Perempuan">Perempuan</option>
                                                 </select>
-                                                {{-- <input name="gender" id="gender" type="text" class="form-control"
-                                                    required> --}}
                                             </div>
                                         </div>
 
@@ -203,8 +171,6 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input  name="golongan" id="golongan" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -221,8 +187,6 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input  name="golongan" id="golongan" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -307,14 +271,6 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             {{-- Uncomment if using signature --}}
-                                            {{-- <div class="form-group">
-                                                <label for="signature">Tanda Tangan Digital</label>
-                                                <div id="signature-pad" class="signature-pad">
-                                                    <canvas width="600" height="200"></canvas>
-                                                </div>
-                                                <input type="hidden" name="signature" id="signature">
-                                                <button id="clear" class="btn btn-secondary mt-2">Clear</button>
-                                            </div> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -347,7 +303,6 @@
                         nik: '{{ session('dataAda') }}'
                     },
                     success: function(response) {
-                        console.log(response.data);
 
                         $('#no_ktp').val(response.data.no_ktp);
                         $('#nama').val(response.data.nama);
@@ -359,7 +314,6 @@
                         $('#no_hp').val(response.data.no_hp);
                         $('#no_wa').val(response.data.no_wa);
 
-                        // console.log($('#no_wa').val(response.data.no_wa));
 
                     },
                     error: function(error) {
@@ -413,7 +367,6 @@
 
                 $('#jenis_gol').change(function() {
                     let status = $(this).val();
-                    console.log(status);
                     if (status == 'PNS') {
                         gol_pns.show();
                         gol_p3k.hide().val('');
@@ -438,7 +391,6 @@
 
                 $('#id_pegawai').change(function() {
                     var selectedOption = $(this).find('option:selected');
-                    // console.log(selectedOption);
                     var jabatan = selectedOption.data('jabatan');
                     var nama = selectedOption.data('nama');
                     var no_ktp = selectedOption.data('no_ktp');
@@ -448,7 +400,6 @@
                     var instansi = selectedOption.data('instansi');
                     var no_hp = selectedOption.data('hp');
                     var no_wa = selectedOption.data('wa');
-                    // console.log(kabupaten);
 
                     // Isi input form dengan data yang sesuai
                     $('#no_ktp').val(no_ktp);

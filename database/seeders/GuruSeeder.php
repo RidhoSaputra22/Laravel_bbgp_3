@@ -16,7 +16,6 @@ use RuntimeException;
 
 class GuruSeeder extends Seeder
 {
-    // private const TOTAL_GURU = 20000;
     private const TOTAL_GURU = 100;
 
     private const SYNC_CHUNK_SIZE = 500;

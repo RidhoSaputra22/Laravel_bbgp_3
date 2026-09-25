@@ -302,7 +302,6 @@
                         url: url,
                         method: 'GET',
                         success: function(response) {
-                            console.log(response);
                             let metodeUpload = response.data.metode_upload
                             if (metodeUpload == 'link') {
                                 uploadForm.hide()
@@ -338,7 +337,6 @@
                     formData.append('metode_upload', methodUpload)
 
                     for (const [key, value] of formData) {
-                        console.log('»', key, value)
                     }
 
 
@@ -374,7 +372,6 @@
                                     'validation.mimes' ?
                                     'Laporan yang anda upload harus format .pdf .docx' :
                                     'Laporan tidak boleh kosong';
-                                console.log(errorMessage);
                             } else {
                                 errorMessage = xhr.responseJSON.message;
                             }
@@ -389,7 +386,6 @@
 
                 $('#searchEmployee').on('keyup', function() {
                     const searchValue = $(this).val().toLowerCase();
-                    console.log(searchValue);
                     // Loop through each accordion
                     $('.accordion').each(function() {
                         const employeeName = $(this).find('.accordion-header h4').text().toLowerCase();
@@ -414,7 +410,6 @@
 
                 let url = "{{ route('berkas.verify', ':id') }}"
                 url = url.replace(':id', id)
-                console.log(url);
                 swal({
                     title: 'Verifikasi Laporan?',
                     text: "Status laporan akan diubah menjadi selesai",
@@ -441,7 +436,6 @@
                                     });
                                 },
                                 error: function(xhr) {
-                                    console.log(xhr);
                                     swal(
                                         'Error!',
                                         'Terjadi kesalahan saat memverifikasi laporan.',

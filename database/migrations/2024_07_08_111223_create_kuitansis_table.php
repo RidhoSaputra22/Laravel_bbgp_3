@@ -30,8 +30,6 @@ return new class extends Migration
             $table->integer('bea_jarak');
             $table->integer('biaya_tujuan');
             $table->integer('total_transport');
-            // $table->integer('biaya_penginapan');
-            // $table->integer('uang_harian');
             $table->integer('potongan');
             $table->integer('total_penginapan');
             $table->integer('total_harian');

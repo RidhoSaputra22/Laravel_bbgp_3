@@ -24,8 +24,6 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Nama</label>
-                                                {{-- <input required value="{{ $pegawai->nama }}" name="nama" type="text"
-                                                    class="form-control"> --}}
                                                 <select name="nama" class="form-control select2" id="selectNama">
                                                     <option value="">-- Pilih Pegawai --</option>
 

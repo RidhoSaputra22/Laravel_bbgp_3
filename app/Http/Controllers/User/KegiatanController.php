@@ -11,7 +11,6 @@ use App\Models\Kegiatan;
 use App\Models\Pegawai;
 use App\Models\PesertaKegiatan;
 
-// use Barryvdh\DomPDF\PDF as PDF;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 use Illuminate\Http\Request;
@@ -37,12 +36,6 @@ class KegiatanController extends Controller
             'kegiatan' => $dataKegiatan,
             'pegawai' => $dataPegawai,
         ]);
-        // return view('pages.user.kegiatan.index', [
-        //     'menu' => 'kegiatan',
-        //     'data' => $data,
-        //     'kegiatan' => $dataKegiatan,
-        //     'pegawai' => $dataPegawai,
-        // ]);
     }
 
     public function cari(Request $request)
@@ -108,7 +101,6 @@ class KegiatanController extends Controller
             $status = false;
         }
 
-        // dd($peserta);
 
         return response()->json(['data' => $peserta, 'tipe' => $title, 'success' => $status]);
     }
@@ -127,7 +119,6 @@ class KegiatanController extends Controller
         $kabupaten = Kabupaten::orderBy('id', 'ASC')->get();
         $kabupaten = Kabupaten::orderBy('id', 'ASC')->get();
 
-        // dd($guru);
 
         $peserta = PesertaKegiatan::where('id_kegiatan', $kegiatanId)
             ->where('no_ktp', $validated['nik'])
@@ -150,13 +141,10 @@ class KegiatanController extends Controller
             'kegiatanById' => Kegiatan::find($kegiatanId),
             'kabupaten' => Kabupaten::all(),
             'golongan' => JabatanPenugasanGolongan::all(),
-            // 'kabupaten' => $kabupaten,
             'golongan_p3k' => GolonganP3k::get(),
         ];
-        // dd($status);
 
         return view('pages.landing.kegiatan.daftar', compact('kegiatanId', 'status', 'menu', 'peserta', 'guru'));
-        // return view('pages.user.kegiatan.create', compact('kegiatanId', 'status', 'menu', 'pegawai', 'merge'));
     }
 
     public function store(Request $request)
@@ -194,12 +182,9 @@ class KegiatanController extends Controller
         if (isset($r['jabatan'])) {
             $r['jabatan'] = ucwords(strtolower($r['jabatan']));
         }
-        // dd($r['golongan_pns'] == null && $r['diluar_gol'] == null);
-        // dd($request->all());
         $menu = 'kegiatan';
 
 
-        // dd(session('no_ktp'));
 
         if (($r['kabupaten'] ?? null) == 'lainnya') {
 
@@ -211,7 +196,6 @@ class KegiatanController extends Controller
             }
         }
 
-        // dd($r);
         if (($r['jenis_gol'] ?? null) == 'PNS' && ($r['golongan_pns'] ?? null) != null) {
             $r['golongan'] = $r['golongan_pns'];
             $r['diluar_gol'] = null;
@@ -232,7 +216,6 @@ class KegiatanController extends Controller
                 'golongan' => JabatanPenugasanGolongan::all(),
                 'golongan_p3k' => GolonganP3k::get(),
             ];
-            // dd($status['kegiatanById']->id);
 
 
             return redirect()->route('user.kegiatan_regist', [
@@ -245,7 +228,6 @@ class KegiatanController extends Controller
         }
 
         $r['id_kegiatan'] = $r['kegiatan_id'];
-        // dd($r);
 
         $pesertaRecord = PesertaKegiatan::create($r);
 
@@ -310,7 +292,6 @@ class KegiatanController extends Controller
         $nik = $request->validate([
             'nik' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
         ])['nik'];
-        // dd($nik);
         $title = 'Peserta';
         $prefillColumns = [
             'id', 'nama', 'no_ktp', 'nip', 'email', 'tempat_lahir', 'tgl_lahir',
@@ -389,7 +370,6 @@ class KegiatanController extends Controller
         Session::put('dataAda', $status);
 
 
-        // dd($peserta->nama);
         return response()->json([
             'success' => $status,
             'data' => $peserta,
@@ -435,18 +415,15 @@ class KegiatanController extends Controller
     {
         $kegiatanId = $this->validatedKegiatanId($request);
         $kegiatan = Kegiatan::find($kegiatanId);
-        // dd($kegiatanId);
 
         // Mendapatkan data guru dari model Guru
         $data = PesertaKegiatan::where('status_keikutpesertaan', 'peserta')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenPeserta', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -462,14 +439,12 @@ class KegiatanController extends Controller
         // Logic to generate PDF for Registrasi Peserta
         // Return response with PDF
         $data = PesertaKegiatan::where('status_keikutpesertaan', 'peserta')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenRegisterPeserta', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -484,14 +459,12 @@ class KegiatanController extends Controller
         // Return response with PDF
 
         $data = PesertaKegiatan::where('status_keikutpesertaan', 'panitia')->where('id_kegiatan', $kegiatanId)->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenPanitia', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -507,14 +480,12 @@ class KegiatanController extends Controller
         // Return response with PDF
 
         $data = PesertaKegiatan::where('status_keikutpesertaan', 'narasumber')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenNarasumber', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -534,14 +505,11 @@ class KegiatanController extends Controller
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
             ->get();
 
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
-        // dd($data);
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenTP', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -560,14 +528,12 @@ class KegiatanController extends Controller
             ->where('gurus.eksternal_jabatan', 'Tenaga Kependidikan')
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
             ->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenTKP', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -586,14 +552,12 @@ class KegiatanController extends Controller
             ->where('gurus.eksternal_jabatan', 'Stakeholder')
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
             ->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenSTK', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'
@@ -611,14 +575,11 @@ class KegiatanController extends Controller
             ->where('peserta_kegiatans.id_kegiatan', $kegiatanId)
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
             ->get();
-        // $title = "DAFTAR HADIR PESERTA KOORDINASI  TEKNIS PROGRAM GERAK PENGGERAK";
-        // dd($data);
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenPGW', compact('data', 'kegiatan'));
 
         // Set properties PDF
         $pdf->setPaper('a4', 'potrait'); // Set kertas ke mode landscape
-        // $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
         // Download PDF dengan nama file 'data_guru.pdf'

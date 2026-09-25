@@ -37,7 +37,6 @@ class KuitansiExport implements FromCollection, WithHeadings, ShouldAutoSize, Wi
     {
 
         $nomor = PenomoranKegiatan::find($this->id_nomor);
-        // dd($this->id_kegiatan);
         $this->no_surat = $nomor->no_surat;
         $this->kode_anggaran = $nomor->kode_anggaran;
         $this->tgl_surat = Carbon::parse($nomor->tgl_surat)->translatedFormat('d F Y');
@@ -51,10 +50,6 @@ class KuitansiExport implements FromCollection, WithHeadings, ShouldAutoSize, Wi
             $query->where('id_kegiatan', $id_kegiatan);
         })->with('peserta.kegiatan')->get();
 
-        // dump($nomor);
-        // dump($pesertaKegiatan);
-        // dump($kuitansi);
-        // dd(true);
         $datas = [];
 
         $totalTransport = 0;
@@ -62,8 +57,6 @@ class KuitansiExport implements FromCollection, WithHeadings, ShouldAutoSize, Wi
         $totalJumlahDiterima = 0;
 
         foreach ($kuitansi as $index => $v) {
-            // Fetch kuitansi data based on peserta kegiatan
-            // $kuitansi = Kuitansi::where('pegawai_id', $v->id)->first();
 
             // Prepare data for export
             $transport = $v ? $v->total_transport : 0;
@@ -149,7 +142,6 @@ class KuitansiExport implements FromCollection, WithHeadings, ShouldAutoSize, Wi
                 $totalRows = $sheet->getHighestRow();
                 $totalColumns = $sheet->getHighestColumn();
 
-                // $sheet->insertNewRowBefore($totalRows, 1);
                 $sheet->setCellValue('A' . $totalRows, 'TOTAL');
                 $sheet->mergeCells('A' . $totalRows . ':' . 'D' . $totalRows);
                 $sheet->getStyle('A' . $totalRows . ':' . $totalColumns . $totalRows)->getFont()->setBold(true);

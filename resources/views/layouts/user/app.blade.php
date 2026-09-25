@@ -71,11 +71,6 @@
     {{-- success store data --}}
     @if (session('message') == 'store')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil tambah data',
-            //     position: 'topRight'
-            // });
             swal("Berhasil", "Berhasil tambah data", "success");
         </script>
     @endif
@@ -83,11 +78,6 @@
     {{-- success update data --}}
     @if (session('message') == 'update')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil update data',
-            //     position: 'topRight'
-            // });
             swal("Berhasil", "Berhasil update data", "success");
         </script>
     @endif

@@ -45,11 +45,6 @@ class GuruController extends Controller
         return view('pages.admin.guru.index', ['menu' => 'guru', 'status' => $datas]);
     }
 
-    // public function fetchSekolah()
-    // {
-    //     $schools = Sekolah::select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')->get(); // Optimalkan query jika perlu
-    //     return response()->json($schools);
-    // }
 
 
     /**
@@ -81,27 +76,17 @@ class GuruController extends Controller
     public function store(Request $request)
     {
         $r = $request->all();
-        // dd($r);
-        // $foto = $request->file('pas_foto');
-        // $ext = $foto->getClientOriginalExtension();
-        // // $r['pas_foto'] = $request->file('pas_foto');
 
-        // $nameFoto = date('Y-m-d_H-i-s_') . $r['no_ktp'] . "." . $ext;
-        // $destinationPath = public_path('upload/guru');
 
-        // $foto->move($destinationPath, $nameFoto);
 
-        // $fileUrl = asset('upload/guru/' . $nameFoto);
 
         $r['pas_foto'] = '';
-        // $r['status'] = 'Belum Kawin';
         $r['alamat_satuan'] = '';
         $r['eksternal_jabatan'] = $r['jenisJabatan'];
         $r['jenis_jabatan'] = $r['jabJenis'];
         $r['kategori_jabatan'] = $r['jabKategori'] ?? '';
         $r['tugas_jabatan'] = $r['jabTugas'] ?? '';
         $r['is_verif'] = 'belum';
-        // dd($r);
 
         Guru::create($r);
 
@@ -185,25 +170,11 @@ class GuruController extends Controller
     {
         //
         $r = $request->all();
-        // dd($r);
         $data = Guru::find($r['id']);
-        // dd($data);
-        // $foto = $request->file('pas_foto');
 
-        // if ($request->hasFile('pas_foto')) {
-        //     $ext = $foto->getClientOriginalExtension();
-        //     $nameFoto = date('Y-m-d_H-i-s_') . $r['no_ktp'] . "." . $ext;
-        //     $destinationPath = public_path('upload/guru');
 
-        //     $foto->move($destinationPath, $nameFoto);
 
-        //     $fileUrl = asset('upload/guru/' . $nameFoto);
-        //     $r['pas_foto'] = $nameFoto;
-        // } else {
-        //     $r['pas_foto'] = $request->pas_fotoLama;
-        // }
         $r['pas_foto'] = '';
-        // $r['status'] = 'Belum Kawin';
         $r['alamat_satuan'] = '';
         $r['eksternal_jabatan'] = $r['jenisJabatan'];
 
@@ -220,8 +191,6 @@ class GuruController extends Controller
 
         $r['kategori_jabatan'] = $r['jabKategori'] ?? '';
         $r['tugas_jabatan'] = $r['jabTugas'] ?? '';
-        // $r['is_verif'] = 'belum';
-        // dd($r);
         $data->update($r);
         return redirect()->route('guru.index')->with('message', 'update');
     }
@@ -239,10 +208,7 @@ class GuruController extends Controller
 
     public function export(Request $request)
     {
-        // dd($request->all());
 
-        // Mendapatkan data guru dari model Guru
-        // $datas = Guru::all();
 
         $datas = Guru::query();
 
@@ -271,12 +237,9 @@ class GuruController extends Controller
 
         // Dapatkan semua data setelah filter
         $datas = $datas->get();
-        // dd($datas);
 
         $pdf = PDF::loadView('pages.admin.guru.cetak', compact('datas'));
 
-        // Set properties PDF
-        // $pdf->setPaper('a4', 'landscape'); // Set kertas ke mode landscape
         $pdf->setPaper([0, 0, 2000, 800]); // Lebar 800px, Tinggi 1000px
 
 
@@ -293,8 +256,6 @@ class GuruController extends Controller
 
         $pdf = PDF::loadView('pages.admin.guru.cetakByUser', compact('data'));
 
-        // Set properties PDF
-        // $pdf->setPaper('a4', 'landscape'); // Set kertas ke mode landscape
         $pdf->setPaper([0, 0, 1600, 800]); // Lebar 800px, Tinggi 1000px
 
 
@@ -304,7 +265,6 @@ class GuruController extends Controller
 
     public function show(string $id)
     {
-        // dd($id);
         try {
             $sekolahs = [];
             Sekolah::select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')
@@ -320,7 +280,6 @@ class GuruController extends Controller
                 's_jabatan' => Jabatan::get(),
                 's_kabupaten' => Kabupaten::get(),
                 's_kecamatan' => Kecamatan::get(),
-                // 's_sekolah' => Sekolah::select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')->get(),
                 's_sekolah' => $sekolahs,
                 's_jabPendidik' => JabatanPendidik::get(),
                 's_jabKependidikan' => JabatanKependidikan::get(),
@@ -329,11 +288,7 @@ class GuruController extends Controller
                 's_jabTugas' => ['GP (Guru Penggerak)', 'PP (Pengajar Praktik)', 'Fasil (Fasilitator)', 'Instruktur'],
     
             );
-            // $data = Guru::orderBy('id','DESC')->get();
             $data = Guru::where('id', session('guru_id'))->first();
-            // dd($data);
-            // $data = Guru::find($id);
-            // dd($data);
             if (!$data) {
                 Session::flush();
                 return redirect()->route('login');
@@ -365,7 +320,6 @@ class GuruController extends Controller
             's_jabatan' => Jabatan::get(),
             's_kabupaten' => Kabupaten::get(),
             's_kecamatan' => Kecamatan::get(),
-            // 's_sekolah' => Sekolah::select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')->get(),
             's_sekolah' => $sekolahs,
             's_jabPendidik' => JabatanPendidik::get(),
             's_jabKependidikan' => JabatanKependidikan::get(),

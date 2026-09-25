@@ -295,8 +295,6 @@ $(function() {
         main_sidebar.removeAttr('tabindex');
         main_sidebar.removeAttr('data-nav-classes');
         $(".main-wrapper").addClass("container");
-        // if(sidebar_nicescroll != null)
-        //   sidebar_nicescroll.remove();
       }else if(now_layout_class == 'layout-2') {
         $("body").addClass("layout-2");
       }else{

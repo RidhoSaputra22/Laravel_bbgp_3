@@ -70,8 +70,6 @@
                             <div class="tags-area d-flex align-items-center justify-content-between">
                                 <div class="post-tags">
                                     <a href="#">{{ $jenis }}</a>
-                                    {{-- <a href="#">Safety</a>
-                                    <a href="#">Planning</a> --}}
                                 </div>
                                 <div class="share-items">
                                     <ul class="post-social-icons list-unstyled">
@@ -87,20 +85,6 @@
                         </div><!-- post-body end -->
                     </div><!-- post content end -->
 
-                    {{-- <div class="author-box d-nlock d-sm-flex">
-                        <div class="author-img mb-4 mb-md-0">
-                            <img loading="lazy" src="images/news/avator1.png" alt="author">
-                        </div>
-                        <div class="author-info">
-                            <h3>Elton Themen<span>Site Engineer</span></h3>
-                            <p class="mb-2">Lisicing elit, sed do eiusmod tempor ut labore et dolore magna aliqua. Ut enim
-                                ad vene minim
-                                veniam, quis nostrud exercitation nisi ex ea commodo.</p>
-                            <p class="author-url mb-0">Website: <span><a href="#">http://www.example.com</a></span>
-                            </p>
-
-                        </div>
-                    </div> <!-- Author box end --> --}}
 
 
                 </div><!-- Content Col end -->

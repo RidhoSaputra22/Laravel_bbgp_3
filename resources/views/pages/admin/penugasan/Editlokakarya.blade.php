@@ -337,7 +337,6 @@
 
                     let getGolongan = $('#golongan');
                     let cutString = getGolongan.val().split('/');
-                    console.log(cutString)
 
                     if ($(this).is(':checked')) {
 

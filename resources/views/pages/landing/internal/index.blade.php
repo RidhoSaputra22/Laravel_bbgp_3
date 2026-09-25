@@ -86,13 +86,10 @@
                                         <th class="text-center">NIP</th>
                                         <th class="text-center">Nama</th>
                                         <th>Jabatan</th>
-                                        {{-- <th>Jenis Penugasan</th> --}}
                                         <th>Kegiatan</th>
                                         <th>Tempat</th>
                                         <th>Tanggal Kegiatan</th>
                                         <th>Action</th>
-                                        {{-- <th>Verifkasi</th>
-                                    <th>Action</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody id="penugasanPegawai">
@@ -105,7 +102,6 @@
                                                 {{ $data->jabatan ?? '' }} <br>
                                                 {{ ' (Golongan : ' . $data->golongan . ')' }}
                                             </td>
-                                            {{-- <td class="text-left">{{ $data->jenis ?? '' }}</td> --}}
                                             <td class="text-left">{{ $data->kegiatan ?? '' }}</td>
                                             <td class="text-left">{{ $data->tempat ?? '' }}</td>
                                             <?php
@@ -114,13 +110,6 @@
                                             $tgl_kegiatan = strftime('%d %B %Y', strtotime($data->tgl_kegiatan));
                                             ?>
                                             <td>{{ $tgl_kegiatan ?? '' }}</td>
-                                            {{-- <td>
-                                            @if ($data->is_verif == 'sudah')
-                                                <span class="badge badge-success">Sudah Verifikasi</span>
-                                            @else
-                                                <span class="badge badge-danger">Belum Verifikasi</span>
-                                            @endif
-                                        </td> --}}
                                             <td>
 
                                                 <button class="btn btn-sm btn-primary"
@@ -142,13 +131,10 @@
                                         <th class="text-center">#</th>
                                         <th class="text-center">NIP</th>
                                         <th class="text-center">Nama</th>
-                                        {{-- <th>Jenis Penugasan</th> --}}
                                         <th>Jabatan</th>
                                         <th>Kegiatan</th>
                                         <th>Tempat</th>
                                         <th>Tanggal Kegiatan</th>
-                                        {{-- <th>Verifkasi</th>
-                                    <th>Action</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -157,7 +143,6 @@
                                             <td>{{ ++$i }}</td>
                                             <td class="text-center">{{ $data->nip ?? ' - ' }}</td>
                                             <td class="text-center">{{ $data->nama ?? '' }}</td>
-                                            {{-- <td>{{ $data->jenis ?? '' }}</td> --}}
                                             <td>{{ $data->jabatan ?? '' }} <br>
                                                 {{ '(Golongan : ' . $data->golongan . ')' }}</td>
                                             <td>{{ $data->kegiatan ?? '' }}</td>
@@ -168,17 +153,6 @@
                                             $tgl_kegiatan = strftime('%d %B %Y', strtotime($data->tgl_kegiatan));
                                             ?>
                                             <td class="text-left">{{ $tgl_kegiatan ?? '' }}</td>
-                                            {{--
-                                        </td>
-                                        <td>
-                                            <a href="#"
-                                                    onclick="verifikasi({{ $data->id }}, 'internal', '{{ $data->is_verif }}')"
-                                                    class="btn btn-primary mb-2">Verifikasi</a>
-                                            <a href="{{ route('internal.edit', $data->id) }} " class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-                                            <button onclick="deleteData({{ $data->id }}, 'internal')" class="btn btn-danger">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </td> --}}
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -193,15 +167,7 @@
                                         <th class="text-center">Nama</th>
                                         <th>Kabupaten/Kota</th>
                                         <th>Hotel</th>
-                                        {{-- <th>Transport Pulang</th>
-                                        <th>Transport Pergi</th>
-                                        <th>Hari 1</th>
-                                        <th>Hari 2</th>
-                                        <th>Hari 3</th> --}}
                                         <th>Action</th>
-                                        {{-- <th>Verifkasi</th>
-
-                                    <th>Action</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -211,11 +177,6 @@
                                             <td class="text-center">{{ $data->nama ?? '' }}</td>
                                             <td>{{ $data->kota ?? '' }}</td>
                                             <td>{{ $data->hotel ?? '' }}</td>
-                                            {{-- <td>Rp. {{ $data->transport_pulang ?? '' }}</td>
-                                            <td>Rp. {{ $data->transport_pergi ?? '' }}</td>
-                                            <td>Rp. {{ $data->hari_1 ?? '' }}</td>
-                                            <td>Rp. {{ $data->hari_2 ?? '' }}</td>
-                                            <td>Rp. {{ $data->hari_3 ?? '' }}</td> --}}
 
 
                                             <td>
@@ -319,8 +280,6 @@
                             sWidth: '10%'
                         }
                     ]
-                    // autoWidth: true
-                    // columnDefs: [{ width: '60%', targets: 2 }]
                     // Add more DataTable options as needed
                 });
 
@@ -439,27 +398,13 @@
                     tableLokakarya.search('').columns().search('').draw();
                 });
 
-                // ajax table penugasan
-                // $.ajax({
-                //     url: '{{ route('user.pegawai.all') }}',
-                //     type: 'GET',
-                //     success: function(response) {
 
 
-                //         $('#penugasanPegawai').html(`
 
-        //     `);
-                //     },
-                //     error: function(error) {
-                //         console.error(error);
-                //         alert('Error fetching detail.');
-                //     }
-                // });
 
             });
 
             function showDetail(pegawaiId) {
-                console.log('get detail')
                 $.ajax({
                     url: '{{ route('user.pegawai.detail') }}',
                     type: 'GET',
@@ -467,7 +412,6 @@
                         id: pegawaiId
                     },
                     success: function(response) {
-                        console.log(response)
                         let tgl_kegiatan = '';
                         let tgl_selesai = '';
                         const dateKegiatan = new Date(response.tgl_kegiatan);
@@ -514,7 +458,6 @@
             }
 
             function showDetailLoka(pegawaiId) {
-                console.log('get detail')
                 $.ajax({
                     url: '{{ route('user.pegawai.detail.loka') }}',
                     type: 'GET',
@@ -522,7 +465,6 @@
                         id: pegawaiId
                     },
                     success: function(response) {
-                        console.log(response)
                         let tgl_kegiatan = '';
                         let tgl_selesai = '';
                         const dateKegiatan = new Date(response.tgl_kegiatan);

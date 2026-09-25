@@ -93,7 +93,6 @@
                                                             <span class="text-muted">-</span>
                                                         @endif
                                                     </td>
-                                                    {{-- <td>{!! Str::limit($data->rincian_harga ?? '-', 50) !!}</td> --}}
                                                     <td>
                                                         @if ($data->tipe_ruangan == 'asrama')
                                                             {!! safe_rich_text($data->rincian_harga) !!}

@@ -9,7 +9,6 @@
 
 // swal btn hps data
 const deleteData = (id, tabel, deleteUrl = null) => {
-    console.log(id, tabel);
     let token = $("meta[name='csrf-token']").attr("content");
 
     swal({
@@ -27,7 +26,6 @@ const deleteData = (id, tabel, deleteUrl = null) => {
                 type: "POST",
                 url: deleteUrl || `${tabel}/hapus/${id}`,
                 success: function (response) {
-                    console.log(response);
                     if (response) {
                         swal("Terhapus", "Data telah dihapus", "success").then(
                             () => {
@@ -49,7 +47,6 @@ const deleteData = (id, tabel, deleteUrl = null) => {
 
 // swal btn hps data
 const verifikasi = (id, tabel, status) => {
-    console.log(id, tabel, status);
     let token = $("meta[name='csrf-token']").attr("content");
     if (status === "sudah") {
         swal({
@@ -103,7 +100,6 @@ const verifikasi = (id, tabel, status) => {
 
 
 function register(data) {
-   console.log('loginnnnnnn');
    let token = $("meta[name='csrf-token']").attr("content");
     
     $.ajax({
@@ -121,8 +117,6 @@ function register(data) {
             role: data.eksternal_jabatan == undefined ? 'pegawai' : data.eksternal_jabatan,      // Data diambil dari respons verifikasi
         },
         success: function (res) {
-            console.log('regist');
-            console.log(res);
             if (res.credentials) {
                 swal(
                     "Akun dibuat",

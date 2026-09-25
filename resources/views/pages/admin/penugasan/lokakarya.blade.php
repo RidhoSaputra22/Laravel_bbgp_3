@@ -67,15 +67,6 @@
                                                 class="form-control select2">
                                                 <option value="">-- Pilih kegiatan --</option>
                                                 @if (!$datas['dataPenugasanPpnpn'] == '')
-                                                    {{-- @foreach ($datas['dataPenugasanPpnpn'] as $v)
-                                                        <option data-kabupaten="{{ $v->kota }}"
-                                                            data-tgl-kegiatan="{{ $v->tgl_kegiatan }}"
-                                                            data-tgl-selesai-kegiatan="{{ $v->tgl_selesai_kegiatan }}"
-                                                            data-jam-selesai="{{ $v->jam_selesai }}"
-                                                            data-jam-mulai="{{ $v->jam_mulai }}"
-                                                            value="{{ $v->kegiatan }}">{{ $v->kegiatan }}
-                                                        </option>
-                                                        @endforeach --}}
                                                     <option data-kabupaten="{{ $datas['dataPenugasanPpnpn']->kota }}"
                                                         data-tgl-kegiatan="{{ $datas['dataPenugasanPpnpn']->tgl_kegiatan }}"
                                                         data-tgl-selesai-kegiatan="{{ $datas['dataPenugasanPpnpn']->tgl_selesai_kegiatan }}"
@@ -85,15 +76,6 @@
                                                         {{ $datas['dataPenugasanPpnpn']->kegiatan }}
                                                     </option>
                                                 @else
-                                                    {{-- @foreach ($datas['dataPenugasanPegawai'] as $v)
-                                                        <option data-kabupaten="{{ $v->kota }}"
-                                                            data-tgl-kegiatan="{{ $v->tgl_kegiatan }}"
-                                                            data-tgl-selesai-kegiatan="{{ $v->tgl_selesai_kegiatan }}"
-                                                            data-jam-selesai="{{ $v->jam_selesai }}"
-                                                            data-jam-mulai="{{ $v->jam_mulai }}"
-                                                            value="{{ $v->kegiatan }}">{{ $v->kegiatan }}
-                                                        </option>
-                                                        @endforeach --}}
                                                         <option data-kabupaten="{{ $datas['dataPenugasanPegawai']->kota ?? '' }}"
                                                             data-tgl-kegiatan="{{ $datas['dataPenugasanPegawai']->tgl_kegiatan ?? '' }}"
                                                             data-tgl-selesai-kegiatan="{{ $datas['dataPenugasanPegawai']->tgl_selesai_kegiatan ?? '' }}"
@@ -174,13 +156,6 @@
 
                                         </div>
 
-                                        {{-- <div class="col-md-4">
-                                            <div class="form-group mt-4">
-                                                <label>Bukti Bill (jika ada)</label>
-                                                <input name="bukti_bill" id="bukti_bill" type="file"
-                                                    class="form-control">
-                                            </div>
-                                        </div> --}}
 
                                     </div>
 
@@ -351,7 +326,6 @@
 
                     let cutString = getGolongan.val().split('/');
 
-                    console.log(cutString)
 
                     if ($(this).is(':checked')) {
 
@@ -368,11 +342,6 @@
                         bill_penginapan.val(0); // Set nilai 0 jika tidak aktif
                     }
                     // Initialize calculations
-                    // calculateTiket();
-                    // calculateTransport();
-                    // calculatePenginapan();
-                    // calculateHarian();
-                    // calculateTotalBiaya();
                     calculateTotal();
                 });
 

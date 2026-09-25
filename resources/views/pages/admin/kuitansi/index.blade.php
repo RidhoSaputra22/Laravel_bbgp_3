@@ -30,22 +30,6 @@
                                         </a>
 
                                     </div>
-                                    {{-- {{ dd($title) }} --}}
-                                    {{-- <div class="col-md-3">
-                                        <div class="form-group">
-                                            <select name="" class="form-control" id="kegiatanSelect">
-                                                <option value="">-- pilih kegiatan --</option>
-                                                @foreach ($datas as $v)
-                                                    <?php
-                                                    setlocale(LC_TIME, 'id_ID.UTF-8');
-                                                    $tgl_kegiatan = strftime('%d %B', strtotime($v->tgl_kegiatan));
-                                                    $tgl_selesai = strftime('%d %B %Y', strtotime($v->tgl_selesai));
-                                                    ?>
-                                                    <option value="{{ $v->id }}">{{ $v->nama_kegiatan }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div> --}}
 
                                 </div>
 
@@ -64,9 +48,6 @@
                                                     $tgl_selesai = strftime('%d %B %Y', strtotime($v->tgl_selesai));
                                                     ?>
                                                     <option value="{{ $v->id }}">{{ $v->nama_kegiatan }}
-                                                        {{-- ( {{ $tgl_kegiatan }} -
-                                                        {{ $tgl_selesai }}
-                                                    ) --}}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -74,18 +55,6 @@
                                     </div>
 
 
-                                    {{-- <div class="col-md-3">
-
-                                        <div class="form-group">
-                                            <select name="" class="form-control" id="jabatanKegiatan">
-                                                <option value="">-- pilih status keikutsertaan --</option>
-                                                <option value="peserta">Peserta</option>
-                                                <option value="panitia">Panitia</option>
-                                                <option value="narasumber">Narasumber</option>
-
-                                            </select>
-                                        </div>
-                                    </div> --}}
 
 
                                 </div>
@@ -111,14 +80,8 @@
                                     </div>
                                     <div class="row mb-3 mt-2">
                                         <div class="col-md-5">
-                                            {{-- <h6>Print Permintaan</h6> --}}
 
-                                            {{-- <a target="_blank" href="{{ route('kuitansi.cetakPermintaan') }}"
-                                                class="btn btn-info mr-2"><i class="fas fa-print mr-2"></i>Cetak Permintaan
-                                                Kuitansi</a> --}}
 
-                                            {{-- <a target="_blank" href="{{ route('kuitansi.cetakLampiran') }}"
-                                                class="btn btn-info"><i class="fas fa-print mr-2"></i>Cetak Lampiran </a> --}}
 
                                             <a href="#" id="printKuitansi" class="btn btn-success"><i
                                                     class="fas fa-print mr-2"></i>Cetak Permintaan
@@ -127,30 +90,11 @@
 
 
 
-                                            {{-- <button id="btnPrintRegisPeserta" class="btn btn-primary"><i
-                                                    class="fas fa-print mr-2"></i>Registrasi Peserta</button>
-                                            <button id="btnPrintPanitia" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Absensi Panitia</button>
-                                            <button id="btnPrintNarsum" class="btn btn-warning"><i
-                                                    class="fas fa-print mr-2"></i>Absensi Narasumber</button> --}}
                                         </div>
 
                                         <div class="col-md-8">
-                                            {{-- <h6>Print Permintaan</h6> --}}
 
 
-                                            {{-- <a href="#" id="printAllKuitansi" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Cetak Semua
-                                                Kuitansi </a>
-
-                                            <a href="#" id="printAllRill" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Cetak Pengeluaran Rill </a>
-
-                                            <a href="#" id="printAllPJ" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Cetak PJ Mutlak </a>
-
-                                            <a href="#" id="printAllAmplop" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Cetak Amplop </a> --}}
 
                                         </div>
 
@@ -234,15 +178,6 @@
                                                     <td>{{ $data->lokasi_tujuan ?? '' }}</td>
                                                     <td>Rp {{ number_format($data->total_terima ?? 0, 0, ',', '.') }}</td>
 
-                                                    {{-- <td>Rp {{ number_format($data->biaya_uang_harian ?? 0, 0, ',', '.') }}
-                                                    </td>
-                                                    <td>{{ $data->durasi_penginapan ?? '' }} Hari</td>
-                                                    <td>{{ $data->durasi_uang_harian ?? '' }} Hari</td>
-                                                    <td>Rp
-                                                        {{ number_format($data->total_biaya_penginapan ?? 0, 0, ',', '.') }}
-                                                    </td>
-                                                    <td>Rp {{ number_format($data->total_biaya_harian ?? 0, 0, ',', '.') }}
-                                                    </td> --}}
 
                                                     <td>
                                                         <div class="">
@@ -290,42 +225,6 @@
                                                         </button>
                                                     </td>
                                                 </tr>
-                                                {{-- @if ($data->transportasis->isNotEmpty())
-                                                    <tr>
-                                                        <td colspan="11">
-                                                            <div class="table-responsive">
-                                                                <table class="table table-hover table-striped table-bordered table-sm">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>Transportasi</th>
-                                                                            <th>Asal</th>
-                                                                            <th>Tujuan</th>
-                                                                            <th>Biaya</th>
-                                                                            <th>Keterangan</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        @foreach ($data->transportasis as $transportasi)
-                                                                            <tr>
-                                                                                <td>{{ $transportasi->transportasi ?? '' }}
-                                                                                </td>
-                                                                                <td>{{ $transportasi->asal_transport ?? '' }}
-                                                                                </td>
-                                                                                <td>{{ $transportasi->tujuan_transport ?? '' }}
-                                                                                </td>
-                                                                                <td>Rp
-                                                                                    {{ number_format($transportasi->biaya_transport ?? 0, 0, ',', '.') }}
-                                                                                </td>
-                                                                                <td>{{ $transportasi->keterangan ?? '' }}
-                                                                                </td>
-                                                                            </tr>
-                                                                        @endforeach
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                @endif --}}
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -381,22 +280,16 @@
                         btnGroup.hide();
                         return;
                     }
-                    console.log(kegiatanValue);
 
                     tableKuitansi.column(3).search(kegiatanValue).draw();
                     kegiatan = kegiatanValue;
                     btnGroup.show();
 
-                    // var totalFilteredRows = tableKuitansi.rows({
-                    //     search: 'applied'
-                    // }).count();
-                    // console.log("Total number of filtered rows: " + totalFilteredRows);
                 });
 
                 $('#jabatanKegiatan').on('change', function(e) {
                     e.preventDefault();
                     jabatan = $(this).val();
-                    console.log(jabatan);
 
                     tableKuitansi.column(5).search(jabatan).draw();
                 });
@@ -433,7 +326,6 @@
                                         kegiatan_id: kegiatan,
                                     },
                                     success: function(response) {
-                                        console.log(kegiatan);
 
                                         // Construct the URL dynamically
                                         var printUrl =
@@ -452,27 +344,12 @@
                         });
                 });
 
-                // $('#printAllKuitansi').on('click', function() {
-                //     var selectedKegiatan = $('#kegiatanSelect').val();
-                //     if (selectedKegiatan) {
-                //         window.open("{{ url('kuitansi/print-all') }}?kegiatan_id=" + selectedKegiatan,
-                //             '_blank');
-                //     } else {
-                //         swal("Silakan pilih kegiatan terlebih dahulu.");
-                //     }
-                // });
 
-                // $('#printAllRill').on('click', function() {
 
-                // });
 
-                // $('#printAllPJ').on('click', function() {
 
-                // });
 
-                // $('#printAllAmplop').on('click', function() {
 
-                // });
 
 
             });

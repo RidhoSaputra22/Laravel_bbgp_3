@@ -112,7 +112,6 @@
         $tgl_sekarang = strftime('%d %B', strtotime(date('d-m-Y')));
         
         ?>
-        {{-- {{ dd($tgl_sekarang) }} --}}
         <div class="container">
             <!-- Apply page-break class -->
             @if ($i > 0)

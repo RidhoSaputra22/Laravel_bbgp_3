@@ -24,7 +24,6 @@
                             <div class="card-body">
                                 <!-- Navigation Buttons -->
                                 <a href="{{ route('kabupaten.create') }}" class="btn btn-primary text-white my-3">+ Tambah Kabupaten</a>
-                                <!-- <h6>Print Absensi</h6> -->
 
                                 <!-- Tables Section -->
                                 <div class="table-responsive">

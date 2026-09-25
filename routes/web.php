@@ -264,8 +264,6 @@ Route::group(
                 Route::get('/{id_pegawai}', 'InternalController@show')->name('internal.show');
 
                 Route::get('/tabel/{jenis}', 'InternalController@get_tabel')->name('internal.tabel');
-                // Route::get('/tabel/ppnpn', 'InternalController@get_tabel')->name('internal.tabel.ppnpn');
-                // Route::get('/tabel/lokakarya', 'InternalController@get_tabel')->name('internal.tabel.lokakarya');
                 Route::post('/verifikasi/{id}', 'InternalController@verifikasi')->name('internal.verifikasi');
 
                 // Khusus Loka karya
@@ -484,8 +482,6 @@ Route::group(
                 Route::post('/hapus/{id}', 'HonorController@destroy')->name('honor.hapus');
                 Route::get('/cetak/{jabatan}', 'HonorController@cetak')->name('honor.cetak');
 
-                // Route::get('/cetakExcelPanitia/{kegiatan}', 'HonorController@honorPanitia')->name('honor.cetakExcelPanitia');
-                // Route::get('/cetakExcelNarasumber/{kegiatan}', 'HonorController@honorNarasumber')->name('honor.cetakExcelNarasumber');
 
                 Route::get('/cetakExcelPanitia/{id_kegiatan}/{jabatan}', 'HonorController@cetakExcelPanitia')->name('honor.cetakExcelPanitia');
                 Route::get('/cetakExcelNarasumber/{id_kegiatan}/{jabatan}', 'HonorController@cetakExcelNarasumber')->name('honor.cetakExcelNarasumber');
@@ -603,8 +599,6 @@ Route::get('/get-sekolahs', [AdminSekolahController::class, 'getSekolahs'])
 Route::group(['prefix' => 'auth', 'namespace' => 'App\Http\Controllers'], function () {
     Route::get('/', 'AuthController@login')->name('login');
     Route::get('/login_admin', 'AuthController@login_admin')->name('login.admin');
-    // Route::get('/reset', 'AuthController@reset')->name('reset');
-    // Route::get('/reset_password', 'AuthController@reset_password')->name('reset.password');
     Route::post('/login', 'AuthController@login_action')->middleware('throttle:6,1')->name('login_action');
     Route::post('/login/admin', 'AuthController@login_action_admin')->middleware('throttle:6,1')->name('login_action_admin');
     Route::get('/logout', function () {

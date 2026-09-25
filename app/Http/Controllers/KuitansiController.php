@@ -30,7 +30,6 @@ class KuitansiController extends Controller
         $menu = $this->menu;
         $title = 'kuitansi';
         $kegiatan = Kegiatan::orderByDesc('id')->get();
-        // dd($datas);
         return view('pages.admin.kuitansi.index', compact('menu', 'datas', 'title', 'kegiatan'));
     }
 
@@ -46,10 +45,6 @@ class KuitansiController extends Controller
             'peserta' => PesertaKegiatan::orderByDesc('id')->get(),
             'kabupaten' => Kabupaten::get(),
         );
-        // foreach ($datas['peserta'] as $i => $v) {
-        //     dd($v->pegawai->nip);
-        // }
-        // dd($datas['peserta'][0]->pegawai->nip);
 
 
         return view('pages.admin.kuitansi.create', compact('menu', 'datas', 'kegiatan'));
@@ -61,40 +56,10 @@ class KuitansiController extends Controller
     public function store(Request $r)
     {
 
-        // Membuat objek Kuitansi baru
-        // $data = new Kuitansi;
 
-        // // Mengisi properti Kuitansi dengan data dari request
-        // $data->no_bukti = $request->no_bukti;
-        // $data->no_MAK = $request->no_MAK;
-        // $data->biaya_penginapan = $request->biaya_penginapan;
-        // $data->biaya_uang_harian = $request->biaya_uang_harian;
-        // $data->durasi_penginapan = $request->durasi_penginapan;
-        // $data->durasi_uang_harian = $request->durasi_uang_harian;
-        // $data->kategori = $request->kategori ?? '';
-        // $data->tahun_anggaran = $request->tahun_anggaran;
 
-        // // Menghitung total biaya penginapan dan total biaya uang harian
-        // $data->total_biaya_penginapan = $data->biaya_penginapan * $data->durasi_penginapan;
-        // $data->total_biaya_harian = $data->biaya_uang_harian * $data->durasi_uang_harian;
 
-        // // Menyimpan data kuitansi
-        // $data->save();
 
-        // // Simpan transportasi terkait
-        // if ($request->has('transportasis')) {
-        //     foreach ($request->transportasis as $transportasiData) {
-        //         $transportasi = new Transportasi([
-        //             'asal_transport' => $transportasiData['asal_transport'],
-        //             'tujuan_transport' => $transportasiData['tujuan_transport'],
-        //             'transportasi' => $transportasiData['transportasi'],
-        //             'keterangan' => $transportasiData['keterangan'],
-        //             'biaya_transport' => $transportasiData['biaya_transport'],
-        //         ]);
-        //         $data->transportasis()->save($transportasi);
-        //         // dd($transportasi);
-        //     }
-        // }
         $getNik = Kuitansi::where('pegawai_id', $r['id_pegawai'])->first();
         if ($getNik != null) {
             return redirect()->route('peserta.create')->with([
@@ -120,7 +85,6 @@ class KuitansiController extends Controller
         $r['jumlah_biaya_diterima']  = (int) str_replace(',', '', $r['jumlah_biaya_diterima']) ?? 0;
         $r['bill_malam']  = (int) str_replace(',', '', $r['bill_penginapan']) ?? 0;
         $r['jumlah_malam']  = (int) str_replace(',', '', $r['jumlah_nginap']) ?? 0;
-        // dd($r->all());
 
         $r['pegawai_id'] = $r['id_pegawai'];
         $r['uang_penginapan'] = $r['jumlah_biaya'];
@@ -129,7 +93,6 @@ class KuitansiController extends Controller
         $r['biaya_tujuan'] = $r['tujuan'];
         $r['total_harian'] = $r['biaya_harian'];
         $r['total_terima'] = $r['jumlah_biaya_diterima'];
-        // dd($r->all());
 
         Kuitansi::create($r->all());
 
@@ -177,46 +140,9 @@ class KuitansiController extends Controller
     public function update(Request $r)
     {
 
-        // // Validasi inputan
-        // $validatedData = $request->validate([
-        //     'no_bukti' => 'required|string',
-        //     'tahun_anggaran' => 'required|date',
-        //     'no_MAK' => 'required|string',
-        //     'biaya_penginapan' => 'required|numeric',
-        //     'biaya_uang_harian' => 'required|numeric',
-        //     'durasi_penginapan' => 'required|string',
-        //     'durasi_uang_harian' => 'required|string',
-        //     'kategori' => 'required|string',
-        //     'transportasis.*.asal_transport' => 'required|string',
-        //     'transportasis.*.tujuan_transport' => 'required|string',
-        //     'transportasis.*.jenis_transportasi' => 'required|string',
-        //     'transportasis.*.keterangan' => 'nullable|string',
-        //     'transportasis.*.biaya_transport' => 'required|numeric',
-        // ]);
 
-        // // Cari data Kuitansi berdasarkan ID yang diterima dari request
-        // $kuitansi = Kuitansi::findOrFail($request->id);
 
-        // // Update data Kuitansi
-        // $kuitansi->update([
-        //     'no_bukti' => $validatedData['no_bukti'],
-        //     'tahun_anggaran' => $validatedData['tahun_anggaran'],
-        //     'no_MAK' => $validatedData['no_MAK'],
-        //     'biaya_penginapan' => $validatedData['biaya_penginapan'],
-        //     'biaya_uang_harian' => $validatedData['biaya_uang_harian'],
-        //     'durasi_penginapan' => $validatedData['durasi_penginapan'],
-        //     'durasi_uang_harian' => $validatedData['durasi_uang_harian'],
-        //     'kategori' => $validatedData['kategori'],
-        // ]);
 
-        // // Update atau hapus data transportasi
-        // foreach ($validatedData['transportasis'] as $index => $transportasiData) {
-        //     if (isset($kuitansi->transportasis[$index])) {
-        //         $kuitansi->transportasis[$index]->update($transportasiData);
-        //     } else {
-        //         $kuitansi->transportasis()->create($transportasiData);
-        //     }
-        // }
         $r = $r->all();
         $datas = Kuitansi::find($r['id']);
 
@@ -246,8 +172,6 @@ class KuitansiController extends Controller
         $r['total_harian'] = $r['biaya_harian'];
         $r['total_terima'] = $r['jumlah_biaya_diterima'];
 
-        // dd($r['id_pegawai']);
-        // dd($datas);
         $datas->update($r);
 
         // Redirect ke halaman index dengan pesan sukses
@@ -269,7 +193,6 @@ class KuitansiController extends Controller
 
         $data = Kuitansi::find($id);
 
-        // dd($data);
 
 
         $pdf = Pdf::loadView('pages.admin.kuitansi.cetak', compact('data'));
@@ -335,7 +258,6 @@ class KuitansiController extends Controller
         }
 
         $datas = $query->get();
-        // dd($datas);
         if ($datas->isEmpty()) {
             return response()->json(['error' => 'No data found for the given IDs.'], 404);
         }
@@ -430,7 +352,6 @@ class KuitansiController extends Controller
 
         $data = Kuitansi::find($id);
 
-        // dd($data);
 
 
         $pdf = Pdf::loadView('pages.admin.kuitansi.cetakRill', compact('data'));
@@ -447,7 +368,6 @@ class KuitansiController extends Controller
 
         $data = Kuitansi::find($id);
 
-        // dd($data);
 
 
         $pdf = Pdf::loadView('pages.admin.kuitansi.cetakPjMutlak', compact('data'));
@@ -493,8 +413,6 @@ class KuitansiController extends Controller
 
         $pdf = Pdf::loadView('pages.admin.kuitansi.cetakLampiran', compact('data'));
 
-        // Set properties PDF
-        // $pdf->setPaper('a4', 'landscape'); // Set kertas ke mode landscape
         $pdf->setPaper(array(0, 0, 2025, 865)); // Set kertas ke mode landscape
 
 
@@ -504,7 +422,6 @@ class KuitansiController extends Controller
 
     public function getPeserta(Request $r)
     {
-        // dd($r->all());
         $kegiatan = $r->input('kegiatan');
         $peserta = PesertaKegiatan::orderBy('id', 'DESC')
             ->where('id_kegiatan', $kegiatan)
@@ -514,7 +431,6 @@ class KuitansiController extends Controller
                     ->orWhere('status_keikutpesertaan', 'peserta');
             })
             ->get();
-        // dd($peserta);
         return response()->json($peserta);
     }
 
@@ -524,7 +440,6 @@ class KuitansiController extends Controller
         $kuitansi = Kuitansi::whereHas('peserta', function ($query) use ($id_kegiatan) {
             $query->where('id_kegiatan', $id_kegiatan);
         })->with('peserta.kegiatan')->get();
-        // dd($kuitansi);
         if ($kuitansi->isEmpty()) {
             return redirect()->route('kuitansi.index')->with('message', 'error suratk');
         }
@@ -540,13 +455,11 @@ class KuitansiController extends Controller
 
     public function storeNomor(Request $r)
     {
-        // dd($r->all());
         PenomoranKegiatan::create($r->all());
 
         return response()->json([
             'status' => true,
             'data' => PenomoranKegiatan::get(),
-            // 'data' => $r->all(), 
         ]);
     }
 }

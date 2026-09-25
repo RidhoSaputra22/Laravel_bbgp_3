@@ -43,9 +43,6 @@
                                                     ?>
                                                     <option data-id="{{ $v->id }}" value="{{ $v->nama_kegiatan }}">
                                                         {{ $v->nama_kegiatan }}
-                                                        {{-- ( {{ $tgl_kegiatan }} -
-                                                        {{ $tgl_selesai }}
-                                                       ) --}}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -57,24 +54,10 @@
                                                 <option value="">-- pilih kabupaten/kota --</option>
                                                 @foreach ($kabupaten as $v)
                                                     <option value="{{ $v->name }}">{{ $v->name }}
-                                                        {{-- ( {{ $tgl_kegiatan }} -
-                                                        {{ $tgl_selesai }}
-                                                       ) --}}
                                                     </option>
                                                 @endforeach
                                             </select>
                                         </div>
-                                        {{-- <div id="btnGroup">
-                                            <button id="btnPrintPeserta" class="btn btn-primary"><i
-                                                    class="fas fa-print mr-2"></i>Absensi Peserta</button>
-                                            <button id="btnPrintRegisPeserta" class="btn btn-primary"><i
-                                                    class="fas fa-print mr-2"></i>Registrasi Peserta</button>
-
-                                            <button id="btnPrintPanitia" class="btn btn-info"><i
-                                                    class="fas fa-print mr-2"></i>Absensi Panitia</button>
-                                            <button id="btnPrintNarsum" class="btn btn-warning"><i
-                                                    class="fas fa-print mr-2"></i>Absensi Narasumber</button>
-                                        </div> --}}
                                     </div>
 
 
@@ -83,29 +66,8 @@
                                 </div>
 
                                 <!-- Filter Section -->
-                                {{-- <h5>Pencarian Data Kegiatan BBGTK</h5>
-                                <div class="row mb-2">
-                                    <div class="col-md-8">
-                                        <div class="form-group">
-                                            <input name="nama" id="namaFilter" type="text"
-                                                placeholder="Masukkan nama anda" class="form-control">
-                                        </div>
-                                    </div>
-                                </div> --}}
 
                                 <!-- Filter Data Kegiatan -->
-                                {{-- <h5>Filter Data Kegiatan</h5>
-                                <div class="row">
-                                    <div class="col-md-4 mb-4">
-                                        <label>Rekapan Data</label>
-                                        <select required name="rekapan" class="form-control select2" id="rekapan">
-                                            <option value="">-- Filter By Rekapan Data --</option>
-                                            <option value="Penugasan Pegawai">Penugasan Pegawai</option>
-                                            <option value="Penugasan PPNPN">Penugasan PPNPN</option>
-                                            <option value="Pendamping Lokakarya">Pendamping Lokakarya</option>
-                                        </select>
-                                    </div>
-                                </div> --}}
                                 <div id="export-section">
                                     <h6>Export Data</h6>
                                     <div class="row mb-4">
@@ -274,13 +236,11 @@
                         exportBtn.hide();
                     }
 
-                    console.log('Search Text:', kegiatanValue);
 
                     tableKegiatan.column(5).search(kegiatanValue).draw();
 
                     var kegiatanId = $('#kegiatanSelect').find(':selected').attr('data-id')
 
-                    console.log(kegiatanId);
                     // Construct the URL with the collected row IDs and kegiatanId
                     var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}'
                     url = url.replace(':id', kegiatanId)
@@ -294,9 +254,6 @@
                             $('#exportBtn').attr({
                                 'href': url
                             });
-                            console.log('sukses cetak');
-                            // console.log(response.status);
-                            // console.log(response);
                         },
                         error: function(error) {
                             console.error(error);
@@ -312,7 +269,6 @@
                     e.preventDefault();
                     var kegiatanId = $('#kegiatanSelect').find(':selected').attr('data-id')
 
-                    console.log(kegiatanId);
                     // Construct the URL with the collected row IDs and kegiatanId
                     var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}'
                     url = url.replace(':id', kegiatanId)
@@ -326,9 +282,6 @@
                             $('#exportBtn').attr({
                                 'href': url
                             });
-                            console.log('sukses cetak');
-                            // console.log(response.status);
-                            // console.log(response);
                         },
                         error: function(error) {
                             console.error(error);
@@ -340,7 +293,6 @@
 
                 $('#kabupatenSelect').on('change', () => {
                     const kab = document.querySelector('#kabupatenSelect');
-                    console.log(kab.value);
                     tableKegiatan.column(3).search(kab.value).draw();
                 })
 

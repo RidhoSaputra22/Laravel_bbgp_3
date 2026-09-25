@@ -274,7 +274,6 @@
             <p>Makassar, {{ \Carbon\Carbon::parse($tgl_kegiatan)->locale('id')->translatedFormat('d F Y') }}</p>
             <p style="font-weight: bold;">Peserta,</p>
             <p class="signature-name">{{ $peserta->nama ?? ($getById?->nama ?? '-') }}</p>
-            {{-- <p>NIP. {{ $peserta->nip }}</p> --}}
          </div>
       </div>
    </div>
@@ -366,7 +365,6 @@
             Materai Rp. 10.000
          </div>
          <div>.............................................</div>
-         {{-- <p style="margin-top: 10px;">{{ $peserta->nama }}</p> --}}
       </div>
 
    </div>

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Exports\SekolahsExport;
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
-// use Maatwebsite\Excel\Excel;
 use Maatwebsite\Excel\Facades\Excel;
 
 

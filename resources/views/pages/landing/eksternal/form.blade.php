@@ -183,16 +183,6 @@
                         </div>
 
 
-                        {{-- <div class="col-md-3">
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select required name="status" class="form-control ">
-                                    <option value="">-- Kawin/Belum Kawin --</option>
-                                    <option value="Kawin">Kawin</option>
-                                    <option value="Belum Kawin">Belum Kawin</option>
-                                </select>
-                            </div>
-                        </div> --}}
 
 
 
@@ -212,16 +202,6 @@
                     </div>
 
                     <div class="row">
-                        {{-- <div class="col-md-6 mb-4">
-                                <label>Jabatan Sekolah</label>
-                                <select required name="jabatan" class="form-control select2">
-                                    <option value="">-- Pilih Jabatan Sekolah --</option>
-                                    @foreach ($status['s_jabatan'] as $v)
-                                        <option value="{{ $v->name }}">{{ $v->name }}</option>
-                                    @endforeach
-
-                                </select>
-                            </div> --}}
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label>Bank</label>
@@ -255,8 +235,6 @@
 
                         <div class="col-md-4 mb-4">
                             <label>Jenis Jabatan Eksternal</label>
-                            {{-- <input type="text" readonly name="jenisJabatan" class="form-control"
-                                    value="{{ $jenis }}"> --}}
                             <select required name="jenisJabatan" class="form-control " readonly id="jabEksternal">
                                 <option value="">-- Pilih Jabatan Eksternal --</option>
                                 <option {{ $jenis == 'Tenaga Pendidik' ? 'selected' : 'disabled' }}
@@ -273,7 +251,6 @@
                                 <label>Jabatan (Pilih Eksternal dulu)</label>
                                 <select required name="jabJenis" class="form-control " id="jabJenis">
                                     <option value="">-- Pilih Jenis Jabatan --</option>
-                                    {{-- <option id="valJabJenis" value="">-- Pilih Jabatan</option> --}}
                                 </select>
                             </div>
                         </div>
@@ -283,44 +260,9 @@
                                 <label>Jabatan </label>
                                 <input type="text" name="jabLainnya" id=""
                                     placeholder="ketikkan jabatan anda" class="form-control">
-                                {{-- <select name="jabJenis" class="form-control " id="jabJenis">
-                                    <option value="">-- Pilih Jenis Jabatan --</option>
-                                    <option id="valJabJenis" value="">-- Pilih Jabatan</option>
-                                </select> --}}
                             </div>
                         </div>
 
-                        {{-- <div class="col-md-4 mb-4">
-                            <label>Kategori Jabatan (Pilih Eksternal dulu) </label>
-                            <select name="jabKategori" class="form-control " id="jabKategori">
-                                <option value="">-- Pilih Kategori --</option>
-                            </select>
-                        </div> 
-
-                         @if ($jenis == 'Tenaga Kependidikan')
-                            <div class="col-md-4">
-                                <div class="form-group">
-                                    <label>
-                                        Latar Jabatan</label>
-                                    <select name="jabLatar" class="form-control " id="jabLatar">
-                                        <option value="">-- Pilih Latar Jabatan --</option>
-
-                                    </select>
-                                </div>
-                            </div>
-                        @endif
-
-
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label>
-                                    Tugas Jabatan</label>
-                                <select name="jabTugas" class="form-control " id="jabTugas">
-                                    <option value="">-- Pilih Tugas Jabatan --</option>
-
-                                </select>
-                            </div>
-                        </div> --}}
 
 
                     </div>
@@ -331,12 +273,6 @@
                             <select {{ $jenis == 'Stakeholder' ? '' : '' }} name="npsn_sekolah" class="form-control"
                                 id="data_sekolah" onchange="updateLocation()">
                                 <option value="">-- Pilih Data Sekolah --</option>
-                                {{-- @foreach ($status['s_sekolah'] as $v)
-                                    <option value="{{ $v->npsn_sekolah }}" data-kecamatan="{{ $v->kecamatan }}"
-                                        data-kabupaten="{{ $v->kabupaten }}">
-                                        {{ $v->npsn_sekolah }} - {{ $v->nama_sekolah }}
-                                    </option>
-                                @endforeach --}}
 
                             </select>
                         </div>
@@ -387,7 +323,6 @@
                     kabupatenInput.value = kabupaten
 
                     // Update the location based on selected kecamatan and kabupaten
-                    // console.log('Kecamatan: ' + kecamatan + ', Kabupaten: ' + kabupaten);
                 }
             }
         </script>
@@ -408,14 +343,12 @@
 
                 getKabupaten.on('change', function() {
                     const val = $(this).find(':selected').val()
-                    console.log(val);
                     if (val === 'Tidak ada') {
                         fieldKab.show()
                     } else {
                         fieldKab.hide()
                     }
                 })
-                // if (fieldKab.find())
 
 
 
@@ -425,7 +358,6 @@
                         dataType: 'json',
                         delay: 250,
                         data: function(params) {
-                            console.log(params)
                             return {
                                 q: params.term || '', // Search term (if any)
                                 page: params.page || 1, // Pagination
@@ -470,13 +402,11 @@
 
                 $('#jenisBank').on('change', function() {
                     const value = $(this).find(':selected').val()
-                    console.log(value);
                     const noRekField = value == 'Tidak ada' ? $('#no_rek').val('0') : '';
                 })
 
 
                 const jenisEksternal = {!! json_encode($jenis, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
-                console.log(jenisEksternal);
 
                 $('#colJabatan').hide();
 
@@ -602,8 +532,6 @@
 
                     var selectedOption = $(this).find('option:selected');
                     var seletJenis = jabJenis.find('option:selected');
-                    console.log(selectedOption);
-                    console.log(seletJenis);
                     if (selectedOption.text() == 'GP (Guru Penggerak)' && seletJenis.text() ==
                         'Kepala Sekolah') {
                         let dataJabValue = dataJab['s_jabKategoriKepsek'].map((item, i) => {
@@ -653,8 +581,6 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabTugas):', selectedOption.val());
-                    console.log('Selected Text (jabTugas):', selectedOption.text());
                 });
 
                 $('#jabJenis').on('change', function() {
@@ -708,13 +634,6 @@
                             jabKategori.append(option);
                         });
 
-                        // dataJab['s_jabKategoriPengawas'].map((item, i) => {
-                        //     option = $("<option>")
-                        //         .text(item)
-                        //         .attr('value', item)
-                        //         .removeAttr('disabled');
-                        //     jabLatar.append(option);
-                        // });
 
                     } else if (selectedOption.text() == 'Kepala Sekolah') {
                         let dataJabValue = dataJab['s_jabKategori'].map((item, i) => {
@@ -725,13 +644,6 @@
                             jabKategori.append(option);
                         });
 
-                        // dataJab['s_jabKategoriKepsek'].map((item, i) => {
-                        //     option = $("<option>")
-                        //         .text(item)
-                        //         .attr('value', item)
-                        //         .removeAttr('disabled');
-                        //     jabLatar.append(option);
-                        // });
 
 
 
@@ -766,8 +678,6 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabKategori):', selectedOption.val());
-                    console.log('Selected Text (jabKategori):', selectedOption.text());
                 });
 
                 $('#jabLatar').on('change', function() {
@@ -779,8 +689,6 @@
 
                     var selectedOption = $(this).find('option:selected');
                     var seletTugas = jabTugas.find('option:selected');
-                    console.log(selectedOption);
-                    console.log(seletTugas);
 
                     jabTugas.empty();
                     jabTugas.append($('<option>', {
@@ -809,7 +717,6 @@
                         }));
                     }
                 });
-                // alert("Window Loaded");
                 fillterJabatan();
 
             });

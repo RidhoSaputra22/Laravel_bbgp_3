@@ -53,7 +53,6 @@ class HonorPanitiaExport implements FromCollection, WithHeadings, ShouldAutoSize
     {
         
         $nomor = PenomoranKegiatan::find($this->id_nomor);
-        // dd($this->id_kegiatan);
         $this->no_surat = $nomor->no_surat;
 
         setlocale(LC_TIME, 'id_ID.UTF-8');
@@ -61,7 +60,6 @@ class HonorPanitiaExport implements FromCollection, WithHeadings, ShouldAutoSize
         $this->tgl_surat = Carbon::parse($nomor->tgl_surat)->translatedFormat('d F Y');
 
         $this->kode_anggaran = $nomor->kode_anggaran;
-        // dd($nomor);
 
         // Fetch data from PesertaKegiatan and Honor models
         $pesertaKegiatan = PesertaKegiatan::where('id_kegiatan', $this->id_kegiatan)
@@ -110,7 +108,6 @@ class HonorPanitiaExport implements FromCollection, WithHeadings, ShouldAutoSize
             $totalHonor += $jumlahHonor;
             $totalPot += $potongan;
             $totalJumlahDiterima += $totalTerima;
-            // dump($datas);
         }
         $datas[] = [
             'No' => '',
@@ -122,9 +119,7 @@ class HonorPanitiaExport implements FromCollection, WithHeadings, ShouldAutoSize
             'Potongan' => $totalPot,
             'Jumlah Diterima' => $totalJumlahDiterima,
         ];
-        // dd($datas);
 
-        // dd(true);
 
         return new Collection($datas);
     }
@@ -230,7 +225,6 @@ class HonorPanitiaExport implements FromCollection, WithHeadings, ShouldAutoSize
                 $totalColumns = $sheet->getHighestColumn();
 
 
-                // $sheet->insertNewRowBefore($totalRows, 1);
                 $sheet->setCellValue('A' . $totalRows, 'TOTAL');
                 $sheet->mergeCells('A' . $totalRows . ':' . 'C' . $totalRows);
                 $sheet->getStyle('A' . $totalRows . ':' . $totalColumns . $totalRows)->getFont()->setBold(true);

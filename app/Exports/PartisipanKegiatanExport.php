@@ -56,11 +56,9 @@ class PartisipanKegiatanExport implements FromCollection, WithHeadings, ShouldAu
             ->get();
 
         $datas = [];
-        // dd($data[21]->eksternal);
 
 
         foreach ($data as $index => $v) {
-            // dd($v->eksternal);
 
             $jabatan = $v->eksternal && $v->eksternal->jenis_jabatan
                 ? $v->eksternal->jenis_jabatan
@@ -77,7 +75,6 @@ class PartisipanKegiatanExport implements FromCollection, WithHeadings, ShouldAu
                 'Surat Tugas' => $v->no_surat_tugas . ' - ' . $v->tgl_surat_tugas,
             ];
 
-            // dump($datas);
         }
 
         return new Collection($datas);
@@ -94,7 +91,6 @@ class PartisipanKegiatanExport implements FromCollection, WithHeadings, ShouldAu
     public function columnFormats(): array
     {
         return [
-            // 'B' => NumberFormat::FORMAT_TEXT
         ];
     }
 

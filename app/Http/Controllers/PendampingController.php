@@ -67,13 +67,11 @@ class PendampingController extends Controller
     public function updatePendamping(Request $request)
     {
         $r = $request->all();
-        // dd($r);
         $data = Pendamping::find($r['id']);
 
         $r['is_verif'] = 'sudah';
         $r['jabatan'] = $r['jabatan'] ?? '';
 
-        // dd($data);
         $data->update($r);
         return redirect()->route('pegawai.show', session('no_ktp'))->with('message', 'update');
     }

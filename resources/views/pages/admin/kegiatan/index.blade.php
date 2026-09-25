@@ -42,9 +42,6 @@
                                                     $tgl_selesai = strftime('%d %B %Y', strtotime($v->tgl_selesai));
                                                     ?>
                                                     <option value="{{ $v->id }}">{{ $v->nama_kegiatan }}
-                                                        {{-- ( {{ $tgl_kegiatan }} -
-                                                        {{ $tgl_selesai }}
-                                                       ) --}}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -88,29 +85,8 @@
                                 </div>
 
                                 <!-- Filter Section -->
-                                {{-- <h5>Pencarian Data Kegiatan BBGTK</h5>
-                                <div class="row mb-2"> 
-                                    <div class="col-md-8">
-                                        <div class="form-group">
-                                            <input name="nama" id="namaFilter" type="text"
-                                                placeholder="Masukkan nama anda" class="form-control">
-                                        </div>
-                                    </div>
-                                </div> --}}
 
                                 <!-- Filter Data Kegiatan -->
-                                {{-- <h5>Filter Data Kegiatan</h5>
-                                <div class="row">
-                                    <div class="col-md-4 mb-4">
-                                        <label>Rekapan Data</label>
-                                        <select required name="rekapan" class="form-control select2" id="rekapan">
-                                            <option value="">-- Filter By Rekapan Data --</option>
-                                            <option value="Penugasan Pegawai">Penugasan Pegawai</option>
-                                            <option value="Penugasan PPNPN">Penugasan PPNPN</option>
-                                            <option value="Pendamping Lokakarya">Pendamping Lokakarya</option>
-                                        </select>
-                                    </div>
-                                </div> --}}
 
                                 <!-- Tables Section -->
                                 <!-- PPNPN -->

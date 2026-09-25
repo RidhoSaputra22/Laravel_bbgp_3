@@ -16,9 +16,6 @@ class ValidasiUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // return $next($request);
-        // Legacy assessment/admin flows use the server-side cek marker;
-        // critical admin routes still require AdminOnly/Auth.
         if (Auth::check() || session('cek') === true) {
             return $next($request);
         } else {

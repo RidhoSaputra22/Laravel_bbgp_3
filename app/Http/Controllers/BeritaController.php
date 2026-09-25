@@ -40,14 +40,12 @@ class BeritaController extends Controller
 
         $file = $request->file('thumbnail');
 
-        // dd($file->getSize() / 1024);
         if ($file->getSize() / 1024 >= 512) {
             return redirect()->route('berita.create')->with('message', 'size gambar');
         }
 
         $foto = $request->file('thumbnail');
         $ext = $foto->extension();
-        // $r['pas_foto'] = $request->file('pas_foto');
 
         $nameFoto = Str::uuid() . "." . $ext;
         $destinationPath = public_path('upload/berita');
@@ -55,13 +53,11 @@ class BeritaController extends Controller
         $foto->move($destinationPath, $nameFoto);
 
         $fileUrl = asset('upload/berita/' . $nameFoto);
-        // dd($destinationPath);
         $r['thumbnail'] = $nameFoto;
 
         Berita::create($r);
 
 
-        // dd(true);
         return redirect()->route('berita.index')->with('message', 'store');
     }
 
@@ -99,7 +95,6 @@ class BeritaController extends Controller
         $foto = $request->file('thumbnail');
 
 
-        // dd($file->getSize() / 1024);
 
         if ($request->hasFile('thumbnail')) {
             if ($foto->getSize() / 1024 >= 512) {
@@ -117,7 +112,6 @@ class BeritaController extends Controller
             $r['thumbnail'] = $request->thumbnail_old;
         }
 
-        // dd($r);
         $data->update($r);
 
         return redirect()->route('berita.index')->with('message', 'update');

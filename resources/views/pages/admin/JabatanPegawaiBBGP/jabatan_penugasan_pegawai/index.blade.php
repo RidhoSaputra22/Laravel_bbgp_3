@@ -24,7 +24,6 @@
                             <div class="card-body">
                                 <!-- Navigation Buttons -->
                                 <a href="{{ route('jabatan_penugasan_pegawai.create') }}" class="btn btn-primary text-white my-3">+ Tambah Data Jabatan Pegawai BBGTK</a>
-                                <!-- <h6>Print Absensi</h6> -->
 
                                 <!-- Tables Section -->
                                 <div class="table-responsive">

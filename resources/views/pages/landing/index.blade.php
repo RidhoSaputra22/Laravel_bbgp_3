@@ -264,8 +264,6 @@
                             <h3 class="slide-sub-title" data-animation-in="slideInRight">BBGTK Provinsi <br> Sulawesi Selatan
                             </h3>
                             <p data-animation-in="slideInLeft" data-duration-in="1.2">
-                                {{-- <a href="services.html" class="slider btn btn-primary">Our Services</a>
-                                <a href="contact.html" class="slider btn btn-primary border">Contact Now</a> --}}
                             </p>
                         </div>
                     </div>
@@ -283,7 +281,6 @@
                             <h3 class="slide-title" data-animation-in="fadeIn">Dedikasi Kami untuk Guru</h3>
                             <h3 class="slide-sub-title" data-animation-in="slideInLeft">BBGTK Provinsi Sulawesi Selatan</h3>
                             <p data-animation-in="slideInRight">
-                                {{-- <a href="services.html" class="slider btn btn-primary border">Pelayanan Kami</a> --}}
                             </p>
                         </div>
                     </div>
@@ -307,8 +304,6 @@
                                 <a href="{{ route('user.kontak') }}" class="slider btn btn-primary"
                                     aria-label="contact-with-us">Hubungi
                                     Kami</a>
-                                {{-- <a href="about.html" class="slider btn btn-primary border"
-                                    aria-label="learn-more-about-us">Learn more</a> --}}
                             </div>
                         </div>
                     </div>
@@ -408,14 +403,10 @@
                     <h3 class="into-sub-title"> </h3>
                     <div class="box-video">
 
-                        <!--<iframe width="420" height="315" title="Program Pengembangan keprofesian Guru. Pendidikan Jasmani, olahraga dan kesehatan" src="https://www.youtube.com/embed/gJ3g7xX9O-s"-->
-                        <!--    allowfullscreen>-->
-                        <!--</iframe>-->
                         <div class="video-placeholder" data-src="https://www.youtube.com/embed/tSsWpY7uwpA"
                             onclick="loadVideo(this)">
                             <div class="video-title">Balai Besar Guru dan Tenaga Kependidikan Sulawesi Selatan</div>
                         </div>
-                        <!--<div class="video-title">Balai Besar Guru Penggerak</div>-->
                     </div>
                     <!--/ Accordion end -->
                 </div><!-- Col end -->
@@ -467,7 +458,6 @@
                             </div>
                             <div class="text-center">
                                 <div class="ts-service-info">
-                                    {{-- <h3 class="service-box-title"><a href="#">Tur Virtual</a></h3> --}}
                                     <h3 class="service-box-title"><a href="#">Lab Virtual</a></h3>
 
                                 </div>
@@ -555,9 +545,6 @@
 
             {{-- Category Tabs --}}
             <div class="category-tabs">
-                {{-- <button class="category-tab active" data-category="all">Semua Video</button>
-                <button class="category-tab" data-category="edukasi">Edukasi</button> --}}
-                {{-- <button class="category-tab" data-category="webinar">Webinar</button> --}}
             </div>
 
             <div class="row" id="youtube-container">
@@ -769,93 +756,7 @@
     </section>
 
 
-    {{-- <section id="ts-service-area" class="ts-service-area pb-0">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-12">
-                    <h2 class="section-title">BBGTK Sul-Sel</h2>
-                    <h3 class="section-sub-title">Artikel Terkini</h3>
-                </div>
-            </div>
 
-            <div class="row my-artikel-slider">
-                @foreach ($datas['artikel'] as $v)
-                    <div class="col-lg-4 col-md-6 mb-5">
-                        <div class="ts-service-box">
-                            <div class="ts-service-image-wrapper">
-                                <img loading="lazy" class="w-100" src="{{ asset('upload/artikel/' . $v->thumbnail) }}"
-                                    alt="thumbnail artikel" title="{{ $v->thumbnail }}">
-                            </div>
-                            <div class="d-flex">
-                                <div class="ts-service-info">
-                                    <h3 class="service-box-title"><a
-                                            href="{{ route('user.detail.post', ['jenis' => 'artikel', 'id' => $v->id]) }}">{{ $v->judul }}</a>
-                                    </h3>
-                                    <p>
-                                        {{ Str::limit(strip_tags($v->isi), 120, '...') }}
-                                    </p>
-                                    <a class="learn-more d-inline-block"
-                                        href="{{ route('user.detail.post', ['jenis' => 'artikel', 'id' => $v->id]) }}"
-                                        aria-label="service-details"><i class="fa fa-caret-right"></i> Learn more</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-
-
-            </div>
-
-
-        </div>
-    </section> --}}
-
-    {{-- <section id="news" class="news">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-12">
-                    <h2 class="section-title">BBGTK Sul-Sel</h2>
-                    <h3 class="section-sub-title">Agenda Terkini</h3>
-                </div>
-            </div>
-
-            <div class="row my-posts-slider">
-                @foreach ($datas['agenda'] as $v)
-                    <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="latest-post">
-                            <div class="latest-post-media">
-                                <a href="{{ route('user.detail.post', ['jenis' => 'agenda', 'id' => $v->id]) }}"
-                                    class="latest-post-img">
-                                    <img loading="lazy" class="img-fluid"
-                                        src="{{ asset('upload/agenda/' . $v->thumbnail) }}" alt="thumbnail agenda"
-                                        title="{{ $v->thumbnail }}">
-                                </a>
-                            </div>
-                            <div class="post-body">
-                                <h4 class="post-title">
-                                    <a href="{{ route('user.detail.post', ['jenis' => 'agenda', 'id' => $v->id]) }}"
-                                        class="d-inline-block">{{ $v->nama_kegiatan }}</a>
-                                </h4>
-                                <div class="latest-post-meta">
-                                    <span class="post-item-date">
-                                        <?php
-                                        setlocale(LC_ALL, 'IND');
-
-                                        $tgl_kegiatan = strftime('%d %B %Y', strtotime($v->tgl_kegiatan));
-                                        ?>
-                                        <i class="fa fa-clock-o"></i> {{ $tgl_kegiatan }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-
-
-            </div>
-
-        </div>
-    </section> --}}
 
     @push('scripts')
         <script>
@@ -896,27 +797,7 @@
             });
 
             function loadInstagramPosts() {
-                // OPSI 1: Menggunakan Instagram Basic Display API
-                // const accessToken = 'YOUR_INSTAGRAM_ACCESS_TOKEN';
-                // const userId = 'YOUR_INSTAGRAM_USER_ID';
-                // const instagramAPI =
-                //     `https://graph.instagram.com/${userId}/media?fields=id,caption,media_type,media_url,permalink,timestamp&access_token=${accessToken}`;
 
-                // $.ajax({
-                //     url: instagramAPI,
-                //     method: 'GET',
-                //     success: function(response) {
-                //         displayInstagramPosts(response.data);
-                //     },
-                //     error: function(error) {
-                //         console.error('Instagram API Error:', error);
-                //         $('#instagram-container').html(`
-                //             <div class="col-12 text-center">
-                //                 <p class="text-muted">Tidak dapat memuat postingan Instagram. Silakan coba lagi nanti.</p>
-                //             </div>
-                //         `);
-                //     }
-                // });
             }
 
             function displayInstagramPosts(posts) {
@@ -1049,12 +930,6 @@
 
                 // Temporary demo data
                 setTimeout(() => {
-                    // $('#instagram-container').html(
-                    //     '<div class="col-12 text-center"><p class="text-muted">Konfigurasi Instagram API untuk menampilkan postingan</p></div>'
-                    // );
-                    // $('#youtube-container').html(
-                    //     '<div class="col-12 text-center"><p class="text-muted">Konfigurasi YouTube API untuk menampilkan video</p></div>'
-                    // );
                 }, 1000);
             });
         </script>

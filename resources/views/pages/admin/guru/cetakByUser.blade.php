@@ -104,7 +104,6 @@
         <thead>
             <tr>
                 <th class="text-center">#</th>
-                {{-- <th>Pas Foto</th> --}}
                 <th>NPSN Sekolah</th>
                 <th>Nama Lengkap</th>
                 <th>NPWP</th>
@@ -123,7 +122,6 @@
                 <th>Tugas Jabatan</th>
                 <th>Asal Kabupaten/Kota</th>
                 <th>Satuan Pendidikan</th>
-                {{-- <th>Jabatan Sekolah</th> --}}
                 <th>Kecamatan Sekolah</th>
                 <th>Kabupaten Sekolah</th>
                 <th>Nomor Aktif</th>
@@ -134,8 +132,6 @@
             @if(isset($data))
                 <tr>
                     <td>1</td>
-                    {{-- <td><img src="{{ asset('/upload/guru/' . $data->pas_foto) }}"
-                                alt="" class="img-fluid"></td> --}}
                     <td>{{ $data->npsn_sekolah }} - {{ $data->sekolah->nama_sekolah ?? '' }}</td>
                     <td>{{ $data->nama_lengkap }}</td>
                     <td>{{ $data->npwp }}</td>
@@ -154,7 +150,6 @@
                     <td>{{ $data->tugas_jabatan ? $data->tugas_jabatan : 'Tidak ada' }}</td>
                     <td>{{ $data->kabupaten }}</td>
                     <td>{{ $data->satuan_pendidikan }}</td>
-                    {{-- <td>{{ $data->jabatan }}</td> --}}
                     <td>{{ $data->sekolah->kecamatan ?? '' }}</td>
                     <td>{{ $data->sekolah->kabupaten ?? '' }}</td>
                     <td>No. Hp: {{ $data->no_hp }}<br>

@@ -27,15 +27,6 @@
                                                 <label>Nama</label>
                                                 <input readonly required value="{{ $pegawai->nama_lengkap }}" name="nama"
                                                     type="text" class="form-control">
-                                                {{-- <select name="nama" class="form-control select2" id="selectNama">
-                                                        <option value="">-- Pilih Pegawai --</option>
-    
-                                                        @foreach ($datas['dataPegawai'] as $v)
-                                                            <option data-nip="{{ $v->nip }}"
-                                                                value="{{ $v->nama_lengkap }}">{{ $v->nama_lengkap }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select> --}}
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -57,23 +48,6 @@
                                     </div>
 
 
-                                    {{-- <div class="row">
-                                        <div class="col-md-6"></div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Jam Mulai Kegiatan</label>
-                                                <input readonly required name="tgl_kegiatan" type="text" class="form-control"
-                                                    id="time">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Jam Selesai Kegiatan</label>
-                                                <input readonly required name="tgl_selesai_kegiatan" type="text"
-                                                    class="form-control" id="time">
-                                            </div>
-                                        </div>
-                                    </div> --}}
 
 
                                     <div class="row">
@@ -81,26 +55,12 @@
                                             <label>Jabatan</label>
                                             <input readonly required value="{{ $pegawai->jabatan }}" name="jabatan"
                                                 type="text" class="form-control">
-                                            {{-- <select required name="jabatan" class="form-control select2">
-                                                <option value="">-- Pilih Jabatan --</option>
-                                                @foreach ($datas['jabatanPegawai'] as $v)
-                                                    <option {{ $pegawai->jabatan == $v->name ? 'selected' : '' }}
-                                                        value="{{ $v->name }}">{{ $v->name }}</option>
-                                                @endforeach
-                                            </select> --}}
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Golongan</label>
                                                 <input readonly required value="{{ $pegawai->golongan }}" name="golongan"
                                                     type="text" class="form-control">
-                                                {{-- <select required name="golongan" class="form-control select2">
-                                                    <option value="">-- Pilih Golongan --</option>
-                                                    @foreach ($datas['golongan'] as $v)
-                                                        <option {{ $pegawai->golongan == $v->name ? 'selected' : '' }}
-                                                            value="{{ $v->name }}">{{ $v->name }}</option>
-                                                    @endforeach
-                                                </select> --}}
                                             </div>
 
                                         </div>
@@ -139,7 +99,6 @@
                                                 <input type="text" name="mulai_kegiatan"
                                                     class="form-control datetimepicker">
 
-                                                {{-- <input required name="tgl_kegiatan" type="date" class="form-control"> --}}
                                             </div>
                                         </div>
                                         <div class="col-md-3">
@@ -147,8 +106,6 @@
                                                 <label>Selesai Kegiatan</label>
                                                 <input type="text" name="selesai_kegiatan"
                                                     class="form-control datetimepicker">
-                                                {{-- <input required name="tgl_selesai_kegiatan" type="date"
-                                                    class="form-control"> --}}
                                             </div>
                                         </div>
                                     </div>
@@ -167,7 +124,6 @@
                                                 <label>Keterangan Kegiatan</label>
                                                 <textarea class="form-control summernote-simple" required placeholder="Deskripsi Kegiatan yang ditugaskan"
                                                     name="deskripsi" id="" cols="30" rows="100"></textarea>
-                                                {{-- <input required name="deskripsi" type="text" class="form-control"> --}}
                                             </div>
 
                                         </div>

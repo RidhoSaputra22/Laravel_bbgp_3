@@ -18,17 +18,6 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="row mb-3">
-                                    {{-- <h5></h5> --}}
-                                    {{-- <div class="col-md-6">
-                                        <a href="{{ route('guru.create') }}" class="btn btn-primary">
-                                            <i class="fas fa-plus"></i> Tambah Data Eksternal
-                                        </a>
-                                    </div> --}}
-                                    {{-- <div class="text-right">
-                                        <a target="_blank" href="{{ route('guru.export') }}" class="btn btn-info">
-                                            <i class="fas fa-file-pdf"></i> Export PDF
-                                        </a>
-                                    </div> --}}
                                 </div>
 
                                 <div class="row">
@@ -38,10 +27,6 @@
                                 <h5>{{ $datas->nama_lengkap }} - {{ $datas->eksternal_jabatan }} </h5>
                                 <div class="row mb-2">
                                     <div class="col-md-8">
-                                        {{-- <div class="form-group">
-                                            <input name="nama" id="namaFilter" type="text" value=""
-                                                placeholder="Masukkan nama anda" class="form-control">
-                                        </div> --}}
                                     </div>
                                     <div class="col">
                                         <div class="d-flex justify-content-end">
@@ -54,62 +39,7 @@
                                         </div>
 
                                     </div>
-                                    {{-- <div class="col-md-4 mb-3">
-                                        <h5>Filter Data Eksternal</h5>
-                                       
-                                        <select class="form-control selectric">
-                                            <option value="">-- Filter By Jabatan Ketenagaan --</option>
-                                            <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-                                            <option value="Tenaga Kependidikan">Tenaga Kependidikan</option>
-                                            <option value="Stakeholder">Stakeholder</option>
-                                        </select>
-                                    </div> --}}
                                 </div>
-                                {{-- <h5>Filter Data Eksternal</h5>
-
-                                <div class="row">
-                                    <div class="col-md-3 mb-4">
-                                        <label>Jabatan Ketenagaan</label>
-                                        <select required name="jenisJabatan" class="form-control " id="jabEksternal">
-                                            <option value="">-- Filter By Jabatan Ketenagaan --</option>
-                                            <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-                                            <option value="Tenaga Kependidikan">Tenaga Kependidikan</option>
-                                            <option value="Stakeholder">Stakeholder</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>Jabatan</label>
-                                            <select name="jabJenis" class="form-control" id="jabJenis">
-                                                <option value="">-- Pilih Jenis Jabatan --</option>
-                                                <option id="valJabJenis" value="">-- Pilih Jabatan</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 mb-4">
-                                        <label>Kategori Jabatan </label>
-                                        <select name="jabKategori" class="form-control" id="jabKategori">
-                                            <option value="">-- Pilih Kategori --</option>
-                                            <option value="GP (Guru Penggerak)">GP (Guru Penggerak)</option>
-                                            <option value="NoN GP (Guru Penggerak)">NoN GP (Guru Penggerak)</option>
-
-                                        </select>
-                                    </div>
-
-                                    <div class="col-md-3">
-                                        <div class="form-group">
-                                            <label>Jenis Tugas</label>
-                                            <select name="jabTugas" class="form-control" id="jabTugas">
-                                                <option value="">-- Pilih Tugas Jabatan --</option>
-
-                                            </select>
-                                        </div>
-                                    </div>
-
-
-                                </div> --}}
 
 
 
@@ -118,30 +48,12 @@
                                         <thead>
                                             <tr>
                                                 <th class="text-center">#</th>
-                                                {{-- <th>Pas Foto</th> --}}
                                                 <th style="width: 200px">Nama Lengkap</th>
-                                                {{-- <th>NPWP</th> --}}
-                                                {{-- <th>NUPTK</th> --}}
-                                                {{-- <th>Email</th> --}}
-                                                {{-- <th>Nomor KTP</th> --}}
-                                                {{-- <th>Tempat, Tanggal Lahir</th> --}}
-                                                {{-- <th>Alamat Rumah</th> --}}
-                                                {{-- <th>Jenis Kelamin</th> --}}
                                                 <th>Status Kepegawaian</th>
-                                                {{-- <th>Agama</th> --}}
-                                                {{-- <th>Pendidikan Terakhir</th> --}}
                                                 <th>Ketenagaan</th>
                                                 <th>Jabatan </th>
                                                 <th>Kategori Jabatan </th>
                                                 <th>Tugas Jabatan </th>
-                                                {{-- <th>Latar Jabatan </th> --}}
-                                                {{-- <th style="width: 200px">NPSN Sekolah</th> --}}
-                                                {{-- <th>Asal Kabupaten/Kota</th> --}}
-                                                {{-- <th>Satuan Pendidikan</th>
-                                                    <th>Kecamatan Sekolah</th>
-                                                    <th>Kabupaten Sekolah</th> --}}
-                                                {{-- <th>Nomor Aktif</th>
-                                                    <th>No Rekening</th> --}}
                                                 <th>Status Verifikasi</th>
                                                 <th style="width: 20%">Action</th>
 
@@ -151,33 +63,12 @@
                                         <tbody>
                                             <tr>
                                                 <td>{{ 1 }}</td>
-                                                {{-- <td><img src="{{ asset('/upload/guru/' . $data->pas_foto) }}"
-                                                                    alt="" class="img-fluid"></td> --}}
                                                 <td>{{ $datas->nama_lengkap ?? '' }}</td>
-                                                {{-- <td>{{ $datas->npwp ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->nuptk ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->email ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->no_ktp ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->tempat_lahir ?? '' . ', ' . $datas->tgl_lahir ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->alamat_rumah ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->gender ?? '' }}</td> --}}
                                                 <td>{{ $datas->status_kepegawaian ?? '' }} </td>
-                                                {{-- <td>{{ $datas->agama }}</td> --}}
-                                                {{-- <td>{{ $datas->pendidikan }}</td> --}}
                                                 <td>{{ $datas->eksternal_jabatan ?? '' }}</td>
                                                 <td>{{ $datas->jenis_jabatan ?? '' }}</td>
                                                 <td>{{ $datas->kategori_jabatan ?? '' }}</td>
                                                 <td>{{ $datas->tugas_jabatan ?? '-' }}</td>
-                                                {{-- <td>{{ $datas->latar_jabatan ?? 'tidak ada' }}</td> --}}
-                                                {{-- <td>{{ $datas->npsn_sekolah }} <br>
-                                                        {{ $datas->sekolah->nama_sekolah ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->kabupaten }}</td> --}}
-                                                {{-- <td>{{ $datas->satuan_pendidikan }}</td> --}}
-                                                {{-- <td>{{ $datas->sekolah->kecamatan ?? '' }}</td> --}}
-                                                {{-- <td>{{ $datas->sekolah->kabupaten ?? '' }}</td> --}}
-                                                {{-- <td>No. Hp : {{ $datas->no_hp }} <br>
-                                                            No. Whatsapp : {{ $datas->no_wa }}</td> --}}
-                                                {{-- <td>{{ $datas->no_rek }} - {{ $datas->jenis_bank }}</td> --}}
 
                                                 <td>
                                                     @if ($datas->is_verif == 'sudah')
@@ -202,10 +93,6 @@
                                                         <i class="fas fa-info"></i>
                                                     </button>
 
-                                                    {{-- <button onclick="deleteData({{ $datas->id }}, 'eksternal')"
-                                                            class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button> --}}
                                                 </td>
 
 
@@ -276,9 +163,6 @@
                     const jabKategoriValue = jabKategori.value;
                     const jabTugasValue = jabTugas.value;
 
-                    console.log('Search Text:', searchText);
-                    console.log('Select Value 13:', jabEksternalValue);
-                    console.log('Select Value 14:', jabTugasValue);
 
                     // Update search and redraw tableGuru
                     tableGuru.column(2).search(searchText).draw();
@@ -314,8 +198,6 @@
         <script>
             $(document).ready(function() {
 
-                // const jenisEksternal = ;
-                // console.log(jenisEksternal);
 
                 // jabatan ketenagaan
                 function fillterJabatan() {
@@ -427,20 +309,11 @@
 
                 // fix
                 $('#jabKategori').on('change', function() {
-                    // fillterKategori();
                     var jabTugas = $('#jabTugas');
-                    // var jabJenis = $(this);
                     var option = '';
                     const dataJab = {!! json_encode($status) !!};
 
-                    // jabJenis.empty();
 
-                    // jabJenis.append($('<option>', {
-                    //     value: '',
-                    //     text: '-- Pilih Jabatan --',
-                    //     disabled: true,
-                    //     selected: true
-                    // }));
 
                     var selectedOption = $(this).find('option:selected');
 
@@ -466,13 +339,9 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabTugas):', selectedOption.val());
-                    console.log('Selected Text (jabTugas):', selectedOption.text());
                 });
 
                 $('#jabJenis').on('change', function() {
-                    // fillterKategori();
-                    // var jabEksternal = $('#jabEksternal').val();
                     var jabKategori = $('#jabKategori');
                     var jabTugas = $('#jabTugas');
                     var jabJenis = $(this);
@@ -539,13 +408,10 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabKategori):', selectedOption.val());
-                    console.log('Selected Text (jabKategori):', selectedOption.text());
                 });
             });
 
             function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           (pegawaiId) {
-                console.log('get detail');
                 $.ajax({
                     url: '{{ route('admin.eksternal.detail') }}',
                     type: 'GET',
@@ -553,7 +419,6 @@
                         id: pegawaiId
                     },
                     success: function(response) {
-                        console.log(response);
 
                         $('#pegawaiDetailContent').html(`
                     <h6 ><strong>NPSN Sekolah:</strong> ${response.data.npsn_sekolah ?? ''} - ${response.nama_sekolah}</h6>

@@ -34,16 +34,6 @@
 
                                         </div>
                                         <div class="col-md-6">
-                                            {{-- <label>Jabatan</label>
-                                            <select required name="jabatan" class="form-control select2">
-                                                <option value="">-- Pilih Jabatan --</option>
-                                                @foreach ($datas['jabatanPpnpn'] as $v)
-                                                    <option
-                                                        {{ $datas['pendamping']->jabatan == $v->name ? 'selected' : '' }}
-                                                        value="{{ $v->name }}">{{ $v->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select> --}}
                                         </div>
 
                                     </div>
@@ -53,13 +43,6 @@
                                             <input required readonly name="jenis" type="text"
                                                 value="{{ $title }}" class="form-control">
                                         </div>
-                                        {{-- <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label>Tanggal Kegiatan</label>
-                                                <input required name="tgl_kegiatan" type="date" class="form-control"
-                                                    value="{{ $datas['pendamping']->tgl_kegiatan }}">
-                                            </div>
-                                        </div> --}}
 
                                         <div class="col-md-6">
                                             <label>Kota</label>
@@ -75,10 +58,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- <div class="row my-3">
-                                        
-                                        
-                                    </div> --}}
                                    
     
     

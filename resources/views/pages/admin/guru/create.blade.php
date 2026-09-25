@@ -9,11 +9,6 @@
         <section class="section">
             <div class="section-header">
                 <h1>Tambah Data Eksternal BBGTK</h1>
-                {{-- <div class="section-header-breadcrumb">
-                    <div class="breadcrumb-item active"><a href="#">Dashboard</a></div>
-                    <div class="breadcrumb-item"><a href="#">Bootstrap Components</a></div>
-                    <div class="breadcrumb-item">Form</div>
-                </div> --}}
             </div>
 
             <div class="section-body">
@@ -168,16 +163,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Status</label>
-                                                <select required name="status" class="form-control ">
-                                                    <option value="">-- Kawin/Belum Kawin --</option>
-                                                    <option value="Kawin">Kawin</option>
-                                                    <option value="Belum Kawin">Belum Kawin</option>
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
 
 
@@ -278,7 +263,6 @@
                                                 <select  name="jabJenis" class="form-control select2"
                                                     id="jabJenis">
                                                     <option value="">-- Pilih Jenis Jabatan --</option>
-                                                    {{-- <option id="valJabJenis" value="">-- Pilih Jabatan</option> --}}
 
                                                 </select>
                                             </div>
@@ -289,8 +273,6 @@
                                             <select  name="jabKategori" class="form-control select2"
                                                 id="jabKategori">
                                                 <option value="">-- Pilih Kategori --</option>
-                                                {{-- <option value="GP (Guru Penggerak)">GP (Guru Penggerak)</option>
-                                                <option value="NoN GP (Guru Penggerak)">NoN GP (Guru Penggerak)</option> --}}
 
                                             </select>
                                         </div>
@@ -332,7 +314,6 @@
         <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
         <script>
             function updateLocation() {
-                console.log('object');
                 const selectElement = document.getElementById('data_sekolah');
                 const kecamatanInput = document.getElementById('kecamatan_sekolah');
                 const kabupatenInput = document.getElementById('kabupaten_sekolah');
@@ -352,8 +333,6 @@
         <script>
             $(document).ready(function() {
 
-                // const jenisEksternal = {!! json_encode($jenis) !!};
-                // console.log(jenisEksternal);
 
                 // jabatan ketenagaan
                 function fillterJabatan() {
@@ -446,20 +425,11 @@
 
                 // fix
                 $('#jabKategori').on('change', function() {
-                    // fillterKategori();
                     var jabTugas = $('#jabTugas');
-                    // var jabJenis = $(this);
                     var option = '';
                     const dataJab = {!! json_encode($status) !!};
 
-                    // jabJenis.empty();
 
-                    // jabJenis.append($('<option>', {
-                    //     value: '',
-                    //     text: '-- Pilih Jabatan --',
-                    //     disabled: true,
-                    //     selected: true
-                    // }));
 
                     var selectedOption = $(this).find('option:selected');
 
@@ -485,13 +455,9 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabTugas):', selectedOption.val());
-                    console.log('Selected Text (jabTugas):', selectedOption.text());
                 });
 
                 $('#jabJenis').on('change', function() {
-                    // fillterKategori();
-                    // var jabEksternal = $('#jabEksternal').val();
                     var jabKategori = $('#jabKategori');
                     var jabTugas = $('#jabTugas');
                     var jabJenis = $(this);
@@ -558,8 +524,6 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabKategori):', selectedOption.val());
-                    console.log('Selected Text (jabKategori):', selectedOption.text());
                 });
             });
         </script>

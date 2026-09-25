@@ -17,9 +17,6 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-body">
-                                {{-- <a href="#" class="btn btn-primary text-white my-3">
-                                    <i class="fas fa-plus mr-2"></i>Tambah Sekolah
-                                </a> --}}
                                 <!-- Filter Section -->
 
 
@@ -48,9 +45,6 @@
                                         </select>
                                     </div>
                                     <div class="col-md-3">
-                                        {{-- <button type="button" class="btn btn-success" id="btnExportFiltered">
-                                        <i class="fas fa-file-excel mr-2"></i>Export Data (Filter)
-                                    </button> --}}
                                         <a href="{{ route('admin.data-sekolah.export') }}" class="btn btn-info">
                                             <i class="fas fa-download mr-2"></i>Export Data
                                         </a>
@@ -123,17 +117,10 @@
                                                     </td>
                                                     <td>
                                                         <div class="d-flex">
-                                                            {{-- <a href="#" class="btn btn-sm btn-info" title="Detail">
-                                                                <i class="fas fa-eye"></i>
-                                                            </a> --}}
                                                             <a href="{{ route('admin.data-sekolah.edit', $sekolah->id) }}"
                                                                 class="btn btn-sm btn-warning mx-1" title="Edit">
                                                                 <i class="fas fa-edit"></i>
                                                             </a>
-                                                            {{-- <button onclick="deleteData({{ $sekolah->id }}, 'sekolah')"
-                                                                class="btn btn-sm btn-danger" title="Hapus">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button> --}}
                                                         </div>
                                                     </td>
                                                 </tr>

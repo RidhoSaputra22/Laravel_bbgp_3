@@ -110,16 +110,12 @@
       // execute 'appended' callback
       options.appended.call(this, $('#' + id), modal_form, options);
 
-      // if modal contains form elements
       if(modal_form.length) {
-        // if `autoFocus` option is true
         if(options.autoFocus) {
           // when modal is shown
           $(modal_template).on('shown.bs.modal', function() {
-            // if type of `autoFocus` option is `boolean`
             if(typeof options.autoFocus == 'boolean')
               modal_form.find('input:eq(0)').focus(); // the first input element will be focused
-            // if type of `autoFocus` option is `string` and `autoFocus` option is an HTML element
             else if(typeof options.autoFocus == 'string' && modal_form.find(options.autoFocus).length)
               modal_form.find(options.autoFocus).focus(); // find elements and focus on that
           });
@@ -135,7 +131,6 @@
           }
         };
 
-        // if form is not contains button element
         if(!modal_form.find('button').length) $(modal_form).append('<button class="d-none" id="'+ id +'-submit"></button>');
 
         // add click event

@@ -351,15 +351,10 @@
                         <p>Ada yang bisa kami bantu hari ini?</p>
                         <div class="wa-message-time">Baru saja</div>
                     </div>
-                    {{-- <div class="wa-message">
-                        <p>Silakan tulis pesan Anda di bawah dan klik kirim untuk menghubungi kami via WhatsApp 💬</p>
-                        <div class="wa-message-time">Baru saja</div>
-                    </div> --}}
                 </div>
 
                 <div class="wa-chat-input">
                     <div class="wa-input-wrapper">
-                        {{-- <textarea id="wa-message-input" rows="1" placeholder="Ketik pesan Anda..." onkeypress="handleEnterWA(event)"></textarea> --}}
                         <button class="wa-send-btn " onclick="sendWhatsApp()" aria-label="Kirim">
                             <div class="pr-2">
                                 Kirim Pesan
@@ -483,22 +478,12 @@
 
         @if (session('message') == 'store')
             <script>
-                // iziToast.success({
-                //     title: 'Sukses',
-                //     message: 'Berhasil tambah data',
-                //     position: 'topRight'
-                // });
                 Swal.fire("Berhasil", "Berhasil tambah data", "success");
             </script>
         @endif
 
         @if (session('message') == 'nik daftar')
             <script>
-                // iziToast.success({
-                //     title: 'Sukses',
-                //     message: 'Berhasil tambah data',
-                //     position: 'topRight'
-                // });
                 Swal.fire("Warning", "NIK anda telah terdaftar, silahkan menghubungi admin untuk melihat data anda", "error");
             </script>
         @endif
@@ -506,11 +491,6 @@
         {{-- success update data --}}
         @if (session('message') == 'update')
             <script>
-                // iziToast.success({
-                //     title: 'Sukses',
-                //     message: 'Berhasil update data',
-                //     position: 'topRight'
-                // });
                 Swal.fire("Berhasil", "Berhasil update data", "success");
             </script>
         @endif
@@ -605,27 +585,18 @@
 
         @if (session('message') == 'sukses daftar')
             <script>
-                // Swal.fire("Berhasil", "Berhasil registrasi Kegiatan", "success");
 
                 $(document).ready(function() {
 
-                    // var val = '{{ session('id') }}'
                     var val = {!! json_encode(session('id')) !!};
-                    console.log('id nya user : ', val.id);
                     var url = '{{ route('peserta.cetakByUser', ['id' => ':id']) }}'
                     url = url.replace(':id', val.id)
-                    console.log('link nya user : ', url);
 
                     $.ajax({
-                        // headers: {
-                        //     "X-CSRF-TOKEN": token,
-                        // },
                         url: url, // Ganti dengan route yang sesuai untuk mengambil status
                         type: 'GET',
 
                         success: function(response) {
-                            console.log(response);
-                            console.log(val);
                             Swal.fire("Berhasil", "Berhasil registrasi Kegiatan", "success").then((result) => {
                                 if (result.isConfirmed) {
                                     // Arahkan ke URL PDF untuk memulai download

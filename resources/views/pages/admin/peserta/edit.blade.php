@@ -39,8 +39,6 @@
                                                             value="{{ $v->id }}">{{ $v->nama_kegiatan }}</option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input  name="golongan" id="golongan" type="text"
-                                                    class="form-control" required> --}}
                                             </div>
 
                                         </div>
@@ -48,32 +46,6 @@
 
                                     <div class="row">
 
-                                        {{-- <div class="col-md-5">
-                                            <div class="form-group">
-                                                <label>Nama dan NIK</label>
-                                                <input  name="no_ktp" id="no_ktp" type="text"
-                                                    class="form-control" required>
-                                                <select required name="id_pegawai" id="id_pegawai"
-                                                    class="form-control select2">
-                                                    <option value="">-- Pilih pegawai --</option>
-                                                    @foreach ($merge as $v)
-                                                        <option data-no_ktp="{{ $v->no_ktp }}"
-                                                            data-nama="{{ $v->nama_lengkap }}"
-                                                            data-golongan="{{ $v->golongan }}"
-                                                            data-kabupaten="{{ $v->kabupaten }}"
-                                                            data-gender="{{ $v->gender }}"
-                                                            data-jabatan="{{ $v->jabatan ?? $v->status_kepegawaian }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            data-wa="{{ $v->no_wa }}"
-                                                            data-hp="{{ $v->no_hp }}"
-                                                            data-instansi="{{ $v->instansi }}"
-                                                            value="{{ $v->id }}">
-                                                            {{ $v->no_ktp }} - {{ $v->nama_lengkap }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div> --}}
 
                                         <div class="col-md-4">
                                             <div class="form-group">
@@ -136,8 +108,6 @@
                                                     <option {{ $getById->agama == 'Buddha' ? 'selected' : '' }}
                                                         value="Buddha">Buddha</option>
                                                 </select>
-                                                {{-- <input readonly name="kabupaten" id="kabupaten" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -152,8 +122,6 @@
                                                     @endforeach
 
                                                 </select>
-                                                {{-- <input readonly name="kabupaten" id="kabupaten" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -171,8 +139,6 @@
                                                     @endforeach
                                                     <option id="selectedKabLainnya" value="lainnya">Lainnya</option>
                                                 </select>
-                                                {{-- <input readonly name="kabupaten" id="kabupaten" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -192,21 +158,6 @@
                                             </div>
                                         </div>
 
-                                        {{-- <div class="col-md-3">
-                                            <div class="form-group">
-                                                <label>Golongan</label>
-
-                                                <select name="golongan" id="" class="form-control select2">
-                                                    <option value="">-- pilih golongan --</option>
-                                                    @foreach ($status['golongan'] as $v)
-                                                        <option {{ $datas->golongan == $v->name ? 'selected' : '' }}
-                                                            value="{{ $v->name }}">{{ $v->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <input  name="golongan" id="golongan" type="text"
-                                                    class="form-control" required>
-                                            </div>
-                                        </div> --}}
 
 
 
@@ -224,8 +175,6 @@
                                                     <option {{ $datas->jkl == 'Perempuan' ? 'selected' : '' }}
                                                         value="Perempuan">Perempuan</option>
                                                 </select>
-                                                {{-- <input name="gender" id="gender" type="text" class="form-control"
-                                                    required> --}}
                                             </div>
                                         </div>
 
@@ -263,8 +212,6 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input  name="golongan" id="golongan" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -281,8 +228,6 @@
                                                         </option>
                                                     @endforeach
                                                 </select>
-                                                {{-- <input  name="golongan" id="golongan" type="text"
-                                                class="form-control" required> --}}
                                             </div>
                                         </div>
 
@@ -394,14 +339,6 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             {{-- Uncomment if using signature --}}
-                                            {{-- <div class="form-group">
-                                                <label for="signature">Tanda Tangan Digital</label>
-                                                <div id="signature-pad" class="signature-pad">
-                                                    <canvas width="600" height="200"></canvas>
-                                                </div>
-                                                <input type="hidden" name="signature" id="signature">
-                                                <button id="clear" class="btn btn-secondary mt-2">Clear</button>
-                                            </div> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -440,7 +377,6 @@
 
 
                 $('.select2').select2();
-                // $('#formOpsional').hide();
                 $('#narasumberTime').hide();
 
                 // Handle change event for Kabupaten selection
@@ -485,7 +421,6 @@
 
                 $('#jenis_gol').change(function() {
                     let status = $(this).val();
-                    console.log(status);
                     if (status == 'PNS') {
                         gol_pns.show();
                         gol_p3k.hide().val('');
@@ -517,7 +452,6 @@
                     $(`#kelengkapan_peserta_biodata option[value="${data.kelengkapan_peserta_biodata}"]`).prop(
                         'selected', true)
                 }
-                // console.log(datas['nama'])
 
                 $(`#gender option[value="${data.jkl}"]`).prop('selected', true);
 
@@ -533,7 +467,6 @@
                         .removeAttr('disabled')
                         .prop('selected', true)
                     );
-                    // $(`#jenis_gol option[value="${golongan}"]`).prop('selected', true);
                 } else if (jenis_gol == 'P3K') {
                     gol_p3k.show();
                     gol = data.golongan
@@ -549,9 +482,6 @@
                     $('#diluar_gol').val(gol)
                 }
 
-                // $(`#kabupaten option[value="${data.kabupaten}"]`).prop('selected', true);
-                // $('#kabupaten').select2();
-                // $('#kabupaten').val(kb).trigger('change');
                 let selectedKab = $('#kabupaten')
 
                 selectedKab.append($("<option>")
@@ -565,7 +495,6 @@
 
                 $('#id_pegawai').change(function() {
                     var selectedOption = $(this).find('option:selected');
-                    // console.log(selectedOption);
                     var jabatan = selectedOption.data('jabatan');
                     var nama = selectedOption.data('nama');
                     var no_ktp = selectedOption.data('no_ktp');
@@ -575,7 +504,6 @@
                     var instansi = selectedOption.data('instansi');
                     var no_hp = selectedOption.data('hp');
                     var no_wa = selectedOption.data('wa');
-                    // console.log(kabupaten);
 
                     // Isi input form dengan data yang sesuai
                     $('#no_ktp').val(no_ktp);

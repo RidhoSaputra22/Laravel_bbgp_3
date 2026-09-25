@@ -10,9 +10,7 @@ use App\Models\Kegiatan;
 use App\Models\PenomoranKegiatan;
 use App\Models\PesertaKegiatan;
 use Maatwebsite\Excel\Facades\Excel;
-// use Dompdf\Dompdf;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
-// use Dompdf\Options;
 use Illuminate\Http\Request;
 
 class HonorController extends Controller
@@ -40,35 +38,20 @@ class HonorController extends Controller
     {
         $menu = $this->menu;
         $title = 'honor';
-        // $kegiatan = PesertaKegiatan::get();
         $kegiatan = Kegiatan::get();
         $honor = Honor::get();
         $datas = [];
-        // $pot = 0;
 
 
         foreach ($honor as $i => $v) {
-            // $jumlah_honor = $v->jumlah * $v->jp_realisasi;
 
             $mainGolongan = explode('/', $v->golongan)[0];
 
-            // dd($mainGolongan);
             // Tentukan pot berdasarkan golongan utama
-            // dump($mainGolongan);
-            // dd($mainGolongan == 'IV');
 
-            // if ($mainGolongan[$i] == 'IV') {
-            //     $pot = $jumlah_honor * 0.15;
-            // } else if ($mainGolongan[$i] == 'III') {
-            //     $pot = $jumlah_honor * 0.5; // Atur sesuai kebutuhan
-            // }
-            // else {
-            //     $pot = $jumlah_honor;
-            // }
 
             $total = $v->jumlah_honor - $v->potongan;
 
-            // dd($v->potongan);
             // Tambahkan hasil perhitungan ke array $datas
             $datas[] = [
                 'nama' => $v->peserta->nama ?? '',
@@ -86,7 +69,6 @@ class HonorController extends Controller
                 'instansi' => $v->peserta->instansi ?? $v->instansi, // Atau atribut lainnya yang ingin ditampilkan
             ];
 
-            // dd($datas);
         }
 
         return view('pages.admin.honor.index', compact('menu', 'datas', 'title', 'kegiatan'));
@@ -105,13 +87,11 @@ class HonorController extends Controller
         $menu = $this->menu;
         $title = 'honor';
         $kegiatan = Kegiatan::orderBy('id', 'DESC')->get();
-        // dd($kegiatan);
 
 
         $peserta = PesertaKegiatan::orderBy('id', 'DESC')->where('status_keikutpesertaan', 'narasumber')
             ->orWhere('status_keikutpesertaan', 'panitia')
             ->get();
-        // dd($peserta);
         $status_gol = array(
             'partisipanPanitia' => PesertaKegiatan::with('kegiatan')->where('status_keikutpesertaan', 'panitia')->orderByDesc(
                 'id'
@@ -120,11 +100,6 @@ class HonorController extends Controller
             'partisipanNarasumber' => PesertaKegiatan::with('kegiatan')->where('status_keikutpesertaan', 'narasumber')->orderByDesc('id')->get(),
 
         );
-        // dd($status_gol);
-        // foreach ($peserta as $key => $value) {
-        //     dump($value->kegiatan);
-        // }
-        // dd($peserta);
         return view('pages.admin.honor.create', compact('menu', 'peserta', 'kegiatan'));
     }
 
@@ -133,7 +108,6 @@ class HonorController extends Controller
      */
     public function store(Request $r)
     {
-        // dd(true);
         $req = $r->all();
 
         $getNik = Honor::where('id_peserta', $req['id_peserta'])->first();
@@ -149,10 +123,8 @@ class HonorController extends Controller
         $req['jumlah_honor'] = (int) str_replace(".", "", $r->jumlah_honor);
         $req['potongan'] = (int) str_replace(".", "", $r->potongan);
         $req['jumlah_diterima'] = (int) str_replace(".", "", $r->jumlah_diterima);
-        // dd($r->jumlah);
         $req['golongan'] = explode('/', $req['golongan'])[0];
 
-        // dd($req);
 
 
         Honor::create($req);
@@ -181,7 +153,6 @@ class HonorController extends Controller
         $peserta = PesertaKegiatan::where('status_keikutpesertaan', 'narasumber')
             ->orWhere('status_keikutpesertaan', 'panitia')
             ->get();
-        // dd($datas);
 
         return view('pages.admin.honor.edit', compact('menu', 'datas', 'peserta', 'title', 'kegiatan'));
     }
@@ -193,14 +164,12 @@ class HonorController extends Controller
     {
         $req = $r->all();
         $datas = Honor::find($req['id']);
-        // dd($req);
 
         $req['jp_realisasi'] = (int) str_replace(".", "", $r->jp_realisasi);
         $req['jumlah'] = (int) str_replace(".", "", $r->jumlah);
         $req['jumlah_honor'] = (int) str_replace(".", "", $r->jumlah_honor);
         $req['potongan'] = (int) str_replace(".", "", $r->potongan);
         $req['jumlah_diterima'] = (int) str_replace(".", "", $r->jumlah_diterima);
-        // dd($r->jumlah);
         $req['golongan'] = explode('/', $req['golongan'])[0];
         $datas->update($req);
 
@@ -230,13 +199,11 @@ class HonorController extends Controller
         $datas = [];
 
         foreach ($honors as $i => $v) {
-            // $jumlah_honor = $v->jumlah * $v->jp_realisasi;
 
             $mainGolongan = explode('/', $v->golongan)[0];
 
 
             $total = $v->jumlah_honor - $v->potongan;
-            // dd($v);
             // Tambahkan hasil perhitungan ke array $datas
             $datas[] = [
                 'nama' => $v->peserta->nama,
@@ -249,15 +216,10 @@ class HonorController extends Controller
                 'id' => $v->id, // Jika perlu tambahkan ID atau atribut lain yang relevan
                 'golongan' => $v->golongan, // Atau atribut lainnya yang ingin ditampilkan
             ];
-            // dump($datas);
         }
-        // dd($datas);
         // Load view untuk PDF
         $pdf = PDF::loadView('pages.admin.honor.cetakHonor', compact('datas', 'jenis'));
 
-        // Konfigurasi DomPDF
-        // $pdf->set('isHtml5ParserEnabled', true);
-        // $pdf->set('isRemoteEnabled', true);
 
         // Buat instance DomPDF
         $pdf->setPaper('A4', 'landscape');
@@ -268,7 +230,6 @@ class HonorController extends Controller
 
     public function getPeserta(Request $r)
     {
-        // dd($r->all());
         $kegiatan = $r->input('kegiatan');
         $peserta = PesertaKegiatan::orderBy('id', 'DESC')
             ->where('id_kegiatan', $kegiatan)
@@ -278,19 +239,9 @@ class HonorController extends Controller
                     ->orWhere('status_keikutpesertaan', 'peserta');
             })
             ->get();
-        // dd($peserta);
         return response()->json($peserta);
     }
 
-    // public function honorNarasumber($id_kegiatan)
-    // {
-    //     return Excel::download(new HonorNarasumberExport, 'HonorNarasaumber.xlsx');
-    // }
-    // public function honorPanitia($id_kegiatan)
-    // {
-    //     // Gunakan method Excel::download() untuk men-download file Excel
-    //     return Excel::download(new HonorPanitiaExport, 'HonorPanitia.xlsx');
-    // }
 
     public function cetakExcelPanitia($id_kegiatan, $jabatan = 'panitia')
     {
@@ -340,25 +291,16 @@ class HonorController extends Controller
 
     public function storeNomor(Request $r)
     {
-        // dd($r->all());
         PenomoranKegiatan::create($r->all());
 
         return response()->json([
             'status' => true,
             'data' => PenomoranKegiatan::get(),
-            // 'data' => $r->all(), 
         ]);
     }
 
 
 
 
-    // public function cetakExcelFiltered($kegiatan, $jabatan)
-    // {
-    //     $datas = Honor::where('kegiatan', $kegiatan)
-    //         ->where('jabatan', $jabatan)
-    //         ->get();
 
-    //     return Excel::download(new HonorExport($datas), 'honor_filtered.xlsx');
-    // }
 }

@@ -73,11 +73,6 @@
                   <span>Data Keuangan</span></a>
                <ul class="dropdown-menu">
 
-                  {{-- <li class="{{ $title == 'Data Honor Kegiatan' ? '' : '' }}">
-                            <a class="nav-link" href="{{ route('honor.index') }}">
-                                Penomoran
-                            </a>
-                        </li> --}}
 
                   <li class="{{ $title == 'Data Honor Kegiatan' ? 'active' : '' }}">
                      <a class="nav-link" href="{{ route('honor.index') }}">
@@ -98,11 +93,6 @@
                </ul>
             </li>
 
-            {{-- <li class="{{ $menu == 'peserta' ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('kegiatan.index') }}">
-                        <i class="fas fa-users"></i> <span>Data Peserta Kegiatan</span>
-                    </a>
-                </li> --}}
 
 
 
@@ -214,11 +204,6 @@
                   <span>Data Keuangan</span></a>
                <ul class="dropdown-menu">
 
-                  {{-- <li class="{{ $title == 'Data Honor Kegiatan' ? '' : '' }}">
-                        <a class="nav-link" href="{{ route('honor.index') }}">
-                            Penomoran
-                        </a>
-                    </li> --}}
 
                   <li class="{{ $title == 'Data Honor Kegiatan' ? 'active' : '' }}">
                      <a class="nav-link" href="{{ route('honor.index') }}">
@@ -342,28 +327,6 @@
                   </a>
                </li>
 
-               {{-- <li class="{{ $menu == 'sekolah-detail' ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('user.show.data-sekolah', $sekolah->id) }}">
-                            <i class="fas fa-eye"></i> <span>Detail Sekolah</span>
-                        </a>
-                    </li>
-
-                    <li class="{{ $menu == 'sekolah-edit' ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('user.edit.data-sekolah', $sekolah->id) }}">
-                            <i class="fas fa-edit"></i> <span>Edit Data Sekolah</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <div class="card bg-light mx-3 my-2">
-                            <div class="card-body p-2">
-                                <small class="text-muted d-block">Sekolah Anda:</small>
-                                <p class="mb-0 font-weight-bold small">{{ Str::limit($sekolah->nama_sekolah, 30) }}
-                                </p>
-                                <small class="text-muted">NPSN: {{ $sekolah->npsn }}</small>
-                            </div>
-                        </div>
-                    </li> --}}
             @endif
          @endif
 
@@ -409,22 +372,7 @@
          @endif
 
 
-         {{-- @if (Session('role') != 'guru' || Session('role' != 'pegawai')) --}}
-         {{-- <li class="{{ $menu == 'kepegawaian' ? 'active' : '' }}"><a class="nav-link"
-                        href="{{ route('kepegawaian.index') }}">
-                        <i class="fas fa-briefcase"></i> <span>Status Kepegawaian</span></a>
-                </li>
 
-                <li class="{{ $menu == 'kependidikan' ? 'active' : '' }}"><a class="nav-link"
-                        href="{{ route('kependidikan.index') }}">
-                        <i class="fas fa-user-graduate"></i> <span>Satuan Pendidikan</span></a>
-                </li> --}}
-
-         {{-- <li class="{{ $menu == 'kependidikan' ? 'active' : '' }}"><a class="nav-link"
-                        href="{{ route('kependidikan.index') }}">
-                        <i class="fas fa-chalkboard-teacher"></i> <span>Data Sekolah</span></a>
-                </li> --}}
-         {{-- @endif --}}
 
 
 

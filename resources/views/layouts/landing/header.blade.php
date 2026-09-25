@@ -18,9 +18,6 @@
                         <a title="Facebook" href="https://www.facebook.com/bbgtksulsel/">
                             <span class="social-icon"><i class="fab fa-facebook-f"></i></span>
                         </a>
-                        {{-- <a title="Twitter" href="https://twitter.com/themefisher.com">
-                            <span class="social-icon"><i class="fab fa-twitter"></i></span>
-                        </a> --}}
                         <a title="Instagram" href="https://www.instagram.com/bbgtksulsel/">
                             <span class="social-icon"><i class="fab fa-instagram"></i></span>
                         </a>

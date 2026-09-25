@@ -48,10 +48,6 @@
                         data-mulai="{{ $v->jam_mulai }}" data-selesai="{{ $v->jam_selesai }}">
 
                         {{ $v->nama_kegiatan }}
-                        {{-- (
-                                {{ $tgl_kegiatan }} -
-                                {{ $tgl_selesai }}
-                                ) di {{ $v->tempat_kegiatan }} --}}
                      </option>
                   @endforeach
                </select>
@@ -64,16 +60,6 @@
                   <p>Jam Kegiatan : <span id="rincianJam"></span></p>
                   <p>Lokasi Kegiatan : <span id="rincianLokasi"></span></p>
                   <p>Keterangan Kegiatan : <span id="rincianKeterangan"></span></p>
-                  {{-- <div id="btnGroup">
-                                      <button id="btnPrintPeserta" class="btn btn-primary"><i
-                                              class="fas fa-print mr-2"></i>Print Absensi Peserta</button>
-                                      <button id="btnPrintRegisPeserta" class="btn btn-primary"><i
-                                              class="fas fa-print mr-2"></i>Print Absensi Registrasi Peserta</button>
-                                      <button id="btnPrintPanitia" class="btn btn-info"><i
-                                              class="fas fa-print mr-2"></i>Print Absensi Panitia</button>
-                                      <button id="btnPrintNarsum" class="btn btn-warning"><i
-                                              class="fas fa-print mr-2"></i>Print Absensi Narasumber</button>
-                                  </div> --}}
                </div>
             </div>
          </div>
@@ -90,21 +76,6 @@
                      <input style="background-color: #218838; color: white; " class="form-control btn btn-success"
                         type="submit" value="CARI">
                   </div>
-                  {{-- <div class="col-md-2">
-                     <a href="https://forms.gle/DbnABf2sTy6XNQMv5" target="_blank"
-                        style="background-color: #1376bd; color: white; " class="form-control btn btn-success">Post
-                        test</a>
-                  </div>
-                  <div class="col-md-3">
-                     <a href="https://forms.gle/kWSieMx55GiKcEcq5" target="_blank"
-                        style="background-color: #1376bd; color: white; " class="form-control btn btn-success">Evaluasi
-                        Penyelenggaraan</a>
-                  </div>
-                  <div class="col-md-3">
-                     <a href="https://forms.gle/mGNjDQiSLB469nRE7" target="_blank"
-                        style="background-color: #1376bd; color: white; " class="form-control btn btn-success">Evaluasi
-                        Fasilitator</a>
-                  </div> --}}
                </div>
             </form>
             <br />
@@ -197,7 +168,6 @@
             $('#daftarKegiatan').on('change', function() {
                let kegiatanId = $(this).val();
                let textKegiatan = $(this).find('option:selected');
-               console.log(kegiatanId);
                if (kegiatanId === '') {
                   $('#allRincian').hide();
 
@@ -251,10 +221,8 @@
                var deskripsi = selectedOption.data('deskripsi');
                var mulai = selectedOption.data('mulai');
                var selesai = selectedOption.data('selesai');
-               console.log(mulai);
 
                if (namaKegiatan && tglKegiatan && tglSelesai && tempat) {
-                  console.log(namaKegiatan);
                   $('#rincianKegiatan').text(namaKegiatan);
                   $('#rincianTgl').text(`${tglKegiatan} - ${tglSelesai}`);
                   $('#rincianJam').text(`${formatJamMenit(mulai)} - ${formatJamMenit(selesai)} WITA`);
@@ -283,7 +251,6 @@
                      },
                      success: function(response) {
                         $('#kegiatanPeserta').empty();
-                        console.log(response);
                         let data = response.data;
                         let tipe = response.tipe;
                         if (response.success) {
@@ -332,7 +299,6 @@
                         } else {
                            $('#showKegiatan').hide();
                            var pesertaAda;
-                           // console.log(nik);
                            $.ajax({
                               url: '{{ route('user.peserta.cekData') }}',
                               type: 'GET',
@@ -341,9 +307,7 @@
                                  nik: nik
                               },
                               success: function(response) {
-                                 console.log('halo ', data.length);
                                  pesertaAda = response.success;
-                                 console.log('pernah ikut : ', pesertaAda);
 
                                  // ada 2 alert, yg sdh pernah ikut dan belum pernah
                                  if (data.length > 0) {
@@ -426,7 +390,6 @@
                                  } else {
                                     Swal.fire({
                                        title: "Warning",
-                                       // text: "Peserta tidak terdaftar dalam kegiatan ini. Silahkan registrasi untuk mengikuti kegiatan",
                                        text: "Peserta belum mendaftar dalam kegiatan ini. Silahkan registrasi ke menu Data > Data Eksternal",
                                        icon: "warning",
                                        showCancelButton: true,
@@ -436,10 +399,6 @@
                                     }).then((res) => {
                                        if (res.isConfirmed) {
                                           // Redirect to registrasi page with kegiatan_id
-                                          // window.location.href =
-                                          //     '{{ route('user.kegiatan_regist') }}' +
-                                          //     '?kegiatan_id=' +
-                                          //     kegiatanId;
                                           window.location.href =
                                              '{{ route('user.guru') }}'
                                        }
@@ -477,7 +436,6 @@
                let kegiatanId = $(this).val();
                let id_k = $(this).val();
                let textKegiatan = $(this).find('option:selected');
-               // console.log(kegiatanId);
                if (kegiatanId === '') {
                   $('#searchSection').hide();
                   $('#showKegiatan').hide();

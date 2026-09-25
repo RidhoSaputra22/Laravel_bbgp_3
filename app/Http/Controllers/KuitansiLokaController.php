@@ -48,7 +48,6 @@ class KuitansiLokaController extends Controller
                     'hari_7' => $item->hari_7,
                 ];
             });
-            // dump($penugasanPegawai);
 
 
             return [
@@ -67,7 +66,6 @@ class KuitansiLokaController extends Controller
 
 
         $kuitansiLoka = KuitansiLoka::orderByDesc('id')->get();
-        // dd($kuitansiLoka);
         return view('pages.admin.kuitansiLoka.index', compact('menu', 'datas', 'kuitansiLoka'));
     }
 
@@ -76,20 +74,9 @@ class KuitansiLokaController extends Controller
      */
     public function create()
     {
-        // $menu = $this->menu;
-        // $kegiatan = Kegiatan::orderBy('id', 'DESC')->get();
-
-        // $datas = array(
-        //     'peserta' => PesertaKegiatan::orderByDesc('id')->get(),
-        //     'kabupaten' => Kabupaten::get(),
-        // );
-        // // foreach ($datas['peserta'] as $i => $v) {
-        // //     dd($v->pegawai->nip);
-        // // }
-        // // dd($datas['peserta'][0]->pegawai->nip);
 
 
-        // return view('pages.admin.kuitansi.create', compact('menu', 'datas', 'kegiatan'));
+
     }
 
     /**
@@ -101,7 +88,6 @@ class KuitansiLokaController extends Controller
         
         $r = $r->all();
 
-        // dd((int)substr(str_replace('.', '', $r['transport_pergi']), 3));
         $r['transport_pergi']  = (int)  substr(str_replace('.', '', $r['transport_pergi']), 3) ?? 0;
         $r['transport_pulang']  = (int) substr(str_replace('.', '', $r['transport_pulang']), 3) ?? 0;
         $r['bill_penginapan']  = (int) substr(str_replace('.', '', $r['bill_penginapan']), 3) ?? 0;
@@ -114,7 +100,6 @@ class KuitansiLokaController extends Controller
         $r['hari_7']  = (int) substr(str_replace('.', '', $r['hari_7']), 3) ?? 0;
         $r['total']  = (int) substr(str_replace('.', '', $r['total']), 3) ?? 0;
         $r['internal_id'] = $r['id'];
-        // dd($r);
 
 
         KuitansiLoka::create($r);
@@ -129,8 +114,6 @@ class KuitansiLokaController extends Controller
      */
     public function show($id)
     {
-        // $kuitansi = Kuitansi::findOrFail($id);
-        // return view('pages.admin.kuitansi.detail', compact('kuitansi'));
     }
 
 
@@ -139,22 +122,9 @@ class KuitansiLokaController extends Controller
      */
     public function edit(string $id)
     {
-        // Temukan data kuitansi berdasarkan id
-        // $kuitansi = Kuitansi::findOrFail($id);
-        // $menu = $this->menu;
-        // $title = 'kuitansi';
-        // $kegiatan = Kegiatan::orderBy('id', 'DESC')->get();
 
-        // $datas = array(
-        //     'peserta' => PesertaKegiatan::orderByDesc('id')->get(),
-        //     'kabupaten' => Kabupaten::get(),
-        // );
 
-        // // Memuat data terkait seperti transportasi
-        // $transportasis = $kuitansi->transportasis;
 
-        // // Mengembalikan view dengan data kuitansi dan transportasi
-        // return view('pages.admin.kuitansi.edit', compact('menu', 'kuitansi', 'transportasis', 'title', 'datas', 'kegiatan'));
     }
 
     /**
@@ -162,8 +132,6 @@ class KuitansiLokaController extends Controller
      */
     public function update(Request $r, $id)
     {
-        // dump($r->all());
-        // dd($id);
         $kuitansi = KuitansiLoka::findOrFail($id);
 
         // Perbarui data kuitansi
@@ -194,7 +162,6 @@ class KuitansiLokaController extends Controller
 
         $data = KuitansiLoka::find($id);
 
-        // dd($data);
 
 
         $pdf = Pdf::loadView('pages.admin.kuitansiLoka.cetak.cetak', compact('data'));
@@ -218,7 +185,6 @@ class KuitansiLokaController extends Controller
         $rowIdsArray = array_map('intval', explode(',', $rowIds)); // Convert IDs to integers
 
         $query = KuitansiLoka::whereIn('id', $rowIdsArray);
-        // dd($rowIds);
         if ($kegiatanId) {
             $query->whereHas('internalMany', function ($query) use ($kegiatanId) {
                 $query->where('id', $kegiatanId);
@@ -227,11 +193,9 @@ class KuitansiLokaController extends Controller
         $datas = $query->get();
         
         if ($datas->isEmpty()) {
-            // dd($datas);
             return response()->json(['error' => 'No data found for the given IDs.'], 404);
         }
         
-        // dd($datas);
         try {
             $pdf = Pdf::loadView('pages.admin.kuitansiLoka.cetak.cetakAll.cetakAll', compact('datas'));
             $pdf->setPaper('a4', 'portrait');
@@ -261,7 +225,6 @@ class KuitansiLokaController extends Controller
         }
         
         $datas = $query->get();
-        // dd($datas);
         if ($datas->isEmpty()) {
             return response()->json(['error' => 'No data found for the given IDs.'], 404);
         }
@@ -356,7 +319,6 @@ class KuitansiLokaController extends Controller
 
         $data = KuitansiLoka::find($id);
 
-        // dd($data);
 
 
         $pdf = Pdf::loadView('pages.admin.kuitansiLoka.cetak.cetakRill', compact('data'));
@@ -373,7 +335,6 @@ class KuitansiLokaController extends Controller
 
         $data = KuitansiLoka::find($id);
 
-        // dd($data);
 
 
         $pdf = Pdf::loadView('pages.admin.kuitansiLoka.cetak.cetakPjMutlak', compact('data'));
@@ -419,8 +380,6 @@ class KuitansiLokaController extends Controller
 
         $pdf = Pdf::loadView('pages.admin.kuitansiLoka.cetak.cetakLampiran', compact('data'));
 
-        // Set properties PDF
-        // $pdf->setPaper('a4', 'landscape'); // Set kertas ke mode landscape
         $pdf->setPaper(array(0, 0, 2025, 865)); // Set kertas ke mode landscape
 
 
@@ -428,18 +387,4 @@ class KuitansiLokaController extends Controller
     }
 
 
-    // public function getPeserta(Request $r)
-    // {
-    //     // dd($r->all());
-    //     $kegiatan = $r->input('kegiatan');
-    //     $peserta = PesertaKegiatan::orderBy('id', 'DESC')
-    //         ->where('id_kegiatan', $kegiatan)
-    //         ->where(function ($query) {
-    //             $query->where('status_keikutpesertaan', 'panitia')
-    //                 ->orWhere('status_keikutpesertaan', 'narasumber');
-    //         })
-    //         ->get();
-    //     // dd($peserta);
-    //     return response()->json($peserta);
-    // }
 }

@@ -177,7 +177,6 @@
                         fetch(`/api/statistics/month/${month}`)
                             .then(response => response.json())
                             .then(data => {
-                                console.log('Month Statistics:', data); // Check the response here
                                 renderChart('bar', getBarChartData({
                                     'Jumlah Kegiatan': data.jumlah_kegiatan
                                 }));
@@ -187,7 +186,6 @@
                             })
                             .then(response => response.json())
                             .then(activities => {
-                                console.log('Activities:', activities); // Check the activities list
                                 const activitySelect = document.getElementById('activitySelect');
                                 activitySelect.innerHTML = '<option value="">-- Pilih Kegiatan --</option>';
                                 activities.forEach(activity => {

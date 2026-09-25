@@ -11,8 +11,6 @@
     <!-- General CSS Files -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    {{-- <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
-        integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous"> --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.7.2/css/all.min.css"
         integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ asset('library/selectric/public/selectric.css') }}">
@@ -96,53 +94,28 @@
     <script src="{{ asset('js/custom.js') }}"></script>
     @if (session('message') == 'username sudah ada')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil tambah data',
-            //     position: 'topRight'
-            // });
             swal("Warning", "Username sudah terdaftar", "error");
         </script>
     @endif
     {{-- success store data --}}
     @if (session('message') == 'store')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil tambah data',
-            //     position: 'topRight'
-            // });
             swal("Berhasil", "Berhasil tambah data", "success");
         </script>
     @endif
     @if (session('message') == 'size gambar')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil update data',
-            //     position: 'topRight'
-            // });
             swal("Danger", "Gambar tidak valid, pastikan gambar jpg, png, atau jpeg dengan (size min. 512kb)", "error");
         </script>
     @endif
     @if (session('message') == 'size bukti')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil update data',
-            //     position: 'topRight'
-            // });
             swal("Danger", "Bukti tidak valid, pastikan file ekstensi pdf dengan (size min. 1.5 mb)", "error");
         </script>
     @endif
     {{-- success update data --}}
     @if (session('message') == 'update')
         <script>
-            // iziToast.success({
-            //     title: 'Sukses',
-            //     message: 'Berhasil update data',
-            //     position: 'topRight'
-            // });
             swal("Berhasil", "Berhasil update data", "success");
         </script>
     @endif

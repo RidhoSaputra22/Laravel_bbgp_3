@@ -37,7 +37,6 @@
                                                 <th class="text-center">#</th>
                                                 <th>Thumbnail</th>
                                                 <th>Judul Berita</th>
-                                                {{-- <th>Isi Berita</th> --}}
                                                 <th>Author</th>
                                                 <th>Status</th>
                                                 <th>Action</th>
@@ -51,7 +50,6 @@
                                                         <img class="img img-fluid" width="250" src="{{ asset('upload/berita/'. $data->thumbnail) }}" alt="Thumbnail Berita">  
                                                          </td>
                                                     <td>{{ $data->judul ?? '' }}</td>
-                                                    {{-- <td>{!! $data->isi ?? '' !!}</td> --}}
                                                     <td>{{ $data->status }} </td>
                                                     <td>
                                                         @if ($data->status == 'publish')

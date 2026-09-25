@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,12 +11,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
         $this->call(AdminSeeder::class);
         $this->call(LoginRoleSeeder::class);
         $this->call(StatusKepegawaianSeeder::class);
@@ -37,7 +31,6 @@ class DatabaseSeeder extends Seeder
         $this->call(JabatanPenugasanSeeder::class);
         $this->call(GuruSeeder::class);
         $this->call(ValidatorUserSeeder::class);
-        // $this->call(DataSeeder::class);
         $this->call(AssessmentProtofolioSeeder::class);
         $this->call(AssessmentPilihanGandaSeeder::class);
         $this->call(AssessmentStudiKasusSeeder::class);
@@ -45,9 +38,5 @@ class DatabaseSeeder extends Seeder
         $this->call(AssessmentEvaluasiPelaksanaanSeeder::class);
         $this->call(AssessmentValidasiAhliSeeder::class);
 
-        // $this->call(AssessmentProtofolioKepalaSekolahSeeder::class);
-        // $this->call(AssessmentPilihanGandaKepalaSekolahSeeder::class);
-        // $this->call(AssessmentStudiKasusKepalaSekolahSeeder::class);
-        // $this->call(AssessmentEvaluasiLikertKepalaSekolahSeeder::class);
     }
 }

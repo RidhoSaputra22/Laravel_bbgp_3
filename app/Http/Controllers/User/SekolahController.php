@@ -20,16 +20,13 @@ class SekolahController extends Controller
 {
     public function index()
     {
-        // dd(1);
         return view('pages.landing.sekolah.index', [
             'menu' => 'sekolah',
-            // 'activities' => $activities,
         ]);
     }
 
     public function store(Request $request)
     {
-        // dd($request->all());
 
         $validated = $request->validate([
             'nama_sekolah' => 'required|string|max:255',
@@ -78,10 +75,6 @@ class SekolahController extends Controller
             'struktur_organisasi' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
-        // Cek apakah user sudah punya data sekolah
-        // if (Sekolah::where('user_id', Auth::id())->exists()) {
-        //     return back()->with('error', 'Anda sudah memiliki data sekolah. Silakan edit data yang sudah ada.');
-        // }
 
         DB::beginTransaction();
 
@@ -153,7 +146,6 @@ class SekolahController extends Controller
 
         try {
             $sekolah = Sekolah::find($id);
-            // return view('pages.admin.guru.sekolah.show', compact('sekolah'));
             return view('pages.admin.guru.showSekolah', ['sekolah' => $sekolah, 'menu' => 'data-sekolah']);
         } catch (\Exception $e) {
             report($e);

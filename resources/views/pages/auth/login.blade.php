@@ -24,11 +24,6 @@
                 <div class="form-group">
                     <div class="d-block">
                         <label for="password" class="control-label">Password</label>
-                        {{-- <div class="float-right">
-                            <a href="#" class="text-small">
-                                Forgot Password?
-                            </a>
-                        </div> --}}
                     </div>
                     <input id="password" type="password" class="form-control" name="password" tabindex="2" required>
                     <div class="invalid-feedback">
@@ -42,15 +37,10 @@
                     </div>
                     <select class="form-control selectric" name="role" id="">
                         <option value="">-- Pilih Role --</option>
-                        {{-- <option value="kepala">Kepala Balai</option>
-                        <option value="keuangan">Keuangan</option>
-                        <option value="kepegawaian">Kepegawaian</option>
-                        <option value="kegiatan">Kegiatan</option> --}}
                         <option value="tenaga pendidik">Tenaga Pendidik</option>
                         <option value="tenaga kependidikan">Tenaga Kependidikan</option>
                         <option value="stakeholder">Stakeholder</option>
                         <option value="pegawai">Pegawai BBGTK</option>
-                        {{-- <option value="database">Database</option> --}}
                     </select>
                 </div>
 

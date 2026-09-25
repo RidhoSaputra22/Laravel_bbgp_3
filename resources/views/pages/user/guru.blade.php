@@ -11,16 +11,12 @@
             <div class="section-header d-flex justify-content-between">
                 <h1 class="text-primary"><u> Data Eksternal BBGTK Sulawesi Selatan</u> </h1>
                 <div class=" mt-3">
-                    {{-- <a href="{{ route('user.form_guru') }}" target="_blank" class="btn btn-primary"><i class="fas fa-users mr-2"></i> Daftar
-                        Eksternal BBGTK</a> --}}
 
                 </div>
 
             </div>
 
             <div class="section-body">
-                {{-- <h2 class="section-title">This is Example Page</h2>
-                <p class="section-lead">This page is just an example for you to create your own page.</p> --}}
                 <div class="card">
 
                     <div class="card-body">
@@ -57,8 +53,6 @@
                             </div>
                         </div>
 
-                        {{-- <form action="{{ route('user.cek_pegawai') }}" method="POST">
-                            @csrf --}}
                         {{-- Filter Data --}}
                         <div class="row mb-2">
                             <div class="col-md-8">
@@ -68,16 +62,6 @@
                                         placeholder="Masukkan nama anda" class="form-control">
                                 </div>
                             </div>
-                            {{-- <div class="col-md-4 mb-3">
-                                <h5>Filter Data Eksternal</h5>
-                               
-                                <select class="form-control selectric">
-                                    <option value="">-- Filter By Jabatan Ketenagaan --</option>
-                                    <option value="Tenaga Pendidik">Tenaga Pendidik</option>
-                                    <option value="Tenaga Kependidikan">Tenaga Kependidikan</option>
-                                    <option value="Stakeholder">Stakeholder</option>
-                                </select>
-                            </div> --}}
                         </div>
                         <h5>Filter Data Eksternal</h5>
 
@@ -97,7 +81,6 @@
                                     <label>Jabatan</label>
                                     <select name="jabJenis" class="form-control" id="jabJenis">
                                         <option value="">-- Pilih Jenis Jabatan --</option>
-                                        {{-- <option id="valJabJenis" value="">-- Pilih Jabatan</option> --}}
                                     </select>
                                 </div>
                             </div>
@@ -106,8 +89,6 @@
                                 <label>Kategori Jabatan </label>
                                 <select name="jabKategori" class="form-control" id="jabKategori">
                                     <option value="">-- Pilih Kategori --</option>
-                                    {{-- <option value="GP (Guru Penggerak)">GP (Guru Penggerak)</option>
-                                    <option value="NoN GP (Guru Penggerak)">NoN GP (Guru Penggerak)</option> --}}
 
                                 </select>
                             </div>
@@ -124,7 +105,6 @@
 
 
                         </div>
-                        {{-- </form> --}}
 
                         <div class="data-not-found alert alert-info">Silahkan cari data eksternal anda, jika tidak ada.
                             Silahkan hubungi admin / registrasi pada button diatas</div>
@@ -133,7 +113,6 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center">#</th>
-                                        {{-- <th>Pas Foto</th> --}}
                                         <th>NPSN Sekolah</th>
                                         <th>Nama Lengkap</th>
                                         <th>NPWP</th>
@@ -164,8 +143,6 @@
                                     @foreach ($datas as $i => $data)
                                         <tr>
                                             <td>{{ ++$i }}</td>
-                                            {{-- <td><img src="{{ asset('/upload/guru/' . $data->pas_foto) }}"
-                                                        alt="" class="img-fluid"></td> --}}
                                             <td>{{ $data->npsn_sekolah }} -
                                                 {{ $data->sekolah->nama_sekolah ?? '' }}</td>
                                             <td>{{ $data->nama_lengkap }}</td>
@@ -186,7 +163,6 @@
                                             <td>{{ $data->tugas_jabatan ? $data->tugas_jabatan : 'Tidak ada' }}</td>
                                             <td>{{ $data->kabupaten }}</td>
                                             <td>{{ $data->satuan_pendidikan }}</td>
-                                            {{-- <td>{{ $data->jabatan }}</td> --}}
                                             <td>{{ $data->sekolah->kecamatan ?? '' }}</td>
                                             <td>{{ $data->sekolah->kabupaten ?? '' }}</td>
                                             <td>No. Hp : {{ $data->no_hp }} <br>
@@ -200,9 +176,6 @@
                             </table>
                         </div>
                     </div>
-                    {{-- <div class="card-footer bg-whitesmoke">
-                        This is card footer
-                    </div> --}}
                 </div>
             </div>
         </section>
@@ -239,9 +212,6 @@
                     const jabKategoriValue = jabKategori.value;
                     const jabTugasValue = jabTugas.value;
 
-                    console.log('Search Text:', searchText);
-                    console.log('Select Value 13:', jabEksternalValue);
-                    console.log('Select Value 14:', jabTugasValue);
 
                     // Update search and redraw tableGuru
                     tableGuru.column(2).search(searchText).draw();
@@ -277,8 +247,6 @@
         <script>
             $(document).ready(function() {
 
-                // const jenisEksternal = ;
-                // console.log(jenisEksternal);
 
                 // jabatan ketenagaan
                 function fillterJabatan() {
@@ -390,20 +358,11 @@
 
                 // fix
                 $('#jabKategori').on('change', function() {
-                    // fillterKategori();
                     var jabTugas = $('#jabTugas');
-                    // var jabJenis = $(this);
                     var option = '';
                     const dataJab = {!! json_encode($status, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
-                    // jabJenis.empty();
 
-                    // jabJenis.append($('<option>', {
-                    //     value: '',
-                    //     text: '-- Pilih Jabatan --',
-                    //     disabled: true,
-                    //     selected: true
-                    // }));
 
                     var selectedOption = $(this).find('option:selected');
 
@@ -429,13 +388,9 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabTugas):', selectedOption.val());
-                    console.log('Selected Text (jabTugas):', selectedOption.text());
                 });
 
                 $('#jabJenis').on('change', function() {
-                    // fillterKategori();
-                    // var jabEksternal = $('#jabEksternal').val();
                     var jabKategori = $('#jabKategori');
                     var jabTugas = $('#jabTugas');
                     var jabJenis = $(this);
@@ -502,8 +457,6 @@
                         }));
                     }
 
-                    console.log('Selected Value (jabKategori):', selectedOption.val());
-                    console.log('Selected Text (jabKategori):', selectedOption.text());
                 });
             });
         </script>

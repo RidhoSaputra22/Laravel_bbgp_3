@@ -101,24 +101,20 @@ class AdminController extends Controller
             'pers' => Guru::select('id')->where('eksternal_jabatan', 'Stakeholder')->where('jenis_jabatan', 'Pers')->get()->count(),
         );
 
-        // dd(session('no_ktp'));
 
         $datas = array(
             'tenaga_pendidik' => $tenaga_pendidik,
             'tenaga_kependidik' => $tenaga_kependidik,
             'stakeholder' => $stakeholder,
             'kegiatan' => PesertaKegiatan::with(['kegiatan', 'getKegiatan'])->where('no_ktp', session('no_ktp'))->first(),
-            // 'jadwalLokakarya' => Internal::where('jenis', 'Penugasan Lokakarya')->get(),
 
         );
-        // dd($datas['kegiatan']);
 
         return view('pages.admin.dashboard.index', ['menu' => 'dashboard', 'datas' => $datas]);
     }
 
     public function getByKegiatan(Request $r)
     {
-        // dd($r->all());
         try {
             $peserta = PesertaKegiatan::where('id_kegiatan', $r->kegiatan_id)->where('no_ktp', $r->nik)->first();
             return response()->json([
@@ -135,7 +131,6 @@ class AdminController extends Controller
 
     public function getByKegiatanUser(Request $r)
     {
-        // dd($r->all());
         try {
             $peserta = PesertaKegiatan::where('id_kegiatan', $r->kegiatan_id)->where('no_ktp', $r->nik)->first();
             return response()->json([
@@ -173,7 +168,6 @@ class AdminController extends Controller
                 'penugasan_ppnpn' => $penugasanPPNPN->pluck('nama')->unique()->toArray(),
             ];
         })->values();
-        // dd($jadwal[46]);
         return response()->json([
             'jadwal' => $jadwal
         ]);

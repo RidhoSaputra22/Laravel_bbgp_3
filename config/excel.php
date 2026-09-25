@@ -160,8 +160,6 @@ return [
        */
         'cells'        => [
             'middleware' => [
-                //\Maatwebsite\Excel\Middleware\TrimCellValue::class,
-                //\Maatwebsite\Excel\Middleware\ConvertEmptyCellValuesToNull::class,
             ],
         ],
 
@@ -338,8 +336,6 @@ return [
         |
         */
         'local_permissions'   => [
-            // 'dir'  => 0755,
-            // 'file' => 0644,
         ],
 
         /*

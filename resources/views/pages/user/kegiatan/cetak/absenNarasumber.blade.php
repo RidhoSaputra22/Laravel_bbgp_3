@@ -77,7 +77,6 @@
                     <td>{{ $peserta->nama }}</td>
                     <td>{{ $peserta->instansi }}</td>
                     <td></td>
-                    {{-- <td>{{ date('H:i', strtotime($peserta->jam_mengajar)) }} - {{ date('H:i', strtotime($peserta->jam_selesai)) }} WITA</td> --}}
                     <td style="height: 50px;"></td>
                 </tr>
                 @if (($key + 1) % 25 == 0)

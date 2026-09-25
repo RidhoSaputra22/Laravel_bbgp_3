@@ -76,26 +76,9 @@
                     <td>Kota Makassar</td>
                     <td style="height: 25px; width:100px;"></td>
                 </tr>
-                {{-- @if (($key + 1) % 25 == 0) --}}
                 @endforeach
         </tbody>
     </table>
-    {{-- <div class="page-break"></div> --}}
-    {{-- <table>
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Nama</th>
-                <th>Instansi</th>
-                <th>Asal Kabupaten</th>
-                <th>TTD</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table> --}}
-    {{-- @endif --}}
-    {{-- @endforeach --}}
 
     {{-- footer --}}
     <footer style="text-align: right; margin-right: 150px">

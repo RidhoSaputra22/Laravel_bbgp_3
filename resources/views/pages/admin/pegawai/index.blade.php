@@ -32,19 +32,11 @@
                                                     #
                                                 </th>
                                                 <th style="width: 400px">Nama Lengkap</th>
-                                                {{-- <th>Email</th> --}}
                                                 <th>Golongan</th>
                                                 <th>Nomor KTP</th>
                                                 <th>NIP</th>
-                                                {{-- <th>Tempat, Tanggal Lahir</th> --}}
-                                                {{-- <th>Alamat Rumah</th> --}}
-                                                {{-- <th>Jenis Kelamin</th> --}}
                                                 <th>Jabatan</th>
-                                                {{-- <th>Agama</th> --}}
                                                 <th>Pegawai</th>
-                                                {{-- <th>Satuan Pendidikan</th> --}}
-                                                {{-- <th>Nomor Aktif</th> --}}
-                                                {{-- <th>No Rekening</th> --}}
                                                 <th>Status Verifikasi</th>
                                                 <th>Action</th>
                                             </tr>
@@ -57,25 +49,11 @@
                                                     </td>
 
                                                     <td>{{ $data->nama_lengkap }}</td>
-                                                    {{-- <td>{{ $data->email }} </td> --}}
                                                     <td>{{ $data->golongan == null || $data->golongan == 'Tidak ada' ? 'Tidak ada' : $data->golongan }}</td>
                                                     <td>{{ $data->no_ktp }}</td>
                                                     <td>{{ $data->nip }}</td>
-                                                    {{-- <td>{{ $data->tempat_lahir . ', ' . $data->tgl_lahir }}</td> --}}
-                                                    {{-- <td>{{ $data->alamat_rumah }}</td> --}}
-                                                    {{-- <td>{{ $data->gender }}</td> --}}
                                                     <td>{{ $data->jabatan }}</td>
                                                     <td>{{ $data->jenis_pegawai }}</td>
-                                                    {{-- <td>{{ $data->agama }}</td> --}}
-                                                    {{-- <td>
-                                                        {{ $data->satuan_pendidikan }}
-                                                    </td> --}}
-                                                    {{-- <td>No. Hp : {{ $data->no_hp }} <br>
-                                                        No. Whatsapp : {{ $data->no_wa }}
-                                                    </td> --}}
-                                                    {{-- <td>
-                                                        {{ $data->no_rek }}
-                                                    </td> --}}
                                                     <td>
                                                         @if ($data->is_verif == 'sudah')
                                                             <span class="badge badge-success">Sudah Verifikasi</span>
@@ -90,10 +68,6 @@
                                                                 onclick="verifikasi({{ $data->id }}, 'pegawai', '{{ $data->is_verif }}')">Verifikasi</a>
                                                         @endif
 
-                                                        {{-- <button class="btn btn-info"
-                                                            onclick="showDetail( {{ $data->id }} )">
-                                                            <i class="fas fa-info"></i>
-                                                        </button> --}}
 
                                                         <a href="{{ route('pegawai.edit', $data->id) }}"
                                                             class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>

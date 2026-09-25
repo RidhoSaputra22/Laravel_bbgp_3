@@ -111,33 +111,10 @@
                         style="{{ ($key + 1) % 2 == 0 ? 'text-align:right; padding-right: 50%;' : 'text-align:left;' }} height:30px;">
                         {{ $key + 1 }}.</td>
                 </tr>
-                {{-- @if (($key + 1) % 25 == 0) --}}
             @endforeach
 
         </tbody>
     </table>
-    {{-- <div class="page-break"></div>
-    <table>
-        <thead>
-            <tr>
-                <th rowspan="2">No</th>
-                <th rowspan="2">Nama</th>
-                <th rowspan="2">Instansi</th>
-                <th rowspan="2">Golongan</th>
-                <th rowspan="2">L / P</th>
-                <th colspan="2">Kelengkapan Peserta</th>
-                <th rowspan="2">TTD</th>
-            </tr>
-            <tr>
-                <th>Transport</th>
-                <th>Biodata</th>
-            </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table> --}}
-    {{-- @endif
-    @endforeach --}}
     <footer style="text-align: right; margin-right: 150px">
         <p>Panitia, </p>
     </footer>

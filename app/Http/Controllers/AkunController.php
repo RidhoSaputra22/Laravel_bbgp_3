@@ -19,7 +19,6 @@ class AkunController extends Controller
     {
         $this->authorizeAccountAdmin();
 
-        // $data = Admin::orderByDesc('id')->get();
         $data = Admin::select('id', 'name', 'username', 'role')
             ->orderByDesc('id')
             ->get();
@@ -227,7 +226,6 @@ class AkunController extends Controller
                 'password' => $passwordPlain,
             ],
         ]);
-        // return redirect()->route('akun.index')->with('message', 'store');
     }
 
     private function managedRoles(): array

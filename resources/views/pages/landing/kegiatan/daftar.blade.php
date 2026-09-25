@@ -254,20 +254,7 @@
                             </div>
 
                             <div class="row">
-                                {{-- <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>NPSN Sekolah</label>
-                                        <input name="npsn_sekolah" id="npsn_sekolah" type="text"
-                                            class="form-control">
-                                    </div>
-                                </div> --}}
 
-                                {{-- <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label>NUPTK</label>
-                                        <input name="nuptk" id="nuptk" type="text" class="form-control">
-                                    </div>
-                                </div> --}}
                             </div>
 
                             <hr class="my-4">
@@ -331,28 +318,6 @@
                                     </div>
                                 </div>
 
-                                {{-- <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>Jenis Bank</label>
-                                        <select name="jenis_bank" id="jenis_bank" class="form-control select2">
-                                            <option value="">-- pilih bank --</option>
-                                            <option value="BRI">BRI</option>
-                                            <option value="BNI">BNI</option>
-                                            <option value="Mandiri">Mandiri</option>
-                                            <option value="BTN">BTN</option>
-                                            <option value="BCA">BCA</option>
-                                            <option value="BSI">BSI (Bank Syariah Indonesia)</option>
-                                            <option value="Lainnya">Lainnya</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label>Nomor Rekening</label>
-                                        <input name="no_rek" id="no_rek" type="text" class="form-control">
-                                    </div>
-                                </div> --}}
                             </div>
 
                             <hr class="my-4">
@@ -390,16 +355,6 @@
                                 </div>
                             </div>
 
-                            {{-- <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group">
-                                        <label>Upload Pas Foto (Optional)</label>
-                                        <input name="pas_foto" id="pas_foto" type="file" class="form-control"
-                                            accept="image/*">
-                                        <small class="form-text text-muted">Format: JPG, PNG, JPEG. Max: 2MB</small>
-                                    </div>
-                                </div>
-                            </div> --}}
 
                         </div>
 
@@ -437,7 +392,6 @@
                         nik: {!! json_encode(session('nik'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
                     },
                     success: function(response) {
-                        console.log('Data loaded:', response.data);
 
                         if (response.data) {
                             let data = response.data;
