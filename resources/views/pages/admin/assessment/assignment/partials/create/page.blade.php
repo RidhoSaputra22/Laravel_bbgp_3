@@ -574,6 +574,9 @@
                                         <small class="form-text text-muted">
                                             Penugasan tidak perlu lagi memilih form satu-satu atau user satu-satu.
                                         </small>
+                                        <small class="form-text text-muted">
+                                            Gunakan Ctrl atau Command untuk memilih lebih dari satu item.
+                                        </small>
                                         @error('target_ketenagaan')
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
                                         @enderror

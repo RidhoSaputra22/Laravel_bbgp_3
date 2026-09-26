@@ -135,6 +135,7 @@ class AssessmentEditViewFileFieldConfigTest extends TestCase
                 'role' => 'admin',
                 'user_id' => 1,
                 'name' => 'Admin Test',
+                'cek' => true,
             ])
             ->get(route('assessment.edit', $assessment->id));
 

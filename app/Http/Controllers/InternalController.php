@@ -772,7 +772,7 @@ class InternalController extends Controller
 
     public function calendar(Request $request)
     {
-        return view('calendar.index');
+        return $this->index();
     }
 
     public function getCalendarData(Request $request)

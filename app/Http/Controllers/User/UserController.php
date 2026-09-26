@@ -349,7 +349,7 @@ class UserController extends Controller
                     'Tidak ada',
                 ]),
             ],
-            'npwp' => 'required|between:8,20',
+            'npwp' => 'required|digits_between:15,16',
             'nuptk' => $request->input('jenisJabatan') === 'Stakeholder'
                 ? 'nullable|digits:16'
                 : 'required|digits:16',

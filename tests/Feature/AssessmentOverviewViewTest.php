@@ -163,6 +163,7 @@ class AssessmentOverviewViewTest extends TestCase
         $response->assertSee('Draft');
         $response->assertSee('Sedang Dikerjakan');
         $response->assertSee('Lanjutkan Tahap');
-        $response->assertSee(route('assessment.portal.show', ['id' => 609, 'stage' => 1], absolute: false), false);
+        $response->assertSee(route('assessment.portal.confirm', 609), false);
+        $response->assertSee('name="stage_index" value="1"', false);
     }
 }
