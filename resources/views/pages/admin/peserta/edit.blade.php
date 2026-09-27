@@ -79,7 +79,7 @@
                                             <div class="form-group">
                                                 <label>Tempat Lahir</label>
                                                 <input name="tempat_lahir" id="tempat_lahir"
-                                                    value="{{ $getById->tempat_lahir }}" type="text"
+                                                    value="{{ $profile->tempat_lahir }}" type="text"
                                                     class="form-control" required>
                                             </div>
                                         </div>
@@ -87,7 +87,7 @@
                                         <div class="col-md-3">
                                             <div class="form-group">
                                                 <label>Tanggal Lahir</label>
-                                                <input name="tgl_lahir" id="tgl_lahir" value="{{ $getById->tgl_lahir }}"
+                                                <input name="tgl_lahir" id="tgl_lahir" value="{{ $profile->tgl_lahir }}"
                                                     type="date" class="form-control" required>
                                             </div>
                                         </div>
@@ -97,15 +97,15 @@
                                                 <label>Agama</label>
                                                 <select required name="agama" class="form-control ">
                                                     <option value="">-- Pilih Agama --</option>
-                                                    <option {{ $getById->agama == 'Islam' ? 'selected' : '' }}
+                                                    <option {{ $profile->agama == 'Islam' ? 'selected' : '' }}
                                                         value="Islam">Islam</option>
-                                                    <option {{ $getById->agama == 'Kristen' ? 'selected' : '' }}
+                                                    <option {{ $profile->agama == 'Kristen' ? 'selected' : '' }}
                                                         value="Kristen">Kristen</option>
-                                                    <option {{ $getById->agama == 'Katolik' ? 'selected' : '' }}
+                                                    <option {{ $profile->agama == 'Katolik' ? 'selected' : '' }}
                                                         value="Katolik">Katolik</option>
-                                                    <option {{ $getById->agama == 'Hindu' ? 'selected' : '' }}
+                                                    <option {{ $profile->agama == 'Hindu' ? 'selected' : '' }}
                                                         value="Hindu">Hindu</option>
-                                                    <option {{ $getById->agama == 'Buddha' ? 'selected' : '' }}
+                                                    <option {{ $profile->agama == 'Buddha' ? 'selected' : '' }}
                                                         value="Buddha">Buddha</option>
                                                 </select>
                                             </div>

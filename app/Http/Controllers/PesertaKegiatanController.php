@@ -127,13 +127,14 @@ class PesertaKegiatanController extends Controller
      */
     public function edit(string $id)
     {
-        $datas = PesertaKegiatan::find($id);
+        $datas = PesertaKegiatan::findOrFail($id);
         $kegiatan = Kegiatan::get();
 
         $getById = Guru::where('no_ktp', $datas->no_ktp)->first();
         if ($getById == null) {
             $getById = Pegawai::where('no_ktp', $datas->no_ktp)->first();
         }
+        $profile = $getById ?? $datas;
         $menu = $this->menu;
         $status = array(
             'kabupaten' => Kabupaten::get(),
@@ -142,7 +143,7 @@ class PesertaKegiatanController extends Controller
             's_gelar' => Pendidikan::get(),
         );
 
-        return view('pages.admin.peserta.edit', compact('datas', 'menu', 'status', 'kegiatan', 'getById'));
+        return view('pages.admin.peserta.edit', compact('datas', 'menu', 'status', 'kegiatan', 'profile'));
     }
 
     /**
@@ -153,27 +154,28 @@ class PesertaKegiatanController extends Controller
         $datas = PesertaKegiatan::find($r->id);
 
 
-        $getDataPeserta = Guru::where('no_ktp', $r->no_ktp)->first();
-        if ($getDataPeserta == null) {
-            $getDataPeserta = Pegawai::where('no_ktp', $r->no_ktp)->first();
-        }
-        $getDataPeserta->agama = $r->agama;
-        $getDataPeserta->tgl_lahir = $r->tgl_lahir;
-        $getDataPeserta->tempat_lahir = $r->tempat_lahir;
-        $getDataPeserta->pendidikan = $r->pendidikan;
-        $getDataPeserta->alamat_rumah = $r->alamat_rumah;
-        $getDataPeserta->kabupaten_rumah = $r->kabupaten_rumah;
-        $getDataPeserta->npwp = $r->npwp;
-        $getDataPeserta->status = $r->status;
+        $getDataPeserta = Guru::where('no_ktp', $r->no_ktp)->first()
+            ?? Pegawai::where('no_ktp', $r->no_ktp)->first();
 
-        // Handle gender mapping
-        if (isset($getDataPeserta->gender)) {
-            $getDataPeserta->gender = $r->jkl ?? $r->gender;
-        } else if (isset($getDataPeserta->jkl)) {
-            $getDataPeserta->jkl = $r->jkl ?? $r->gender;
-        }
+        if ($getDataPeserta) {
+            $getDataPeserta->agama = $r->agama;
+            $getDataPeserta->tgl_lahir = $r->tgl_lahir;
+            $getDataPeserta->tempat_lahir = $r->tempat_lahir;
+            $getDataPeserta->pendidikan = $r->pendidikan;
+            $getDataPeserta->alamat_rumah = $r->alamat_rumah;
+            $getDataPeserta->kabupaten_rumah = $r->kabupaten_rumah;
+            $getDataPeserta->npwp = $r->npwp;
+            $getDataPeserta->status = $r->status;
 
-        $getDataPeserta->save();
+            // Handle gender mapping
+            if (isset($getDataPeserta->gender)) {
+                $getDataPeserta->gender = $r->jkl ?? $r->gender;
+            } else if (isset($getDataPeserta->jkl)) {
+                $getDataPeserta->jkl = $r->jkl ?? $r->gender;
+            }
+
+            $getDataPeserta->save();
+        }
 
         if ($r['kabupaten'] == 'lainnya') {
 

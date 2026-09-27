@@ -38,5 +38,18 @@ class DatabaseSeeder extends Seeder
         $this->call(AssessmentEvaluasiPelaksanaanSeeder::class);
         $this->call(AssessmentValidasiAhliSeeder::class);
 
+        // Data demo panel admin: tiap panel punya seeder terpisah dan saling terhubung.
+        $this->call([
+            MasterDataSeeder::class,
+            DataAkunSeeder::class,
+            DataSekolahSeeder::class,
+            DataEksternalSeeder::class,
+            DataInternalSeeder::class,
+            DataKegiatanSeeder::class,
+            LaporanKegiatanSeeder::class,
+            DataKeuanganSeeder::class,
+            DataRtlSeeder::class,
+        ]);
+
     }
 }
