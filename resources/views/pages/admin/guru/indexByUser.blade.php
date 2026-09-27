@@ -411,9 +411,9 @@
                 });
             });
 
-            function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           (pegawaiId) {
+            function showDetail(pegawaiId) {
                 $.ajax({
-                    url: '{{ route('admin.eksternal.detail') }}',
+                    url: '{{ route('guru.detail.user') }}',
                     type: 'GET',
                     data: {
                         id: pegawaiId

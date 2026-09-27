@@ -188,6 +188,7 @@ Route::group(
 
                 // untuk login ekternal by user
                 Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly:admin,superadmin,kepala,database');
+                Route::get('/detailByUser', 'GuruController@getDetailByUser')->name('guru.detail.user');
                 Route::get('/show/{id}', 'GuruController@show')->name('guru.show');
                 Route::get('/editByUser/{id}', 'GuruController@editByUser')->name('guru.edit.user');
                 Route::put('/updateByUser', 'GuruController@updateByUser')->name('guru.update.user');

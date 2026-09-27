@@ -163,6 +163,17 @@ class GuruController extends Controller
         ]);
     }
 
+    public function getDetailByUser(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        abort_unless((int) session('guru_id') === (int) $validated['id'], 403);
+
+        return $this->getDetail($request);
+    }
+
     /**
      * Update the specified resource in storage.
      */
