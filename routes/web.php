@@ -8,6 +8,7 @@ use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalRe
 use App\Http\Controllers\Assessment\PortalSecurityController as AssessmentPortalSecurityController;
 use App\Http\Controllers\EvaluasiPelaksanaanResultController;
 use App\Http\Controllers\GuruDashboardController;
+use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
@@ -114,6 +115,13 @@ Route::prefix('guru')
     ->name('guru.')
     ->group(function () {
         Route::get('/dashboard', [GuruDashboardController::class, 'index'])->name('dashboard');
+    });
+
+Route::prefix('pegawai')
+    ->middleware(['ValidasiUser', 'PegawaiOnly'])
+    ->name('pegawai.')
+    ->group(function () {
+        Route::get('/dashboard', [PegawaiController::class, 'dashboard'])->name('dashboard');
     });
 
 Route::prefix('assessment')

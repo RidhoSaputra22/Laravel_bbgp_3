@@ -73,7 +73,7 @@ class AuthController extends Controller
             Session::put('cek', true);
 
             if ($user->role == 'pegawai') {
-                return redirect()->route('pegawai.show', $user->no_ktp)->with('message', 'sukses login');
+                return redirect()->route('pegawai.dashboard')->with('message', 'sukses login');
             }
 
             if ($user->role == 'stakeholder' && ValidatorAccess::isEligibleUser($user->setRelation('guru', $guru))) {
@@ -123,7 +123,7 @@ class AuthController extends Controller
             Session::put('cek', true);
 
             if ($user->role == 'pegawai') {
-                return redirect()->route('pegawai.show', $user->no_ktp)->with('message', 'sukses login');
+                return redirect()->route('pegawai.dashboard')->with('message', 'sukses login');
             }
 
             if ($user->role == 'tenaga pendidik' || $user->role == 'tenaga kependidikan' || $user->role == 'stakeholder') {

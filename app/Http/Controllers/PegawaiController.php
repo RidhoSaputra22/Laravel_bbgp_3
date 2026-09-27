@@ -17,6 +17,35 @@ use Illuminate\Http\Request;
 
 class PegawaiController extends Controller
 {
+    public function dashboard()
+    {
+        $pegawai = Pegawai::where('no_ktp', session('no_ktp'))->firstOrFail();
+        $types = ['Pendamping Lokakarya', 'Penugasan Pegawai', 'Penugasan PPNPN'];
+
+        $calendarEvents = Internal::query()
+            ->where('nik', $pegawai->no_ktp)
+            ->whereIn('jenis', $types)
+            ->orderBy('tgl_kegiatan')
+            ->orderBy('jam_mulai')
+            ->get()
+            ->map(fn (Internal $event) => [
+                'title' => $event->kegiatan ?: $event->jenis,
+                'start' => trim($event->tgl_kegiatan.' '.($event->jam_mulai ?: '00:00:00')),
+                'end' => trim(($event->tgl_selesai_kegiatan ?: $event->tgl_kegiatan).' '.($event->jam_selesai ?: '23:59:59')),
+                'jenis' => $event->jenis,
+                'tempat' => $event->kota ?: $event->tempat,
+                'description' => strip_tags((string) $event->deskripsi),
+                'jam' => trim(($event->jam_mulai ?: '').' - '.($event->jam_selesai ?: '').' WITA'),
+            ])
+            ->values();
+
+        return view('pages.user.pegawai-dashboard', [
+            'menu' => 'dashboard',
+            'pegawai' => $pegawai,
+            'calendarEvents' => $calendarEvents,
+        ]);
+    }
+
     /**
      * Display a listing of the resource.
      */

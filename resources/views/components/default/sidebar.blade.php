@@ -14,7 +14,7 @@
             $externalRoles = ['tenaga pendidik', 'tenaga kependidikan', 'stakeholder'];
             $dashboardUrl = in_array($currentRole, $externalRoles, true)
                 ? route('guru.dashboard')
-                : ($currentRole === 'pegawai' ? route('pegawai.show', session('no_ktp')) : route('dashboard'));
+                : ($currentRole === 'pegawai' ? route('pegawai.dashboard') : route('dashboard'));
          @endphp
 
          <li class="menu-header">Dashboard</li>
