@@ -89,6 +89,44 @@
                 { "selector": "#tgl_surat_tugas", "value": "2026-01-01" },
                 { "selector": "#status_keikutpesertaan", "value": "peserta", "event": "change" }
             ]
+        },
+        {
+            "name": "Tambah Peserta",
+            "path": "/dashboard/peserta/create",
+            "form": "form[action*='/peserta/store']",
+            "fields": [
+                {
+                    "selector": "select[name='id_kegiatan']",
+                    "value": "11",
+                    "event": "change",
+                    "waitForOption": true
+                },
+                { "selector": "#nama", "value": "Peserta Dev Testing" },
+                { "selector": "#no_ktp", "value": "7371010101800001" },
+                { "selector": "#nip", "value": "198001012010011001" },
+                {
+                    "selector": "#kabupaten",
+                    "value": "Kabupaten Soppeng",
+                    "event": "change",
+                    "waitForOption": true
+                },
+                { "selector": "#instansi", "value": "BBGTK Sulawesi Selatan" },
+                { "selector": "select[name='gender']", "value": "Perempuan", "event": "change" },
+                { "selector": "#jenis_gol", "value": "PNS", "event": "change" },
+                {
+                    "selector": "#golongan_pns",
+                    "value": "I/a",
+                    "event": "change",
+                    "waitForOption": true
+                },
+                { "selector": "#no_wa", "value": "081234567890" },
+                { "selector": "#no_hp", "value": "081234567891" },
+                { "selector": "input[name='no_surat_tugas']", "value": "ST-DEV-001" },
+                { "selector": "input[name='tgl_surat_tugas']", "value": "2026-01-01" },
+                { "selector": "#status_keikutpesertaan", "value": "peserta", "event": "change" },
+                { "selector": "#kelengkapan_transport", "value": "Ada", "event": "change" },
+                { "selector": "#kelengkapan_biodata", "value": "Ada", "event": "change" }
+            ]
         }
     ]
 }
