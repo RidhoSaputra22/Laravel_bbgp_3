@@ -220,10 +220,9 @@ class KegiatanController extends Controller
 
             return redirect()->route('user.kegiatan_regist', [
                 'kegiatan_id' => $status['kegiatanById']->id,
-            ])->with([
-                'status' => $status,
-                'message' => 'error golongan',
-                'menu' => 'kegiatan',
+                'nik' => $r['no_ktp'],
+            ])->withInput()->withErrors([
+                'jenis_gol' => 'Silakan pilih golongan sesuai dengan jenis golongan yang dipilih.',
             ]);
         }
 
@@ -364,7 +363,7 @@ class KegiatanController extends Controller
             $status = true;
         }
 
-        
+
 
         Session::put('nik', $nik);
         Session::put('dataAda', $status);

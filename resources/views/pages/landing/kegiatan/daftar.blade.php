@@ -3,6 +3,15 @@
     @push('styles')
         <link rel="stylesheet" href="{{ asset('library/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
         <link rel="stylesheet" href="{{ asset('library/datatables.net-select-bs4/css/select.bootstrap4.min.css') }}">
+        <style>
+            .field-error {
+                display: block;
+                margin-top: .25rem;
+                color: #dc3545;
+                font-size: .875rem;
+                line-height: 1.25rem;
+            }
+        </style>
     @endpush
 
     <div id="banner-area" class="banner-area"
@@ -47,21 +56,33 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>1. Nama Lengkap (dengan gelar) <span class="text-danger">*</span></label>
-                                        <input name="nama" id="nama" type="text" class="form-control" required>
+                                        <input name="nama" id="nama" type="text"
+                                            class="form-control @error('nama') is-invalid @enderror" required>
+                                        @error('nama')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>2. NIP <span class="text-danger">*</span></label>
-                                        <input name="nip" id="nip" type="text" class="form-control" required>
+                                        <input name="nip" id="nip" type="text"
+                                            class="form-control @error('nip') is-invalid @enderror" required>
+                                        @error('nip')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>NIK <span class="text-danger">*</span></label>
-                                        <input name="no_ktp" id="no_ktp" type="text" class="form-control" required>
+                                        <input name="no_ktp" id="no_ktp" type="text"
+                                            class="form-control @error('no_ktp') is-invalid @enderror" required>
+                                        @error('no_ktp')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -70,36 +91,48 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>3. Pangkat & Golongan</label>
-                                        <select name="jenis_gol" id="jenis_gol" class="form-control">
+                                        <select name="jenis_gol" id="jenis_gol"
+                                            class="form-control @error('jenis_gol') is-invalid @enderror">
                                             <option value="">-- pilih jenis golongan --</option>
                                             <option value="PNS">PNS</option>
                                             <option value="P3K">PPPK/P3K</option>
                                             <option value="Tidak ada golongan">Tidak Ada Golongan</option>
                                         </select>
+                                        @error('jenis_gol')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-3" id="form_golongan_pns" style="display: none;">
                                     <div class="form-group">
                                         <label>Golongan PNS</label>
-                                        <select name="golongan_pns" id="golongan_pns" class="form-control select2">
+                                        <select name="golongan_pns" id="golongan_pns"
+                                            class="form-control select2 @error('golongan_pns') is-invalid @enderror">
                                             <option value="">-- pilih golongan --</option>
                                             @foreach ($status['golongan'] as $v)
                                                 <option value="{{ $v->name }}">{{ $v->name }}</option>
                                             @endforeach
                                         </select>
+                                        @error('golongan_pns')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-3" id="form_golongan_p3k" style="display: none;">
                                     <div class="form-group">
                                         <label>Golongan PPPK/P3K</label>
-                                        <select name="golongan_p3k" id="golongan_p3k" class="form-control select2">
+                                        <select name="golongan_p3k" id="golongan_p3k"
+                                            class="form-control select2 @error('golongan_p3k') is-invalid @enderror">
                                             <option value="">-- pilih golongan --</option>
                                             @foreach ($status['golongan_p3k'] as $v)
                                                 <option value="{{ $v->name }}">{{ $v->name }}</option>
                                             @endforeach
                                         </select>
+                                        @error('golongan_p3k')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -107,21 +140,32 @@
                                     <div class="form-group">
                                         <label>Isi Golongan</label>
                                         <input name="diluar_gol" id="diluar_gol" placeholder="jika tidak ada ketik tanda -"
-                                            type="text" class="form-control">
+                                            type="text" class="form-control @error('diluar_gol') is-invalid @enderror">
+                                        @error('diluar_gol')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>4. Jabatan <span class="text-danger">*</span></label>
-                                        <input name="jabatan" id="jabatan" type="text" class="form-control" required>
+                                        <input name="jabatan" id="jabatan" type="text"
+                                            class="form-control @error('jabatan') is-invalid @enderror" required>
+                                        @error('jabatan')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label>5. Mata Pelajaran yang diampu (opsional)</label>
-                                        <input name="mata_pelajaran" type="text" class="form-control">
+                                        <input name="mata_pelajaran" type="text"
+                                            class="form-control @error('mata_pelajaran') is-invalid @enderror">
+                                        @error('mata_pelajaran')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -130,38 +174,52 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>6. Tempat Lahir <span class="text-danger">*</span></label>
-                                        <input name="tempat_lahir" id="tempat_lahir" type="text" class="form-control"
-                                            required>
+                                        <input name="tempat_lahir" id="tempat_lahir" type="text"
+                                            class="form-control @error('tempat_lahir') is-invalid @enderror" required>
+                                        @error('tempat_lahir')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Tanggal Lahir <span class="text-danger">*</span></label>
-                                        <input name="tgl_lahir" id="tgl_lahir" type="date" class="form-control"
-                                            required>
+                                        <input name="tgl_lahir" id="tgl_lahir" type="date"
+                                            class="form-control @error('tgl_lahir') is-invalid @enderror" required>
+                                        @error('tgl_lahir')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label>7. Jenis Kelamin <span class="text-danger">*</span></label>
-                                        <select name="jkl" id="gender" class="form-control" required>
+                                        <select name="jkl" id="gender"
+                                            class="form-control @error('jkl') is-invalid @enderror" required>
                                             <option value="">-- pilih --</option>
                                             <option value="Laki-laki">Laki-laki</option>
                                             <option value="Perempuan">Perempuan</option>
                                         </select>
+                                        @error('jkl')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label>8. Status <span class="text-danger">*</span></label>
-                                        <select name="status" id="status" class="form-control" required>
+                                        <select name="status" id="status"
+                                            class="form-control @error('status') is-invalid @enderror" required>
                                             <option value="">-- pilih --</option>
                                             <option value="Kawin">Kawin</option>
                                             <option value="Belum Kawin">Belum Kawin</option>
                                         </select>
+                                        @error('status')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -170,7 +228,8 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>9. Agama <span class="text-danger">*</span></label>
-                                        <select name="agama" id="agama" class="form-control" required>
+                                        <select name="agama" id="agama"
+                                            class="form-control @error('agama') is-invalid @enderror" required>
                                             <option value="">-- pilih agama --</option>
                                             <option value="Islam">Islam</option>
                                             <option value="Kristen">Kristen</option>
@@ -179,13 +238,17 @@
                                             <option value="Buddha">Buddha</option>
                                             <option value="Konghucu">Konghucu</option>
                                         </select>
+                                        @error('agama')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>10. Pendidikan Terakhir <span class="text-danger">*</span></label>
-                                        <select name="pendidikan" id="pendidikan" class="form-control" required>
+                                        <select name="pendidikan" id="pendidikan"
+                                            class="form-control @error('pendidikan') is-invalid @enderror" required>
                                             <option value="">-- pilih pendidikan --</option>
                                             <option value="S3">S3</option>
                                             <option value="S2">S2</option>
@@ -196,6 +259,9 @@
                                             <option value="D1">D1</option>
                                             <option value="SMA/SMK">SMA/SMK</option>
                                         </select>
+                                        @error('pendidikan')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -208,8 +274,11 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>11. Nama Unit Kerja / Instansi <span class="text-danger">*</span></label>
-                                        <input name="instansi" id="instansi" type="text" class="form-control"
-                                            required>
+                                        <input name="instansi" id="instansi" type="text"
+                                            class="form-control @error('instansi') is-invalid @enderror" required>
+                                        @error('instansi')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -217,7 +286,10 @@
                                     <div class="form-group">
                                         <label>Nama Satuan Pendidikan</label>
                                         <input name="satuan_pendidikan" id="satuan_pendidikan" type="text"
-                                            class="form-control">
+                                            class="form-control @error('satuan_pendidikan') is-invalid @enderror">
+                                        @error('satuan_pendidikan')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -227,20 +299,27 @@
                                     <div class="form-group">
                                         <label>12. Alamat Unit Kerja</label>
                                         <input type="text" name="alamat" id="alamat"
-                                            class="form-control" rows="2" />
+                                            class="form-control @error('alamat') is-invalid @enderror" rows="2" />
+                                        @error('alamat')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Kabupaten / Kota (Unit Kerja) <span class="text-danger">*</span></label>
-                                        <select name="kabupaten" id="kabupaten" class="form-control select2" required>
+                                        <select name="kabupaten" id="kabupaten"
+                                            class="form-control select2 @error('kabupaten') is-invalid @enderror" required>
                                             <option value="">-- pilih kabupaten --</option>
                                             @foreach ($status['kabupaten'] as $v)
                                                 <option value="{{ $v->name }}">{{ $v->name }}</option>
                                             @endforeach
                                             <option value="lainnya">Lainnya</option>
                                         </select>
+                                        @error('kabupaten')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -248,7 +327,10 @@
                                     <div class="form-group">
                                         <label>Asal Kabupaten / Kota</label>
                                         <input name="asal_kabupaten" id="asal_kabupaten" type="text"
-                                            class="form-control">
+                                            class="form-control @error('asal_kabupaten') is-invalid @enderror">
+                                        @error('asal_kabupaten')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -265,21 +347,29 @@
                                 <div class="col-md-8">
                                     <div class="form-group">
                                         <label>13. Alamat Rumah <span class="text-danger">*</span></label>
-                                        <input type="text" name="alamat_rumah" id="alamat_rumah" class="form-control"
+                                        <input type="text" name="alamat_rumah" id="alamat_rumah"
+                                            class="form-control @error('alamat_rumah') is-invalid @enderror"
                                             rows="2" required />
+                                        @error('alamat_rumah')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>Kabupaten / Kota (Alamat Rumah)</label>
-                                        <select name="kabupaten_rumah" id="kabupaten_rumah" class="form-control select2" required>
+                                        <select name="kabupaten_rumah" id="kabupaten_rumah"
+                                            class="form-control select2 @error('kabupaten_rumah') is-invalid @enderror" required>
                                             <option value="">-- pilih kabupaten --</option>
                                             @foreach ($status['kabupaten'] as $v)
                                                 <option value="{{ $v->name }}">{{ $v->name }}</option>
                                             @endforeach
                                             <option value="lainnya">Lainnya</option>
                                         </select>
+                                        @error('kabupaten_rumah')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -288,23 +378,33 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>14. Nomor HP / WA <span class="text-danger">*</span></label>
-                                        <input name="no_hp" id="no_hp" type="number" class="form-control"
-                                            required>
+                                        <input name="no_hp" id="no_hp" type="number"
+                                            class="form-control @error('no_hp') is-invalid @enderror" required>
+                                        @error('no_hp')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label>Nomor WhatsApp</label>
-                                        <input name="no_wa" id="no_wa" type="number" class="form-control">
+                                        <input name="no_wa" id="no_wa" type="number"
+                                            class="form-control @error('no_wa') is-invalid @enderror">
+                                        @error('no_wa')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>15. Alamat Email / Akun Belajar <span class="text-danger">*</span></label>
-                                        <input name="email" id="email" type="email" class="form-control"
-                                            required>
+                                        <input name="email" id="email" type="email"
+                                            class="form-control @error('email') is-invalid @enderror" required>
+                                        @error('email')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -313,8 +413,12 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>16. NPWP</label>
-                                        <input name="npwp" id="npwp" type="text" class="form-control"
+                                        <input name="npwp" id="npwp" type="text"
+                                            class="form-control @error('npwp') is-invalid @enderror"
                                             placeholder="Format: XX.XXX.XXX.X-XXX.XXX">
+                                        @error('npwp')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -329,7 +433,11 @@
                                     <div class="form-group">
                                         <label>Nomor Surat Tugas <span class="text-danger">*</span></label>
                                         <input name="no_surat_tugas" id="no_surat_tugas" type="text"
-                                            class="form-control" placeholder="Contoh: **/**/**/**" required>
+                                            class="form-control @error('no_surat_tugas') is-invalid @enderror"
+                                            placeholder="Contoh: **/**/**/**" required>
+                                        @error('no_surat_tugas')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -337,7 +445,10 @@
                                     <div class="form-group">
                                         <label>Tanggal Surat Tugas <span class="text-danger">*</span></label>
                                         <input name="tgl_surat_tugas" id="tgl_surat_tugas" type="date"
-                                            class="form-control" required>
+                                            class="form-control @error('tgl_surat_tugas') is-invalid @enderror" required>
+                                        @error('tgl_surat_tugas')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -345,12 +456,15 @@
                                     <div class="form-group">
                                         <label>Status Keikutpesertaan <span class="text-danger">*</span></label>
                                         <select name="status_keikutpesertaan" id="status_keikutpesertaan"
-                                            class="form-control" required>
+                                            class="form-control @error('status_keikutpesertaan') is-invalid @enderror" required>
                                             <option value="">-- Pilih Status --</option>
                                             <option value="peserta">Peserta</option>
                                             <option value="panitia">Panitia</option>
                                             <option value="narasumber">Narasumber</option>
                                         </select>
+                                        @error('status_keikutpesertaan')
+                                            <div class="field-error">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
                             </div>
@@ -375,6 +489,14 @@
     @push('scripts')
         <script>
             $(document).ready(function() {
+                @if ($errors->any())
+                    const firstInvalidField = document.querySelector('form .is-invalid');
+                    if (firstInvalidField) {
+                        firstInvalidField.scrollIntoView({ block: 'center' });
+                        firstInvalidField.focus();
+                    }
+                @endif
+
                 // Initialize Select2
                 $('.select2').select2();
 

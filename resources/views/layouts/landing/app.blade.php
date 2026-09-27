@@ -582,28 +582,14 @@
             <script>
 
                 $(document).ready(function() {
-
-                    var val = {!! json_encode(session('id')) !!};
+                    var pesertaId = {!! json_encode(session('id')) !!};
                     var url = '{{ route('peserta.cetakByUser', ['id' => ':id']) }}'
-                    url = url.replace(':id', val.id)
+                        .replace(':id', pesertaId);
 
-                    $.ajax({
-                        url: url, // Ganti dengan route yang sesuai untuk mengambil status
-                        type: 'GET',
-
-                        success: function(response) {
-                            Swal.fire("Berhasil", "Berhasil registrasi Kegiatan", "success").then((result) => {
-                                if (result.isConfirmed) {
-                                    // Arahkan ke URL PDF untuk memulai download
-                                    window.location.href = url;
-                                }
-                            });
-
-                        },
-                        error: function(error) {
-                            console.error("AJAX Error:", error);
-                            Swal.fire("Error", "Ajax Error.", "error");
-                        },
+                    Swal.fire("Berhasil", "Berhasil registrasi Kegiatan", "success").then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = url;
+                        }
                     });
                 })
             </script>

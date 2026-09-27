@@ -74,6 +74,8 @@ $(document).ready(function() {
   const namaInput = document.querySelector('#nama');
   const noDataMessage = document.querySelector('.data-not-found');
 
+  if (!namaInput || !noDataMessage) return;
+
   // Tambahkan event listener untuk input keyup
   namaInput.addEventListener('keyup', function() {
     const searchText = namaInput.value;
@@ -99,6 +101,8 @@ $(document).ready(function() {
   // Pilih elemen input dan div pesan
   const noKtpInput = document.querySelector('#no_ktp');
   const noDataMessage = document.querySelector('.data-not-found');
+
+  if (!noKtpInput || !noDataMessage) return;
 
   // Tambahkan event listener untuk input keyup
   noKtpInput.addEventListener('keyup', function() {
