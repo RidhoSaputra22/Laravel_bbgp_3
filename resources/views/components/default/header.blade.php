@@ -1,4 +1,11 @@
 <div class="navbar-bg"></div>
+@php
+    $currentRole = strtolower(trim((string) session('role')));
+    $externalRoles = ['tenaga pendidik', 'tenaga kependidikan', 'stakeholder'];
+    $profileUrl = in_array($currentRole, $externalRoles, true)
+        ? route('guru.show', session('no_ktp'))
+        : ($currentRole === 'pegawai' ? route('pegawai.show', session('no_ktp')) : route('profile.index', Session('user_id')));
+@endphp
 <nav class="navbar navbar-expand-lg main-navbar">
     <form class="form-inline mr-auto">
         <ul class="navbar-nav mr-3">
@@ -16,7 +23,7 @@
                 <div class="d-sm-none d-lg-inline-block">Hi, {{ Session('name') }}</div>
             </a>
             <div class="dropdown-menu dropdown-menu-right">
-                <a href="{{ route('profile.index', Session('user_id')) }}" class="dropdown-item has-icon">
+                <a href="{{ $profileUrl }}" class="dropdown-item has-icon">
                     <i class="far fa-user"></i> Profile
                 </a>
                

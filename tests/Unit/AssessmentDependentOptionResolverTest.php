@@ -62,4 +62,15 @@ class AssessmentDependentOptionResolverTest extends TestCase
         $this->assertFalse($resolver->isEnabled($field));
         $this->assertSame([], $resolver->resolveOptions($field, ['kabupaten_kota' => 'Kabupaten Gowa']));
     }
+
+    public function test_it_ignores_nested_answer_arrays_when_normalizing_dependency_values(): void
+    {
+        $resolver = new AssessmentDependentOptionResolver();
+
+        $this->assertSame('Kabupaten Gowa', $resolver->normalizeAnswerValue(['value' => 'Kabupaten Gowa']));
+        $this->assertSame('Kabupaten Gowa', $resolver->normalizeAnswerValue(['Kabupaten Gowa']));
+        $this->assertSame('', $resolver->normalizeAnswerValue([
+            ['nama_field' => 'baris pertama'],
+        ]));
+    }
 }

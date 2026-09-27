@@ -16,8 +16,10 @@ use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\ChoiceFieldOtherOption;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Mockery;
 use Tests\TestCase;
@@ -420,7 +422,7 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
-    public function test_build_answer_lookup_uses_public_disk_url_for_uploaded_file_answers(): void
+    public function test_build_answer_lookup_uses_private_attachment_route_for_uploaded_file_answers(): void
     {
         config()->set('filesystems.disks.public.url', 'http://localhost/upload');
 
@@ -449,10 +451,32 @@ class AssessmentAttemptServiceTest extends TestCase
         $lookup = $this->makeService()->buildAnswerLookup($attempt->fresh('answers'));
 
         $this->assertSame(
-            'http://localhost/upload/assessment/attempts/1/bukti.png',
+            route('assessment.portal.file', 1),
             $lookup[$field->id]['file_url'] ?? null
         );
         $this->assertSame('image/png', data_get($lookup[$field->id] ?? [], 'payload.mime_type'));
+    }
+
+    public function test_uploaded_file_is_stored_on_private_disk(): void
+    {
+        Storage::fake('assessment_private');
+        Storage::fake('public');
+
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'file',
+        ]);
+
+        $savedAttempt = $this->makeService()->saveSnapshot(
+            $attempt,
+            [],
+            [$field->id => UploadedFile::fake()->image('ktp.png')],
+            [$field->id]
+        );
+
+        $savedAnswer = $savedAttempt->answers()->where('assessment_form_field_id', $field->id)->firstOrFail();
+
+        Storage::disk('assessment_private')->assertExists($savedAnswer->answer_file_path);
+        Storage::disk('public')->assertMissing($savedAnswer->answer_file_path);
     }
 
     public function test_save_snapshot_marks_stage_as_draft_for_manual_stage_draft_request(): void

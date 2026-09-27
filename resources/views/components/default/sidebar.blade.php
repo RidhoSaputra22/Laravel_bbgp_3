@@ -9,10 +9,18 @@
 
       <ul class="sidebar-menu">
 
+         @php
+            $currentRole = strtolower(trim((string) session('role')));
+            $externalRoles = ['tenaga pendidik', 'tenaga kependidikan', 'stakeholder'];
+            $dashboardUrl = in_array($currentRole, $externalRoles, true)
+                ? route('guru.dashboard')
+                : ($currentRole === 'pegawai' ? route('pegawai.show', session('no_ktp')) : route('dashboard'));
+         @endphp
+
          <li class="menu-header">Dashboard</li>
 
          <li class="nav-item  {{ $menu == 'dashboard' ? 'active' : '' }}">
-            <a href="{{ route('dashboard') }}" class="nav-link "><i class="fas fa-fire"></i><span>Dashboard</span></a>
+            <a href="{{ $dashboardUrl }}" class="nav-link "><i class="fas fa-fire"></i><span>Dashboard</span></a>
          </li>
 
          @if (session('role') == 'admin' || session('role') == 'superadmin' || session('role') == 'kepala')

@@ -1502,6 +1502,7 @@ class AssessmentAssignmentService
         }
 
         try {
+            Storage::disk('assessment_private')->delete($normalizedPaths);
             Storage::disk('public')->delete($normalizedPaths);
         } catch (Throwable $exception) {
             report($exception);

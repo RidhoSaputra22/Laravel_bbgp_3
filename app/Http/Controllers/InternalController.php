@@ -261,13 +261,13 @@ class InternalController extends Controller
             $r['bukti_bill'] = $r['old_bukti_bill'];
         } else {
             if ($file->getSize() / 1024 >= 1500) {
-                return session('role') == 'pegawai' ? redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti') : redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti');
+                return back()->withInput()->with('message', 'size bukti');
             }
 
             $bukti = $request->file('bukti_bill');
             $ext = strtolower((string) $bukti->extension());
             if ($ext != 'pdf' || $bukti->getMimeType() !== 'application/pdf') {
-                return session('role') == 'pegawai' ? redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti') : redirect()->route('internal.create.lokakarya', $r['id_pegawai'])->with('message', 'size bukti');
+                return back()->withInput()->with('message', 'size bukti');
             }
 
             $nameBukti = Str::uuid().'.pdf';

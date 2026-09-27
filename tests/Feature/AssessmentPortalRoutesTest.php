@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AssessmentPortalRoutesTest extends TestCase
@@ -32,10 +33,27 @@ class AssessmentPortalRoutesTest extends TestCase
             $table->string('status')->default('ditugaskan');
             $table->timestamps();
         });
+
+        Schema::connection('sqlite')->create('assessment_attempts', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_assignment_target_id');
+            $table->string('status')->default('in_progress');
+            $table->timestamps();
+        });
+
+        Schema::connection('sqlite')->create('assessment_attempt_answers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('assessment_attempt_id');
+            $table->json('answer_payload')->nullable();
+            $table->string('answer_file_path')->nullable();
+            $table->timestamps();
+        });
     }
 
     protected function tearDown(): void
     {
+        Schema::connection('sqlite')->dropIfExists('assessment_attempt_answers');
+        Schema::connection('sqlite')->dropIfExists('assessment_attempts');
         Schema::connection('sqlite')->dropIfExists('assessment_assignment_targets');
         Schema::connection('sqlite')->dropIfExists('gurus');
 
@@ -113,6 +131,54 @@ class AssessmentPortalRoutesTest extends TestCase
                 'status' => 'not_found',
                 'redirect_url' => route('assessment.portal.dashboard'),
             ]);
+    }
+
+    public function test_assessment_file_route_streams_private_file_only_to_target_owner(): void
+    {
+        Storage::fake('assessment_private');
+        $this->createPortalGuru();
+
+        DB::table('assessment_assignment_targets')->insert([
+            'id' => 10,
+            'assessment_assignment_id' => 1,
+            'guru_id' => 1,
+            'status' => 'dikerjakan',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('assessment_attempts')->insert([
+            'id' => 20,
+            'assessment_assignment_target_id' => 10,
+            'status' => 'in_progress',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('assessment_attempt_answers')->insert([
+            'id' => 30,
+            'assessment_attempt_id' => 20,
+            'answer_payload' => json_encode([
+                'original_name' => 'ktp.png',
+                'mime_type' => 'image/png',
+            ]),
+            'answer_file_path' => 'assessment/attempts/20/ktp.png',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        Storage::disk('assessment_private')->put('assessment/attempts/20/ktp.png', 'private-ktp');
+
+        $response = $this->withSession([
+            'assessment_portal_auth' => ['guru_id' => 1],
+        ])->get(route('assessment.portal.file', 30));
+
+        $response
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertHeader('Content-Disposition', 'inline; filename="ktp.png"')
+            ->assertStreamedContent('private-ktp');
+
+        $this->withSession([
+            'assessment_portal_auth' => ['guru_id' => 2],
+        ])->get(route('assessment.portal.file', 30))->assertForbidden();
     }
 
     private function createPortalGuru(): void

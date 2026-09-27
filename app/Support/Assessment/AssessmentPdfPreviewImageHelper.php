@@ -15,7 +15,13 @@ class AssessmentPdfPreviewImageHelper
             return null;
         }
 
-        if (! Storage::disk('public')->exists($filePath)) {
+        $disk = Storage::disk('assessment_private');
+
+        if (! $disk->exists($filePath)) {
+            $disk = Storage::disk('public');
+        }
+
+        if (! $disk->exists($filePath)) {
             return null;
         }
 
@@ -26,13 +32,13 @@ class AssessmentPdfPreviewImageHelper
         }
 
         try {
-            $mimeType = Storage::disk('public')->mimeType($filePath) ?: match ($extension) {
+            $mimeType = $disk->mimeType($filePath) ?: match ($extension) {
                 'jpg', 'jpeg' => 'image/jpeg',
                 'gif' => 'image/gif',
                 'webp' => 'image/webp',
                 default => 'image/png',
             };
-            $binaryContents = Storage::disk('public')->get($filePath);
+            $binaryContents = $disk->get($filePath);
             $normalizedDataUri = static::buildNormalizedDataUri($binaryContents);
 
             if ($normalizedDataUri !== null) {

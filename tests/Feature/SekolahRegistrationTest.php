@@ -164,7 +164,7 @@ class SekolahRegistrationTest extends TestCase
         ]);
 
         $loginResponse
-            ->assertRedirect(route('guru.show', $data['nik_kepsek']))
+            ->assertRedirect(route('guru.dashboard'))
             ->assertSessionHas('message', 'sukses login');
 
         $this->assertAuthenticatedAs($user);

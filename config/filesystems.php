@@ -36,6 +36,13 @@ return [
             'throw' => false,
         ],
 
+        'assessment_private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             // Cek apakah di hosting (ada public_html), jika tidak pakai default

@@ -7,6 +7,7 @@ use App\Http\Controllers\Assessment\PortalController as AssessmentPortalControll
 use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;
 use App\Http\Controllers\Assessment\PortalSecurityController as AssessmentPortalSecurityController;
 use App\Http\Controllers\EvaluasiPelaksanaanResultController;
+use App\Http\Controllers\GuruDashboardController;
 use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
@@ -108,12 +109,20 @@ Route::group(
     }
 );
 
+Route::prefix('guru')
+    ->middleware(['ValidasiUser', 'ExternalOnly'])
+    ->name('guru.')
+    ->group(function () {
+        Route::get('/dashboard', [GuruDashboardController::class, 'index'])->name('dashboard');
+    });
+
 Route::prefix('assessment')
     ->name('assessment.portal.')
     ->group(function () {
         Route::get('/', [AssessmentPortalController::class, 'landing'])->name('index');
         Route::get('/result/{id}', [AssessmentPortalResultController::class, 'result'])->name('result');
         Route::get('/result/{id}/download', [AssessmentPortalResultController::class, 'downloadResultPdf'])->name('result.download');
+        Route::get('/file/{answer}', [AssessmentPortalResultController::class, 'file'])->name('file');
         Route::get('/auth', [AssessmentPortalAuthController::class, 'showLoginForm'])->name('auth');
         Route::post('/auth', [AssessmentPortalAuthController::class, 'login'])->name('login');
 

@@ -115,9 +115,9 @@ class AssessmentDependentOptionResolver
     public function normalizeAnswerValue(mixed $value): string
     {
         if (is_array($value)) {
-            return trim((string) ($value['value'] ?? Arr::first($value) ?? ''));
+            $value = $value['value'] ?? Arr::first($value) ?? '';
         }
 
-        return trim((string) ($value ?? ''));
+        return is_scalar($value) ? trim((string) $value) : '';
     }
 }

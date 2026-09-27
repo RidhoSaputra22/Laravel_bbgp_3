@@ -83,7 +83,7 @@ class AuthController extends Controller
             }
 
             if ($user->role == 'tenaga pendidik' || $user->role == 'tenaga kependidikan' || $user->role == 'stakeholder') {
-                return redirect()->route('guru.show', $user->no_ktp)->with('message', 'sukses login');
+                return redirect()->route('guru.dashboard')->with('message', 'sukses login');
             }
 
             return redirect()->route('dashboard')->with('message', 'sukses login');
