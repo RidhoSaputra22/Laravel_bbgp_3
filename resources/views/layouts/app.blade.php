@@ -138,6 +138,12 @@
         </script>
     @endif
 
+    @if (session('message') == 'nik kosong')
+        <script>
+            swal("Peringatan", "NIK pegawai belum diisi. Lengkapi NIK terlebih dahulu.", "warning");
+        </script>
+    @endif
+
     @if (session('message') == 'error golongan')
         <script>
             swal("Warning", "Golongan tidak valid", "error");

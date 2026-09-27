@@ -286,19 +286,23 @@
                                                     <td>{{ $data->nip ?? '' }}</td>
                                                     <td>{{ $data->jabatan ?? '' }}</td>
                                                     <td>
-                                                        <button class="btn btn-success my-2"
-                                                            data-nama="{{ $data->nama_lengkap }}"
-                                                            data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
-                                                            data-toggle="modal" data-target="#modalPpnpn">
-                                                            Menu Penugasan PPNPN
-                                                        </button>
+                                                        @if (filled($data->no_ktp))
+                                                            <button class="btn btn-success my-2"
+                                                                data-nama="{{ $data->nama_lengkap }}"
+                                                                data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
+                                                                data-toggle="modal" data-target="#modalPpnpn">
+                                                                Menu Penugasan PPNPN
+                                                            </button>
 
-                                                        <button class="btn btn-info my-2"
-                                                            data-nama="{{ $data->nama_lengkap }}"
-                                                            data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
-                                                            data-toggle="modal" data-target="#modalLokakarya">
-                                                            Menu Lokakarya
-                                                        </button>
+                                                            <button class="btn btn-info my-2"
+                                                                data-nama="{{ $data->nama_lengkap }}"
+                                                                data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
+                                                                data-toggle="modal" data-target="#modalLokakarya">
+                                                                Menu Lokakarya
+                                                            </button>
+                                                        @else
+                                                            <span class="text-muted">NIK belum diisi</span>
+                                                        @endif
 
                                                     </td>
 
@@ -333,19 +337,23 @@
                                                     <td>{{ $data->no_ktp }}</td>
                                                     <td>{{ $data->nip }}</td>
                                                     <td>
-                                                        <button class="btn btn-primary my-2"
-                                                            data-nama="{{ $data->nama_lengkap }}"
-                                                            data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
-                                                            data-toggle="modal" data-target="#modalPenugasan">
-                                                            Menu Penugasan
-                                                        </button>
+                                                        @if (filled($data->no_ktp))
+                                                            <button class="btn btn-primary my-2"
+                                                                data-nama="{{ $data->nama_lengkap }}"
+                                                                data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
+                                                                data-toggle="modal" data-target="#modalPenugasan">
+                                                                Menu Penugasan
+                                                            </button>
 
-                                                        <button class="btn btn-info my-2"
-                                                            data-nama="{{ $data->nama_lengkap }}"
-                                                            data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
-                                                            data-toggle="modal" data-target="#modalLokakarya">
-                                                            Menu Lokakarya
-                                                        </button>
+                                                            <button class="btn btn-info my-2"
+                                                                data-nama="{{ $data->nama_lengkap }}"
+                                                                data-id="{{ $data->id }}" data-nik="{{ $data->no_ktp }}"
+                                                                data-toggle="modal" data-target="#modalLokakarya">
+                                                                Menu Lokakarya
+                                                            </button>
+                                                        @else
+                                                            <span class="text-muted">NIK belum diisi</span>
+                                                        @endif
 
 
                                                     </td>
@@ -642,7 +650,7 @@
             // Event Lokakarya yang dijalankan saat modal muncul
             $('#modalLokakarya').on('show.bs.modal', function(event) {
                 var button = $(event.relatedTarget); // Button yang membuka modal
-                var nik = button.data('nik'); // Ambil data-nik dari tombol
+                var nik = button.data('nik') || button.data('id'); // Gunakan ID jika NIK kosong
                 var nama = button.data('nama'); // Ambil data-nama dari tombol
 
                 var lihatLink = "{{ route('internal.index.lokakarya', ':nik') }}".replace(':nik', nik);

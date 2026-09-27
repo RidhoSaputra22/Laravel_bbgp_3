@@ -260,13 +260,11 @@ Route::group(
                 Route::get('/calendar', 'InternalController@calendar')->name('internal.calendar');
                 Route::get('/getCalendar', 'InternalController@getCalendarData')->name('internal.getCalendarData');
 
-                // untuk tampil berdasar dari id pegawai
-                Route::get('/{id_pegawai}', 'InternalController@show')->name('internal.show');
-
                 Route::get('/tabel/{jenis}', 'InternalController@get_tabel')->name('internal.tabel');
                 Route::post('/verifikasi/{id}', 'InternalController@verifikasi')->name('internal.verifikasi');
 
                 // Khusus Loka karya
+                Route::get('/indexLokakarya', fn () => redirect()->route('internal.index'));
                 Route::get('/indexLokakarya/{nik}', 'InternalController@indexLokakarya')->name('internal.index.lokakarya');
                 Route::get('/createLokakarya/{id}', 'InternalController@createLokakarya')->name('internal.create.lokakarya');
                 Route::post('/storeLokakarya', 'InternalController@storeLokakarya')->name('internal.store.lokakarya');

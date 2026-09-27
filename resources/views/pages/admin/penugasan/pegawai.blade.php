@@ -19,6 +19,7 @@
                     <div class="col-md-12 col-lg-12">
                         <form action="{{ route('internal.store.pegawai') }}" method="POST" enctype="multipart/form-data">
                             @csrf
+                            <input type="hidden" name="id_pegawai" value="{{ $pegawai->id }}">
                             <div class="card">
                                 <div class="card-body">
                                     <div class="row">

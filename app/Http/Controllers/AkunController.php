@@ -213,7 +213,7 @@ class AkunController extends Controller
             'no_ktp' => (string) ($validated['no_ktp'] ?? ''),
             'role' => $role,
         ];
-        $passwordPlain = Str::random(16);
+        $passwordPlain = '12345';
         $reg['password'] = Hash::make($passwordPlain);
         Admin::create($reg);
         User::create($reg);

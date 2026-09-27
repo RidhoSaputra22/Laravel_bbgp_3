@@ -106,11 +106,12 @@ class InternalController extends Controller
     // Lokakarya
     public function indexLokakarya($nik)
     {
-        $pegawai = Pegawai::where('no_ktp', $nik)->first();
+        $pegawai = Pegawai::where('no_ktp', $nik)->first() ?? Pegawai::find($nik);
+        abort_unless($pegawai, 404);
         $datas = [
             'penugasanLokakarya' => Internal::where('jenis', 'Pendamping Lokakarya')->where('nik', $pegawai->no_ktp)->get(),
-            'penugasanPpnpn' => Internal::where('nik', $nik)->get(),
-            'getJenisLokakarya' => Internal::where('jenis', 'Pendamping Lokakarya')->where('nik', $nik)->first(),
+            'penugasanPpnpn' => Internal::where('nik', $pegawai->no_ktp)->get(),
+            'getJenisLokakarya' => Internal::where('jenis', 'Pendamping Lokakarya')->where('nik', $pegawai->no_ktp)->first(),
             'getNama' => Internal::where('nik', $pegawai->no_ktp)->first(),
 
             'getJenisLokakaryaPpnpn' => Internal::where('jenis', 'Pendamping Lokakarya')->where('nik', $pegawai->no_ktp)->first(),
@@ -411,6 +412,18 @@ class InternalController extends Controller
 
     public function storePegawai(Request $r)
     {
+        $pegawai = $r->filled('id_pegawai')
+            ? Pegawai::find($r->input('id_pegawai'))
+            : null;
+        $nik = trim((string) ($r->input('nik') ?: $pegawai?->no_ktp ?: ''));
+
+        if ($nik === '') {
+            return $pegawai
+                ? redirect()->route('pegawai.edit', $pegawai->id)->with('message', 'nik kosong')
+                : redirect()->route('internal.index')->with('message', 'nik kosong');
+        }
+
+        $r->merge(['nik' => $nik]);
 
         $mulai_kegiatan = explode(' ', $r['mulai_kegiatan']);
         $r['tgl_kegiatan'] = $mulai_kegiatan[0];
