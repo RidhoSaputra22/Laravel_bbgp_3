@@ -276,8 +276,7 @@
                                 </div>
 
                                 <div class="card-footer text-right">
-                                    <button class="btn btn-primary" type="submit"
-                                        onclick="submitSignature()">Submit</button>
+                                    <button class="btn btn-primary" type="submit">Submit</button>
                                     <button class="btn btn-secondary mx-1" type="reset">Reset</button>
                                     <a href="{{ route('peserta.index') }}" class="btn btn-warning">Kembali</a>
                                 </div>
@@ -291,36 +290,33 @@
 
     @push('scripts')
         <script src="{{ asset('library/select2/dist/js/select2.full.min.js') }}"></script>
-        <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
         <script>
             $(document).ready(function() {
+                const prefillNik = @json(session('nik'));
 
-                $.ajax({
-                    url: '{{ route('user.peserta.cekData') }}',
-                    type: 'GET',
-                    data: {
+                if (prefillNik) {
+                    $.ajax({
+                        url: '{{ route('user.peserta.cekData') }}',
+                        type: 'GET',
+                        data: { nik: prefillNik },
+                        success: function(response) {
+                            if (!response.data) return;
 
-                        nik: '{{ session('dataAda') }}'
-                    },
-                    success: function(response) {
-
-                        $('#no_ktp').val(response.data.no_ktp);
-                        $('#nama').val(response.data.nama);
-                        $('#jabatan').val(response.data.jabatan);
-                        $('#gender').val(response.data.jkl);
-                        $('#golongan').val(response.data.golongan);
-                        $('#kabupaten').val(response.data.kabupaten);
-                        $('#instansi').val(response.data.instansi);
-                        $('#no_hp').val(response.data.no_hp);
-                        $('#no_wa').val(response.data.no_wa);
-
-
-                    },
-                    error: function(error) {
-                        console.error(error);
-                        alert('Error fetching detail.');
-                    }
-                });
+                            $('#no_ktp').val(response.data.no_ktp);
+                            $('#nama').val(response.data.nama);
+                            $('#jabatan').val(response.data.jabatan);
+                            $('#gender').val(response.data.jkl);
+                            $('#golongan').val(response.data.golongan);
+                            $('#kabupaten').val(response.data.kabupaten);
+                            $('#instansi').val(response.data.instansi);
+                            $('#no_hp').val(response.data.no_hp);
+                            $('#no_wa').val(response.data.no_wa);
+                        },
+                        error: function(error) {
+                            console.error('Gagal memuat data peserta:', error);
+                        }
+                    });
+                }
 
 
                 $('.select2').select2();
@@ -421,22 +417,6 @@
 
             });
 
-            const canvas = document.querySelector("canvas");
-            const signaturePad = new SignaturePad(canvas);
-
-            document.getElementById('clear').addEventListener('click', function(event) {
-                event.preventDefault();
-                signaturePad.clear();
-            });
-
-            function submitSignature() {
-                if (signaturePad.isEmpty()) {
-                    alert("Please provide a signature first.");
-                } else {
-                    const dataUrl = signaturePad.toDataURL();
-                    document.getElementById('signature').value = dataUrl;
-                }
-            }
         </script>
     @endpush
 @endsection

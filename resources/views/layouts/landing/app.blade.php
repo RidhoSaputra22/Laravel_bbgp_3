@@ -476,6 +476,10 @@
 
         @stack('scripts')
 
+        @if (app()->isLocal())
+            <script src="{{ asset('dev/form-autofill.js') }}"></script>
+        @endif
+
         @if (session('message') == 'store')
             <script>
                 Swal.fire("Berhasil", "Berhasil tambah data", "success");

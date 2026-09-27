@@ -26,14 +26,97 @@ class PesertaKegiatanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        if ($request->has('draw')) {
+            $query = PesertaKegiatan::select([
+                'id',
+                'no_ktp',
+                'nama',
+                'kabupaten',
+                'status_keikutpesertaan',
+                'id_kegiatan',
+                'instansi',
+                'jenis_gol',
+                'golongan',
+                'no_hp',
+                'no_wa',
+            ])->with('kegiatan:id,nama_kegiatan');
+            $total = PesertaKegiatan::count();
+            $search = trim((string) $request->input('search.value', ''));
+
+            if ($request->filled('kegiatan_id')) {
+                $query->where('id_kegiatan', $request->input('kegiatan_id'));
+            }
+
+            if ($request->filled('kabupaten')) {
+                $query->where('kabupaten', $request->input('kabupaten'));
+            }
+
+            if ($search !== '') {
+                $query->where(function ($query) use ($search) {
+                    $query->where('no_ktp', 'like', "%{$search}%")
+                        ->orWhere('nama', 'like', "%{$search}%")
+                        ->orWhere('kabupaten', 'like', "%{$search}%")
+                        ->orWhere('status_keikutpesertaan', 'like', "%{$search}%")
+                        ->orWhere('instansi', 'like', "%{$search}%")
+                        ->orWhere('jenis_gol', 'like', "%{$search}%")
+                        ->orWhere('golongan', 'like', "%{$search}%")
+                        ->orWhere('no_hp', 'like', "%{$search}%")
+                        ->orWhere('no_wa', 'like', "%{$search}%")
+                        ->orWhereHas('kegiatan', function ($query) use ($search) {
+                            $query->where('nama_kegiatan', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            $filtered = $query->count();
+            $orderColumns = [
+                0 => 'id',
+                1 => 'no_ktp',
+                2 => 'nama',
+                3 => 'kabupaten',
+                4 => 'status_keikutpesertaan',
+                5 => 'kegiatan',
+                6 => 'instansi',
+                7 => 'jenis_gol',
+                8 => 'golongan',
+                9 => 'no_hp',
+            ];
+            $orderIndex = (int) $request->input('order.0.column', 0);
+            $orderColumn = $orderColumns[$orderIndex] ?? 'id';
+            $orderDirection = $request->input('order.0.dir') === 'asc' ? 'asc' : 'desc';
+            $start = max((int) $request->input('start', 0), 0);
+            $length = min(max((int) $request->input('length', 10), 1), 100);
+
+            if ($orderColumn === 'kegiatan') {
+                $query->orderBy(
+                    Kegiatan::select('nama_kegiatan')
+                        ->whereColumn('kegiatans.id', 'peserta_kegiatans.id_kegiatan'),
+                    $orderDirection
+                );
+            } else {
+                $query->orderBy($orderColumn, $orderDirection);
+            }
+
+            $data = $query
+                ->skip($start)
+                ->take($length)
+                ->get();
+
+            return response()->json([
+                'draw' => (int) $request->input('draw'),
+                'recordsTotal' => $total,
+                'recordsFiltered' => $filtered,
+                'data' => $data,
+            ]);
+        }
+
         $menu = $this->menu;
 
-        $datas = PesertaKegiatan::orderBy('id', 'DESC')->get();
         $kegiatan = Kegiatan::orderBy('id', 'DESC')->get();
         $kabupaten = Kabupaten::get();
-        return view('pages.admin.peserta.index', compact('datas', 'menu', 'kegiatan', 'kabupaten'));
+        return view('pages.admin.peserta.index', compact('menu', 'kegiatan', 'kabupaten'));
     }
 
     /**

@@ -1,6 +1,7 @@
 /.phpunit.cache
 /node_modules
 /public/build
+/public/dev/form-autofill.js
 /public/hot
 /public/storage
 /public/library

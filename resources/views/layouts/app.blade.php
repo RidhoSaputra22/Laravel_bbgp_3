@@ -88,6 +88,10 @@
     <!-- JS Libraies -->
     @stack('scripts')
 
+    @if (app()->isLocal())
+        <script src="{{ asset('dev/form-autofill.js') }}"></script>
+    @endif
+
 
     <!-- Template JS File -->
     <script src="{{ asset('js/scripts.js') }}"></script>

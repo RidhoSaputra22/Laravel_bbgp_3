@@ -99,40 +99,7 @@
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            @foreach ($datas as $i => $data)
-                                                <tr data-id="{{ $data->id }}">
-                                                    <td>{{ ++$i }}</td>
-                                                    <td>{{ $data->no_ktp ?? '' }}</td>
-                                                    <td>{{ $data->nama ?? '' }}</td>
-                                                    <td class="text-nowrap">{{ $data->kabupaten ?? '' }}</td>
-                                                    <td>{{ $data->status_keikutpesertaan ?? '' }}</td>
-                                                    <td><b> {{ $data->kegiatan->nama_kegiatan ?? '' }} </b></td>
-                                                    <td>{{ $data->instansi }}</td>
-                                                    <td>{{ $data->jenis_gol }}</td>
-                                                    <td>{{ $data->golongan }}</td>
-                                                    <td>No : Hp {{ $data->no_hp }}
-                                                        <br>
-                                                        No : WA {{ $data->no_wa }}
-                                                    </td>
-                                                    <td>
-                                                        <a target="_blank" href="{{ route('peserta.cetak', $data->id) }}"
-                                                            class="btn btn-primary">
-                                                            <i class="fas fa-print"></i>
-                                                        </a>
-                                                    </td>
-
-                                                    <td>
-                                                        <a href="{{ route('peserta.edit', $data->id) }}"
-                                                            class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>
-                                                        <button onclick="deleteData({{ $data->id }}, 'peserta')"
-                                                            class="btn btn-danger">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
+                                        <tbody></tbody>
                                     </table>
                                 </div>
 
@@ -212,16 +179,92 @@
 
         <script type="text/javascript">
             $(document).ready(function() {
-                // Existing DataTable initialization
-                var language = {
-                    "sSearch": "Pencarian Data Kegiatan BBGTK : ",
-                };
+                const cetakUrl = @json(route('peserta.cetak', '__id__'));
+                const editUrl = @json(route('peserta.edit', '__id__'));
 
                 var tableKegiatan = $('#table-kegiatan').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: '{{ route('peserta.index') }}',
+                        data: function(data) {
+                            data.kegiatan_id = $('#kegiatanSelect').find(':selected').data('id') || '';
+                            data.kabupaten = $('#kabupatenSelect').val() || '';
+                        }
+                    },
+                    columns: [
+                        {
+                            data: null,
+                            searchable: false,
+                            orderable: false,
+                            render: function(data, type, row, meta) {
+                                return meta.settings._iDisplayStart + meta.row + 1;
+                            }
+                        },
+                        { data: 'no_ktp', render: escapeHtml },
+                        { data: 'nama', render: escapeHtml },
+                        { data: 'kabupaten', render: escapeHtml },
+                        { data: 'status_keikutpesertaan', render: escapeHtml },
+                        {
+                            data: 'kegiatan.nama_kegiatan',
+                            render: function(data) {
+                                return '<b>' + escapeHtml(data) + '</b>';
+                            }
+                        },
+                        { data: 'instansi', render: escapeHtml },
+                        { data: 'jenis_gol', render: escapeHtml },
+                        { data: 'golongan', render: escapeHtml },
+                        {
+                            data: null,
+                            render: function(data, type, row) {
+                                return 'No : Hp ' + escapeHtml(row.no_hp) + '<br>No : WA ' + escapeHtml(row.no_wa);
+                            }
+                        },
+                        {
+                            data: 'id',
+                            searchable: false,
+                            orderable: false,
+                            render: function(data) {
+                                return '<a target="_blank" href="' + cetakUrl.replace('__id__', data) +
+                                    '" class="btn btn-primary"><i class="fas fa-print"></i></a>';
+                            }
+                        },
+                        {
+                            data: 'id',
+                            searchable: false,
+                            orderable: false,
+                            render: function(data) {
+                                return '<a href="' + editUrl.replace('__id__', data) +
+                                    '" class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>' +
+                                    '<button onclick="deleteData(' + data + ', \'peserta\')" class="btn btn-danger">' +
+                                    '<i class="fas fa-trash-alt"></i></button>';
+                            }
+                        }
+                    ],
+                    order: [[0, 'desc']],
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
                     paging: true,
                     searching: true,
-                    language: language,
+                    language: {
+                        processing: 'Memproses...',
+                        search: 'Pencarian Data Kegiatan BBGTK :',
+                        lengthMenu: 'Tampilkan _MENU_ data',
+                        info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+                        infoEmpty: 'Menampilkan 0 sampai 0 dari 0 data',
+                        zeroRecords: 'Data tidak ditemukan',
+                        paginate: {
+                            first: 'Pertama',
+                            last: 'Terakhir',
+                            next: 'Selanjutnya',
+                            previous: 'Sebelumnya'
+                        }
+                    }
                 });
+
+                function escapeHtml(value) {
+                    return $('<div>').text(value ?? '').html();
+                }
 
                 const exportBtn = $('#export-section');
                 const kegiatan = document.querySelector('#kegiatanSelect');
@@ -234,66 +277,25 @@
 
                     if (kegiatanValue == '') {
                         exportBtn.hide();
+                        tableKegiatan.ajax.reload();
+                        return;
                     }
 
 
-                    tableKegiatan.column(5).search(kegiatanValue).draw();
-
-                    var kegiatanId = $('#kegiatanSelect').find(':selected').attr('data-id')
+                    var kegiatanId = $('#kegiatanSelect').find(':selected').attr('data-id');
 
                     // Construct the URL with the collected row IDs and kegiatanId
-                    var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}'
-                    url = url.replace(':id', kegiatanId)
-
-                     $.ajax({
-                        url: url, // Ganti dengan route yang sesuai untuk mengambil status
-                        type: 'GET',
-                        success: function(response) {
-                            var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}'
-                            url = url.replace(':id', kegiatanId)
-                            $('#exportBtn').attr({
-                                'href': url
-                            });
-                        },
-                        error: function(error) {
-                            console.error(error);
-                            alert('Error fetching'.error);
-                        }
-                    });
+                    var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}';
+                    url = url.replace(':id', kegiatanId);
+                    $('#exportBtn').attr('href', url);
+                    tableKegiatan.ajax.reload();
 
                 }
 
                 kegiatan.addEventListener('change', applySearch);
 
-                kegiatan.on('change', function(e) {
-                    e.preventDefault();
-                    var kegiatanId = $('#kegiatanSelect').find(':selected').attr('data-id')
-
-                    // Construct the URL with the collected row IDs and kegiatanId
-                    var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}'
-                    url = url.replace(':id', kegiatanId)
-
-                    $.ajax({
-                        url: url, // Ganti dengan route yang sesuai untuk mengambil status
-                        type: 'GET',
-                        success: function(response) {
-                            var url = '{{ route('peserta.export', ['id_kegiatan' => ':id']) }}'
-                            url = url.replace(':id', kegiatanId)
-                            $('#exportBtn').attr({
-                                'href': url
-                            });
-                        },
-                        error: function(error) {
-                            console.error(error);
-                            alert('Error fetching'.error);
-                        }
-                    });
-
-                });
-
                 $('#kabupatenSelect').on('change', () => {
-                    const kab = document.querySelector('#kabupatenSelect');
-                    tableKegiatan.column(3).search(kab.value).draw();
+                    tableKegiatan.ajax.reload();
                 })
 
 

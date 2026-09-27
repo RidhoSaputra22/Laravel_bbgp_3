@@ -58,6 +58,10 @@
 
 
     @stack('scripts')
+
+    @if (app()->isLocal())
+        <script src="{{ asset('dev/form-autofill.js') }}"></script>
+    @endif
 </body>
 
 </html>
