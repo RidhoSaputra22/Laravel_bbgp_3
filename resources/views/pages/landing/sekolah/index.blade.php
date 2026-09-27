@@ -51,16 +51,7 @@
                     </div>
                 @endif
 
-                @if ($errors->any())
-                    <div id="validation-errors" class="alert alert-danger" role="alert" tabindex="-1">
-                        <strong>Periksa kembali data berikut:</strong>
-                        <ul class="mb-0">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+
                 <form action="{{ route('user.store.data-sekolah') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="card-body">
@@ -513,7 +504,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <div class="form-group">
                                     <label>Laboratorium</label>
                                     <select name="laboratorium" class="form-control @error('laboratorium') is-invalid @enderror" required>
@@ -557,7 +548,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <div class="form-group">
                                     <label>Jumlah Toilet Siswa dan Guru</label>
                                     <input name="jumlah_toilet" id="jumlah_toilet" type="number" min="0"
@@ -877,7 +868,7 @@
                     $(selector).prop('disabled', true);
                 }
 
-                
+
 
             });
         </script>
