@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AssessmentApiAuthController;
+use App\Http\Controllers\Api\AssessmentAssignmentController;
 use App\Http\Controllers\Api\AssessmentConfigurationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +26,9 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::delete('/auth/token', [AssessmentApiAuthController::class, 'revoke'])->name('auth.revoke');
         Route::get('/assessments', [AssessmentConfigurationController::class, 'index'])->name('assessments.index');
         Route::get('/assessments/{identifier}', [AssessmentConfigurationController::class, 'show'])->name('assessments.show');
+        Route::get('/assignments', [AssessmentAssignmentController::class, 'index'])->name('assignments.index');
+        Route::get('/assignments/{id}', [AssessmentAssignmentController::class, 'show'])->name('assignments.show');
+        Route::get('/assignment-targets', [AssessmentAssignmentController::class, 'targets'])->name('assignment-targets.index');
     });
 });
 

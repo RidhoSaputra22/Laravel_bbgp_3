@@ -1,0 +1,355 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Enum\AssessmentInstrumentType;
+use App\Enum\AssessmentKetenagaanType;
+use App\Http\Controllers\Controller;
+use App\Models\AssessmentAssignment;
+use App\Models\AssessmentAssignmentTarget;
+use App\Models\Guru;
+use App\Services\Assessment\AssessmentQuestionRandomizerService;
+use App\Support\Assessment\ScoringConfigNormalizer;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+
+class AssessmentAssignmentController extends Controller
+{
+    private const PARTICIPANTS_PER_PAGE = 10;
+
+    public function __construct(
+        private readonly AssessmentQuestionRandomizerService $randomizer,
+        private readonly ScoringConfigNormalizer $scoringConfigNormalizer
+    ) {}
+
+    /**
+     * Daftar ringkas penugasan, dipisahkan menurut ketenagaan.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $request->validate([
+            'target_ketenagaan' => ['nullable', 'string', 'max:100'],
+        ]);
+
+        $assignments = AssessmentAssignment::query()
+            ->withoutPreview()
+            ->with('combination')
+            ->withCount('targets')
+            ->when(
+                $request->filled('target_ketenagaan'),
+                fn ($query) => $query->where('target_ketenagaan', $request->string('target_ketenagaan'))
+            )
+            ->newestFirst()
+            ->get();
+
+        return response()->json([
+            'data' => $this->groupAssignmentsByKetenagaan($assignments),
+            'meta' => [
+                'count' => $assignments->count(),
+                'schema' => 'assessment-assignment-v1',
+            ],
+        ]);
+    }
+
+    /**
+     * Detail satu penugasan beserta form yang benar-benar ditugaskan per peserta.
+     */
+    public function show(Request $request, string $id): JsonResponse
+    {
+        abort_if(! ctype_digit($id), 404);
+
+        $request->validate([
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+        $perPage = min((int) $request->input('per_page', self::PARTICIPANTS_PER_PAGE), 50);
+
+        $assignment = AssessmentAssignment::query()
+            ->withoutPreview()
+            ->with([
+                'combination',
+                'assessments.forms.fields',
+            ])
+            ->find($id);
+
+        if (! $assignment) {
+            return response()->json(['message' => 'Penugasan tidak ditemukan.'], 404);
+        }
+
+        $participants = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->with(['guru', 'combination', 'attempt'])
+            ->orderBy('id')
+            ->paginate($perPage);
+
+        return response()->json([
+            'data' => [
+                'id' => $assignment->id,
+                'kode_penugasan' => $assignment->kode_penugasan,
+                'judul_penugasan' => $assignment->judul_penugasan,
+                'deskripsi' => $assignment->deskripsi,
+                'is_active' => (bool) $assignment->is_active,
+                'status_distribusi' => $assignment->status_distribusi,
+                'ketenagaan' => $this->ketenagaan($assignment->target_ketenagaan),
+                'tanggal_mulai' => $assignment->tanggal_mulai?->toDateString(),
+                'tanggal_selesai' => $assignment->tanggal_selesai?->toDateString(),
+                'participants' => $participants->getCollection()
+                    ->map(fn (AssessmentAssignmentTarget $target) => $this->participant($target, $assignment))
+                    ->values()
+                    ->all(),
+            ],
+            'meta' => [
+                'participant_count' => $participants->total(),
+                'pagination' => [
+                    'current_page' => $participants->currentPage(),
+                    'last_page' => $participants->lastPage(),
+                    'per_page' => $participants->perPage(),
+                    'total' => $participants->total(),
+                    'from' => $participants->firstItem() ?? 0,
+                    'to' => $participants->lastItem() ?? 0,
+                ],
+                'schema' => 'assessment-assignment-v1',
+            ],
+        ]);
+    }
+
+    /**
+     * Daftar penugasan per guru, satu item untuk setiap assessment_assignment_targets.
+     */
+    public function targets(Request $request): JsonResponse
+    {
+        $request->validate([
+            'guru_id' => ['nullable', 'integer', 'min:1'],
+            'assessment_assignment_id' => ['nullable', 'integer', 'min:1'],
+            'status' => ['nullable', 'string', 'max:50'],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+        ]);
+        $perPage = min((int) $request->input('per_page', self::PARTICIPANTS_PER_PAGE), 50);
+
+        $targets = AssessmentAssignmentTarget::query()
+            ->whereHas('assignment', fn ($query) => $query->withoutPreview())
+            ->when($request->filled('guru_id'), fn ($query) => $query->where('guru_id', $request->integer('guru_id')))
+            ->when(
+                $request->filled('assessment_assignment_id'),
+                fn ($query) => $query->where('assessment_assignment_id', $request->integer('assessment_assignment_id'))
+            )
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
+            ->with([
+                'guru',
+                'combination',
+                'attempt',
+                'assignment' => fn ($query) => $query->withoutPreview()->with([
+                    'combination',
+                    'assessments.forms.fields',
+                ]),
+            ])
+            ->latestAssignmentFirst()
+            ->paginate($perPage);
+
+        return response()->json([
+            'data' => $targets->getCollection()
+                ->map(function (AssessmentAssignmentTarget $target) {
+                    $assignment = $target->assignment;
+
+                    return array_merge([
+                        'assignment' => [
+                            'id' => $assignment->id,
+                            'kode_penugasan' => $assignment->kode_penugasan,
+                            'judul_penugasan' => $assignment->judul_penugasan,
+                            'ketenagaan' => $this->ketenagaan($assignment->target_ketenagaan),
+                            'status_distribusi' => $assignment->status_distribusi,
+                        ],
+                    ], $this->participant($target, $assignment));
+                })
+                ->values()
+                ->all(),
+            'meta' => [
+                'pagination' => [
+                    'current_page' => $targets->currentPage(),
+                    'last_page' => $targets->lastPage(),
+                    'per_page' => $targets->perPage(),
+                    'total' => $targets->total(),
+                    'from' => $targets->firstItem() ?? 0,
+                    'to' => $targets->lastItem() ?? 0,
+                ],
+                'schema' => 'assessment-assignment-target-v1',
+            ],
+        ]);
+    }
+
+    private function groupAssignmentsByKetenagaan(Collection $assignments): array
+    {
+        $byKetenagaan = $assignments->groupBy(fn (AssessmentAssignment $assignment) => (string) $assignment->target_ketenagaan);
+
+        return collect(AssessmentKetenagaanType::cases())
+            ->map(function (AssessmentKetenagaanType $type) use ($byKetenagaan) {
+                return [
+                    'ketenagaan' => $this->ketenagaan($type->value),
+                    'assignments' => $byKetenagaan->get($type->value, collect())
+                        ->map(fn (AssessmentAssignment $assignment) => $this->assignmentSummary($assignment))
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->filter(fn (array $group) => $group['assignments'] !== [])
+            ->values()
+            ->all();
+    }
+
+    private function assignmentSummary(AssessmentAssignment $assignment): array
+    {
+        return [
+            'id' => $assignment->id,
+            'kode_penugasan' => $assignment->kode_penugasan,
+            'judul_penugasan' => $assignment->judul_penugasan,
+            'status_distribusi' => $assignment->status_distribusi,
+            'is_active' => (bool) $assignment->is_active,
+            'participant_count' => (int) ($assignment->targets_count ?? 0),
+            'combination' => $this->combination($assignment->combination),
+        ];
+    }
+
+    private function participant(AssessmentAssignmentTarget $target, AssessmentAssignment $assignment): array
+    {
+        // Reuse the portal snapshot so fields, ordering, and per-user option randomization stay identical.
+        $target->setRelation('assignment', $assignment);
+        $attemptSnapshot = $target->attempt?->structure_snapshot;
+        $snapshot = is_array($attemptSnapshot) && ! empty($attemptSnapshot['assessments'])
+            ? $attemptSnapshot
+            : $this->randomizer->buildSnapshot($target);
+        $this->normalizeAdvancedRules($snapshot);
+
+        $combination = $target->combination ?: $assignment->combination;
+
+        return [
+            'id' => $target->id,
+            'status' => $target->status,
+            'assigned_at' => $target->assigned_at?->toISOString(),
+            'started_at' => $target->started_at?->toISOString(),
+            'submitted_at' => $target->submitted_at?->toISOString(),
+            'user' => $this->user($target->guru, $assignment),
+            'combination' => $this->combination($combination),
+            'forms' => $this->groupAssessmentsByInstrument($snapshot['assessments'] ?? []),
+            'meta' => $snapshot['meta'] ?? [],
+        ];
+    }
+
+    private function ketenagaan(?string $value): array
+    {
+        $type = AssessmentKetenagaanType::tryFromMixed($value);
+
+        return [
+            'kode' => $value,
+            'label' => $type?->label() ?? $value,
+        ];
+    }
+
+    private function user(?Guru $guru, AssessmentAssignment $assignment): ?array
+    {
+        if (! $guru) {
+            return null;
+        }
+
+        return [
+            'id' => $guru->id,
+            'nama' => $guru->nama_lengkap,
+            'nik' => $guru->no_ktp,
+            'nip' => $guru->nip,
+            'nuptk' => $guru->nuptk,
+            'email' => $guru->email,
+            'role' => $guru->eksternal_jabatan ?: $this->ketenagaan($assignment->target_ketenagaan)['label'],
+            'jabatan' => $guru->jenis_jabatan ?: $guru->jabatan,
+            'kabupaten' => $guru->kabupaten,
+            'satuan_pendidikan' => $guru->satuan_pendidikan,
+        ];
+    }
+
+    private function combination($combination): ?array
+    {
+        if (! $combination) {
+            return null;
+        }
+
+        return [
+            'id' => $combination->id,
+            'kode_kombinasi' => $combination->kode_kombinasi,
+            'judul' => $combination->judul,
+            'target_ketenagaan' => $combination->target_ketenagaan,
+        ];
+    }
+
+    private function groupAssessmentsByInstrument(array $assessments): array
+    {
+        return collect($assessments)
+            ->filter(fn ($assessment) => is_array($assessment))
+            ->groupBy(fn (array $assessment) => (string) ($assessment['instrument_type'] ?? 'lainnya'))
+            ->sortBy(fn (Collection $group, string $instrumentType) => AssessmentInstrumentType::assignmentStageOrderFor($instrumentType))
+            ->map(function (Collection $group, string $instrumentType) {
+                $type = AssessmentInstrumentType::tryFromMixed($instrumentType);
+
+                return [
+                    'instrument_type' => $type?->value ?? $instrumentType,
+                    'instrument_label' => $type?->label()
+                        ?? (string) data_get($group->first(), 'instrument_label', $instrumentType),
+                    'assessments' => $group->values()->all(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function normalizeAdvancedRules(array &$snapshot): void
+    {
+        if (! is_array($snapshot['assessments'] ?? null)) {
+            return;
+        }
+
+        foreach ($snapshot['assessments'] as &$assessment) {
+            if (! is_array($assessment)) {
+                continue;
+            }
+
+            $this->normalizeScoringConfig($assessment);
+
+            if (! is_array($assessment['forms'] ?? null)) {
+                continue;
+            }
+
+            foreach ($assessment['forms'] as &$form) {
+                if (! is_array($form)) {
+                    continue;
+                }
+
+                $this->normalizeScoringConfig($form);
+
+                if (! is_array($form['fields'] ?? null)) {
+                    continue;
+                }
+
+                foreach ($form['fields'] as &$field) {
+                    if (! is_array($field)) {
+                        continue;
+                    }
+
+                    $this->normalizeScoringConfig($field);
+                }
+                unset($field);
+            }
+            unset($form);
+        }
+        unset($assessment);
+    }
+
+    private function normalizeScoringConfig(array &$item): void
+    {
+        if (! is_array($item['scoring_config'] ?? null) || ! array_key_exists('advanced_rules_text', $item['scoring_config'])) {
+            return;
+        }
+
+        $item['scoring_config']['advanced_rules_text'] = $this->scoringConfigNormalizer->parseAdvancedRules(
+            $item['scoring_config']['advanced_rules_text']
+        );
+    }
+}
