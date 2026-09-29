@@ -89,7 +89,7 @@ class ScoringConfigNormalizer
     /**
      * @return array<string, mixed>
      */
-    private function parseAdvancedRules(mixed $value): array
+    public function parseAdvancedRules(mixed $value): array
     {
         if (is_array($value)) {
             return $value;

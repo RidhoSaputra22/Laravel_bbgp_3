@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assessment;
+use App\Support\Assessment\ScoringConfigNormalizer;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AssessmentConfigurationController extends Controller
 {
+    public function __construct(private readonly ScoringConfigNormalizer $scoringConfigNormalizer) {}
+
     public function index(Request $request): JsonResponse
     {
         $request->validate([
@@ -21,6 +25,8 @@ class AssessmentConfigurationController extends Controller
             ->when($request->filled('kode_assessment'), fn ($query) => $query->where('kode_assessment', $request->string('kode_assessment')))
             ->orderBy('id')
             ->get();
+
+        $this->normalizeAdvancedRulesText($assessments);
 
         return response()->json([
             'data' => $assessments,
@@ -46,6 +52,8 @@ class AssessmentConfigurationController extends Controller
             return response()->json(['message' => 'Assessment tidak ditemukan.'], 404);
         }
 
+        $this->normalizeAdvancedRulesText([$assessment]);
+
         return response()->json([
             'data' => $assessment,
             'meta' => ['schema' => 'database-assessment-v1'],
@@ -60,5 +68,35 @@ class AssessmentConfigurationController extends Controller
             ->with(['forms' => fn ($query) => $query
                 ->where('is_active', true)
                 ->with(['fields' => fn ($fieldQuery) => $fieldQuery->where('is_active', true)])]);
+    }
+
+    private function normalizeAdvancedRulesText(iterable $assessments): void
+    {
+        foreach ($assessments as $assessment) {
+            $this->normalizeModelScoringConfig($assessment);
+
+            foreach ($assessment->forms as $form) {
+                $this->normalizeModelScoringConfig($form);
+
+                foreach ($form->fields as $field) {
+                    $this->normalizeModelScoringConfig($field);
+                }
+            }
+        }
+    }
+
+    private function normalizeModelScoringConfig(Model $model): void
+    {
+        $config = $model->getAttribute('scoring_config');
+
+        if (! is_array($config) || ! array_key_exists('advanced_rules_text', $config)) {
+            return;
+        }
+
+        $config['advanced_rules_text'] = $this->scoringConfigNormalizer->parseAdvancedRules(
+            $config['advanced_rules_text']
+        );
+
+        $model->setAttribute('scoring_config', $config);
     }
 }
