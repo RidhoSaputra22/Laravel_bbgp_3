@@ -137,6 +137,21 @@ class AssessmentQuestionRandomizerServiceTest extends TestCase
         );
     }
 
+    public function test_reusable_snapshot_keeps_target_specific_choice_order(): void
+    {
+        $service = app(AssessmentQuestionRandomizerService::class);
+        $target = $this->makeRandomizationTarget(21);
+
+        $directSnapshot = $service->buildSnapshot($target);
+        $reusableSnapshot = $service->randomizeSnapshotForTarget(
+            $service->buildSnapshot($target, false),
+            21
+        );
+
+        $this->assertSame($directSnapshot['assessments'], $reusableSnapshot['assessments']);
+        $this->assertSame($directSnapshot['meta'], $reusableSnapshot['meta']);
+    }
+
     public function test_it_uses_combination_snapshot_when_assignment_has_combination(): void
     {
         $fallbackAssessment = $this->makeAssessment(999, AssessmentInstrumentType::PORTOFOLIO->value, [

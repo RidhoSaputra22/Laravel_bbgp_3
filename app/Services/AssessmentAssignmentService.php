@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enum\AssessmentInstrumentType;
 use App\Enum\AssessmentKetenagaanType;
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
+use App\Jobs\SyncAssessmentTargetsToMongoJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentSession;
@@ -14,8 +15,8 @@ use App\Models\AssessmentAttemptAnswer;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
-use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentSchoolTargetKey;
+use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStageProgress;
 use Illuminate\Database\Eloquent\Builder;
@@ -1241,10 +1242,10 @@ class AssessmentAssignmentService
         }
     }
 
-    private function storeTargetRows(array $targetRows): void
+    private function storeTargetRows(array $targetRows): array
     {
         if ($targetRows === []) {
-            return;
+            return [];
         }
 
         DB::table('assessment_assignment_targets')->upsert(
@@ -1258,6 +1259,27 @@ class AssessmentAssignmentService
                 'updated_at',
             ]
         );
+
+        $targetIds = collect($targetRows)
+            ->groupBy(fn (array $row) => (int) ($row['assessment_assignment_id'] ?? 0))
+            ->flatMap(function (Collection $rows, int $assignmentId) {
+                if ($assignmentId < 1) {
+                    return collect();
+                }
+
+                return DB::table('assessment_assignment_targets')
+                    ->where('assessment_assignment_id', $assignmentId)
+                    ->whereIn('guru_id', $rows->pluck('guru_id')->map(fn ($id) => (int) $id)->all())
+                    ->pluck('id');
+            })
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        SyncAssessmentTargetsToMongoJob::dispatchIds($targetIds);
+
+        return $targetIds;
     }
 
     private function collectAssignmentCleanupSummary(int $assignmentId): array
@@ -1399,6 +1421,8 @@ class AssessmentAssignmentService
         AssessmentAssignmentTarget::query()
             ->where('assessment_assignment_id', $assignmentId)
             ->delete();
+
+        SyncAssessmentTargetsToMongoJob::dispatchIds($targetIds);
 
         if (Schema::hasTable('assessment_assignment_sessions')) {
             DB::table('assessment_assignment_sessions')
@@ -2606,8 +2630,7 @@ class AssessmentAssignmentService
         array $assessmentIds,
         bool $strict = true,
         array $stageConfigs = []
-    ): array
-    {
+    ): array {
         if ($assessmentIds === []) {
             return [];
         }

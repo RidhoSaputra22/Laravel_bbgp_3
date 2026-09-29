@@ -183,6 +183,7 @@
         $explorerActiveFilterCount = collect($explorerSelectedFilters)
             ->filter(fn($value) => filled($value))
             ->count();
+        $mongoSync = $mongoSync ?? null;
         $participantAdditionPanel = $participantAdditionPanel ?? [];
         $participantAdditionFilterDefaults = $participantAdditionPanel['filter_defaults'] ?? [];
         $participantAdditionFilterOptions = $participantAdditionPanel['filter_options'] ?? [];
@@ -582,6 +583,30 @@
                                     Batch job tersimpan pada penugasan, tetapi data batch tidak ditemukan lagi pada tabel queue.
                                 </div>
                             @endif
+                        @endif
+
+                        @if ($mongoSync)
+                            <div class="border rounded p-3 mb-3 js-mongo-sync-progress"
+                                data-assignment-id="{{ $assignment->id }}"
+                                data-progress-url="{{ route('assessment.assignment.mongodb-progress', $assignment->id) }}"
+                                data-complete="{{ $mongoSync['complete'] ? 1 : 0 }}">
+                                <div class="d-flex justify-content-between align-items-center small text-muted mb-1">
+                                    <span>MongoDB</span>
+                                    <strong data-mongo-role="percent">{{ $mongoSync['percent'] }}%</strong>
+                                </div>
+                                <div class="progress" style="height: 8px;"
+                                    title="{{ $mongoSync['synced'] }}/{{ $mongoSync['total'] }} target tersinkron">
+                                    <div class="progress-bar bg-{{ $mongoSync['complete'] ? 'success' : 'info' }}"
+                                        data-mongo-role="bar"
+                                        role="progressbar"
+                                        style="width: {{ $mongoSync['percent'] }}%;"
+                                        aria-valuenow="{{ $mongoSync['percent'] }}"
+                                        aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small class="d-block text-muted mt-1" data-mongo-role="count">
+                                    {{ $mongoSync['synced'] }}/{{ $mongoSync['total'] }} target
+                                </small>
+                            </div>
                         @endif
 
                         @if ($monitoring['failed_jobs'] ?? [])
@@ -1544,6 +1569,44 @@
             const csrfToken = @json(csrf_token());
             const shouldOpenAddParticipantsModal = @json($addParticipantsErrors->any());
             const addParticipantDefaultFilters = @json($participantAdditionPanel['ajax_params'] ?? []);
+            const mongoProgressNode = document.querySelector('.js-mongo-sync-progress');
+
+            function refreshMongoProgress() {
+                if (!mongoProgressNode || mongoProgressNode.dataset.complete === '1') {
+                    return;
+                }
+
+                fetch(mongoProgressNode.dataset.progressUrl, {
+                        headers: { 'Accept': 'application/json' },
+                        credentials: 'same-origin',
+                    })
+                    .then(response => response.ok ? response.json() : null)
+                    .then(payload => {
+                        const progress = payload?.data?.[mongoProgressNode.dataset.assignmentId];
+
+                        if (!progress) {
+                            return;
+                        }
+
+                        const bar = mongoProgressNode.querySelector('[data-mongo-role="bar"]');
+                        const percent = mongoProgressNode.querySelector('[data-mongo-role="percent"]');
+                        const count = mongoProgressNode.querySelector('[data-mongo-role="count"]');
+                        const value = progress.percent + '%';
+
+                        bar.style.width = value;
+                        bar.setAttribute('aria-valuenow', progress.percent);
+                        bar.classList.toggle('bg-success', progress.complete);
+                        bar.classList.toggle('bg-info', !progress.complete);
+                        percent.textContent = value;
+                        count.textContent = progress.synced + '/' + progress.total + ' target';
+                        mongoProgressNode.dataset.complete = progress.complete ? '1' : '0';
+
+                        if (!progress.complete) {
+                            window.setTimeout(refreshMongoProgress, 5000);
+                        }
+                    })
+                    .catch(() => {});
+            }
 
             function initDataTable(selector, nonSortableColumns) {
                 const table = $(selector);
@@ -2159,6 +2222,7 @@
             initAddParticipantsFilters();
             initCharts();
             initExplorerCharts();
+            refreshMongoProgress();
 
             if (shouldOpenAddParticipantsModal) {
                 $('#assignmentAddParticipantsModal').modal('show');

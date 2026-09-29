@@ -2,6 +2,15 @@
 
 namespace App\Providers;
 
+use App\Models\AssessmentAssignment;
+use App\Models\AssessmentAssignmentTarget;
+use App\Models\AssessmentAttempt;
+use App\Models\Guru;
+use App\Observers\AssessmentAssignmentObserver;
+use App\Observers\AssessmentAssignmentTargetObserver;
+use App\Observers\AssessmentAttemptObserver;
+use App\Observers\GuruObserver;
+use App\Services\Assessment\MongoAssessmentAssignmentTargetStore;
 use App\Services\Assessment\ValidatorPortalWidgetService;
 use Carbon\Carbon;
 use Illuminate\Pagination\Paginator;
@@ -17,7 +26,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Reuse the MongoDB client/collection across jobs in a long-lived
+        // queue worker instead of reconnecting for every target batch.
+        $this->app->singleton(MongoAssessmentAssignmentTargetStore::class);
     }
 
     /**
@@ -25,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        AssessmentAssignmentTarget::observe(AssessmentAssignmentTargetObserver::class);
+        AssessmentAttempt::observe(AssessmentAttemptObserver::class);
+        AssessmentAssignment::observe(AssessmentAssignmentObserver::class);
+        Guru::observe(GuruObserver::class);
+
         Paginator::useBootstrapFive();
         config(['app.locale' => 'id']);
         Carbon::setLocale('id');

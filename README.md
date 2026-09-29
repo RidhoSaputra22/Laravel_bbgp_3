@@ -40,6 +40,7 @@
 - [Table of Contents](#table-of-contents)
 - [Quick start](#quick-start)
 - [Assessment API](#assessment-api)
+- [Assessment target MongoDB projection](#assessment-target-mongodb-projection)
 - [License](#license)
 - [Supports](#supports)
 
@@ -84,6 +85,65 @@ curl --fail-with-body "$API_BASE_URL/api/v1/assessments/ASM-EVAL-PELAKSANAAN-HBG
 ```
 
 The assessment endpoint accepts the assessment code or slug. The token must have the `assessment:read` ability.
+
+## Assessment target MongoDB projection
+
+MySQL remains the source of truth. When enabled, each row in
+`assessment_assignment_targets` is asynchronously upserted as one document in
+MongoDB for the JavaScript application.
+
+Requirements:
+
+- PHP `ext-mongodb` and the `mongodb/mongodb` Composer package.
+- A running MongoDB instance.
+- A queue worker using the `database` connection.
+
+Configure these values in `.env`:
+
+```env
+MONGODB_SYNC_ENABLED=false
+MONGODB_URI=mongodb://127.0.0.1:27017
+MONGODB_DATABASE=quiz_bbgtk
+MONGODB_ASSIGNMENT_COLLECTION=assessment-assignment
+MONGODB_SYNC_BATCH_SIZE=100
+```
+
+Preview and run an idempotent backfill:
+
+```bash
+php artisan assessment:sync-targets-mongodb --dry-run
+php artisan assessment:sync-targets-mongodb --chunk=100
+php artisan queue:work database --queue=default
+```
+
+The backfill command displays a `processed/total` progress bar and percentage.
+Failed batches still advance the bar and are reported in the final summary.
+
+To rebuild the collection from scratch and remove documents from an older
+schema or previous source, use the explicit reset flag. It is intentionally
+not performed by queue jobs, because queue jobs process individual targets:
+
+```bash
+php artisan assessment:sync-targets-mongodb --reset --force --chunk=100
+```
+
+`--reset` cannot be combined with `--assignment`, and it preserves MongoDB
+indexes while deleting all existing documents. Without `--reset`, the stable
+`_id` (`assessment-target:{target_id}`) and upsert operation prevent duplicate
+documents.
+
+Set `MONGODB_SYNC_ENABLED=true` only after the extension, MongoDB, and queue
+worker are ready. The API assignment endpoints remain available for validation
+and fallback.
+
+The sync worker loads only the assignment combination snapshot when it is
+available; the full assessment/form tree is loaded lazily only for assignments
+that need the fallback schema. The MongoDB client is reused by long-lived queue
+workers. Restart workers after changing code or `.env`:
+
+```bash
+php artisan queue:restart
+```
 
 ## License
 

@@ -423,6 +423,8 @@ Route::group(
 
                 Route::prefix('penugasan')->group(function () {
                     Route::get('/', 'AssessmentAssignmentController@index')->name('assessment.assignment.index');
+                    Route::get('/mongodb-progress/{assignment?}', 'AssessmentAssignmentController@mongoProgress')
+                        ->name('assessment.assignment.mongodb-progress');
                     Route::get('/create', 'AssessmentAssignmentController@create')->name('assessment.assignment.create');
                     Route::get('/edit/{id}', 'AssessmentAssignmentController@edit')->name('assessment.assignment.edit');
                     Route::get('/guru-options', 'AssessmentAssignmentController@guruOptions')->name('assessment.assignment.guru-options');

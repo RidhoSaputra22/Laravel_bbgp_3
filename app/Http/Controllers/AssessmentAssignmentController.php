@@ -11,31 +11,39 @@ use App\Models\AssessmentCombination;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Models\Guru;
-use App\Support\Assessment\AssessmentSecurityConfig;
-use App\Support\Assessment\AssessmentSchoolTargetKey;
-use App\Support\Assessment\AssessmentStageConfig;
 use App\Services\Assessment\AssessmentAttemptService;
 use App\Services\Assessment\AssessmentMonitoringService;
+use App\Services\Assessment\MongoAssessmentAssignmentTargetStore;
 use App\Services\AssessmentAssignmentService;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
+use App\Support\Assessment\AssessmentSecurityConfig;
+use App\Support\Assessment\AssessmentStageConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class AssessmentAssignmentController extends Controller
 {
     private const GURU_PAGE_SIZE = 10;
+
     private const TARGET_PAGE_SIZE = 25;
 
     private string $menu = 'assessment-penugasan';
 
+    private readonly MongoAssessmentAssignmentTargetStore $mongoTargetStore;
+
     public function __construct(
         private readonly AssessmentAssignmentService $assignmentService,
         private readonly AssessmentMonitoringService $assessmentMonitoringService,
-        private readonly AssessmentAttemptService $attemptService
-    ) {}
+        private readonly AssessmentAttemptService $attemptService,
+        ?MongoAssessmentAssignmentTargetStore $mongoTargetStore = null
+    ) {
+        $this->mongoTargetStore = $mongoTargetStore ?? app(MongoAssessmentAssignmentTargetStore::class);
+    }
 
     public function index()
     {
@@ -66,6 +74,70 @@ class AssessmentAssignmentController extends Controller
             'datas' => $datas,
             'monitoringByAssignmentId' => $monitoringByAssignmentId,
             'stageAccessByAssignmentId' => $stageAccessByAssignmentId,
+        ]);
+    }
+
+    /**
+     * Return MongoDB sync progress in one aggregation instead of one query per
+     * assignment row.
+     *
+     * @param  \Illuminate\Support\Collection<int, AssessmentAssignment>  $assignments
+     * @return array<int, array{synced:int,total:int,percent:int,complete:bool}>
+     */
+    private function buildMongoSyncProgress($assignments): array
+    {
+        $assignments = $assignments
+            ->filter(fn (AssessmentAssignment $assignment) => (bool) $assignment->is_active)
+            ->values();
+
+        if (! (bool) config('assessment_mongodb.enabled') || $assignments->isEmpty()) {
+            return [];
+        }
+
+        try {
+            $syncedByAssignmentId = $this->mongoTargetStore->countByAssignmentIds(
+                $assignments->pluck('id')->map(fn ($id) => (int) $id)->all()
+            );
+        } catch (Throwable) {
+            return [];
+        }
+
+        return $assignments->mapWithKeys(function (AssessmentAssignment $assignment) use ($syncedByAssignmentId) {
+            $total = (int) ($assignment->mongodb_target_count
+                ?? $assignment->total_ditugaskan
+                ?? $assignment->total_target
+                ?? 0);
+            $synced = (int) ($syncedByAssignmentId[$assignment->id] ?? 0);
+            $percent = $total > 0 ? min(100, (int) round($synced / $total * 100)) : 100;
+
+            return [
+                $assignment->id => [
+                    'synced' => $synced,
+                    'total' => $total,
+                    'percent' => $percent,
+                    'complete' => $total === 0 || $synced >= $total,
+                ],
+            ];
+        })->all();
+    }
+
+    public function mongoProgress(?string $assignmentId = null): JsonResponse
+    {
+        $this->authorizeAccess();
+
+        $assignments = AssessmentAssignment::query()
+            ->withoutPreview()
+            ->withCount([
+                'targets as mongodb_target_count' => fn ($query) => $query->where('status', '!=', 'dibatalkan'),
+            ])
+            ->when(
+                filled($assignmentId),
+                fn ($query) => $query->whereKey((int) $assignmentId)
+            )
+            ->get(['id', 'is_active', 'total_target', 'total_ditugaskan']);
+
+        return response()->json([
+            'data' => $this->buildMongoSyncProgress($assignments),
         ]);
     }
 
@@ -194,8 +266,11 @@ class AssessmentAssignmentController extends Controller
             'combination',
             'creator',
             'sessions',
+        ])->withCount([
+            'targets',
+            'sessions',
+            'targets as mongodb_target_count' => fn ($query) => $query->where('status', '!=', 'dibatalkan'),
         ])
-            ->withCount(['targets', 'sessions'])
             ->findOrFail($id);
 
         $monitoringExplorerFilters = $this->resolveMonitoringExplorerFilters($request);
@@ -210,6 +285,7 @@ class AssessmentAssignmentController extends Controller
             'assignment' => $assignment,
             'monitoring' => $this->assignmentService->buildAssignmentMonitoring($assignment),
             'stageAccess' => $this->assignmentService->buildStageAccessSummary($assignment),
+            'mongoSync' => $this->buildMongoSyncProgress(collect([$assignment]))[$assignment->id] ?? null,
             'monitoringPanel' => $this->assessmentMonitoringService->buildAssignmentDetail($assignment),
             'participantAdditionPanel' => $this->buildParticipantAdditionPanel($assignment),
             'monitoringExplorer' => $this->assessmentMonitoringService->buildAssignmentExplorer(

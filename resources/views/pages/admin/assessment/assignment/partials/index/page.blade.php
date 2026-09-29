@@ -167,6 +167,11 @@
                                                             @endif
                                                         </small>
                                                     @endif
+                                                    @if (!$data->is_active && config('assessment_mongodb.enabled'))
+                                                        <small class="d-block text-muted mt-2">
+                                                            MongoDB: data dipertahankan, penugasan nonaktif
+                                                        </small>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->total_target }} user</div>
@@ -345,6 +350,7 @@
                 $('#assignment-delete-code').text(trigger.data('code') || '-');
                 $('#assignment-delete-target-total').text(trigger.data('target-total') || 0);
             });
+
         });
     </script>
 @endpush

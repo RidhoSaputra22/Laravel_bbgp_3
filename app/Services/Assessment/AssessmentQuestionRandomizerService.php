@@ -6,8 +6,8 @@ use App\Enum\AssessmentInstrumentType;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentFormField;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
-use App\Support\Assessment\AssessmentStructureMetadataResolver;
 use App\Support\Assessment\AssessmentStageConfig;
+use App\Support\Assessment\AssessmentStructureMetadataResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use Illuminate\Support\Str;
 
@@ -18,10 +18,10 @@ class AssessmentQuestionRandomizerService
         private readonly AssessmentFieldLookupResolver $fieldLookupResolver
     ) {}
 
-    public function buildSnapshot(AssessmentAssignmentTarget $target): array
+    public function buildSnapshot(AssessmentAssignmentTarget $target, bool $randomize = true): array
     {
         $assignment = $target->assignment;
-        $targetId = (int) ($target->getKey() ?? 0);
+        $targetId = $randomize ? (int) ($target->getKey() ?? 0) : null;
         $combination = $target->combination ?: $assignment->combination;
         $stageConfigByAssessmentId = $assignment->assessments
             ->values()
@@ -39,7 +39,8 @@ class AssessmentQuestionRandomizerService
             return $this->buildSnapshotFromCombination(
                 $target,
                 $combination->structure_snapshot,
-                $stageConfigByAssessmentId
+                $stageConfigByAssessmentId,
+                $randomize
             );
         }
 
@@ -159,13 +160,69 @@ class AssessmentQuestionRandomizerService
         ];
     }
 
+    /**
+     * Apply only the target-specific choice ordering to a reusable schema.
+     */
+    public function randomizeSnapshotForTarget(array $snapshot, int $targetId): array
+    {
+        if (! is_array($snapshot['assessments'] ?? null)) {
+            return $snapshot;
+        }
+
+        foreach ($snapshot['assessments'] as &$assessment) {
+            if (! is_array($assessment)) {
+                continue;
+            }
+
+            $instrumentType = AssessmentInstrumentType::tryFromMixed($assessment['instrument_type'] ?? null);
+
+            if (! is_array($assessment['forms'] ?? null)) {
+                continue;
+            }
+
+            foreach ($assessment['forms'] as &$form) {
+                if (! is_array($form)) {
+                    continue;
+                }
+
+                if (! is_array($form['fields'] ?? null)) {
+                    continue;
+                }
+
+                foreach ($form['fields'] as &$field) {
+                    if (! is_array($field)
+                        || ! $this->shouldRandomizeSnapshotChoiceOptions($field, $instrumentType)) {
+                        continue;
+                    }
+
+                    $options = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+                    $field['opsi_field'] = collect($options)
+                        ->shuffle($this->resolveChoiceOptionSeed(
+                            $targetId,
+                            (int) ($assessment['id'] ?? 0),
+                            (int) ($form['id'] ?? 0),
+                            (int) ($field['id'] ?? 0)
+                        ))
+                        ->values()
+                        ->all();
+                }
+                unset($field);
+            }
+            unset($form);
+        }
+        unset($assessment);
+
+        return $snapshot;
+    }
+
     private function buildSnapshotFromCombination(
         AssessmentAssignmentTarget $target,
         array $combinationSnapshot,
-        array $stageConfigByAssessmentId = []
+        array $stageConfigByAssessmentId = [],
+        bool $randomize = true
     ): array {
         $assignment = $target->assignment;
-        $targetId = (int) ($target->getKey() ?? 0);
+        $targetId = $randomize ? (int) ($target->getKey() ?? 0) : null;
 
         $assessments = collect($combinationSnapshot['assessments'] ?? [])
             ->values()
@@ -270,7 +327,7 @@ class AssessmentQuestionRandomizerService
         int $assessmentId,
         int $formId,
         ?AssessmentInstrumentType $instrumentType,
-        int $targetId
+        ?int $targetId
     ): array {
         return [
             'id' => $field->id,
@@ -297,7 +354,7 @@ class AssessmentQuestionRandomizerService
         int $assessmentId,
         int $formId,
         ?AssessmentInstrumentType $instrumentType,
-        int $targetId
+        ?int $targetId
     ): array {
         return [
             'id' => (int) ($field['id'] ?? 0),
@@ -328,7 +385,7 @@ class AssessmentQuestionRandomizerService
     private function mapFieldOptions(
         AssessmentFormField $field,
         ?AssessmentInstrumentType $instrumentType,
-        int $targetId,
+        ?int $targetId,
         int $assessmentId,
         int $formId
     ): array {
@@ -345,7 +402,7 @@ class AssessmentQuestionRandomizerService
             ? $this->resolveLookupOptions($lookupSource, $field->opsi_field)
             : $this->normalizeOptions($field->opsi_field);
 
-        if (! $this->shouldRandomizeChoiceOptions($field, $instrumentType)) {
+        if ($targetId === null || ! $this->shouldRandomizeChoiceOptions($field, $instrumentType)) {
             return $options;
         }
 
@@ -358,7 +415,7 @@ class AssessmentQuestionRandomizerService
     private function mapSnapshotFieldOptions(
         array $field,
         ?AssessmentInstrumentType $instrumentType,
-        int $targetId,
+        ?int $targetId,
         int $assessmentId,
         int $formId
     ): array {
@@ -378,7 +435,7 @@ class AssessmentQuestionRandomizerService
             ? $this->resolveLookupOptions($lookupSource, is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [])
             : $this->normalizeOptions(is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []);
 
-        if (! $this->shouldRandomizeSnapshotChoiceOptions($field, $instrumentType)) {
+        if ($targetId === null || ! $this->shouldRandomizeSnapshotChoiceOptions($field, $instrumentType)) {
             return $options;
         }
 

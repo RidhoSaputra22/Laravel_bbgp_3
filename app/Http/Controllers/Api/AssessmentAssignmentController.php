@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enum\AssessmentInstrumentType;
 use App\Enum\AssessmentKetenagaanType;
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
-use App\Models\Guru;
+use App\Services\Assessment\AssessmentAssignmentTargetDocumentBuilder;
 use App\Services\Assessment\AssessmentQuestionRandomizerService;
 use App\Support\Assessment\ScoringConfigNormalizer;
 use Illuminate\Http\JsonResponse;
@@ -20,8 +19,14 @@ class AssessmentAssignmentController extends Controller
 
     public function __construct(
         private readonly AssessmentQuestionRandomizerService $randomizer,
-        private readonly ScoringConfigNormalizer $scoringConfigNormalizer
-    ) {}
+        private readonly ScoringConfigNormalizer $scoringConfigNormalizer,
+        ?AssessmentAssignmentTargetDocumentBuilder $documentBuilder = null
+    ) {
+        $this->documentBuilder = $documentBuilder
+            ?: new AssessmentAssignmentTargetDocumentBuilder($randomizer, $scoringConfigNormalizer);
+    }
+
+    private readonly AssessmentAssignmentTargetDocumentBuilder $documentBuilder;
 
     /**
      * Daftar ringkas penugasan, dipisahkan menurut ketenagaan.
@@ -67,21 +72,21 @@ class AssessmentAssignmentController extends Controller
 
         $assignment = AssessmentAssignment::query()
             ->withoutPreview()
-            ->with([
-                'combination',
-                'assessments.forms.fields',
-            ])
+            ->with($this->documentBuilder->assignmentBaseRelations())
             ->find($id);
 
         if (! $assignment) {
             return response()->json(['message' => 'Penugasan tidak ditemukan.'], 404);
         }
+        $this->documentBuilder->rememberAssignment($assignment);
 
         $participants = AssessmentAssignmentTarget::query()
+            ->select(AssessmentAssignmentTargetDocumentBuilder::targetColumns())
             ->where('assessment_assignment_id', $assignment->id)
-            ->with(['guru', 'combination', 'attempt'])
+            ->with($this->documentBuilder->targetRelations())
             ->orderBy('id')
             ->paginate($perPage);
+        $this->documentBuilder->hydrateAssignments($participants->getCollection());
 
         return response()->json([
             'data' => [
@@ -129,6 +134,7 @@ class AssessmentAssignmentController extends Controller
         $perPage = min((int) $request->input('per_page', self::PARTICIPANTS_PER_PAGE), 50);
 
         $targets = AssessmentAssignmentTarget::query()
+            ->select(AssessmentAssignmentTargetDocumentBuilder::targetColumns())
             ->whereHas('assignment', fn ($query) => $query->withoutPreview())
             ->when($request->filled('guru_id'), fn ($query) => $query->where('guru_id', $request->integer('guru_id')))
             ->when(
@@ -136,17 +142,10 @@ class AssessmentAssignmentController extends Controller
                 fn ($query) => $query->where('assessment_assignment_id', $request->integer('assessment_assignment_id'))
             )
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
-            ->with([
-                'guru',
-                'combination',
-                'attempt',
-                'assignment' => fn ($query) => $query->withoutPreview()->with([
-                    'combination',
-                    'assessments.forms.fields',
-                ]),
-            ])
+            ->with($this->documentBuilder->targetRelations())
             ->latestAssignmentFirst()
             ->paginate($perPage);
+        $this->documentBuilder->hydrateAssignments($targets->getCollection());
 
         return response()->json([
             'data' => $targets->getCollection()
@@ -213,27 +212,7 @@ class AssessmentAssignmentController extends Controller
 
     private function participant(AssessmentAssignmentTarget $target, AssessmentAssignment $assignment): array
     {
-        // Reuse the portal snapshot so fields, ordering, and per-user option randomization stay identical.
-        $target->setRelation('assignment', $assignment);
-        $attemptSnapshot = $target->attempt?->structure_snapshot;
-        $snapshot = is_array($attemptSnapshot) && ! empty($attemptSnapshot['assessments'])
-            ? $attemptSnapshot
-            : $this->randomizer->buildSnapshot($target);
-        $this->normalizeAdvancedRules($snapshot);
-
-        $combination = $target->combination ?: $assignment->combination;
-
-        return [
-            'id' => $target->id,
-            'status' => $target->status,
-            'assigned_at' => $target->assigned_at?->toISOString(),
-            'started_at' => $target->started_at?->toISOString(),
-            'submitted_at' => $target->submitted_at?->toISOString(),
-            'user' => $this->user($target->guru, $assignment),
-            'combination' => $this->combination($combination),
-            'forms' => $this->groupAssessmentsByInstrument($snapshot['assessments'] ?? []),
-            'meta' => $snapshot['meta'] ?? [],
-        ];
+        return $this->documentBuilder->participant($target, $assignment);
     }
 
     private function ketenagaan(?string $value): array
@@ -243,26 +222,6 @@ class AssessmentAssignmentController extends Controller
         return [
             'kode' => $value,
             'label' => $type?->label() ?? $value,
-        ];
-    }
-
-    private function user(?Guru $guru, AssessmentAssignment $assignment): ?array
-    {
-        if (! $guru) {
-            return null;
-        }
-
-        return [
-            'id' => $guru->id,
-            'nama' => $guru->nama_lengkap,
-            'nik' => $guru->no_ktp,
-            'nip' => $guru->nip,
-            'nuptk' => $guru->nuptk,
-            'email' => $guru->email,
-            'role' => $guru->eksternal_jabatan ?: $this->ketenagaan($assignment->target_ketenagaan)['label'],
-            'jabatan' => $guru->jenis_jabatan ?: $guru->jabatan,
-            'kabupaten' => $guru->kabupaten,
-            'satuan_pendidikan' => $guru->satuan_pendidikan,
         ];
     }
 
@@ -278,78 +237,5 @@ class AssessmentAssignmentController extends Controller
             'judul' => $combination->judul,
             'target_ketenagaan' => $combination->target_ketenagaan,
         ];
-    }
-
-    private function groupAssessmentsByInstrument(array $assessments): array
-    {
-        return collect($assessments)
-            ->filter(fn ($assessment) => is_array($assessment))
-            ->groupBy(fn (array $assessment) => (string) ($assessment['instrument_type'] ?? 'lainnya'))
-            ->sortBy(fn (Collection $group, string $instrumentType) => AssessmentInstrumentType::assignmentStageOrderFor($instrumentType))
-            ->map(function (Collection $group, string $instrumentType) {
-                $type = AssessmentInstrumentType::tryFromMixed($instrumentType);
-
-                return [
-                    'instrument_type' => $type?->value ?? $instrumentType,
-                    'instrument_label' => $type?->label()
-                        ?? (string) data_get($group->first(), 'instrument_label', $instrumentType),
-                    'assessments' => $group->values()->all(),
-                ];
-            })
-            ->values()
-            ->all();
-    }
-
-    private function normalizeAdvancedRules(array &$snapshot): void
-    {
-        if (! is_array($snapshot['assessments'] ?? null)) {
-            return;
-        }
-
-        foreach ($snapshot['assessments'] as &$assessment) {
-            if (! is_array($assessment)) {
-                continue;
-            }
-
-            $this->normalizeScoringConfig($assessment);
-
-            if (! is_array($assessment['forms'] ?? null)) {
-                continue;
-            }
-
-            foreach ($assessment['forms'] as &$form) {
-                if (! is_array($form)) {
-                    continue;
-                }
-
-                $this->normalizeScoringConfig($form);
-
-                if (! is_array($form['fields'] ?? null)) {
-                    continue;
-                }
-
-                foreach ($form['fields'] as &$field) {
-                    if (! is_array($field)) {
-                        continue;
-                    }
-
-                    $this->normalizeScoringConfig($field);
-                }
-                unset($field);
-            }
-            unset($form);
-        }
-        unset($assessment);
-    }
-
-    private function normalizeScoringConfig(array &$item): void
-    {
-        if (! is_array($item['scoring_config'] ?? null) || ! array_key_exists('advanced_rules_text', $item['scoring_config'])) {
-            return;
-        }
-
-        $item['scoring_config']['advanced_rules_text'] = $this->scoringConfigNormalizer->parseAdvancedRules(
-            $item['scoring_config']['advanced_rules_text']
-        );
     }
 }
