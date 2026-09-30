@@ -94,9 +94,39 @@ MongoDB for the JavaScript application.
 
 Requirements:
 
-- PHP `ext-mongodb` and the `mongodb/mongodb` Composer package.
+- PHP 8.1+ with `ext-mongodb` 1.20 or newer, but below 2.0.
+- The `mongodb/mongodb` Composer package at `~1.20.0`.
 - A running MongoDB instance.
 - A queue worker using the `database` connection.
+
+On cPanel, assign this application to its own domain or subdomain in
+**MultiPHP Manager**, select a PHP runtime that provides `ext-mongodb` 1.x,
+and enable PHP-FPM for that domain. Do not replace the MongoDB extension in a
+shared PHP runtime, as that can affect other applications on the account or
+server. Confirm the web runtime (not only the terminal PHP) with:
+
+```bash
+php -r 'echo PHP_VERSION, " ", phpversion("mongodb"), PHP_EOL;'
+composer check-platform-reqs
+```
+
+The expected MongoDB extension version is `1.x`. If cPanel does not offer a
+PHP runtime with that extension, the hosting provider must install a separate
+PHP runtime or the application must run in an isolated container.
+
+For local development, this repository includes a project-only PHP runtime
+wrapper. It uses the installed PHP 8.3 binary and loads MongoDB driver 1.20
+from `.runtime`, without changing the global PHP installation:
+
+```bash
+bin/setup-project-runtime
+bin/project-composer install --no-interaction
+bin/project-serve
+```
+
+Use `bin/project-php artisan ...` for other Artisan commands and
+`bin/project-composer ...` for Composer commands. Set `PROJECT_PHP_BIN` if
+PHP 8.3 is installed at a different path.
 
 Configure these values in `.env`:
 

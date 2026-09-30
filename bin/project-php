@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+php_bin="${PROJECT_PHP_BIN:-/home/linuxbrew/.linuxbrew/opt/php@8.3/bin/php}"
+mongodb_extension="$project_root/.runtime/php83/mongodb.so"
+
+if [[ ! -x "$php_bin" ]]; then
+    echo "PHP project runtime tidak ditemukan: $php_bin" >&2
+    echo "Set PROJECT_PHP_BIN ke binary PHP 8.3 yang tersedia." >&2
+    exit 1
+fi
+
+if [[ ! -f "$mongodb_extension" ]]; then
+    echo "MongoDB extension project belum tersedia: $mongodb_extension" >&2
+    echo "Jalankan bin/setup-project-runtime terlebih dahulu." >&2
+    exit 1
+fi
+
+exec "$php_bin" -d "extension=$mongodb_extension" "$@"

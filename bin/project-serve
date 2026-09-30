@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+host="${PROJECT_HOST:-127.0.0.1}"
+port="${PROJECT_PORT:-8000}"
+server_script="$project_root/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"
+
+cd "$project_root/public"
+exec "$project_root/bin/project-php" -S "$host:$port" "$server_script"

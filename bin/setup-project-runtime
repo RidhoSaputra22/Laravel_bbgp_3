@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+php_bin="${PROJECT_PHP_BIN:-/home/linuxbrew/.linuxbrew/opt/php@8.3/bin/php}"
+phpize_bin="${PROJECT_PHPIZE_BIN:-$(dirname "$php_bin")/phpize}"
+php_config_bin="${PROJECT_PHP_CONFIG_BIN:-$(dirname "$php_bin")/php-config}"
+driver_version="${MONGODB_DRIVER_VERSION:-1.20.0}"
+runtime_dir="$project_root/.runtime/php83"
+build_dir="$(mktemp -d)"
+
+if [[ ! -x "$php_bin" || ! -x "$phpize_bin" || ! -x "$php_config_bin" ]]; then
+    echo "PHP 8.3 toolchain tidak lengkap." >&2
+    echo "Set PROJECT_PHP_BIN, PROJECT_PHPIZE_BIN, dan PROJECT_PHP_CONFIG_BIN." >&2
+    exit 1
+fi
+
+curl --fail --location --retry 3 \
+    "https://pecl.php.net/get/mongodb-${driver_version}.tgz" \
+    --output "$build_dir/mongodb.tgz"
+mkdir -p "$build_dir/source" "$runtime_dir"
+tar -xzf "$build_dir/mongodb.tgz" -C "$build_dir/source" --strip-components=1
+
+cd "$build_dir/source"
+"$phpize_bin"
+./configure --with-php-config="$php_config_bin"
+make -j"${BUILD_JOBS:-2}"
+cp modules/mongodb.so "$runtime_dir/mongodb.so"
+
+"$php_bin" -n -d "extension=$runtime_dir/mongodb.so" --ri mongodb \
+    | grep -E 'MongoDB extension version|MongoDB support'
+echo "Runtime project siap: $runtime_dir/mongodb.so"
