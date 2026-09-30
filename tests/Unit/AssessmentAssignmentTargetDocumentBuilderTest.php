@@ -85,6 +85,68 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $this->assertTrue($document['sync']['is_active']);
     }
 
+    public function test_it_adds_autofill_values_as_field_defaults_in_mongo_documents(): void
+    {
+        $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);
+        $randomizer->shouldReceive('buildSnapshot')->once()->andReturn([
+            'assessments' => [[
+                'instrument_type' => 'portofolio',
+                'instrument_label' => 'Portofolio',
+                'forms' => [[
+                    'fields' => [
+                        [
+                            'id' => 355,
+                            'tipe_field' => 'text',
+                            'autofill_source' => 'nama_lengkap',
+                        ],
+                        [
+                            'id' => 356,
+                            'tipe_field' => 'text',
+                            'autofill_source' => null,
+                        ],
+                        [
+                            'id' => 357,
+                            'label' => 'Kabupaten/Kota',
+                            'nama_field' => 'kabupaten_kota',
+                            'tipe_field' => 'text',
+                            'autofill_source' => null,
+                        ],
+                    ],
+                ]],
+            ]],
+            'meta' => [],
+        ]);
+        $randomizer->shouldReceive('randomizeSnapshotForTarget')
+            ->once()
+            ->andReturnUsing(fn (array $snapshot): array => $snapshot);
+
+        $assignment = new AssessmentAssignment(['target_ketenagaan' => 'tenaga_pendidik']);
+        $assignment->id = 34;
+        $assignment->setRelation('combination', null);
+
+        $guru = new Guru([
+            'nama_lengkap' => 'A. NUR ERNY, S.Pd',
+            'kabupaten' => 'Kota Makassar',
+        ]);
+        $guru->id = 12726;
+
+        $target = new AssessmentAssignmentTarget(['status' => 'ditugaskan']);
+        $target->id = 115844;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('guru', $guru);
+        $target->setRelation('combination', null);
+        $target->setRelation('attempt', null);
+
+        $document = (new AssessmentAssignmentTargetDocumentBuilder($randomizer, Mockery::mock(ScoringConfigNormalizer::class)))
+            ->document($target, $assignment);
+        $fields = $document['forms'][0]['assessments'][0]['forms'][0]['fields'];
+
+        $this->assertSame('A. NUR ERNY, S.Pd', $fields[0]['default_value']);
+        $this->assertNull($fields[1]['default_value']);
+        $this->assertSame('kabupaten', $fields[2]['autofill_source']);
+        $this->assertSame('Kota Makassar', $fields[2]['default_value']);
+    }
+
     public function test_attempt_snapshot_is_used_for_target_forms(): void
     {
         $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);

@@ -134,7 +134,7 @@ Configure these values in `.env`:
 MONGODB_SYNC_ENABLED=false
 MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DATABASE=quiz_bbgtk
-MONGODB_ASSIGNMENT_COLLECTION=assessment-assignment
+MONGODB_ASSIGNMENT_COLLECTION=assessment_assignment
 MONGODB_SYNC_BATCH_SIZE=100
 ```
 

@@ -1371,7 +1371,7 @@ class AssessmentMonitoringService
     private function buildAssignmentExplorerFilterOptions(AssessmentAssignment $assignment): array
     {
         return Cache::remember(
-            'assessment-assignment-monitor-options:'.$assignment->id,
+            'assessment_assignment-monitor-options:'.$assignment->id,
             now()->addMinutes(10),
             function () use ($assignment) {
                 return [
@@ -1442,7 +1442,7 @@ class AssessmentMonitoringService
         array $filters
     ): array {
         $cacheTtlSeconds = 60;
-        $cacheKey = 'assessment-assignment-monitor-summary:v2:'
+        $cacheKey = 'assessment_assignment-monitor-summary:v2:'
             .$assignment->id.':'
             .md5(json_encode($filters));
 

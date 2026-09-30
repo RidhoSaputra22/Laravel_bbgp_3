@@ -7,13 +7,14 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
+use App\Support\Assessment\ParticipantAutoFillResolver;
 use App\Support\Assessment\ScoringConfigNormalizer;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 
 class AssessmentAssignmentTargetDocumentBuilder
 {
-    public const SCHEMA_VERSION = 'assessment-assignment-target-v1';
+    public const SCHEMA_VERSION = 'assessment_assignment-target-v1';
 
     /** @var array<int, AssessmentAssignment> */
     private array $assignmentCache = [];
@@ -26,7 +27,8 @@ class AssessmentAssignmentTargetDocumentBuilder
 
     public function __construct(
         private readonly AssessmentQuestionRandomizerService $randomizer,
-        private readonly ScoringConfigNormalizer $scoringConfigNormalizer
+        private readonly ScoringConfigNormalizer $scoringConfigNormalizer,
+        private readonly ?ParticipantAutoFillResolver $participantAutoFillResolver = null
     ) {}
 
     /**
@@ -69,10 +71,27 @@ class AssessmentAssignmentTargetDocumentBuilder
                 'nuptk',
                 'email',
                 'jabatan',
+                'status_kepegawaian',
                 'eksternal_jabatan',
                 'jenis_jabatan',
+                'kategori_jabatan',
+                'tugas_jabatan',
+                'latar_jabatan',
+                'gender',
+                'tempat_lahir',
+                'tgl_lahir',
+                'agama',
+                'pendidikan',
                 'kabupaten',
                 'satuan_pendidikan',
+                'npsn_sekolah',
+                'alamat_satuan',
+                'alamat_rumah',
+                'no_hp',
+                'no_wa',
+                'npwp',
+                'no_rek',
+                'jenis_bank',
             ]),
             'combination' => fn ($query) => $query->select([
                 'id',
@@ -468,6 +487,7 @@ class AssessmentAssignmentTargetDocumentBuilder
     ): array {
         $assignment ??= $target->assignment;
         $participant = $this->participant($target, $assignment);
+        $this->applyAutofillDefaults($participant['forms'], $target->guru);
         $syncedAt = now()->toIso8601String();
 
         return [
@@ -562,6 +582,53 @@ class AssessmentAssignmentTargetDocumentBuilder
             'kabupaten' => $guru->kabupaten,
             'satuan_pendidikan' => $guru->satuan_pendidikan,
         ];
+    }
+
+    private function applyAutofillDefaults(array &$forms, ?Guru $guru): void
+    {
+        $resolver = $this->participantAutoFillResolver ?? app(ParticipantAutoFillResolver::class);
+
+        foreach ($forms as &$instrumentGroup) {
+            if (! is_array($instrumentGroup['assessments'] ?? null)) {
+                continue;
+            }
+
+            foreach ($instrumentGroup['assessments'] as &$assessment) {
+                if (! is_array($assessment['forms'] ?? null)) {
+                    continue;
+                }
+
+                foreach ($assessment['forms'] as &$form) {
+                    if (! is_array($form['fields'] ?? null)) {
+                        continue;
+                    }
+
+                    foreach ($form['fields'] as &$field) {
+                        if (! is_array($field)) {
+                            continue;
+                        }
+
+                        $field['autofill_source'] = $resolver->normalizeSource(
+                            $field['autofill_source'] ?? null,
+                            $field['tipe_field'] ?? null
+                        ) ?: $resolver->normalizeSource(
+                            $resolver->inferSourceFromField(
+                                $field['label'] ?? null,
+                                $field['nama_field'] ?? null
+                            ),
+                            $field['tipe_field'] ?? null
+                        );
+                        $field['default_value'] = $guru && $field['autofill_source']
+                            ? ($resolver->resolveForField($field, $guru)['value'] ?? null)
+                            : null;
+                    }
+                    unset($field);
+                }
+                unset($form);
+            }
+            unset($assessment);
+        }
+        unset($instrumentGroup);
     }
 
     private function combination($combination): ?array

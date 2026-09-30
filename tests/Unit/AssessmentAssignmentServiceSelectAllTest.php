@@ -867,7 +867,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $job = new ProcessAssessmentAssignmentTargetsJob($assignment->id, $payloadRows);
 
         DB::table('jobs')->insert([
-            'queue' => 'assessment-assignment',
+            'queue' => 'assessment_assignment',
             'payload' => json_encode([
                 'displayName' => ProcessAssessmentAssignmentTargetsJob::class,
                 'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',
@@ -885,7 +885,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         DB::table('failed_jobs')->insert([
             'uuid' => (string) Str::uuid(),
             'connection' => 'database',
-            'queue' => 'assessment-assignment',
+            'queue' => 'assessment_assignment',
             'payload' => json_encode([
                 'displayName' => ProcessAssessmentAssignmentTargetsJob::class,
                 'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',
@@ -1092,7 +1092,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         DB::table('failed_jobs')->insert([
             'uuid' => (string) Str::uuid(),
             'connection' => 'database',
-            'queue' => 'assessment-assignment',
+            'queue' => 'assessment_assignment',
             'payload' => json_encode([
                 'displayName' => ProcessAssessmentAssignmentTargetsJob::class,
                 'job' => 'Illuminate\\Queue\\CallQueuedHandler@call',

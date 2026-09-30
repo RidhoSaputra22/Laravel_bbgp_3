@@ -52,7 +52,7 @@ class AssessmentAssignmentController extends Controller
             'data' => $this->groupAssignmentsByKetenagaan($assignments),
             'meta' => [
                 'count' => $assignments->count(),
-                'schema' => 'assessment-assignment-v1',
+                'schema' => 'assessment_assignment-v1',
             ],
         ]);
     }
@@ -114,7 +114,7 @@ class AssessmentAssignmentController extends Controller
                     'from' => $participants->firstItem() ?? 0,
                     'to' => $participants->lastItem() ?? 0,
                 ],
-                'schema' => 'assessment-assignment-v1',
+                'schema' => 'assessment_assignment-v1',
             ],
         ]);
     }
@@ -173,7 +173,7 @@ class AssessmentAssignmentController extends Controller
                     'from' => $targets->firstItem() ?? 0,
                     'to' => $targets->lastItem() ?? 0,
                 ],
-                'schema' => 'assessment-assignment-target-v1',
+                'schema' => 'assessment_assignment-target-v1',
             ],
         ]);
     }
