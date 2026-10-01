@@ -7,7 +7,9 @@ use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
 use App\Enum\LevelKompetensi;
 use App\Models\Assessment;
+use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentForm;
+use App\Jobs\SyncAssessmentTargetsToMongoJob;
 use App\Services\Assessment\AssessmentCombinationService;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\AssessmentDependentOptionResolver;
@@ -218,7 +220,11 @@ class AssessmentController extends Controller
 
             $this->syncForms($assessment, $validated['forms']);
             $assessment->load(['forms.fields']);
-            $this->combinationService->syncCombinationsForAssessment($assessment);
+            $combinationSync = $this->combinationService->syncCombinationsForAssessment($assessment);
+            $this->syncAssessmentTargetsToMongo(
+                $assessment,
+                $combinationSync['combination_ids'] ?? []
+            );
 
             DB::commit();
 
@@ -749,6 +755,10 @@ class AssessmentController extends Controller
         $retainedFieldIds = [];
 
         foreach (array_values($fields) as $fieldIndex => $fieldData) {
+            $submittedFieldId = (int) ($fieldData['id'] ?? 0);
+            $existingField = $submittedFieldId > 0 ? $existingFields->get($submittedFieldId) : null;
+            $existingValidation = is_array($existingField?->validasi) ? $existingField->validasi : [];
+            $submittedValidation = is_array($fieldData['validasi'] ?? null) ? $fieldData['validasi'] : [];
             $generatedFieldName = $this->generateFieldNameFromLabel($fieldData['label'] ?? '');
             $fieldAttributes = [
                 'label' => $fieldData['label'],
@@ -772,13 +782,17 @@ class AssessmentController extends Controller
                     $generatedFieldName,
                     $targetKetenagaan
                 ),
-                'validasi' => [
-                    'required' => (bool) ($fieldData['is_required'] ?? false),
-                    'tipe_field' => $fieldData['tipe_field'],
-                    'allow_other_input' => ($fieldData['tipe_field'] ?? null) === 'select'
-                        ? (bool) ($fieldData['allow_other_input'] ?? false)
-                        : false,
-                ],
+                'validasi' => array_merge(
+                    $existingValidation,
+                    $submittedValidation,
+                    [
+                        'required' => (bool) ($fieldData['is_required'] ?? false),
+                        'tipe_field' => $fieldData['tipe_field'],
+                        'allow_other_input' => ($fieldData['tipe_field'] ?? null) === 'select'
+                            ? (bool) ($fieldData['allow_other_input'] ?? false)
+                            : false,
+                    ]
+                ),
                 'scoring_config' => $this->parseFieldScoringConfig($fieldData, $instrumentType),
                 'urutan' => (int) ($fieldData['urutan'] ?? ($fieldIndex + 1)),
                 'is_required' => (bool) ($fieldData['is_required'] ?? false),
@@ -790,10 +804,8 @@ class AssessmentController extends Controller
                     $fieldData['dependency_config_text'] ?? null
                 );
             }
-            $submittedFieldId = (int) ($fieldData['id'] ?? 0);
-
-            if ($submittedFieldId > 0 && $existingFields->has($submittedFieldId)) {
-                $field = $existingFields->get($submittedFieldId);
+            if ($existingField) {
+                $field = $existingField;
                 $field->update($fieldAttributes);
             } else {
                 $field = $form->fields()->create($fieldAttributes);
@@ -811,6 +823,46 @@ class AssessmentController extends Controller
         if ($fieldIdsToDelete !== []) {
             $form->fields()->whereIn('id', $fieldIdsToDelete)->delete();
         }
+    }
+
+    private function syncAssessmentTargetsToMongo(Assessment $assessment, array $combinationIds = []): void
+    {
+        if (
+            ! (bool) config('assessment_mongodb.enabled')
+            || ! Schema::hasTable('assessment_assignment_targets')
+        ) {
+            return;
+        }
+
+        $combinationIds = collect($combinationIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        $targetIds = AssessmentAssignmentTarget::query()
+            ->whereHas('assignment', fn ($query) => $query->withoutPreview())
+            ->where(function ($query) use ($assessment, $combinationIds) {
+                $query->whereHas(
+                    'assignment.assessments',
+                    fn ($assessmentQuery) => $assessmentQuery->whereKey($assessment->id)
+                );
+
+                if ($combinationIds !== []) {
+                    $query
+                        ->orWhereIn('assessment_combination_id', $combinationIds)
+                        ->orWhereHas(
+                            'assignment',
+                            fn ($assignmentQuery) => $assignmentQuery->whereIn('assessment_combination_id', $combinationIds)
+                        );
+                }
+            })
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        SyncAssessmentTargetsToMongoJob::dispatchIds($targetIds);
     }
 
     private function parseFieldOptions(

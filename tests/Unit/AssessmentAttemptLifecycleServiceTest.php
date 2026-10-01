@@ -160,6 +160,7 @@ class AssessmentAttemptLifecycleServiceTest extends TestCase
             'lookup_source' => 'master_jabatan_pendidik',
             'validasi' => [
                 'allow_other_input' => true,
+                'min_length' => 100,
             ],
             'is_active' => true,
         ]);
@@ -186,6 +187,9 @@ class AssessmentAttemptLifecycleServiceTest extends TestCase
                                         ],
                                         'autofill_source' => null,
                                         'lookup_source' => null,
+                                        'validasi' => [
+                                            'allow_other_input' => false,
+                                        ],
                                         'is_required' => true,
                                     ],
                                 ],
@@ -218,6 +222,10 @@ class AssessmentAttemptLifecycleServiceTest extends TestCase
         );
         $this->assertTrue(
             (bool) data_get($resolvedAttempt->structure_snapshot, 'assessments.0.forms.0.fields.0.validasi.allow_other_input')
+        );
+        $this->assertSame(
+            100,
+            data_get($resolvedAttempt->structure_snapshot, 'assessments.0.forms.0.fields.0.validasi.min_length')
         );
 
         $this->assertSame(

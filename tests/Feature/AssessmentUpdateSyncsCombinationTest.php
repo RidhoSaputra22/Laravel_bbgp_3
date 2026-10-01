@@ -197,6 +197,8 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
             'validasi' => [
                 'required' => false,
                 'tipe_field' => 'text',
+                'min_length' => 100,
+                'custom_rule' => 'preserve-me',
             ],
             'scoring_config' => [
                 'enabled' => false,
@@ -239,6 +241,8 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame('1. Label Pertanyaan Diperbarui', $updatedField->label);
         $this->assertSame('label_pertanyaan_diperbarui', $updatedField->nama_field);
         $this->assertSame('master_golongan', $updatedField->lookup_source);
+        $this->assertSame(100, data_get($updatedField->validasi, 'min_length'));
+        $this->assertSame('preserve-me', data_get($updatedField->validasi, 'custom_rule'));
         $this->assertSame('select', $updatedField->tipe_field);
         $this->assertSame(
             ['Ahli Pertama', 'III/a', 'IV/a'],
@@ -261,6 +265,8 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame('Placeholder diperbarui', $item->field_placeholder);
         $this->assertSame('label_pertanyaan_diperbarui', $item->field_name);
         $this->assertSame('master_golongan', $item->field_lookup_source);
+        $this->assertSame(100, data_get($item->field_validation, 'min_length'));
+        $this->assertSame('preserve-me', data_get($item->field_validation, 'custom_rule'));
         $this->assertSame(
             ['Ahli Pertama', 'III/a', 'IV/a'],
             collect($item->field_options ?? [])->pluck('label')->all()
@@ -275,6 +281,8 @@ class AssessmentUpdateSyncsCombinationTest extends TestCase
         $this->assertSame('1. Label Pertanyaan Diperbarui', $snapshotField['label'] ?? null);
         $this->assertSame('Placeholder diperbarui', $snapshotField['placeholder'] ?? null);
         $this->assertSame('master_golongan', $snapshotField['lookup_source'] ?? null);
+        $this->assertSame(100, data_get($snapshotField, 'validasi.min_length'));
+        $this->assertSame('preserve-me', data_get($snapshotField, 'validasi.custom_rule'));
     }
 
     private function validPayload(

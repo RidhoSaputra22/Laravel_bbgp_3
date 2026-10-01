@@ -305,7 +305,7 @@ class AssessmentAttemptLifecycleService
             return $attempt;
         }
 
-        $metadataColumns = ['id', 'autofill_source', 'lookup_source', 'validasi'];
+        $metadataColumns = ['id', 'autofill_source', 'lookup_source', 'validasi', 'is_required'];
 
         if (Schema::hasColumn('assessment_form_fields', 'dependency_config')) {
             $metadataColumns[] = 'dependency_config';
@@ -363,11 +363,19 @@ class AssessmentAttemptLifecycleService
                                     $wasUpdated = true;
                                 }
 
-                                $currentAllowOtherInput = (bool) data_get($field, 'validasi.allow_other_input', false);
-                                $sourceAllowOtherInput = (bool) data_get($sourceField->validasi ?? [], 'allow_other_input', false);
+                                $sourceValidation = is_array($sourceField->validasi ?? null)
+                                    ? $sourceField->validasi
+                                    : [];
 
-                                if ($currentAllowOtherInput !== $sourceAllowOtherInput) {
-                                    data_set($field, 'validasi.allow_other_input', $sourceAllowOtherInput);
+                                if (($field['validasi'] ?? []) !== $sourceValidation) {
+                                    $field['validasi'] = $sourceValidation;
+                                    $wasUpdated = true;
+                                }
+
+                                $sourceIsRequired = (bool) $sourceField->is_required;
+
+                                if ((bool) ($field['is_required'] ?? false) !== $sourceIsRequired) {
+                                    $field['is_required'] = $sourceIsRequired;
                                     $wasUpdated = true;
                                 }
 
