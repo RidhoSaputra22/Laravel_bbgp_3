@@ -5,24 +5,17 @@ namespace App\Services\Assessment;
 use App\Enum\AssessmentKetenagaanType;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
-use App\Models\Guru;
 use App\Models\User;
 use App\Models\ValidatorAssignment;
 use App\Models\ValidatorForm;
 use App\Models\ValidatorFormField;
-use App\Services\AssessmentAssignmentService;
 use App\Support\Assessment\ValidatorAccess;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ValidatorAssignmentService
 {
-    public function __construct(
-        private readonly AssessmentAssignmentService $assessmentAssignmentService
-    ) {}
-
     public function createForAllEligibleValidators(array $data, ?int $assignedBy): array
     {
         $validators = ValidatorAccess::eligibleUsersQuery()->with('guru')->get();
@@ -64,7 +57,6 @@ class ValidatorAssignmentService
                     ->exists();
 
                 if ($alreadyAssigned) {
-                    $this->syncValidatorToAssessmentAssignments($sourceIds, $validator->guru);
                     $skipped++;
 
                     continue;
@@ -182,27 +174,8 @@ class ValidatorAssignmentService
                 ])->all()
             );
 
-            $this->syncValidatorToAssessmentAssignments($sourceAssignments, $validator->guru);
-
             return $assignment;
         });
-    }
-
-    private function syncValidatorToAssessmentAssignments(Collection $assignments, ?Guru $guru): void
-    {
-        if (! $guru) {
-            return;
-        }
-
-        foreach ($assignments as $assignment) {
-            $assessmentAssignment = $assignment instanceof AssessmentAssignment
-                ? $assignment
-                : AssessmentAssignment::find((int) $assignment);
-
-            if ($assessmentAssignment) {
-                $this->assessmentAssignmentService->addValidatorParticipant($assessmentAssignment, $guru);
-            }
-        }
     }
 
     public function saveResponses(ValidatorAssignment $assignment, array $answers): void
@@ -357,6 +330,8 @@ class ValidatorAssignmentService
             'id' => $assignment->id,
             'code' => $assignment->kode_penugasan,
             'title' => $assignment->judul_penugasan,
+            'is_active' => (bool) $assignment->is_active,
+            'status_distribusi' => $assignment->status_distribusi,
             'target_ketenagaan' => $assignment->target_ketenagaan,
             'target_ketenagaan_label' => $assignment->target_ketenagaan_label,
             'description' => $assignment->deskripsi,

@@ -26,6 +26,7 @@ class AssessmentValidatorModuleTest extends TestCase
 
         config()->set('database.default', 'sqlite');
         config()->set('database.connections.sqlite.database', ':memory:');
+        config()->set('assessment_mongodb.enabled', false);
         DB::purge('sqlite');
         DB::reconnect('sqlite');
 
@@ -80,12 +81,8 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame('Assessment Utama', data_get($assignment->assessment_snapshot, 'title'));
         $this->assertSame('Penugasan Guru Aktif', data_get($assignment->assessment_assignment_snapshots, '0.title'));
         $this->assertSame('Validator Test', data_get($assignment->validator_snapshot, 'name'));
-        $this->assertDatabaseHas('assessment_assignment_targets', [
-            'assessment_assignment_id' => $sourceAssignment->id,
-            'guru_id' => $validator->guru()->first()->id,
-            'status' => 'ditugaskan',
-        ]);
-        $this->assertSame(1, $sourceAssignment->fresh()->total_ditugaskan);
+        $this->assertDatabaseCount('assessment_assignment_targets', 0);
+        $this->assertSame(0, $sourceAssignment->fresh()->total_ditugaskan);
 
         $assignment->load('validatorForm.sections.fields');
         $service->submit($assignment, [
@@ -99,7 +96,7 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame(5.0, $assignment->score_max);
         $this->assertSame(80.0, $assignment->score_percentage);
         $this->assertDatabaseCount('validator_assignment_responses', 2);
-        $this->assertDatabaseCount('assessment_assignment_targets', 1);
+        $this->assertDatabaseCount('assessment_assignment_targets', 0);
     }
 
     public function test_assignment_rejects_user_who_is_not_an_eligible_validator(): void
@@ -167,7 +164,7 @@ class AssessmentValidatorModuleTest extends TestCase
         ], null);
     }
 
-    public function test_validator_uses_planned_session_capacity_while_source_distribution_is_queued(): void
+    public function test_validator_does_not_consume_source_session_capacity(): void
     {
         $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '1000');
         [, $sourceAssignment] = $this->createAssessment();
@@ -191,14 +188,11 @@ class AssessmentValidatorModuleTest extends TestCase
             'validator_user_id' => $validator->id,
         ], null);
 
-        $target = $sourceAssignment->targets()->where('guru_id', $validator->guru()->first()->id)->first();
-
-        $this->assertNotNull($target);
-        $this->assertSame(2, $target->session?->nomor_sesi);
-        $this->assertSame(42, $sourceAssignment->fresh()->total_target);
-        $this->assertSame(1, $sourceAssignment->fresh()->total_ditugaskan);
+        $this->assertDatabaseCount('assessment_assignment_targets', 0);
+        $this->assertSame(41, $sourceAssignment->fresh()->total_target);
+        $this->assertSame(0, $sourceAssignment->fresh()->total_ditugaskan);
         $this->assertSame(41, $sourceAssignment->sessions()->where('nomor_sesi', 1)->value('total_peserta'));
-        $this->assertSame(1, $sourceAssignment->sessions()->where('nomor_sesi', 2)->value('total_peserta'));
+        $this->assertSame(1, $sourceAssignment->sessions()->count());
     }
 
     public function test_bulk_assignment_is_given_to_every_eligible_validator_and_skips_duplicates(): void
@@ -230,7 +224,7 @@ class AssessmentValidatorModuleTest extends TestCase
         $this->assertSame(['created' => 0, 'skipped' => 2], $secondResult);
         $this->assertDatabaseCount('validator_assignments', 2);
         $this->assertDatabaseCount('validator_assignment_assessment_assignments', 4);
-        $this->assertDatabaseCount('assessment_assignment_targets', 4);
+        $this->assertDatabaseCount('assessment_assignment_targets', 0);
         $this->assertSame(
             [2, 2],
             \App\Models\ValidatorAssignment::query()

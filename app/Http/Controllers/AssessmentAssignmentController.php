@@ -128,7 +128,9 @@ class AssessmentAssignmentController extends Controller
         $assignments = AssessmentAssignment::query()
             ->withoutPreview()
             ->withCount([
-                'targets as mongodb_target_count' => fn ($query) => $query->where('status', '!=', 'dibatalkan'),
+                'targets as mongodb_target_count' => fn ($query) => $query
+                    ->where('status', '!=', 'dibatalkan')
+                    ->where('is_validator', false),
             ])
             ->when(
                 filled($assignmentId),
@@ -269,7 +271,9 @@ class AssessmentAssignmentController extends Controller
         ])->withCount([
             'targets',
             'sessions',
-            'targets as mongodb_target_count' => fn ($query) => $query->where('status', '!=', 'dibatalkan'),
+            'targets as mongodb_target_count' => fn ($query) => $query
+                ->where('status', '!=', 'dibatalkan')
+                ->where('is_validator', false),
         ])
             ->findOrFail($id);
 

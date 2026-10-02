@@ -44,6 +44,7 @@ class AssessmentAssignmentTargetDocumentBuilder
             'assessment_assignment_session_id',
             'assessment_combination_id',
             'guru_id',
+            'is_validator',
             'status',
             'assigned_at',
             'started_at',

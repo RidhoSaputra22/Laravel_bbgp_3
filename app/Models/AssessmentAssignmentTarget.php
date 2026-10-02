@@ -15,6 +15,7 @@ class AssessmentAssignmentTarget extends Model
         'assessment_assignment_session_id',
         'assessment_combination_id',
         'guru_id',
+        'is_validator',
         'status',
         'assigned_at',
         'started_at',
@@ -30,6 +31,7 @@ class AssessmentAssignmentTarget extends Model
         'deadline_at' => 'datetime',
         'submitted_at' => 'datetime',
         'timed_out_at' => 'datetime',
+        'is_validator' => 'boolean',
     ];
 
     public function scopeLatestAssignmentFirst(Builder $query): Builder

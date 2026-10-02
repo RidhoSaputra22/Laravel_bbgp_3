@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Models\AssessmentAssignmentTarget;
-use App\Services\Assessment\AssessmentAssignmentTargetDocumentBuilder;
-use App\Services\Assessment\MongoAssessmentAssignmentTargetStore;
+use App\Models\ValidatorAssignment;
+use App\Services\Assessment\MongoValidatorAssignmentStore;
+use App\Services\Assessment\ValidatorAssignmentDocumentBuilder;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -14,7 +14,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class SyncAssessmentTargetsToMongoJob implements ShouldQueue
+class SyncValidatorAssignmentsToMongoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -27,20 +27,20 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
         return [30, 120, 300];
     }
 
-    public function __construct(public array $targetIds)
+    public function __construct(public array $assignmentIds)
     {
         $this->onConnection(AssessmentAssignmentService::QUEUE_CONNECTION);
         $this->onQueue('default');
     }
 
-    public static function dispatchIds(array $targetIds): void
+    public static function dispatchIds(array $assignmentIds): void
     {
         if (! (bool) config('assessment_mongodb.enabled')) {
             return;
         }
 
         $chunkSize = max((int) config('assessment_mongodb.batch_size', 50), 1);
-        $ids = collect($targetIds)
+        $ids = collect($assignmentIds)
             ->map(fn ($id) => (int) $id)
             ->filter(fn (int $id) => $id > 0)
             ->unique()
@@ -53,15 +53,15 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
     }
 
     public function handle(
-        MongoAssessmentAssignmentTargetStore $store,
-        AssessmentAssignmentTargetDocumentBuilder $builder
+        MongoValidatorAssignmentStore $store,
+        ValidatorAssignmentDocumentBuilder $builder
     ): void {
         if (! (bool) config('assessment_mongodb.enabled')) {
             return;
         }
 
         $store->assertAvailable();
-        $ids = collect($this->targetIds)
+        $ids = collect($this->assignmentIds)
             ->map(fn ($id) => (int) $id)
             ->filter(fn (int $id) => $id > 0)
             ->unique()
@@ -72,24 +72,22 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
             return;
         }
 
-        $targets = AssessmentAssignmentTarget::query()
-            ->select(AssessmentAssignmentTargetDocumentBuilder::targetColumns())
+        $assignments = ValidatorAssignment::query()
             ->whereIn('id', $ids)
-            ->whereHas('assignment', fn ($query) => $query->withoutPreview())
-            ->where('is_validator', false)
-            ->with($builder->targetRelations())
+            ->with($builder->relations())
             ->get()
             ->keyBy('id');
-
-        $builder->hydrateAssignments($targets->values());
-
-        $documents = $targets
-            ->map(fn (AssessmentAssignmentTarget $target) => $builder->document($target, $target->assignment))
+        $documents = $assignments
+            ->map(fn (ValidatorAssignment $assignment) => $builder->document($assignment))
             ->values()
             ->all();
+
         $store->bulkUpsert($documents);
 
-        $missingIds = array_values(array_diff($ids, $targets->keys()->map(fn ($id) => (int) $id)->all()));
+        $missingIds = array_values(array_diff(
+            $ids,
+            $assignments->keys()->map(fn ($id) => (int) $id)->all()
+        ));
 
         if ($missingIds !== []) {
             $store->markDeleted($missingIds, $builder);
@@ -98,8 +96,8 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('Assessment target MongoDB sync failed.', [
-            'target_ids' => $this->targetIds,
+        Log::error('Validator assignment MongoDB sync failed.', [
+            'validator_assignment_ids' => $this->assignmentIds,
             'error' => $exception->getMessage(),
         ]);
     }

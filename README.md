@@ -135,6 +135,7 @@ MONGODB_SYNC_ENABLED=false
 MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DATABASE=quiz_bbgtk
 MONGODB_ASSIGNMENT_COLLECTION=assessment_assignment
+MONGODB_VALIDATOR_ASSIGNMENT_COLLECTION=validator_assignment
 MONGODB_SYNC_BATCH_SIZE=100
 ```
 
@@ -174,6 +175,21 @@ workers. Restart workers after changing code or `.env`:
 ```bash
 php artisan queue:restart
 ```
+
+Validator assignments use a separate validator_assignment collection. The
+document contains the validator form, responses, validator result, and
+score-related metadata for the validator form only. Source assessment
+assignments are stored as score-free snapshots. Backfill it with:
+
+    php artisan assessment:sync-validator-assignments-mongodb --dry-run
+    php artisan assessment:sync-validator-assignments-mongodb --chunk=100
+
+After applying the target separation migration, rebuild both collections once
+so old validator target documents are removed from assessment_assignment:
+
+    php artisan migrate
+    php artisan assessment:sync-targets-mongodb --reset --force --chunk=100
+    php artisan assessment:sync-validator-assignments-mongodb --reset --force --chunk=100
 
 ## License
 

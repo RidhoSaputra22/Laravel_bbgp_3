@@ -32,7 +32,11 @@ class AssessmentAssignmentObserver
         }
 
         SyncAssessmentTargetsToMongoJob::dispatchIds(
-            $assignment->targets()->pluck('id')->map(fn ($id) => (int) $id)->all()
+            $assignment->targets()
+                ->where('is_validator', false)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
         );
     }
 }

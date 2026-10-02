@@ -2,44 +2,42 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AssessmentAssignmentTarget;
-use App\Services\Assessment\AssessmentAssignmentTargetDocumentBuilder;
-use App\Services\Assessment\MongoAssessmentAssignmentTargetStore;
+use App\Models\ValidatorAssignment;
+use App\Services\Assessment\MongoValidatorAssignmentStore;
+use App\Services\Assessment\ValidatorAssignmentDocumentBuilder;
 use Illuminate\Console\Command;
 use Throwable;
 
-class SyncAssessmentTargetsToMongo extends Command
+class SyncValidatorAssignmentsToMongo extends Command
 {
-    protected $signature = 'assessment:sync-targets-mongodb
-        {--assignment= : Only sync targets for one assignment ID}
-        {--chunk=100 : Number of targets processed per batch}
-        {--dry-run : Count matching targets without writing to MongoDB}
-        {--reset : Delete every existing target document before a full backfill}
+    protected $signature = 'assessment:sync-validator-assignments-mongodb
+        {--assignment= : Only sync one validator assignment ID}
+        {--chunk=100 : Number of assignments processed per batch}
+        {--dry-run : Count assignments without writing to MongoDB}
+        {--reset : Delete every existing validator document before a full backfill}
         {--force : Skip the confirmation prompt for --reset}';
 
-    protected $description = 'Backfill assessment assignment targets into MongoDB';
+    protected $description = 'Backfill validator assignments into MongoDB';
 
     public function handle(
-        MongoAssessmentAssignmentTargetStore $store,
-        AssessmentAssignmentTargetDocumentBuilder $builder
+        MongoValidatorAssignmentStore $store,
+        ValidatorAssignmentDocumentBuilder $builder
     ): int {
-        $query = AssessmentAssignmentTarget::query()
-            ->where('is_validator', false)
-            ->whereHas('assignment', fn ($query) => $query->withoutPreview())
+        $query = ValidatorAssignment::query()
             ->when(
                 $this->option('assignment'),
-                fn ($query, $assignmentId) => $query->where('assessment_assignment_id', (int) $assignmentId)
+                fn ($query, $assignmentId) => $query->whereKey((int) $assignmentId)
             );
         $chunkSize = max((int) $this->option('chunk'), 1);
 
         if ($this->option('reset') && $this->option('assignment')) {
-            $this->error('--reset hanya boleh digunakan untuk sinkronisasi seluruh assignment; hapus --assignment.');
+            $this->error('--reset hanya boleh digunakan untuk sinkronisasi seluruh penugasan validator; hapus --assignment.');
 
             return self::INVALID;
         }
 
         if ($this->option('dry-run')) {
-            $this->info('Target cocok: '.$query->count());
+            $this->info('Penugasan validator cocok: '.$query->count());
 
             if ($this->option('reset')) {
                 $this->comment('--reset diabaikan pada mode --dry-run.');
@@ -60,7 +58,7 @@ class SyncAssessmentTargetsToMongo extends Command
 
             if ($this->option('reset')) {
                 if (! $this->option('force') && ! $this->confirm(
-                    'Hapus seluruh dokumen lama dari collection MongoDB sebelum sinkronisasi?',
+                    'Hapus seluruh dokumen lama dari collection validator_assignment sebelum sinkronisasi?',
                     false
                 )) {
                     $this->warn('Reset dibatalkan. Tidak ada data yang diubah.');
@@ -79,7 +77,7 @@ class SyncAssessmentTargetsToMongo extends Command
 
         $total = (int) (clone $query)->count();
         if ($total === 0) {
-            $this->info('Selesai. Tidak ada target yang perlu disinkronkan.');
+            $this->info('Selesai. Tidak ada penugasan validator yang perlu disinkronkan.');
 
             return self::SUCCESS;
         }
@@ -89,10 +87,10 @@ class SyncAssessmentTargetsToMongo extends Command
         $progressBar = $this->output->createProgressBar($total);
         $progressBar->setFormat('%current%/%max% [%bar%] %percent:3s%%');
         $progressBar->start();
+
         $query
-            ->select(AssessmentAssignmentTargetDocumentBuilder::targetColumns())
-            ->with($builder->targetRelations())
-            ->chunkById($chunkSize, function ($targets) use (
+            ->with($builder->relations())
+            ->chunkById($chunkSize, function ($assignments) use (
                 $store,
                 $builder,
                 $progressBar,
@@ -100,20 +98,19 @@ class SyncAssessmentTargetsToMongo extends Command
                 &$failed
             ) {
                 try {
-                    $builder->hydrateAssignments($targets);
-                    $documents = $targets
-                        ->map(fn (AssessmentAssignmentTarget $target) => $builder->document($target, $target->assignment))
+                    $documents = $assignments
+                        ->map(fn (ValidatorAssignment $assignment) => $builder->document($assignment))
                         ->values()
                         ->all();
                     $store->bulkUpsert($documents);
                     $synced += count($documents);
                 } catch (Throwable $exception) {
-                    $failed += $targets->count();
+                    $failed += $assignments->count();
                     $this->output->writeln('');
                     $this->warn('Batch gagal: '.$exception->getMessage());
                 }
 
-                $progressBar->advance($targets->count());
+                $progressBar->advance($assignments->count());
             });
 
         $progressBar->finish();

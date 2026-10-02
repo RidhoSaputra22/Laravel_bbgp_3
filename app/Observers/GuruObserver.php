@@ -16,7 +16,11 @@ class GuruObserver
         }
 
         SyncAssessmentTargetsToMongoJob::dispatchIds(
-            $guru->assessmentAssignmentTargets()->pluck('id')->map(fn ($id) => (int) $id)->all()
+            $guru->assessmentAssignmentTargets()
+                ->where('is_validator', false)
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->all()
         );
     }
 }

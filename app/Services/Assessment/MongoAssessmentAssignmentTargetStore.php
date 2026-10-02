@@ -85,6 +85,7 @@ class MongoAssessmentAssignmentTargetStore
             [
                 '$match' => [
                     'assignment.id' => ['$in' => $ids],
+                    'sync.is_active' => true,
                 ],
             ],
             [
