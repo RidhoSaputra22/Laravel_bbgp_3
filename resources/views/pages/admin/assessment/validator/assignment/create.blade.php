@@ -39,6 +39,10 @@
 
                 <form method="POST" action="{{ route('assessment.validator.assignment.store') }}">
                     @csrf
+                    @php
+                        $defaultSourceMode = $combinationAssessmentAssignments->isNotEmpty() ? 'combination' : 'all_forms';
+                        $selectedSourceMode = old('source_mode', $defaultSourceMode);
+                    @endphp
                     <div class="card">
                         <div class="card-header"><h4>Detail Penugasan QA</h4></div>
                         <div class="card-body">
@@ -61,17 +65,40 @@
                                     </select>
                                 </div>
                                 <div class="form-group col-md-12">
-                                    <div class="alert alert-info mb-0">
-                                        <i class="fas fa-magic"></i>
-                                        Sistem otomatis mengambil seluruh
-                                        <strong>{{ $assessmentAssignments->count() }} penugasan assessment aktif</strong>
-                                        untuk Tenaga Pendidik dan Tenaga Kependidikan, lalu memberikan QA kepada seluruh
-                                        <strong>{{ $validators->count() }} stakeholder dengan jabatan Validator</strong>.
-                                        Setiap validator juga otomatis ditambahkan sebagai peserta pada penugasan assessment
-                                        tersebut agar assessment tampil di portalnya. Validator yang sudah memiliki QA aktif
-                                        yang sama akan dilewati dan target peserta yang sudah ada tidak dibuat ulang.
+                                    <label>Sumber Soal <span class="text-danger">*</span></label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="source-mode-combination" name="source_mode"
+                                                    value="combination" class="custom-control-input"
+                                                    @checked($selectedSourceMode === 'combination')
+                                                    @disabled($combinationAssessmentAssignments->isEmpty())>
+                                                <label class="custom-control-label" for="source-mode-combination">
+                                                    Kombinasi soal
+                                                </label>
+                                                <small class="form-text text-muted">
+                                                    Ambil soal sesuai kombinasi aktif yang digunakan pada target peserta
+                                                    ({{ $combinationAssessmentAssignments->count() }} penugasan tersedia).
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="source-mode-all-forms" name="source_mode"
+                                                    value="all_forms" class="custom-control-input"
+                                                    @checked($selectedSourceMode === 'all_forms')>
+                                                <label class="custom-control-label" for="source-mode-all-forms">
+                                                    Seluruh form terkait
+                                                </label>
+                                                <small class="form-text text-muted">
+                                                    Ambil seluruh form dan soal dari assessment yang terhubung
+                                                    ({{ $assessmentAssignments->count() }} penugasan tersedia).
+                                                </small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
                                 <div class="form-group col-md-6">
                                     <label>Tanggal Mulai</label>
                                     <input type="date" name="start_date" class="form-control" value="{{ old('start_date') }}">

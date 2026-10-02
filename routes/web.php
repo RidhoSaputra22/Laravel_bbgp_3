@@ -366,6 +366,8 @@ Route::group(
                         Route::get('/', 'ValidatorAssignmentController@index')->name('assessment.validator.assignment.index');
                         Route::get('/create', 'ValidatorAssignmentController@create')->name('assessment.validator.assignment.create');
                         Route::post('/', 'ValidatorAssignmentController@store')->name('assessment.validator.assignment.store');
+                        Route::delete('/hapus-semua', 'ValidatorAssignmentController@destroyAll')
+                            ->name('assessment.validator.assignment.destroy-all');
                         Route::post('/{assignment}/reset', 'ValidatorAssignmentController@reset')
                             ->name('assessment.validator.assignment.reset');
                         Route::get('/{assignment}/download', 'ValidatorAssignmentController@downloadResultPdf')

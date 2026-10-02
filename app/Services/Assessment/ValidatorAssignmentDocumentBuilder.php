@@ -2,7 +2,11 @@
 
 namespace App\Services\Assessment;
 
+use App\Models\AssessmentCombination;
 use App\Models\ValidatorAssignment;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class ValidatorAssignmentDocumentBuilder
 {
@@ -13,17 +17,23 @@ class ValidatorAssignmentDocumentBuilder
      */
     public function relations(): array
     {
-        return [
+        $relations = [
             'validatorForm.sections.fields',
             'responses',
         ];
+
+        if (Schema::hasTable('validator_assignment_assessment_assignments')) {
+            $relations[] = 'assessmentAssignments.combination';
+        }
+
+        return $relations;
     }
 
     public function document(ValidatorAssignment $assignment): array
     {
         $assignment->loadMissing($this->relations());
 
-        $sourceAssignments = collect($assignment->resolved_assignment_snapshots)
+        $sourceAssignments = $this->resolveSourceSnapshots($assignment)
             ->map(fn (mixed $source) => is_array($source) ? $this->sourceAssignment($source) : null)
             ->filter()
             ->values();
@@ -52,6 +62,7 @@ class ValidatorAssignmentDocumentBuilder
                 'title' => $assignment->title,
                 'notes' => $assignment->notes,
                 'validator_form_id' => $assignment->validator_form_id,
+                'source_mode' => $assignment->source_mode,
                 'assessment_id' => $assignment->assessment_id,
                 'status' => $assignment->status,
                 'start_date' => $assignment->start_date?->toDateString(),
@@ -72,6 +83,7 @@ class ValidatorAssignmentDocumentBuilder
             ],
             'meta' => [
                 'snapshot_source' => 'validator_assignment',
+                'source_mode' => $assignment->source_mode,
                 'assessment_assignment_count' => $sourceAssignments->count(),
                 'assessment_count' => $sourceAssignments
                     ->sum(fn (array $source) => count($source['assessments'] ?? [])),
@@ -143,6 +155,182 @@ class ValidatorAssignmentDocumentBuilder
                 ->values()
                 ->all(),
         ];
+    }
+
+    private function resolveSourceSnapshots(ValidatorAssignment $assignment): \Illuminate\Support\Collection
+    {
+        $snapshots = collect($assignment->resolved_assignment_snapshots);
+
+        if ($assignment->source_mode === ValidatorAssignment::SOURCE_MODE_ALL_FORMS) {
+            return $snapshots;
+        }
+
+        if (! $assignment->relationLoaded('assessmentAssignments')
+            || $assignment->assessmentAssignments->isEmpty()) {
+            return $snapshots;
+        }
+
+        $selectedCombinationIds = $assignment->assessmentAssignments
+            ->values()
+            ->mapWithKeys(function ($sourceAssignment, int $index) use ($snapshots) {
+                $combinationId = (int) data_get($snapshots->get($index, []), 'combination_id', 0);
+
+                return $combinationId > 0
+                    ? [(int) $sourceAssignment->id => $combinationId]
+                    : [];
+            })
+            ->all();
+        $targetCombinationSnapshots = $this->loadTargetCombinationSnapshots(
+            $assignment->assessmentAssignments,
+            $selectedCombinationIds
+        );
+
+        return $assignment->assessmentAssignments
+            ->values()
+            ->map(function ($sourceAssignment, int $index) use (
+                $snapshots,
+                $targetCombinationSnapshots,
+                $selectedCombinationIds
+            ) {
+                $snapshot = $snapshots->get($index, []);
+                $selectedCombinationId = (int) ($selectedCombinationIds[(int) $sourceAssignment->id] ?? 0);
+                $combinationSnapshots = $targetCombinationSnapshots[(int) $sourceAssignment->id] ?? [];
+                $combination = $sourceAssignment->relationLoaded('combination')
+                    ? $sourceAssignment->getRelation('combination')
+                    : null;
+
+                if ($combination && $combination->is_active !== false
+                    && is_array($combination->structure_snapshot)
+                    && ($selectedCombinationId === 0 || $selectedCombinationId === (int) $combination->id)) {
+                    array_unshift($combinationSnapshots, $combination->structure_snapshot);
+                }
+
+                $combinationSnapshots = collect($combinationSnapshots)
+                    ->filter(fn (mixed $combinationSnapshot) => is_array($combinationSnapshot))
+                    ->unique(fn (array $combinationSnapshot) => (string) data_get(
+                        $combinationSnapshot,
+                        'combination.id',
+                        serialize($combinationSnapshot)
+                    ))
+                    ->values()
+                    ->all();
+
+                if ($combinationSnapshots === []) {
+                    return $snapshot;
+                }
+
+                return array_merge($snapshot, [
+                    'assessments' => $this->combinationAssessments($combinationSnapshots),
+                ]);
+            });
+    }
+
+    private function loadTargetCombinationSnapshots(
+        Collection $sourceAssignments,
+        array $selectedCombinationIds = []
+    ): array
+    {
+        if (! Schema::hasTable('assessment_assignment_targets') || ! Schema::hasTable('assessment_combinations')) {
+            return [];
+        }
+
+        $targetRows = DB::table('assessment_assignment_targets')
+            ->whereIn('assessment_assignment_id', $sourceAssignments->pluck('id')->all())
+            ->whereNotNull('assessment_combination_id')
+            ->distinct()
+            ->get(['assessment_assignment_id', 'assessment_combination_id']);
+        $combinationIds = $targetRows
+            ->pluck('assessment_combination_id')
+            ->map(fn ($id) => (int) $id)
+            ->filter()
+            ->merge(array_values($selectedCombinationIds))
+            ->unique();
+
+        if ($combinationIds->isEmpty()) {
+            return [];
+        }
+
+        $snapshots = AssessmentCombination::query()
+            ->whereIn('id', $combinationIds)
+            ->where('is_active', true)
+            ->orderByDesc('id')
+            ->get(['id', 'structure_snapshot'])
+            ->mapWithKeys(fn (AssessmentCombination $combination) => [
+                (int) $combination->id => $combination->structure_snapshot,
+            ]);
+
+        return $targetRows
+            ->groupBy('assessment_assignment_id')
+            ->map(function (Collection $rows) use ($snapshots, $selectedCombinationIds) {
+                $selectedCombinationId = (int) ($selectedCombinationIds[(int) $rows->first()->assessment_assignment_id] ?? 0);
+
+                if ($selectedCombinationId > 0) {
+                    $snapshot = $snapshots->get($selectedCombinationId);
+
+                    return is_array($snapshot) && ! empty($snapshot['assessments'])
+                        ? [$snapshot]
+                        : [];
+                }
+
+                foreach ($rows->sortByDesc('assessment_combination_id') as $row) {
+                    $snapshot = $snapshots->get((int) $row->assessment_combination_id);
+
+                    if (is_array($snapshot) && ! empty($snapshot['assessments'])) {
+                        return [$snapshot];
+                    }
+                }
+
+                return [];
+            })
+            ->all();
+    }
+
+    private function combinationAssessments(array $snapshots): array
+    {
+        return collect($snapshots)
+            ->flatMap(fn (array $snapshot) => $snapshot['assessments'] ?? [])
+            ->filter(fn (mixed $assessment) => is_array($assessment) && isset($assessment['id']))
+            ->groupBy('id')
+            ->map(function (Collection $assessmentGroup) {
+                $assessment = $assessmentGroup->first();
+                $assessment['code'] = $assessment['code'] ?? $assessment['kode_assessment'] ?? null;
+                $assessment['title'] = $assessment['title'] ?? $assessment['judul'] ?? null;
+                $assessment['description'] = $assessment['description'] ?? $assessment['deskripsi'] ?? null;
+                $assessment['instructions'] = $assessment['instructions'] ?? $assessment['petunjuk'] ?? null;
+                $assessment['captured_at'] = $assessment['captured_at'] ?? null;
+                $assessment['forms'] = $assessmentGroup
+                    ->flatMap(fn (array $item) => $item['forms'] ?? [])
+                    ->filter(fn (mixed $form) => is_array($form) && isset($form['id']))
+                    ->groupBy('id')
+                    ->map(function (Collection $formGroup) {
+                        $form = $formGroup->first();
+                        $form['code'] = $form['code'] ?? $form['kode_form'] ?? null;
+                        $form['title'] = $form['title'] ?? $form['judul_form'] ?? null;
+                        $form['description'] = $form['description'] ?? $form['deskripsi'] ?? null;
+                        $form['fields'] = $formGroup
+                            ->flatMap(fn (array $item) => $item['fields'] ?? [])
+                            ->filter(fn (mixed $field) => is_array($field) && isset($field['id']))
+                            ->unique('id')
+                            ->map(fn (array $field) => [
+                                'id' => $field['id'],
+                                'label' => $field['label'] ?? null,
+                                'description' => $field['description'] ?? $field['deskripsi'] ?? null,
+                                'type' => $field['type'] ?? $field['tipe_field'] ?? null,
+                                'options' => $field['options'] ?? $field['opsi_field'] ?? null,
+                                'required' => (bool) ($field['required'] ?? $field['is_required'] ?? false),
+                            ])
+                            ->values()
+                            ->all();
+
+                        return $form;
+                    })
+                    ->values()
+                    ->all();
+
+                return $assessment;
+            })
+            ->values()
+            ->all();
     }
 
     private function sourceAssessment(array $assessment): array

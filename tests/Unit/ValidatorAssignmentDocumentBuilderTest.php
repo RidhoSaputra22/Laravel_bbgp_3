@@ -3,6 +3,8 @@
 namespace Tests\Unit;
 
 use App\Jobs\SyncValidatorAssignmentsToMongoJob;
+use App\Models\AssessmentAssignment;
+use App\Models\AssessmentCombination;
 use App\Models\ValidatorAssignment;
 use App\Models\ValidatorAssignmentResponse;
 use App\Models\ValidatorForm;
@@ -123,5 +125,102 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
         Queue::assertPushed(SyncValidatorAssignmentsToMongoJob::class, function ($job) {
             return count($job->assignmentIds) <= 50;
         });
+    }
+
+    public function test_source_snapshot_uses_the_assignment_combination(): void
+    {
+        $assignment = new ValidatorAssignment([
+            'assessment_assignment_snapshots' => [[
+                'id' => 50,
+                'title' => 'Penugasan',
+                'assessments' => [[
+                    'id' => 20,
+                    'forms' => [[
+                        'id' => 30,
+                        'fields' => [['id' => 300, 'label' => 'Form lama']],
+                    ]],
+                ]],
+            ]],
+        ]);
+        $assignment->id = 123;
+        $assignment->setRelation('validatorForm', new ValidatorForm(['status' => 'published']));
+        $assignment->setRelation('responses', new Collection());
+
+        $sourceAssignment = new AssessmentAssignment();
+        $sourceAssignment->id = 50;
+        $combination = new AssessmentCombination([
+            'structure_snapshot' => [
+                'combination' => ['id' => 77],
+                'assessments' => [[
+                    'id' => 20,
+                    'kode_assessment' => 'ASM-20',
+                    'judul' => 'Assessment Kombinasi',
+                    'forms' => [[
+                        'id' => 30,
+                        'kode_form' => 'FORM-30',
+                        'judul_form' => 'Form Kombinasi',
+                        'fields' => [[
+                            'id' => 301,
+                            'label' => 'Soal kombinasi',
+                            'tipe_field' => 'text',
+                        ]],
+                    ]],
+                ]],
+            ],
+        ]);
+        $sourceAssignment->setRelation('combination', $combination);
+        $assignment->setRelation('assessmentAssignments', new Collection([$sourceAssignment]));
+
+        $document = (new ValidatorAssignmentDocumentBuilder)->document($assignment);
+        $fields = $document['assessment_assignments'][0]['assessments'][0]['forms'][0]['fields'];
+
+        $this->assertSame([301], collect($fields)->pluck('id')->all());
+    }
+
+    public function test_all_forms_mode_keeps_the_stored_full_form_snapshot(): void
+    {
+        $assignment = new ValidatorAssignment([
+            'source_mode' => ValidatorAssignment::SOURCE_MODE_ALL_FORMS,
+            'assessment_assignment_snapshots' => [[
+                'id' => 50,
+                'title' => 'Penugasan',
+                'assessments' => [[
+                    'id' => 20,
+                    'forms' => [[
+                        'id' => 30,
+                        'fields' => [['id' => 300, 'label' => 'Form lengkap']],
+                    ]],
+                ]],
+            ]],
+        ]);
+        $assignment->id = 124;
+        $assignment->setRelation('validatorForm', new ValidatorForm(['status' => 'published']));
+        $assignment->setRelation('responses', new Collection());
+
+        $sourceAssignment = new AssessmentAssignment();
+        $sourceAssignment->id = 50;
+        $sourceAssignment->setRelation('combination', new AssessmentCombination([
+            'structure_snapshot' => [
+                'combination' => ['id' => 77],
+                'assessments' => [[
+                    'id' => 20,
+                    'forms' => [[
+                        'id' => 30,
+                        'fields' => [['id' => 301, 'label' => 'Soal kombinasi']],
+                    ]],
+                ]],
+            ],
+        ]));
+        $assignment->setRelation('assessmentAssignments', new Collection([$sourceAssignment]));
+
+        $document = (new ValidatorAssignmentDocumentBuilder)->document($assignment);
+
+        $this->assertSame(
+            [300],
+            collect($document['assessment_assignments'][0]['assessments'][0]['forms'][0]['fields'])
+                ->pluck('id')
+                ->all()
+        );
+        $this->assertSame(ValidatorAssignment::SOURCE_MODE_ALL_FORMS, $document['meta']['source_mode']);
     }
 }

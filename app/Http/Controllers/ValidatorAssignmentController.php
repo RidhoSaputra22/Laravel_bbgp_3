@@ -11,7 +11,9 @@ use App\Support\Assessment\ValidatorAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ValidatorAssignmentController extends Controller
@@ -39,6 +41,39 @@ class ValidatorAssignmentController extends Controller
     {
         ValidatorAccess::authorizeAdmin();
 
+        $assessmentAssignmentQuery = AssessmentAssignment::active()
+            ->whereIn('target_ketenagaan', [
+                AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+            ])
+            ->has('assessments');
+        $assessmentAssignments = (clone $assessmentAssignmentQuery)
+            ->newestFirst()
+            ->get(['id']);
+        $combinationAssessmentAssignments = clone $assessmentAssignmentQuery;
+
+        if (Schema::hasTable('assessment_combinations')) {
+            $combinationAssessmentAssignments->where(function ($query) {
+                $query->whereHas(
+                    'combination',
+                    fn ($combinationQuery) => $combinationQuery->where('is_active', true)
+                );
+
+                if (Schema::hasTable('assessment_assignment_targets')) {
+                    $query->orWhereHas(
+                        'targets',
+                        fn ($targetQuery) => $targetQuery
+                            ->whereNotNull('assessment_combination_id')
+                            ->whereHas('combination', fn ($combinationQuery) => $combinationQuery->where('is_active', true))
+                    );
+                }
+            });
+        }
+
+        $combinationAssessmentAssignments = $combinationAssessmentAssignments
+            ->newestFirst()
+            ->get(['id']);
+
         return view('pages.admin.assessment.validator.assignment.create', [
             'menu' => 'assessment-validator',
             'forms' => ValidatorForm::where('status', 'published')
@@ -46,14 +81,8 @@ class ValidatorAssignmentController extends Controller
                 ->withCount('sections')
                 ->orderBy('title')
                 ->get(),
-            'assessmentAssignments' => AssessmentAssignment::active()
-                ->whereIn('target_ketenagaan', [
-                    AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
-                    AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
-                ])
-                ->has('assessments')
-                ->newestFirst()
-                ->get(['id']),
+            'assessmentAssignments' => $assessmentAssignments,
+            'combinationAssessmentAssignments' => $combinationAssessmentAssignments,
             'validators' => ValidatorAccess::eligibleUsersQuery()
                 ->with('guru')
                 ->orderBy('name')
@@ -67,6 +96,7 @@ class ValidatorAssignmentController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'validator_form_id' => ['required', 'integer', 'exists:validator_forms,id'],
+            'source_mode' => ['required', Rule::in(ValidatorAssignment::SOURCE_MODES)],
             'notes' => ['nullable', 'string', 'max:5000'],
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date'],
@@ -179,5 +209,19 @@ class ValidatorAssignmentController extends Controller
         return redirect()
             ->route('assessment.validator.assignment.index')
             ->with('validator_success', 'Penugasan validator berhasil dihapus.');
+    }
+
+    public function destroyAll()
+    {
+        ValidatorAccess::authorizeAdmin();
+
+        $total = ValidatorAssignment::query()->count();
+        ValidatorAssignment::query()->eachById(fn (ValidatorAssignment $assignment) => $assignment->delete());
+
+        return redirect()
+            ->route('assessment.validator.assignment.index')
+            ->with('validator_success', $total
+                ? "$total penugasan validator berhasil dihapus."
+                : 'Tidak ada penugasan validator untuk dihapus.');
     }
 }

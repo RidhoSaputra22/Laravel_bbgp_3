@@ -5,10 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Schema;
 
 class ValidatorAssignment extends Model
 {
     use HasFactory;
+
+    public const SOURCE_MODE_COMBINATION = 'combination';
+
+    public const SOURCE_MODE_ALL_FORMS = 'all_forms';
+
+    public const SOURCE_MODES = [
+        self::SOURCE_MODE_COMBINATION,
+        self::SOURCE_MODE_ALL_FORMS,
+    ];
 
     public const RECOMMENDATIONS = [
         'approved' => 'Layak tanpa revisi',
@@ -21,6 +31,7 @@ class ValidatorAssignment extends Model
         'code',
         'title',
         'validator_form_id',
+        'source_mode',
         'assessment_id',
         'validator_user_id',
         'assigned_by',
@@ -60,7 +71,7 @@ class ValidatorAssignment extends Model
 
     public function scopeWithSummaryColumns(Builder $query): Builder
     {
-        return $query->select([
+        $columns = [
             'validator_assignments.id',
             'validator_assignments.code',
             'validator_assignments.title',
@@ -74,7 +85,20 @@ class ValidatorAssignment extends Model
             'validator_assignments.score_percentage',
             'validator_assignments.recommendation',
             'validator_assignments.created_at',
-        ]);
+        ];
+
+        if (Schema::hasColumn('validator_assignments', 'source_mode')) {
+            $columns[] = 'validator_assignments.source_mode';
+        }
+
+        return $query->select($columns);
+    }
+
+    public function getSourceModeAttribute($value): string
+    {
+        return in_array($value, self::SOURCE_MODES, true)
+            ? $value
+            : self::SOURCE_MODE_COMBINATION;
     }
 
     public function validatorForm()

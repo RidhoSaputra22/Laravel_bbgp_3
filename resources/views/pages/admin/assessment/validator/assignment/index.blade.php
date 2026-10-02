@@ -9,6 +9,17 @@
                     <a href="{{ route('assessment.validator.index') }}" class="btn btn-light mr-2">
                         <i class="fas fa-arrow-left"></i> Panel
                     </a>
+                    @if ($assignments->total() > 0)
+                        <form method="POST" action="{{ route('assessment.validator.assignment.destroy-all') }}"
+                            class="d-inline mr-2"
+                            onsubmit="return confirm('Hapus SEMUA penugasan validator beserta seluruh hasil validasinya? Tindakan ini tidak dapat dibatalkan.')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger" title="Hapus semua penugasan dan hasil validasi">
+                                <i class="fas fa-trash-alt"></i> Hapus Semua
+                            </button>
+                        </form>
+                    @endif
                     <a href="{{ route('assessment.validator.assignment.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Buat Penugasan
                     </a>

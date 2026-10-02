@@ -234,6 +234,31 @@ class AssessmentValidatorModuleTest extends TestCase
         );
     }
 
+    public function test_admin_can_delete_all_validator_assignments(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '104');
+        $otherValidator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '105');
+        [, $sourceAssignment] = $this->createAssessment();
+        [$form] = $this->createValidatorForm();
+        $service = app(ValidatorAssignmentService::class);
+
+        foreach ([[$validator, 'QA Satu'], [$otherValidator, 'QA Dua']] as [$assignmentValidator, $title]) {
+            $service->create([
+                'title' => $title,
+                'validator_form_id' => $form->id,
+                'assessment_assignment_ids' => [$sourceAssignment->id],
+                'validator_user_id' => $assignmentValidator->id,
+            ], null);
+        }
+
+        $response = $this->withSession(['cek' => true, 'role' => 'admin'])
+            ->delete(route('assessment.validator.assignment.destroy-all'));
+
+        $response->assertRedirect(route('assessment.validator.assignment.index'));
+        $this->assertDatabaseCount('validator_assignments', 0);
+        $this->assertDatabaseCount('validator_assignment_assessment_assignments', 0);
+    }
+
     public function test_admin_panel_and_validator_workspace_have_separate_access_rules(): void
     {
         $eligible = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '777');
