@@ -81,7 +81,7 @@
                               href="{{ route('user.data-sekolah') }}">Input Data Sekolah</a></li>
 
                         <li class="nav-item {{ $menu == 'assessment-portal' ? 'active' : '' }}"><a class="nav-link"
-                              href="{{ route('assessment.portal.index') }}">Assessment</a></li>
+                              href="https://evaluasi.simbbgtksulsel.com/assessment/auth">Assessment</a></li>
 
 
                         <li class="nav-item"><a class="nav-link" href="{{ route('login') }}">Login</a></li>
