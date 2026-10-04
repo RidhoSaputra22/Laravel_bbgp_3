@@ -5641,7 +5641,17 @@ JSON;
 ]
 JSON;
 
-        return json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+        $questions = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
+
+        return array_map(function (array $question): array {
+            $question['options'] = array_map(function (array $option): array {
+                $option['label'] = $option['value'];
+
+                return $option;
+            }, $question['options']);
+
+            return $question;
+        }, $questions);
     }
 
 }
