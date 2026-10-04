@@ -10,6 +10,7 @@ use App\Models\ValidatorForm;
 use App\Models\ValidatorFormField;
 use App\Models\ValidatorFormSection;
 use App\Services\Assessment\ValidatorAssignmentDocumentBuilder;
+use App\Services\AssessmentAssignmentService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -115,7 +116,8 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
 
         Queue::assertPushed(SyncValidatorAssignmentsToMongoJob::class, 3);
         Queue::assertPushed(SyncValidatorAssignmentsToMongoJob::class, function ($job) {
-            return count($job->assignmentIds) <= 50;
+            return $job->queue === AssessmentAssignmentService::SYNC_QUEUE_NAME
+                && count($job->assignmentIds) <= 50;
         });
     }
 

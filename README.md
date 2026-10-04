@@ -150,8 +150,11 @@ Preview and run an idempotent backfill:
 ```bash
 php artisan assessment:sync-targets-mongodb --dry-run
 php artisan assessment:sync-targets-mongodb --chunk=100
-php artisan queue:work database --queue=default
+php artisan queue:work database --queue=default,sync
 ```
+
+Queue `default` diproses lebih dulu; queue `sync` hanya diproses saat queue
+utama kosong. Gunakan urutan queue ini juga pada worker produksi.
 
 The backfill command displays a `processed/total` progress bar and percentage.
 Failed batches still advance the bar and are reported in the final summary.

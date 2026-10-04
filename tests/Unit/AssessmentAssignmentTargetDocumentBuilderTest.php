@@ -8,6 +8,7 @@ use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
 use App\Services\Assessment\AssessmentAssignmentTargetDocumentBuilder;
 use App\Services\Assessment\AssessmentQuestionRandomizerService;
+use App\Services\AssessmentAssignmentService;
 use App\Support\Assessment\ScoringConfigNormalizer;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
@@ -290,7 +291,8 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
 
         Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, 3);
         Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, function ($job) {
-            return count($job->targetIds) <= 50;
+            return $job->queue === AssessmentAssignmentService::SYNC_QUEUE_NAME
+                && count($job->targetIds) <= 50;
         });
     }
 }

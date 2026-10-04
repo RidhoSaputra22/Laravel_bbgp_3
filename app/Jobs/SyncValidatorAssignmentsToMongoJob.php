@@ -30,7 +30,7 @@ class SyncValidatorAssignmentsToMongoJob implements ShouldQueue
     public function __construct(public array $assignmentIds)
     {
         $this->onConnection(AssessmentAssignmentService::QUEUE_CONNECTION);
-        $this->onQueue('default');
+        $this->onQueue(AssessmentAssignmentService::SYNC_QUEUE_NAME);
     }
 
     public static function dispatchIds(array $assignmentIds): void

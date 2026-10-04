@@ -37,6 +37,8 @@ class AssessmentAssignmentService
 
     public const QUEUE_NAME = 'default';
 
+    public const SYNC_QUEUE_NAME = 'sync';
+
     public const BATCH_THRESHOLD = 25;
 
     public const CHUNK_SIZE = 50;
