@@ -13,6 +13,7 @@ class AssessmentCombinationGeneration extends Model
     protected $fillable = [
         'kode_generate',
         'target_ketenagaan',
+        'target_jabatan',
         'total_kombinasi',
         'selection_config',
         'status',
@@ -23,6 +24,7 @@ class AssessmentCombinationGeneration extends Model
 
     protected $casts = [
         'selection_config' => 'array',
+        'target_jabatan' => 'array',
         'total_kombinasi' => 'integer',
         'processed_at' => 'datetime',
     ];
@@ -47,6 +49,26 @@ class AssessmentCombinationGeneration extends Model
     public function getTargetKetenagaanBadgeClassAttribute(): string
     {
         return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->badgeClass() ?? 'secondary';
+    }
+
+    public function targetJabatanSelections(): array
+    {
+        $targetJabatan = $this->getAttribute('target_jabatan');
+
+        if ($targetJabatan !== null) {
+            return Assessment::normalizeTargetJabatan($targetJabatan) ?: [Assessment::TARGET_JABATAN_ALL];
+        }
+
+        return Assessment::normalizeTargetJabatan(
+            data_get($this->selection_config, 'target_jabatan', [])
+        ) ?: [Assessment::TARGET_JABATAN_ALL];
+    }
+
+    public function getTargetJabatanLabelsAttribute(): array
+    {
+        return in_array(Assessment::TARGET_JABATAN_ALL, $this->targetJabatanSelections(), true)
+            ? ['Semua Jabatan']
+            : $this->targetJabatanSelections();
     }
 
     public function getStatusMetaAttribute(): array

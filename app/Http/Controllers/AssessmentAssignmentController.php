@@ -20,6 +20,7 @@ use App\Support\Assessment\AssessmentSecurityConfig;
 use App\Support\Assessment\AssessmentStageConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -641,6 +642,14 @@ class AssessmentAssignmentController extends Controller
 
     private function buildFormViewData(?AssessmentAssignment $assignment = null): array
     {
+        $selectedTargetKetenagaan = old(
+            'target_ketenagaan',
+            $assignment?->target_ketenagaan ?? AssessmentKetenagaanType::TENAGA_PENDIDIK->value
+        );
+        $selectedTargetJabatan = Assessment::normalizeTargetJabatan(
+            old('target_jabatan', $assignment?->target_jabatan ?? [])
+        );
+
         return [
             'menu' => $this->menu,
             'assignment' => $assignment,
@@ -652,9 +661,15 @@ class AssessmentAssignmentController extends Controller
             'formMethod' => $assignment ? 'PUT' : 'POST',
             'submitLabel' => $assignment ? 'Simpan Perubahan' : 'Simpan Penugasan',
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
-            'ketenagaanSummaries' => $this->buildKetenagaanSummaries(),
+            'ketenagaanSummaries' => $this->buildKetenagaanSummaries(
+                $selectedTargetKetenagaan,
+                $selectedTargetJabatan
+            ),
             'assignmentStageConfigs' => $this->buildAssignmentStageConfigMap($assignment),
-            'combinationOptionsByKetenagaan' => $this->buildCombinationOptionsByKetenagaan(),
+            'combinationOptionsByKetenagaan' => $this->buildCombinationOptionsByKetenagaan(
+                $selectedTargetKetenagaan,
+                $selectedTargetJabatan
+            ),
             'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
             'kabupatenOptionsByKetenagaan' => $this->buildKabupatenOptionsByKetenagaan(),
             'satuanPendidikanOptionsByKetenagaan' => $this->buildSatuanPendidikanOptionsByKetenagaan(),
@@ -888,10 +903,19 @@ class AssessmentAssignmentController extends Controller
         ];
     }
 
-    private function buildKetenagaanSummaries(): array
+    private function buildKetenagaanSummaries(
+        ?string $selectedTargetKetenagaan = null,
+        array $selectedTargetJabatan = []
+    ): array
     {
         $assessmentsByKetenagaan = $this->availableAssessmentsQuery()
             ->get()
+            ->filter(function (Assessment $assessment) use ($selectedTargetKetenagaan, $selectedTargetJabatan) {
+                return $selectedTargetKetenagaan !== $assessment->target_ketenagaan
+                    || $selectedTargetJabatan === []
+                    || ! Schema::hasColumn('assessments', 'target_jabatan')
+                    || $assessment->appliesToJabatanSelections($selectedTargetJabatan);
+            })
             ->groupBy('target_ketenagaan')
             ->map(fn ($items) => $this->sortAssessmentsForDefaultStages($items));
 
@@ -934,6 +958,8 @@ class AssessmentAssignmentController extends Controller
                                     'instrument_label' => AssessmentInstrumentType::tryFromMixed(
                                         $assessment->instrument_type
                                     )?->label(),
+                                    'target_jabatan' => $assessment->targetJabatanSelections(),
+                                    'target_jabatan_labels' => $assessment->target_jabatan_labels,
                                     'forms' => (int) ($assessment->forms_count ?? 0),
                                     'fields' => (int) ($assessment->fields_count ?? 0),
                                     'default_stage_config' => $defaultStageConfig,
@@ -990,6 +1016,10 @@ class AssessmentAssignmentController extends Controller
             $query->selectRaw('null as instrument_type');
         }
 
+        if (Schema::hasColumn('assessments', 'target_jabatan')) {
+            $query->addSelect('assessments.target_jabatan');
+        }
+
         return $query
             ->selectSub(
                 AssessmentForm::query()
@@ -1028,10 +1058,13 @@ class AssessmentAssignmentController extends Controller
             ->values();
     }
 
-    private function countAvailableCombinationsForKetenagaan(AssessmentKetenagaanType $case): int
+    private function countAvailableCombinationsForKetenagaan(
+        AssessmentKetenagaanType $case,
+        array $selectedJabatan = []
+    ): int
     {
         return $this->assignmentService
-            ->countAvailableCombinationsForKetenagaan($case);
+            ->countAvailableCombinationsForKetenagaan($case, $selectedJabatan);
     }
 
     private function countAvailableParticipantsForKetenagaan(AssessmentKetenagaanType $case): int
@@ -1104,12 +1137,21 @@ class AssessmentAssignmentController extends Controller
             ->all();
     }
 
-    private function buildCombinationOptionsByKetenagaan(): array
+    private function buildCombinationOptionsByKetenagaan(
+        ?string $selectedTargetKetenagaan = null,
+        array $selectedTargetJabatan = []
+    ): array
     {
         return collect(AssessmentKetenagaanType::cases())
-            ->mapWithKeys(function (AssessmentKetenagaanType $case) {
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) use (
+                $selectedTargetKetenagaan,
+                $selectedTargetJabatan
+            ) {
                 $items = $this->assignmentService
-                    ->getAvailableCombinationOptionSummariesForKetenagaan($case)
+                    ->getAvailableCombinationOptionSummariesForKetenagaan(
+                        $case,
+                        $case->value === $selectedTargetKetenagaan ? $selectedTargetJabatan : []
+                    )
                     ->values()
                     ->map(function (AssessmentCombination $combination) {
                         $sourceAssessments = collect($combination->getAttribute('source_assessments') ?? [])
@@ -1697,7 +1739,14 @@ class AssessmentAssignmentController extends Controller
                 return;
             }
 
-            if ($this->countAvailableCombinationsForKetenagaan($targetKetenagaan) < 1) {
+            $selectedTargetJabatan = $this->normalizeTargetJabatanList(
+                (array) $request->input('target_jabatan', [])
+            );
+
+            if ($this->countAvailableCombinationsForKetenagaan(
+                $targetKetenagaan,
+                $selectedTargetJabatan
+            ) < 1) {
                 $validator->errors()->add(
                     'target_ketenagaan',
                     'Belum ada kombinasi soal aktif untuk ketenagaan yang dipilih.'
@@ -1711,9 +1760,6 @@ class AssessmentAssignmentController extends Controller
                 );
             }
 
-            $selectedTargetJabatan = $this->normalizeTargetJabatanList(
-                (array) $request->input('target_jabatan', [])
-            );
             $availableJabatan = $this->availableJabatanValuesForKetenagaan($targetKetenagaan);
 
             if ($availableJabatan === []) {

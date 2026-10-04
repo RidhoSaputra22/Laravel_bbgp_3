@@ -3,6 +3,7 @@
         ? \App\Enum\AssessmentInstrumentType::tryFrom($assessment->instrument_type)?->label()
         : null;
     $ketenagaanLabel = $assessment->target_ketenagaan_label;
+    $jabatanLabels = $assessment->target_jabatan_labels;
     $statusBadge =
         [
             'publish' => 'success',
@@ -89,6 +90,9 @@
                                         {{ $ketenagaanLabel }}
                                     </span>
                                 @endif
+                                @foreach ($jabatanLabels as $jabatanLabel)
+                                    <span class="badge badge-light border">{{ $jabatanLabel }}</span>
+                                @endforeach
                                 @if ($instrumentLabel)
                                     <span class="badge badge-info">{{ $instrumentLabel }}</span>
                                 @endif
@@ -103,6 +107,9 @@
                             <span class="badge badge-{{ $assessment->target_ketenagaan_badge_class }}">
                                 Ditujukan untuk {{ $ketenagaanLabel }}
                             </span>
+                            @foreach ($jabatanLabels as $jabatanLabel)
+                                <span class="badge badge-light border">Jabatan: {{ $jabatanLabel }}</span>
+                            @endforeach
                         </div>
                     @endif
 

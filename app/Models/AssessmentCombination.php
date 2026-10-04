@@ -17,6 +17,7 @@ class AssessmentCombination extends Model
         'judul',
         'deskripsi',
         'target_ketenagaan',
+        'target_jabatan',
         'random_seed',
         'signature_hash',
         'selection_config',
@@ -33,6 +34,7 @@ class AssessmentCombination extends Model
         'generation_sequence' => 'integer',
         'selection_config' => 'array',
         'structure_snapshot' => 'array',
+        'target_jabatan' => 'array',
         'total_assessments' => 'integer',
         'total_forms' => 'integer',
         'total_questions' => 'integer',
@@ -77,5 +79,55 @@ class AssessmentCombination extends Model
     public function getTargetKetenagaanBadgeClassAttribute(): string
     {
         return AssessmentKetenagaanType::tryFromMixed($this->target_ketenagaan)?->badgeClass() ?? 'secondary';
+    }
+
+    public function targetJabatanSelections(): array
+    {
+        $targetJabatan = $this->getAttribute('target_jabatan');
+
+        if ($targetJabatan === null) {
+            $targetJabatan = data_get($this->selection_config, 'target_jabatan', []);
+        }
+
+        return Assessment::normalizeTargetJabatan($targetJabatan) ?: [Assessment::TARGET_JABATAN_ALL];
+    }
+
+    public function appliesToJabatanSelections(array $jabatan): bool
+    {
+        $targets = $this->targetJabatanSelections();
+        $selected = Assessment::normalizeTargetJabatan($jabatan);
+
+        return in_array(Assessment::TARGET_JABATAN_ALL, $targets, true)
+            || in_array(Assessment::TARGET_JABATAN_ALL, $selected, true)
+            || $selected === []
+            || array_intersect($targets, $selected) !== [];
+    }
+
+    public function coversJabatanSelections(array $jabatan): bool
+    {
+        $targets = $this->targetJabatanSelections();
+        $selected = Assessment::normalizeTargetJabatan($jabatan);
+
+        return in_array(Assessment::TARGET_JABATAN_ALL, $targets, true)
+            || $selected === []
+            || array_diff($selected, $targets) === [];
+    }
+
+    public function matchesTargetJabatanSelections(array $jabatan): bool
+    {
+        $targets = $this->targetJabatanSelections();
+        $selected = Assessment::normalizeTargetJabatan($jabatan) ?: [Assessment::TARGET_JABATAN_ALL];
+
+        sort($targets);
+        sort($selected);
+
+        return $targets === $selected;
+    }
+
+    public function getTargetJabatanLabelsAttribute(): array
+    {
+        return in_array(Assessment::TARGET_JABATAN_ALL, $this->targetJabatanSelections(), true)
+            ? ['Semua Jabatan']
+            : $this->targetJabatanSelections();
     }
 }

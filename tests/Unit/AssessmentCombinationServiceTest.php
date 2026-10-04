@@ -33,6 +33,7 @@ class AssessmentCombinationServiceTest extends TestCase
             $table->text('petunjuk')->nullable();
             $table->string('instrument_type')->nullable();
             $table->string('target_ketenagaan')->nullable();
+            $table->json('target_jabatan')->nullable();
             $table->json('scoring_config')->nullable();
             $table->string('status')->default('draft');
             $table->boolean('is_active')->default(true);
@@ -165,6 +166,31 @@ class AssessmentCombinationServiceTest extends TestCase
         $this->assertSame(1, $kepribadian['available_form_count']);
         $this->assertSame(1, $kepribadian['available_question_count']);
         $this->assertSame(0, $sosial['available_question_count']);
+    }
+
+    public function test_catalog_uses_the_exact_target_jabatan_configuration(): void
+    {
+        $allJabatanAssessment = $this->createAssessmentFixture();
+        $pengawasAssessment = $this->createSingleFieldAssessment(
+            'ASM-PENGAWAS',
+            'Assessment Pengawas',
+            'portofolio'
+        );
+        $pengawasAssessment->forceFill([
+            'target_jabatan' => ['Pengawas'],
+        ])->save();
+
+        $catalog = app(AssessmentCombinationService::class)->buildAssessmentCatalogByKetenagaan(
+            'tenaga_pendidik',
+            ['Pengawas']
+        );
+        $catalogIds = collect($catalog['tenaga_pendidik'] ?? [])
+            ->pluck('assessment_id')
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->all();
+
+        $this->assertSame([$pengawasAssessment->id], $catalogIds);
+        $this->assertNotContains($allJabatanAssessment->id, $catalogIds);
     }
 
     public function test_it_creates_combination_by_competency_and_auto_includes_forms_without_competency(): void

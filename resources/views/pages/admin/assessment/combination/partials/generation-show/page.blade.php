@@ -150,6 +150,10 @@
                                 </div>
                             </div>
                             <div class="col-md-4 mb-3">
+                                <div class="text-muted small">Jabatan Target</div>
+                                <div>{{ implode(', ', $generation->target_jabatan_labels) }}</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
                                 <div class="text-muted small">Dibuat Oleh</div>
                                 <div>{{ optional($generation->generator)->name ?: 'Sistem' }}</div>
                             </div>

@@ -162,6 +162,9 @@
                                                         {{ $generation->total_kombinasi }} kombinasi diminta
                                                     </small>
                                                     <small class="text-muted d-block">
+                                                        Jabatan: {{ implode(', ', $generation->target_jabatan_labels) }}
+                                                    </small>
+                                                    <small class="text-muted d-block">
                                                         {{ $assignmentUsageCount }} penugasan terkait
                                                     </small>
                                                 </td>
@@ -285,6 +288,9 @@
                                                     @endif
                                                     <small class="text-muted d-block">
                                                         Identitas kombinasi memakai kode otomatis.
+                                                    </small>
+                                                    <small class="text-muted d-block">
+                                                        Jabatan: {{ implode(', ', $data->target_jabatan_labels) }}
                                                     </small>
                                                 </td>
                                                 <td>

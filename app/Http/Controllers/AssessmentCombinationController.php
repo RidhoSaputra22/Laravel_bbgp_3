@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Enum\AssessmentKetenagaanType;
 use App\Enum\KompetensiGuru;
+use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
+use App\Models\JabatanKependidikan;
+use App\Models\JabatanPendidik;
+use App\Models\JabatanStakeHolder;
 use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\Assessment\AssessmentCombinationService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class AssessmentCombinationController extends Controller
@@ -304,6 +309,8 @@ class AssessmentCombinationController extends Controller
 
     private function buildFormViewData(?AssessmentCombinationGeneration $generation = null): array
     {
+        $initialFormData = $this->buildInitialFormDataFromGeneration($generation);
+
         return [
             'menu' => $this->menu,
             'generation' => $generation,
@@ -316,7 +323,8 @@ class AssessmentCombinationController extends Controller
             'submitLabel' => $generation ? 'Reset dan Generate Ulang' : 'Kirim ke Antrean Generate',
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
             'assessmentCatalogByKetenagaan' => $this->combinationService->buildAssessmentCatalogByKetenagaan(),
-            'initialFormData' => $this->buildInitialFormDataFromGeneration($generation),
+            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
+            'initialFormData' => $initialFormData,
             'relatedAssignmentUsageCount' => $generation
                 ? $this->assignmentService->countAssignmentsForCombinationGeneration($generation)
                 : 0,
@@ -325,7 +333,7 @@ class AssessmentCombinationController extends Controller
 
     private function indexCombinationSelectColumns(): array
     {
-        return [
+        $columns = [
             'id',
             'assessment_combination_generation_id',
             'generation_sequence',
@@ -339,11 +347,17 @@ class AssessmentCombinationController extends Controller
             'is_active',
             'created_at',
         ];
+
+        if (Schema::hasColumn('assessment_combinations', 'target_jabatan')) {
+            $columns[] = 'target_jabatan';
+        }
+
+        return $columns;
     }
 
     private function indexGenerationSelectColumns(): array
     {
-        return [
+        $columns = [
             'id',
             'kode_generate',
             'target_ketenagaan',
@@ -353,11 +367,17 @@ class AssessmentCombinationController extends Controller
             'generated_by',
             'created_at',
         ];
+
+        if (Schema::hasColumn('assessment_combination_generations', 'target_jabatan')) {
+            $columns[] = 'target_jabatan';
+        }
+
+        return $columns;
     }
 
     private function generationShowSelectColumns(): array
     {
-        return [
+        $columns = [
             'id',
             'kode_generate',
             'target_ketenagaan',
@@ -368,11 +388,17 @@ class AssessmentCombinationController extends Controller
             'created_at',
             'processed_at',
         ];
+
+        if (Schema::hasColumn('assessment_combination_generations', 'target_jabatan')) {
+            $columns[] = 'target_jabatan';
+        }
+
+        return $columns;
     }
 
     private function generationShowCombinationSelectColumns(): array
     {
-        return [
+        $columns = [
             'id',
             'assessment_combination_generation_id',
             'generation_sequence',
@@ -384,6 +410,12 @@ class AssessmentCombinationController extends Controller
             'generated_at',
             'created_at',
         ];
+
+        if (Schema::hasColumn('assessment_combinations', 'target_jabatan')) {
+            $columns[] = 'target_jabatan';
+        }
+
+        return $columns;
     }
 
     private function buildInitialFormDataFromGeneration(
@@ -400,6 +432,10 @@ class AssessmentCombinationController extends Controller
             'target_ketenagaan' => $selectionConfig['target_ketenagaan']
                 ?? $generation?->target_ketenagaan
                 ?? AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+            'target_jabatan' => Assessment::normalizeTargetJabatan(
+                $selectionConfig['target_jabatan'] ?? $generation?->targetJabatanSelections()
+                    ?? [Assessment::TARGET_JABATAN_ALL]
+            ) ?: [Assessment::TARGET_JABATAN_ALL],
             'total_kombinasi' => max(
                 (int) ($selectionConfig['total_kombinasi'] ?? $generation?->total_kombinasi ?? 1),
                 1
@@ -433,8 +469,6 @@ class AssessmentCombinationController extends Controller
 
     private function validatePayload(Request $request): array
     {
-        $assessmentCatalogByKetenagaan = $this->combinationService->buildAssessmentCatalogByKetenagaan();
-
         $validator = Validator::make(
             $request->all(),
             [
@@ -443,6 +477,8 @@ class AssessmentCombinationController extends Controller
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
+                'target_jabatan' => 'nullable|array',
+                'target_jabatan.*' => 'required|string|max:255',
                 'total_kombinasi' => 'required|integer|min:1',
                 'included_assessment_ids' => 'required|array|min:1',
                 'included_assessment_ids.*' => 'integer|min:1',
@@ -452,6 +488,8 @@ class AssessmentCombinationController extends Controller
             [
                 'target_ketenagaan.required' => 'Ketenagaan wajib dipilih.',
                 'target_ketenagaan.in' => 'Ketenagaan harus sesuai pilihan yang tersedia.',
+                'target_jabatan.array' => 'Pilihan jabatan kombinasi tidak valid.',
+                'target_jabatan.*.required' => 'Jabatan kombinasi tidak boleh kosong.',
                 'total_kombinasi.required' => 'Jumlah kombinasi yang ingin dibuat wajib diisi.',
                 'total_kombinasi.integer' => 'Jumlah kombinasi harus berupa angka bulat.',
                 'total_kombinasi.min' => 'Jumlah kombinasi minimal 1.',
@@ -461,14 +499,39 @@ class AssessmentCombinationController extends Controller
             ]
         );
 
-        $validator->after(function ($validator) use ($request, $assessmentCatalogByKetenagaan) {
+        $validator->after(function ($validator) use ($request) {
             $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($request->input('target_ketenagaan'));
 
             if (! $targetKetenagaan) {
                 return;
             }
 
-            $availableAssessments = collect($assessmentCatalogByKetenagaan[$targetKetenagaan->value] ?? [])->values();
+            $targetJabatan = Assessment::normalizeTargetJabatan(
+                $request->input('target_jabatan', [Assessment::TARGET_JABATAN_ALL])
+            );
+            $targetJabatan = $targetJabatan !== [] ? $targetJabatan : [Assessment::TARGET_JABATAN_ALL];
+            $availableJabatanIds = collect($this->buildJabatanOptionsByKetenagaan()[$targetKetenagaan->value] ?? [])
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->all();
+            $invalidJabatanIds = collect($targetJabatan)
+                ->reject(fn (string $jabatan) => in_array($jabatan, $availableJabatanIds, true))
+                ->values()
+                ->all();
+
+            if ($invalidJabatanIds !== []) {
+                $validator->errors()->add(
+                    'target_jabatan',
+                    'Ada jabatan yang tidak sesuai dengan ketenagaan kombinasi yang dipilih.'
+                );
+            }
+
+            $availableAssessments = collect(
+                $this->combinationService->buildAssessmentCatalogByKetenagaan(
+                    $targetKetenagaan->value,
+                    $targetJabatan
+                )[$targetKetenagaan->value] ?? []
+            )->values();
             $includedAssessmentIds = $this->normalizeAssessmentIds($request->input('included_assessment_ids', []));
 
             if ($availableAssessments->isEmpty()) {
@@ -514,7 +577,7 @@ class AssessmentCombinationController extends Controller
             if ($invalidIncludedAssessmentIds !== []) {
                 $validator->errors()->add(
                     'included_assessment_ids',
-                    'Ada assessment yang tidak sesuai dengan ketenagaan kombinasi yang dipilih.'
+                    'Ada assessment yang tidak sesuai dengan ketenagaan atau jabatan kombinasi yang dipilih.'
                 );
             }
 
@@ -529,7 +592,7 @@ class AssessmentCombinationController extends Controller
             if ($invalidAssessmentIds !== []) {
                 $validator->errors()->add(
                     'competency_selection_modes',
-                    'Ada assessment yang tidak sesuai dengan ketenagaan kombinasi yang dipilih.'
+                    'Ada assessment yang tidak sesuai dengan ketenagaan atau jabatan kombinasi yang dipilih.'
                 );
             }
 
@@ -599,8 +662,69 @@ class AssessmentCombinationController extends Controller
         $validated['included_assessment_ids'] = $this->normalizeAssessmentIds(
             $validated['included_assessment_ids'] ?? []
         );
+        $validated['target_jabatan'] = Assessment::normalizeTargetJabatan(
+            $validated['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
+        ) ?: [Assessment::TARGET_JABATAN_ALL];
 
         return $validated;
+    }
+
+    private function buildJabatanOptionsByKetenagaan(): array
+    {
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) {
+                $items = [[
+                    'id' => Assessment::TARGET_JABATAN_ALL,
+                    'label' => 'Semua Jabatan',
+                    'description' => 'Seluruh jabatan pada '.$case->label(),
+                    'cells' => ['Semua Jabatan', 'Seluruh jabatan'],
+                    'payload' => [
+                        'ketenagaan' => $case->value,
+                        'ketenagaan_label' => $case->label(),
+                        'is_all' => true,
+                    ],
+                ]];
+
+                foreach ($this->masterJabatanValuesForKetenagaan($case) as $jabatan) {
+                    $items[] = [
+                        'id' => $jabatan,
+                        'label' => $jabatan,
+                        'description' => 'Jabatan pada '.$case->label(),
+                        'cells' => [$jabatan, 'Jabatan terkait'],
+                        'payload' => [
+                            'jenis_jabatan' => $jabatan,
+                            'ketenagaan' => $case->value,
+                            'ketenagaan_label' => $case->label(),
+                        ],
+                    ];
+                }
+
+                return [$case->value => $items];
+            })
+            ->all();
+    }
+
+    private function masterJabatanValuesForKetenagaan(AssessmentKetenagaanType $case): array
+    {
+        $model = match ($case) {
+            AssessmentKetenagaanType::TENAGA_PENDIDIK => JabatanPendidik::class,
+            AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN => JabatanKependidikan::class,
+            AssessmentKetenagaanType::STAKEHOLDER => JabatanStakeHolder::class,
+        };
+        $table = (new $model)->getTable();
+
+        if (! Schema::hasTable($table)) {
+            return [];
+        }
+
+        return $model::query()
+            ->orderBy('name')
+            ->pluck('name')
+            ->map(fn ($jabatan) => trim((string) $jabatan))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function normalizeAssessmentIds(mixed $assessmentIds): array

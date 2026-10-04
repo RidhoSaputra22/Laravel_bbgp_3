@@ -9,6 +9,9 @@ use App\Enum\LevelKompetensi;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentForm;
+use App\Models\JabatanKependidikan;
+use App\Models\JabatanPendidik;
+use App\Models\JabatanStakeHolder;
 use App\Jobs\SyncAssessmentTargetsToMongoJob;
 use App\Services\Assessment\AssessmentCombinationService;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
@@ -71,6 +74,9 @@ class AssessmentController extends Controller
                 'target_ketenagaan' => $this->isEvaluasiPelaksanaan()
                     ? null
                     : AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                'target_jabatan' => $this->isEvaluasiPelaksanaan()
+                    ? null
+                    : [Assessment::TARGET_JABATAN_ALL],
             ]),
             'fieldTypes' => $this->fieldTypes(),
             'formBuilderData' => [],
@@ -78,6 +84,7 @@ class AssessmentController extends Controller
             'fieldLookupOptions' => $this->fieldLookupResolver->options(),
             'fieldLookupCatalog' => $this->fieldLookupResolver->previewCatalog(),
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
+            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
         ]);
     }
 
@@ -116,6 +123,12 @@ class AssessmentController extends Controller
 
             if ($this->hasCategoryColumn()) {
                 $assessmentData['kategori'] = $this->assessmentCategory();
+            }
+
+            if ($this->hasTargetJabatanColumn()) {
+                $assessmentData['target_jabatan'] = $this->isEvaluasiPelaksanaan()
+                    ? null
+                    : ($validated['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]);
             }
 
             $assessment = Assessment::create($assessmentData);
@@ -171,6 +184,7 @@ class AssessmentController extends Controller
             'fieldLookupOptions' => $this->fieldLookupResolver->options(),
             'fieldLookupCatalog' => $this->fieldLookupResolver->previewCatalog(),
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
+            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
         ]);
     }
 
@@ -214,6 +228,12 @@ class AssessmentController extends Controller
 
             if ($this->hasCategoryColumn()) {
                 $assessmentData['kategori'] = $this->assessmentCategory();
+            }
+
+            if ($this->hasTargetJabatanColumn()) {
+                $assessmentData['target_jabatan'] = $this->isEvaluasiPelaksanaan()
+                    ? null
+                    : ($validated['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]);
             }
 
             $assessment->update($assessmentData);
@@ -277,6 +297,69 @@ class AssessmentController extends Controller
     private function hasCategoryColumn(): bool
     {
         return Schema::hasColumn('assessments', 'kategori');
+    }
+
+    private function hasTargetJabatanColumn(): bool
+    {
+        return Schema::hasColumn('assessments', 'target_jabatan');
+    }
+
+    private function buildJabatanOptionsByKetenagaan(): array
+    {
+        return collect(AssessmentKetenagaanType::cases())
+            ->mapWithKeys(function (AssessmentKetenagaanType $case) {
+                $items = [[
+                    'id' => Assessment::TARGET_JABATAN_ALL,
+                    'label' => 'Semua Jabatan',
+                    'description' => 'Semua jabatan pada '.$case->label(),
+                    'cells' => ['Semua Jabatan', 'Seluruh jabatan'],
+                    'payload' => [
+                        'ketenagaan' => $case->value,
+                        'ketenagaan_label' => $case->label(),
+                        'is_all' => true,
+                    ],
+                ]];
+
+                foreach ($this->masterJabatanValuesForKetenagaan($case) as $jabatan) {
+                    $items[] = [
+                        'id' => $jabatan,
+                        'label' => $jabatan,
+                        'description' => 'Jabatan pada '.$case->label(),
+                        'cells' => [$jabatan, 'Jabatan terkait'],
+                        'payload' => [
+                            'jenis_jabatan' => $jabatan,
+                            'ketenagaan' => $case->value,
+                            'ketenagaan_label' => $case->label(),
+                        ],
+                    ];
+                }
+
+                return [$case->value => $items];
+            })
+            ->all();
+    }
+
+    private function masterJabatanValuesForKetenagaan(AssessmentKetenagaanType $case): array
+    {
+        $model = match ($case) {
+            AssessmentKetenagaanType::TENAGA_PENDIDIK => JabatanPendidik::class,
+            AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN => JabatanKependidikan::class,
+            AssessmentKetenagaanType::STAKEHOLDER => JabatanStakeHolder::class,
+        };
+        $table = (new $model)->getTable();
+
+        if (! Schema::hasTable($table)) {
+            return [];
+        }
+
+        return $model::query()
+            ->orderBy('name')
+            ->pluck('name')
+            ->map(fn ($jabatan) => trim((string) $jabatan))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     private function assessmentQuery()
@@ -347,6 +430,8 @@ class AssessmentController extends Controller
                     'string',
                     Rule::in(array_keys(AssessmentKetenagaanType::options())),
                 ],
+                'target_jabatan' => 'nullable|array',
+                'target_jabatan.*' => 'required|string|max:255',
                 'instrument_type' => [
                     'nullable',
                     'string',
@@ -474,6 +559,30 @@ class AssessmentController extends Controller
             $forms = $request->input('forms', []);
             $fieldTypesWithTextOptions = ['select', 'checkbox'];
             $targetKetenagaan = $request->input('target_ketenagaan');
+
+            if (
+                $this->hasTargetJabatanColumn()
+                && ! $this->isEvaluasiPelaksanaan()
+                && $targetKetenagaan
+            ) {
+                $selectedJabatan = Assessment::normalizeTargetJabatan(
+                    $request->input('target_jabatan', [])
+                );
+
+                if (
+                    $selectedJabatan !== []
+                    && ! in_array(Assessment::TARGET_JABATAN_ALL, $selectedJabatan, true)
+                ) {
+                    $availableJabatan = $this->availableJabatanValuesForKetenagaan($targetKetenagaan);
+
+                    if (array_diff($selectedJabatan, $availableJabatan) !== []) {
+                        $validator->errors()->add(
+                            'target_jabatan',
+                            'Jabatan target harus sesuai dengan ketenagaan yang dipilih.'
+                        );
+                    }
+                }
+            }
 
             foreach ($forms as $formIndex => $form) {
                 $usedFieldNames = [];
@@ -690,7 +799,26 @@ class AssessmentController extends Controller
             }
         });
 
-        return $validator->validate();
+        $validated = $validator->validate();
+
+        if ($this->hasTargetJabatanColumn() && ! $this->isEvaluasiPelaksanaan()) {
+            $validated['target_jabatan'] = Assessment::normalizeTargetJabatan(
+                $validated['target_jabatan'] ?? []
+            ) ?: [Assessment::TARGET_JABATAN_ALL];
+        }
+
+        return $validated;
+    }
+
+    private function availableJabatanValuesForKetenagaan(string $targetKetenagaan): array
+    {
+        $case = AssessmentKetenagaanType::tryFromMixed($targetKetenagaan);
+
+        if (! $case) {
+            return [];
+        }
+
+        return $this->masterJabatanValuesForKetenagaan($case);
     }
 
     private function syncForms(Assessment $assessment, array $forms): void

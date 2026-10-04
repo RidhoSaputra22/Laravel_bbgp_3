@@ -9,10 +9,23 @@
     $generation = $generation ?? null;
     $initialFormData = is_array($initialFormData ?? null) ? $initialFormData : [];
     $relatedAssignmentUsageCount = max((int) ($relatedAssignmentUsageCount ?? 0), 0);
+    $jabatanOptionsByKetenagaan = $jabatanOptionsByKetenagaan ?? [];
+    $allTargetJabatan = \App\Models\Assessment::TARGET_JABATAN_ALL;
     $selectedTargetKetenagaan = old(
         'target_ketenagaan',
         $initialFormData['target_ketenagaan'] ?? \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
     );
+    $selectedTargetJabatan = \App\Models\Assessment::normalizeTargetJabatan(
+        old('target_jabatan', $initialFormData['target_jabatan'] ?? [$allTargetJabatan]),
+    );
+    $selectedTargetJabatan = $selectedTargetJabatan !== [] ? $selectedTargetJabatan : [$allTargetJabatan];
+    $currentJabatanItems = collect($jabatanOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])
+        ->values()
+        ->all();
+    $currentSelectedJabatanItems = collect($currentJabatanItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetJabatan, true))
+        ->values()
+        ->all();
     $initialTotalKombinasi = max((int) old('total_kombinasi', $initialFormData['total_kombinasi'] ?? 1), 1);
     $initialSelectionModes = collect((array) old(
         'competency_selection_modes',
@@ -387,6 +400,26 @@
                                         @enderror
                                     </div>
 
+                                    <div class="form-group">
+                                        <label>Jabatan Kombinasi <span class="text-danger">*</span></label>
+                                        <x-multiple-choice-table id="combination-jabatan-selector" name="target_jabatan"
+                                            :headers="['Jabatan', 'Keterangan']" :items="$currentJabatanItems"
+                                            :selected="$selectedTargetJabatan"
+                                            :initialSelectedItems="$currentSelectedJabatanItems"
+                                            searchPlaceholder="Cari jabatan terkait..."
+                                            emptyMessage="Belum ada jabatan pada ketenagaan ini."
+                                            selectedTitle="Jabatan Kombinasi" />
+                                        <small class="form-text text-muted">
+                                            Pilih jabatan yang boleh menggunakan kombinasi ini. Gunakan
+                                            <strong>Semua Jabatan</strong> untuk mencakup seluruh jabatan pada ketenagaan terpilih.
+                                        </small>
+                                        @if ($errors->has('target_jabatan') || $errors->has('target_jabatan.*'))
+                                            <div class="invalid-feedback d-block">
+                                                {{ $errors->first('target_jabatan') ?: $errors->first('target_jabatan.*') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
                                     <div class="form-group mb-0">
                                         <label for="total_kombinasi">Banyak Kombinasi Yang Ingin Dibuat <span
                                                 class="text-danger">*</span></label>
@@ -469,6 +502,10 @@
                                     <div class="mb-3">
                                         <div class="text-muted small">Ketenagaan Dipilih</div>
                                         <div class="font-weight-bold" id="summary-ketenagaan">-</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="text-muted small">Jabatan Kombinasi</div>
+                                        <div class="font-weight-bold" id="summary-jabatan">Semua Jabatan</div>
                                     </div>
                                     <div class="mb-3">
                                         <div class="text-muted small">Assessment Sumber</div>
@@ -584,6 +621,8 @@
         (() => {
             const assessmentCatalogByKetenagaan = @json($assessmentCatalogByKetenagaan);
             const ketenagaanOptions = @json($ketenagaanOptions);
+            const allTargetJabatan = @js($allTargetJabatan);
+            const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
             const initialSelectionModes = @json($initialSelectionModes);
             const initialTakeCounts = @json($initialTakeCounts);
             const initialEnabledAssessmentIdsByKetenagaan = @json($initialEnabledAssessmentIdsByKetenagaan);
@@ -601,6 +640,10 @@
             const takeCountsState = Object.assign({}, initialTakeCounts);
             const enabledAssessmentsState = {};
 
+            function getJabatanSelector() {
+                return document.querySelector('[data-table-id="combination-jabatan-selector"]');
+            }
+
             function escapeHtml(value) {
                 const node = document.createElement('div');
                 node.textContent = value == null ? '' : String(value);
@@ -614,10 +657,60 @@
                 return input ? input.value : '';
             }
 
+            function getAvailableJabatanItems(target = getSelectedKetenagaan()) {
+                return target && Array.isArray(jabatanOptionsByKetenagaan[target])
+                    ? jabatanOptionsByKetenagaan[target]
+                    : [];
+            }
+
+            function getSelectedJabatanIds() {
+                const selector = getJabatanSelector();
+
+                if (!selector) {
+                    return [allTargetJabatan];
+                }
+
+                const selectedIds = Array.from(selector.querySelectorAll('input[name="target_jabatan[]"]'))
+                    .map((input) => String(input.value || '').trim())
+                    .filter((value) => value !== '');
+
+                return selectedIds.length > 0 ? selectedIds : [allTargetJabatan];
+            }
+
+            function assessmentMatchesSelectedJabatan(assessment) {
+                const selectedJabatan = getSelectedJabatanIds();
+                const assessmentJabatan = Array.isArray(assessment.target_jabatan) && assessment.target_jabatan.length > 0
+                    ? assessment.target_jabatan.map((value) => String(value))
+                    : [allTargetJabatan];
+
+                return assessmentJabatan.slice().sort().join('|') === selectedJabatan.slice().sort().join('|');
+            }
+
             function getAssessmentsForSelectedKetenagaan() {
                 const target = getSelectedKetenagaan();
 
-                return target && Array.isArray(assessmentCatalogByKetenagaan[target]) ? assessmentCatalogByKetenagaan[target] : [];
+                const assessments = target && Array.isArray(assessmentCatalogByKetenagaan[target])
+                    ? assessmentCatalogByKetenagaan[target]
+                    : [];
+
+                return assessments.filter(assessmentMatchesSelectedJabatan);
+            }
+
+            function syncJabatanSelector() {
+                const selector = getJabatanSelector();
+
+                if (!selector) {
+                    return;
+                }
+
+                const items = getAvailableJabatanItems();
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items,
+                        selectedIds: items.length > 0 ? [allTargetJabatan] : [],
+                        emitChange: false,
+                    },
+                }));
             }
 
             function getInitialEnabledAssessmentIds(targetKetenagaan) {
@@ -882,6 +975,11 @@
                                         <div class="text-muted small">
                                             ${escapeHtml(assessment.assessment_code || '-')} | ${escapeHtml(assessment.instrument_label || 'Tanpa instrumen')}
                                         </div>
+                                        <div class="mt-1">
+                                            ${(assessment.target_jabatan_labels || ['Semua Jabatan']).map((label) => `
+                                                <span class="badge badge-light border">${escapeHtml(label)}</span>
+                                            `).join('')}
+                                        </div>
                                     </div>
                                     <div class="d-flex flex-column align-items-md-end mt-2 mt-md-0">
                                         <div class="custom-control custom-switch combination-assessment-toggle mb-2">
@@ -1035,6 +1133,7 @@
                 const estimatedStoredQuestions = selectedQuestionCount * totalKombinasi;
 
                 const summaryKetenagaan = document.getElementById('summary-ketenagaan');
+                const summaryJabatan = document.getElementById('summary-jabatan');
                 const summaryTotalKombinasi = document.getElementById('summary-total-kombinasi');
                 const summaryAssessments = document.getElementById('summary-assessments');
                 const summaryForms = document.getElementById('summary-forms');
@@ -1047,6 +1146,16 @@
 
                 if (summaryKetenagaan) {
                     summaryKetenagaan.textContent = ketenagaanOptions[selectedKetenagaan] || '-';
+                }
+
+                if (summaryJabatan) {
+                    const jabatanMap = new Map(getAvailableJabatanItems().map((item) => [String(item.id), item]));
+                    const jabatanLabels = getSelectedJabatanIds()
+                        .map((id) => jabatanMap.get(String(id))?.label || (id === allTargetJabatan ? 'Semua Jabatan' : id))
+                        .filter(Boolean);
+                    summaryJabatan.textContent = jabatanLabels.length > 0
+                        ? jabatanLabels.join(', ')
+                        : 'Semua Jabatan';
                 }
 
                 if (summaryTotalKombinasi) {
@@ -1178,8 +1287,17 @@
             }
 
             document.querySelectorAll('input[name="target_ketenagaan"]').forEach((input) => {
-                input.addEventListener('change', renderAssessmentPanels);
+                input.addEventListener('change', () => {
+                    syncJabatanSelector();
+                    renderAssessmentPanels();
+                });
             });
+
+            const jabatanSelector = getJabatanSelector();
+
+            if (jabatanSelector) {
+                jabatanSelector.addEventListener('multiple-choice-table:change', renderAssessmentPanels);
+            }
 
             if (applyAllButton) {
                 applyAllButton.addEventListener('click', applyToAllCompetencies);

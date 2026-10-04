@@ -149,6 +149,12 @@
                                                                 {{ $data->target_ketenagaan_label }}
                                                             </span>
                                                         </small>
+                                                        <small class="d-inline-block mb-1">
+                                                            <span class="badge badge-light border">
+                                                                Jabatan:
+                                                                {{ implode(', ', $data->target_jabatan_labels) }}
+                                                            </span>
+                                                        </small>
                                                         <br>
                                                     @endif
                                                     <small

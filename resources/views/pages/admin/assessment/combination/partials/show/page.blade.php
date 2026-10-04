@@ -126,6 +126,10 @@
                                 <div>{{ optional($combination->generator)->name ?: 'Sistem' }}</div>
                             </div>
                             <div class="col-md-4 mb-3">
+                                <div class="text-muted small">Jabatan Target</div>
+                                <div>{{ implode(', ', $combination->target_jabatan_labels) }}</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
                                 <div class="text-muted small">Waktu Generate</div>
                                 <div>
                                     {{ optional($combination->generated_at ?: $combination->created_at)->format('d M Y H:i') }}

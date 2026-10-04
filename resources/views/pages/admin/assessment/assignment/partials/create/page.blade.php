@@ -1170,6 +1170,7 @@
         (() => {
             const ketenagaanSummaries = @json($ketenagaanSummaries);
             const combinationOptionsByKetenagaan = @json($combinationOptionsByKetenagaan);
+            const allTargetJabatan = @js(\App\Models\Assessment::TARGET_JABATAN_ALL);
             const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
             const kabupatenOptionsByKetenagaan = @json($kabupatenOptionsByKetenagaan);
             const satuanPendidikanOptionsByKetenagaan = @json($satuanPendidikanOptionsByKetenagaan);
@@ -1609,8 +1610,30 @@
 
             function getSelectedSummary() {
                 const target = getSelectedTargetKetenagaan();
+                const summary = target && ketenagaanSummaries[target] ? ketenagaanSummaries[target] : null;
 
-                return target && ketenagaanSummaries[target] ? ketenagaanSummaries[target] : null;
+                if (!summary) {
+                    return null;
+                }
+
+                const selectedJabatan = getSelectedJabatanIds();
+                const assessmentItems = (summary.assessment_items || []).filter((item) => {
+                    const targetJabatan = Array.isArray(item.target_jabatan) ? item.target_jabatan : [];
+
+                    return selectedJabatan.length === 0
+                        || targetJabatan.length === 0
+                        || targetJabatan.includes(allTargetJabatan)
+                        || selectedJabatan.includes(allTargetJabatan)
+                        || targetJabatan.some((jabatan) => selectedJabatan.includes(String(jabatan)));
+                });
+
+                return {
+                    ...summary,
+                    assessment_count: assessmentItems.length,
+                    form_count: assessmentItems.reduce((total, item) => total + Number(item.forms || 0), 0),
+                    field_count: assessmentItems.reduce((total, item) => total + Number(item.fields || 0), 0),
+                    assessment_items: assessmentItems,
+                };
             }
 
             function getSelectedDurationHours() {

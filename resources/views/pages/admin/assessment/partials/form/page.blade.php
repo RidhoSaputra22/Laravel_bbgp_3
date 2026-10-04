@@ -22,6 +22,21 @@
             : ($assessment->target_ketenagaan ?:
             \App\Enum\AssessmentKetenagaanType::TENAGA_PENDIDIK->value),
     );
+    $jabatanOptionsByKetenagaan = $jabatanOptionsByKetenagaan ?? [];
+    $allTargetJabatan = \App\Models\Assessment::TARGET_JABATAN_ALL;
+    $selectedTargetJabatan = \App\Models\Assessment::normalizeTargetJabatan(
+        old('target_jabatan', $assessment->target_jabatan ?? [$allTargetJabatan]),
+    );
+    if (!$isEvaluationPelaksanaan && $selectedTargetJabatan === []) {
+        $selectedTargetJabatan = [$allTargetJabatan];
+    }
+    $currentJabatanItems = collect($jabatanOptionsByKetenagaan[$selectedTargetKetenagaan] ?? [])
+        ->values()
+        ->all();
+    $currentSelectedJabatanItems = collect($currentJabatanItems)
+        ->filter(fn ($item) => in_array((string) data_get($item, 'id'), $selectedTargetJabatan, true))
+        ->values()
+        ->all();
     $ketenagaanCards = collect(\App\Enum\AssessmentKetenagaanType::cases())
         ->mapWithKeys(function ($case) {
             return [
@@ -866,6 +881,32 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>Jabatan Assessment</label>
+                                    <x-multiple-choice-table id="assessment-jabatan-selector" name="target_jabatan"
+                                        :headers="['Jabatan', 'Keterangan']" :items="$currentJabatanItems"
+                                        :selected="$selectedTargetJabatan"
+                                        :initialSelectedItems="$currentSelectedJabatanItems"
+                                        searchPlaceholder="Cari jabatan terkait..."
+                                        emptyMessage="Belum ada jabatan pada ketenagaan ini."
+                                        selectedTitle="Jabatan Assessment" />
+                                    <small class="form-text text-muted">
+                                        Pilih jabatan yang dapat mengisi assessment ini. Gunakan
+                                        <strong>Semua Jabatan</strong> agar assessment berlaku untuk seluruh jabatan
+                                        pada ketenagaan yang dipilih.
+                                    </small>
+                                    @error('target_jabatan')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                    @error('target_jabatan.*')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
                     @endunless
 
                     <div class="row">
@@ -1109,6 +1150,8 @@
             const formScoringProfiles = @json($formScoringProfiles);
             const fieldScoringMethods = @json($fieldScoringMethods);
             const ketenagaanLabels = @json($ketenagaanOptions);
+            const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
+            const allTargetJabatan = @js($allTargetJabatan);
             const instrumentTypes = @json($instrumentTypes);
             const participantAutoFillOptions = @json($participantAutoFillOptions);
             const fieldLookupOptions = @json($fieldLookupOptions);
@@ -1348,6 +1391,29 @@
                 ''));
             const resolveSelectedTargetKetenagaanValue = () => $('input[name="target_ketenagaan"]:checked').val() ||
                 '';
+            const getAssessmentJabatanSelector = () => document.querySelector(
+                '[data-table-id="assessment-jabatan-selector"]');
+            const getAssessmentJabatanItems = (target = resolveSelectedTargetKetenagaanValue()) => {
+                return target && Array.isArray(jabatanOptionsByKetenagaan[target])
+                    ? jabatanOptionsByKetenagaan[target]
+                    : [];
+            };
+            const syncAssessmentJabatanSelector = () => {
+                const selector = getAssessmentJabatanSelector();
+
+                if (!selector || isEvaluationPelaksanaan) {
+                    return;
+                }
+
+                const items = getAssessmentJabatanItems();
+                selector.dispatchEvent(new CustomEvent('multiple-choice-table:set-items', {
+                    detail: {
+                        items: items,
+                        selectedIds: items.length > 0 ? [allTargetJabatan] : [],
+                        emitChange: false,
+                    },
+                }));
+            };
             const fieldLookupSuggestionMap = {
                 master_golongan: ['golongan', 'pangkat'],
                 master_golongan_pns: ['golongan pns', 'pangkat pns'],
@@ -5603,6 +5669,7 @@
             });
 
             $(document).on('change', 'input[name="target_ketenagaan"]', function() {
+                syncAssessmentJabatanSelector();
                 $('.assessment-field-card').each(function() {
                     updateFieldLookupState($(this));
                 });

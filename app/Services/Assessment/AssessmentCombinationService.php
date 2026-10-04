@@ -23,13 +23,19 @@ class AssessmentCombinationService
         private readonly AssessmentStructureMetadataResolver $metadataResolver
     ) {}
 
-    public function buildAssessmentCatalogByKetenagaan(): array
+    public function buildAssessmentCatalogByKetenagaan(
+        ?string $selectedKetenagaan = null,
+        array $selectedJabatan = []
+    ): array
     {
         return collect(AssessmentKetenagaanType::cases())
-            ->mapWithKeys(function (AssessmentKetenagaanType $ketenagaan) {
+            ->mapWithKeys(function (AssessmentKetenagaanType $ketenagaan) use ($selectedKetenagaan, $selectedJabatan) {
                 return [
                     $ketenagaan->value => $this->mapAssessmentCatalogItems(
-                        $this->getSourceAssessments($ketenagaan)
+                        $this->getSourceAssessments(
+                            $ketenagaan,
+                            $selectedKetenagaan === $ketenagaan->value ? $selectedJabatan : []
+                        )
                     )->all(),
                 ];
             })
@@ -113,7 +119,11 @@ class AssessmentCombinationService
             throw new InvalidArgumentException('Ketenagaan kombinasi tidak valid.');
         }
 
-        $sourceAssessments = $this->getSourceAssessments($targetKetenagaan);
+        $targetJabatan = Assessment::normalizeTargetJabatan(
+            $payload['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
+        );
+        $targetJabatan = $targetJabatan !== [] ? $targetJabatan : [Assessment::TARGET_JABATAN_ALL];
+        $sourceAssessments = $this->getSourceAssessments($targetKetenagaan, $targetJabatan);
         $selectedSourceAssessments = $this->resolveSelectedSourceAssessments(
             $sourceAssessments,
             $payload['included_assessment_ids'] ?? []
@@ -141,7 +151,7 @@ class AssessmentCombinationService
                 $competencySelections,
                 $randomSeed
             );
-            $signatureHash = $this->buildSignatureHash($selectedRows);
+            $signatureHash = $this->buildSignatureHash($selectedRows, $targetJabatan);
             $isDuplicate = $signatureHash !== ''
                 && AssessmentCombination::query()
                     ->where('target_ketenagaan', $targetKetenagaan->value)
@@ -157,6 +167,7 @@ class AssessmentCombinationService
         $kodeKombinasi = $this->generateUniqueCode();
         $selectionConfig = [
             'target_ketenagaan' => $targetKetenagaan->value,
+            'target_jabatan' => $targetJabatan,
             'included_assessment_ids' => $selectedSourceAssessments
                 ->pluck('id')
                 ->map(fn ($assessmentId) => (int) $assessmentId)
@@ -168,6 +179,7 @@ class AssessmentCombinationService
         return DB::transaction(function () use (
             $generatedBy,
             $targetKetenagaan,
+            $targetJabatan,
             $kodeKombinasi,
             $randomSeed,
             $signatureHash,
@@ -175,7 +187,7 @@ class AssessmentCombinationService
             $selectedRows,
             $generatedAt
         ) {
-            $combination = AssessmentCombination::create([
+            $combinationData = [
                 'kode_kombinasi' => $kodeKombinasi,
                 'judul' => $kodeKombinasi,
                 'deskripsi' => null,
@@ -189,7 +201,13 @@ class AssessmentCombinationService
                 'generated_by' => $generatedBy ?: null,
                 'generated_at' => $generatedAt,
                 'is_active' => true,
-            ]);
+            ];
+
+            if (Schema::hasColumn('assessment_combinations', 'target_jabatan')) {
+                $combinationData['target_jabatan'] = $targetJabatan;
+            }
+
+            $combination = AssessmentCombination::create($combinationData);
 
             $combination->items()->createMany(
                 collect($selectedRows)
@@ -211,7 +229,10 @@ class AssessmentCombinationService
         });
     }
 
-    public function getSourceAssessments(?AssessmentKetenagaanType $ketenagaan = null): Collection
+    public function getSourceAssessments(
+        ?AssessmentKetenagaanType $ketenagaan = null,
+        array $selectedJabatan = []
+    ): Collection
     {
         return Assessment::query()
             ->with([
@@ -233,7 +254,13 @@ class AssessmentCombinationService
                 fn ($query) => $query->where('target_ketenagaan', $ketenagaan->value)
             )
             ->get()
-            ->filter(function (Assessment $assessment) {
+            ->filter(function (Assessment $assessment) use ($selectedJabatan) {
+                if ($selectedJabatan !== [] && Schema::hasColumn('assessments', 'target_jabatan')) {
+                    if (! $assessment->matchesTargetJabatanSelections($selectedJabatan)) {
+                        return false;
+                    }
+                }
+
                 return $assessment->forms
                     ->filter(fn (AssessmentForm $form) => $form->fields->isNotEmpty())
                     ->isNotEmpty();
@@ -330,7 +357,11 @@ class AssessmentCombinationService
                 $sourceAssessment = $sourceAssessments->get($assessmentId);
 
                 return $sourceAssessment
-                    && $this->isAssessmentEligibleForCombination($sourceAssessment, $combination->target_ketenagaan);
+                    && $this->isAssessmentEligibleForCombination(
+                        $sourceAssessment,
+                        $combination->target_ketenagaan,
+                        $combination->targetJabatanSelections()
+                    );
             });
 
         $combination->forceFill([
@@ -343,7 +374,7 @@ class AssessmentCombinationService
             'total_assessments' => (int) $combination->items->pluck('assessment_id')->filter()->unique()->count(),
             'total_forms' => (int) $combination->items->pluck('assessment_form_id')->filter()->unique()->count(),
             'total_questions' => (int) $combination->items->count(),
-            'signature_hash' => $this->buildSignatureHash($allRows),
+            'signature_hash' => $this->buildSignatureHash($allRows, $combination->targetJabatanSelections()),
             'is_active' => $hasEligibleSources,
         ])->save();
 
@@ -412,6 +443,8 @@ class AssessmentCombinationService
             'assessment_order' => (int) $analysis['assessment_order'],
             'instrument_type' => $assessmentMeta['instrument_type'] ?? null,
             'instrument_label' => $assessmentMeta['instrument_label'] ?? null,
+            'target_jabatan' => $assessment->targetJabatanSelections(),
+            'target_jabatan_labels' => $assessment->target_jabatan_labels,
             'competencies' => $competencies,
             'auto_included_forms' => $autoIncludedForms,
             'auto_included_form_count' => count($autoIncludedForms),
@@ -787,7 +820,7 @@ class AssessmentCombinationService
         ];
     }
 
-    private function buildSignatureHash(array $rows): string
+    private function buildSignatureHash(array $rows, array $targetJabatan = []): string
     {
         $signature = collect($rows)
             ->map(fn (array $row) => (string) ($row['assessment_form_field_id'] ?? ''))
@@ -796,7 +829,20 @@ class AssessmentCombinationService
             ->values()
             ->implode('|');
 
-        return $signature !== '' ? hash('sha256', $signature) : '';
+        if ($signature === '') {
+            return '';
+        }
+
+        $normalizedTargetJabatan = collect(Assessment::normalizeTargetJabatan($targetJabatan))
+            ->sort()
+            ->values()
+            ->all();
+
+        if ($normalizedTargetJabatan !== []) {
+            $signature .= '|target-jabatan:'.implode(',', $normalizedTargetJabatan);
+        }
+
+        return hash('sha256', $signature);
     }
 
     private function prepareCombinationItemRow(array $row): array
@@ -921,6 +967,7 @@ class AssessmentCombinationService
                 'kode_kombinasi' => $combination->kode_kombinasi,
                 'judul' => $combination->kode_kombinasi,
                 'target_ketenagaan' => $combination->target_ketenagaan,
+                'target_jabatan' => $combination->targetJabatanSelections(),
             ],
             'assessments' => $assessments,
             'meta' => [
@@ -1219,8 +1266,18 @@ class AssessmentCombinationService
 
     private function isAssessmentEligibleForCombination(
         Assessment $assessment,
-        ?string $targetKetenagaan
+        ?string $targetKetenagaan,
+        array $targetJabatan = []
     ): bool {
+        if (
+            $targetJabatan !== []
+            && Schema::hasColumn('assessments', 'target_jabatan')
+        ) {
+            if (! $assessment->matchesTargetJabatanSelections($targetJabatan)) {
+                return false;
+            }
+        }
+
         return (bool) $assessment->is_active
             && $assessment->status === 'publish'
             && ($targetKetenagaan === null || $assessment->target_ketenagaan === $targetKetenagaan);

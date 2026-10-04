@@ -48,33 +48,36 @@ class AssessmentAssignmentService
     public const SESSION_DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
 
     public function getAvailableCombinationsForKetenagaan(
-        AssessmentKetenagaanType $targetKetenagaan
+        AssessmentKetenagaanType $targetKetenagaan,
+        array $selectedJabatan = []
     ): Collection {
         if (! Schema::hasTable('assessment_combinations')) {
             return collect();
         }
 
-        return $this->resolveAssignableCombinationPool($targetKetenagaan);
+        return $this->resolveAssignableCombinationPool($targetKetenagaan, $selectedJabatan);
     }
 
     public function getAvailableCombinationOptionSummariesForKetenagaan(
-        AssessmentKetenagaanType $targetKetenagaan
+        AssessmentKetenagaanType $targetKetenagaan,
+        array $selectedJabatan = []
     ): Collection {
         if (! Schema::hasTable('assessment_combinations')) {
             return collect();
         }
 
-        return $this->resolveAssignableCombinationPool($targetKetenagaan);
+        return $this->resolveAssignableCombinationPool($targetKetenagaan, $selectedJabatan);
     }
 
     public function countAvailableCombinationsForKetenagaan(
-        AssessmentKetenagaanType $targetKetenagaan
+        AssessmentKetenagaanType $targetKetenagaan,
+        array $selectedJabatan = []
     ): int {
         if (! Schema::hasTable('assessment_combinations')) {
             return 0;
         }
 
-        return $this->resolveAssignableCombinationPool($targetKetenagaan)->count();
+        return $this->resolveAssignableCombinationPool($targetKetenagaan, $selectedJabatan)->count();
     }
 
     public function buildAssignableParticipantQueryForAssignment(AssessmentAssignment $assignment)
@@ -815,7 +818,12 @@ class AssessmentAssignmentService
     private function prepareAssignmentContext(array $payload): array
     {
         $targetKetenagaan = $this->resolveTargetKetenagaan($payload);
-        $assessmentCombinations = $this->resolveAssessmentCombinations($payload, $targetKetenagaan);
+        $selectedJabatan = $this->normalizeTargetJabatanSelections($payload['target_jabatan'] ?? []);
+        $assessmentCombinations = $this->resolveAssessmentCombinations(
+            $payload,
+            $targetKetenagaan,
+            $selectedJabatan
+        );
         $sessionEnabled = $this->resolveSessionEnabled($payload);
         $startTime = $this->normalizeStartTime($payload['jam_mulai'] ?? null);
 
@@ -830,7 +838,8 @@ class AssessmentAssignmentService
             'assessment_ids' => $assessmentIds = $this->resolveAssessmentIds(
                 $payload,
                 $targetKetenagaan,
-                $assessmentCombinations
+                $assessmentCombinations,
+                $selectedJabatan
             ),
             'stage_configs' => $this->resolveStageConfigs($assessmentIds, $payload['stage_configs'] ?? []),
             'guru_ids' => $this->resolveGuruIds($payload, $targetKetenagaan),
@@ -1473,7 +1482,8 @@ class AssessmentAssignmentService
     private function resolveAssessmentIds(
         array $payload,
         ?AssessmentKetenagaanType $targetKetenagaan = null,
-        ?Collection $assessmentCombinations = null
+        ?Collection $assessmentCombinations = null,
+        array $selectedJabatan = []
     ): array {
         if ($assessmentCombinations && $assessmentCombinations->isNotEmpty()) {
             return $this->orderAssessmentIdsForStageFlow(
@@ -1487,6 +1497,11 @@ class AssessmentAssignmentService
                     ->where('is_active', true)
                     ->where('status', 'publish')
                     ->where('target_ketenagaan', $targetKetenagaan->value)
+                    ->get()
+                    ->filter(
+                        fn (Assessment $assessment) => ! Schema::hasColumn('assessments', 'target_jabatan')
+                            || $assessment->coversJabatanSelections($selectedJabatan)
+                    )
                     ->pluck('id')
                     ->map(fn ($assessmentId) => (int) $assessmentId)
                     ->all()
@@ -1503,13 +1518,16 @@ class AssessmentAssignmentService
 
     private function normalizeTargetJabatanSelections(mixed $targetJabatan): array
     {
-        return collect(is_array($targetJabatan) ? $targetJabatan : [$targetJabatan])
+        $selections = collect(is_array($targetJabatan) ? $targetJabatan : [$targetJabatan])
             ->filter(fn ($jabatan) => filled($jabatan))
             ->map(fn ($jabatan) => trim((string) $jabatan))
             ->filter(fn (string $jabatan) => $jabatan !== '')
             ->unique()
-            ->values()
-            ->all();
+            ->values();
+
+        return $selections->contains(Assessment::TARGET_JABATAN_ALL)
+            ? []
+            : $selections->all();
     }
 
     private function normalizeTargetKabupatenSelections(mixed $targetKabupaten): array
@@ -1673,17 +1691,25 @@ class AssessmentAssignmentService
 
     private function resolveAssessmentCombinations(
         array $payload,
-        ?AssessmentKetenagaanType $targetKetenagaan = null
+        ?AssessmentKetenagaanType $targetKetenagaan = null,
+        array $selectedJabatan = []
     ): Collection {
         if ($targetKetenagaan) {
-            $combinationPool = $this->getAvailableCombinationsForKetenagaan($targetKetenagaan);
+            $combinationPool = $this->getAvailableCombinationsForKetenagaan(
+                $targetKetenagaan,
+                $selectedJabatan
+            );
 
             if ($combinationPool->isNotEmpty()) {
                 return $combinationPool;
             }
         }
 
-        $legacyCombination = $this->resolveLegacySelectedCombination($payload, $targetKetenagaan);
+        $legacyCombination = $this->resolveLegacySelectedCombination(
+            $payload,
+            $targetKetenagaan,
+            $selectedJabatan
+        );
 
         return $legacyCombination ? collect([$legacyCombination]) : collect();
     }
@@ -1692,9 +1718,13 @@ class AssessmentAssignmentService
         AssessmentAssignment $assignment
     ): Collection {
         $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($assignment->target_ketenagaan);
+        $selectedJabatan = $this->normalizeTargetJabatanSelections($assignment->target_jabatan ?? []);
 
         if ($targetKetenagaan) {
-            $combinationPool = $this->getAvailableCombinationsForKetenagaan($targetKetenagaan);
+            $combinationPool = $this->getAvailableCombinationsForKetenagaan(
+                $targetKetenagaan,
+                $selectedJabatan
+            );
 
             if ($combinationPool->isNotEmpty()) {
                 return $combinationPool;
@@ -1710,7 +1740,10 @@ class AssessmentAssignmentService
                 ->where('is_active', true)
                 ->first();
 
-            if ($legacyCombination) {
+            if (
+                $legacyCombination
+                && ($selectedJabatan === [] || $legacyCombination->coversJabatanSelections($selectedJabatan))
+            ) {
                 return collect([$legacyCombination]);
             }
         }
@@ -1720,7 +1753,8 @@ class AssessmentAssignmentService
 
     private function resolveLegacySelectedCombination(
         array $payload,
-        ?AssessmentKetenagaanType $targetKetenagaan = null
+        ?AssessmentKetenagaanType $targetKetenagaan = null,
+        array $selectedJabatan = []
     ): ?AssessmentCombination {
         if (! Schema::hasTable('assessment_combinations')) {
             return null;
@@ -1740,11 +1774,16 @@ class AssessmentAssignmentService
             $query->where('target_ketenagaan', $targetKetenagaan->value);
         }
 
-        return $query->firstOrFail();
+        $combination = $query->firstOrFail();
+
+        return $selectedJabatan !== [] && ! $combination->coversJabatanSelections($selectedJabatan)
+            ? null
+            : $combination;
     }
 
     private function resolveAssignableCombinationPool(
-        AssessmentKetenagaanType $targetKetenagaan
+        AssessmentKetenagaanType $targetKetenagaan,
+        array $selectedJabatan = []
     ): Collection {
         $selectColumns = $this->combinationPoolSelectColumns();
         $availableCombinationsQuery = $this->buildCombinationPoolBaseQuery($targetKetenagaan)
@@ -1761,6 +1800,45 @@ class AssessmentAssignmentService
 
         if ($availableCombinations->isEmpty()) {
             return collect();
+        }
+
+        if ($selectedJabatan !== []) {
+            $availableCombinations = $availableCombinations
+                ->filter(fn (AssessmentCombination $combination) => $combination->coversJabatanSelections($selectedJabatan))
+                ->values();
+        }
+
+        if (
+            $selectedJabatan !== []
+            && Schema::hasColumn('assessments', 'target_jabatan')
+            && Schema::hasTable('assessment_combination_items')
+        ) {
+            $assessmentIdsByCombination = DB::table('assessment_combination_items')
+                ->whereIn('assessment_combination_id', $availableCombinations->pluck('id')->all())
+                ->whereNotNull('assessment_id')
+                ->get(['assessment_combination_id', 'assessment_id'])
+                ->groupBy('assessment_combination_id')
+                ->map(fn ($items) => $items->pluck('assessment_id')->map(fn ($id) => (int) $id)->all());
+            $assessmentsById = Assessment::query()
+                ->whereIn('id', $assessmentIdsByCombination->flatten()->unique()->all())
+                ->get()
+                ->keyBy('id');
+
+            $availableCombinations = $availableCombinations
+                ->filter(function (AssessmentCombination $combination) use (
+                    $assessmentIdsByCombination,
+                    $assessmentsById,
+                    $selectedJabatan
+                ) {
+                    $assessmentIds = $assessmentIdsByCombination->get($combination->id, []);
+
+                    return $assessmentIds === [] || collect($assessmentIds)->every(
+                        fn (int $assessmentId) => $assessmentsById->get($assessmentId)?->coversJabatanSelections(
+                            $selectedJabatan
+                        ) ?? false
+                    );
+                })
+                ->values();
         }
 
         $snapshotsByCombinationId = $this->loadCombinationSnapshotsById(
@@ -1995,6 +2073,8 @@ class AssessmentAssignmentService
             'kode_kombinasi',
             'judul',
             'target_ketenagaan',
+            'target_jabatan',
+            'selection_config',
             'total_assessments',
             'total_forms',
             'total_questions',

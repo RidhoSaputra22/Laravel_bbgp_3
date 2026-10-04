@@ -3,6 +3,7 @@
 namespace App\Services\Assessment;
 
 use App\Jobs\ProcessAssessmentCombinationGenerationJob;
+use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use Illuminate\Support\Carbon;
@@ -35,7 +36,7 @@ class AssessmentCombinationGenerationService
         ?int $generatedBy = null
     ): AssessmentCombinationGeneration {
         return DB::transaction(function () use ($payload, $generatedBy) {
-            return AssessmentCombinationGeneration::query()->create([
+            $generationData = [
                 'kode_generate' => $this->generateUniqueCode(),
                 'target_ketenagaan' => (string) ($payload['target_ketenagaan'] ?? ''),
                 'total_kombinasi' => max((int) ($payload['total_kombinasi'] ?? 1), 1),
@@ -43,7 +44,17 @@ class AssessmentCombinationGenerationService
                 'status' => 'diproses',
                 'generated_by' => $generatedBy ?: null,
                 'processed_at' => null,
-            ]);
+            ];
+
+            $targetJabatan = Assessment::normalizeTargetJabatan(
+                $payload['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
+            );
+
+            if (Schema::hasColumn('assessment_combination_generations', 'target_jabatan')) {
+                $generationData['target_jabatan'] = $targetJabatan ?: [Assessment::TARGET_JABATAN_ALL];
+            }
+
+            return AssessmentCombinationGeneration::query()->create($generationData);
         });
     }
 
@@ -229,8 +240,13 @@ class AssessmentCombinationGenerationService
 
     private function buildSelectionConfig(array $payload): array
     {
+        $targetJabatan = Assessment::normalizeTargetJabatan(
+            $payload['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
+        );
+
         return [
             'target_ketenagaan' => $payload['target_ketenagaan'] ?? null,
+            'target_jabatan' => $targetJabatan !== [] ? $targetJabatan : [Assessment::TARGET_JABATAN_ALL],
             'total_kombinasi' => max((int) ($payload['total_kombinasi'] ?? 1), 1),
             'included_assessment_ids' => $this->normalizeAssessmentIds($payload['included_assessment_ids'] ?? []),
             'competency_selection_modes' => $payload['competency_selection_modes'] ?? [],
@@ -244,6 +260,10 @@ class AssessmentCombinationGenerationService
 
         return [
             'target_ketenagaan' => $selectionConfig['target_ketenagaan'] ?? $generation->target_ketenagaan,
+            'target_jabatan' => Assessment::normalizeTargetJabatan(
+                $selectionConfig['target_jabatan'] ?? $generation->targetJabatanSelections()
+                    ?? [Assessment::TARGET_JABATAN_ALL]
+            ) ?: [Assessment::TARGET_JABATAN_ALL],
             'included_assessment_ids' => $this->normalizeAssessmentIds(
                 $selectionConfig['included_assessment_ids'] ?? []
             ),
