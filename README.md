@@ -177,9 +177,8 @@ php artisan queue:restart
 ```
 
 Validator assignments use a separate validator_assignment collection. The
-document contains the validator form, responses, validator result, and
-score-related metadata for the validator form only. Source assessment
-assignments are stored as score-free snapshots. Backfill it with:
+document contains the validator form and source assessment assignments.
+Source assessment assignments are stored as score-free snapshots. Backfill it with:
 
     php artisan assessment:sync-validator-assignments-mongodb --dry-run
     php artisan assessment:sync-validator-assignments-mongodb --chunk=100

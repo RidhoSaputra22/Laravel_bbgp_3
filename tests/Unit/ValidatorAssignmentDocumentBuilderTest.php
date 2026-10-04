@@ -6,7 +6,6 @@ use App\Jobs\SyncValidatorAssignmentsToMongoJob;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentCombination;
 use App\Models\ValidatorAssignment;
-use App\Models\ValidatorAssignmentResponse;
 use App\Models\ValidatorForm;
 use App\Models\ValidatorFormField;
 use App\Models\ValidatorFormSection;
@@ -45,13 +44,6 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
         ]);
         $form->id = 5;
         $form->setRelation('sections', new Collection([$section]));
-
-        $response = new ValidatorAssignmentResponse([
-            'validator_form_field_id' => 100,
-            'answer_text' => '5',
-            'score' => 5,
-        ]);
-        $response->id = 200;
 
         $assignment = new ValidatorAssignment([
             'code' => 'VAL-20261002-ABC123',
@@ -97,7 +89,6 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
         ]);
         $assignment->id = 123;
         $assignment->setRelation('validatorForm', $form);
-        $assignment->setRelation('responses', new Collection([$response]));
 
         $document = (new ValidatorAssignmentDocumentBuilder)->document($assignment);
 
@@ -109,8 +100,9 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
         $this->assertArrayNotHasKey('scoring_config', $sourceForm);
         $this->assertArrayNotHasKey('scoring_config', $sourceForm['fields'][0]);
         $this->assertTrue($document['validator_form']['sections'][0]['fields'][0]['is_scored']);
-        $this->assertSame(5.0, $document['responses'][0]['score']);
-        $this->assertSame('validator_form_only', $document['meta']['scoring_scope']);
+        $this->assertArrayNotHasKey('result', $document);
+        $this->assertArrayNotHasKey('responses', $document);
+        $this->assertArrayNotHasKey('answered_questions', $document['meta']);
     }
 
     public function test_sync_dispatcher_splits_validator_assignment_ids_into_batches(): void

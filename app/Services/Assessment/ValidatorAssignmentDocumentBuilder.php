@@ -19,7 +19,6 @@ class ValidatorAssignmentDocumentBuilder
     {
         $relations = [
             'validatorForm.sections.fields',
-            'responses',
         ];
 
         if (Schema::hasTable('validator_assignment_assessment_assignments')) {
@@ -39,17 +38,6 @@ class ValidatorAssignmentDocumentBuilder
             ->values();
         $formSections = $assignment->validatorForm?->sections ?? collect();
         $formFields = $formSections->flatMap->fields->values();
-        $responses = $assignment->responses
-            ->map(fn ($response) => [
-                'validator_form_field_id' => (int) $response->validator_form_field_id,
-                'answer_text' => $response->answer_text,
-                'answer_payload' => $response->answer_payload,
-                'score' => $response->score,
-                'created_at' => $response->created_at?->toISOString(),
-                'updated_at' => $response->updated_at?->toISOString(),
-            ])
-            ->values()
-            ->all();
         $syncedAt = now()->toIso8601String();
 
         return [
@@ -73,14 +61,6 @@ class ValidatorAssignmentDocumentBuilder
             'validator' => $this->validator($assignment->validator_snapshot),
             'validator_form' => $this->validatorForm($assignment),
             'assessment_assignments' => $sourceAssignments->all(),
-            'responses' => $responses,
-            'result' => [
-                'score_total' => $assignment->score_total,
-                'score_max' => $assignment->score_max,
-                'score_percentage' => $assignment->score_percentage,
-                'recommendation' => $assignment->recommendation,
-                'final_notes' => $assignment->final_notes,
-            ],
             'meta' => [
                 'snapshot_source' => 'validator_assignment',
                 'source_mode' => $assignment->source_mode,
@@ -89,9 +69,6 @@ class ValidatorAssignmentDocumentBuilder
                     ->sum(fn (array $source) => count($source['assessments'] ?? [])),
                 'total_questions' => $formFields->count(),
                 'required_questions' => $formFields->where('is_required', true)->count(),
-                'answered_questions' => collect($responses)
-                    ->filter(fn (array $response) => filled($response['answer_text'] ?? null))
-                    ->count(),
                 'scored_questions' => $formFields
                     ->where('is_active', true)
                     ->where('is_scored', true)
@@ -116,7 +93,6 @@ class ValidatorAssignmentDocumentBuilder
             'schema_version' => self::SCHEMA_VERSION,
             'validator_assignment_id' => $assignmentId,
             'assessment_assignments' => [],
-            'responses' => [],
             'meta' => [
                 'snapshot_source' => 'tombstone',
                 'generated_at' => $now,
