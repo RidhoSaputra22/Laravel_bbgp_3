@@ -85,7 +85,7 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $this->assertTrue($document['sync']['is_active']);
     }
 
-    public function test_it_adds_autofill_values_as_field_defaults_in_mongo_documents(): void
+    public function test_it_adds_autofill_values_only_to_portfolio_identity_form_in_mongo_documents(): void
     {
         $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);
         $randomizer->shouldReceive('buildSnapshot')->once()->andReturn([
@@ -93,6 +93,8 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
                 'instrument_type' => 'portofolio',
                 'instrument_label' => 'Portofolio',
                 'forms' => [[
+                    'judul_form' => 'Identitas Responden',
+                    'kode_form' => 'FORM-IDENTITAS',
                     'fields' => [
                         [
                             'id' => 355,
@@ -112,6 +114,14 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
                             'autofill_source' => null,
                         ],
                     ],
+                ], [
+                    'judul_form' => 'Riwayat Pendidikan Formal',
+                    'kode_form' => 'FORM-PENDIDIKAN',
+                    'fields' => [[
+                        'id' => 358,
+                        'tipe_field' => 'text',
+                        'autofill_source' => 'nama_lengkap',
+                    ]],
                 ]],
             ]],
             'meta' => [],
@@ -140,11 +150,13 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $document = (new AssessmentAssignmentTargetDocumentBuilder($randomizer, Mockery::mock(ScoringConfigNormalizer::class)))
             ->document($target, $assignment);
         $fields = $document['forms'][0]['assessments'][0]['forms'][0]['fields'];
+        $nonIdentityFields = $document['forms'][0]['assessments'][0]['forms'][1]['fields'];
 
         $this->assertSame('A. NUR ERNY, S.Pd', $fields[0]['default_value']);
         $this->assertNull($fields[1]['default_value']);
         $this->assertSame('kabupaten', $fields[2]['autofill_source']);
         $this->assertSame('Kota Makassar', $fields[2]['default_value']);
+        $this->assertNull($nonIdentityFields[0]['default_value']);
     }
 
     public function test_attempt_snapshot_is_used_for_target_forms(): void

@@ -600,6 +600,13 @@ class AssessmentAssignmentTargetDocumentBuilder
                 }
 
                 foreach ($assessment['forms'] as &$form) {
+                    $shouldApplyAutofill = ($instrumentGroup['instrument_type'] ?? null)
+                        === AssessmentInstrumentType::PORTOFOLIO->value
+                        && str_contains(
+                            strtoupper((string) ($form['kode_form'] ?? $form['judul_form'] ?? '')),
+                            'IDENTITAS'
+                        );
+
                     if (! is_array($form['fields'] ?? null)) {
                         continue;
                     }
@@ -619,7 +626,7 @@ class AssessmentAssignmentTargetDocumentBuilder
                             ),
                             $field['tipe_field'] ?? null
                         );
-                        $field['default_value'] = $guru && $field['autofill_source']
+                        $field['default_value'] = $shouldApplyAutofill && $guru && $field['autofill_source']
                             ? ($resolver->resolveForField($field, $guru)['value'] ?? null)
                             : null;
                     }

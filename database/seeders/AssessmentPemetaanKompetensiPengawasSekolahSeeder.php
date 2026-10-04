@@ -172,6 +172,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
                 'scoring_config' => [
                     'enabled' => true,
                     'profile' => AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value,
+                    'method' => 'choice_option_score',
                     'weight' => 100,
                     'scale_min' => 1,
                     'scale_max' => 5,
@@ -196,7 +197,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         $payload = <<<'JSON'
 [
     {
-        "judul_form": "1. Identitas Responden",
+        "judul_form": "Identitas Responden",
         "kode_form": "FORM-PENGAWAS-IDENTITAS",
         "deskripsi": "Data identitas responden sesuai instrumen portofolio.",
         "is_scoreable": false,
@@ -244,14 +245,16 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
                 "label": "Pangkat / Golongan",
                 "deskripsi": "Pangkat / Golongan",
                 "nama_field": "pangkat_golongan",
-                "tipe_field": "text",
-                "placeholder": "Contoh: Pembina / IV-a.",
-                "bantuan": "Isi pangkat/golongan terakhir.",
+                "tipe_field": "select",
+                "placeholder": "Pilih pangkat/golongan.",
+                "bantuan": "Pilih pangkat/golongan dari master. Gunakan opsi Lainnya jika belum tersedia.",
                 "opsi_field": null,
                 "nilai_default": null,
                 "autofill_source": "pangkat_golongan",
+                "lookup_source": "master_golongan",
                 "validasi": {
-                    "required": true
+                    "required": true,
+                    "allow_other_input": true
                 },
                 "scoring_config": null,
                 "urutan": 3,
@@ -339,7 +342,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         ]
     },
     {
-        "judul_form": "2. Riwayat Pendidikan Formal",
+        "judul_form": "Riwayat Pendidikan Formal",
         "kode_form": "FORM-PENGAWAS-PENDIDIKAN",
         "deskripsi": "Riwayat pendidikan formal dengan jenjang S1, Sertifikasi, S2, dan S3.",
         "kompetensi": "profesional",
@@ -428,7 +431,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         ]
     },
     {
-        "judul_form": "3. Pengalaman Pelatihan yang Relevan dengan Profesi (5 Tahun Terakhir)",
+        "judul_form": "Pengalaman Pelatihan yang Relevan dengan Profesi (5 Tahun Terakhir)",
         "kode_form": "FORM-PENGAWAS-PELATIHAN",
         "deskripsi": "Pengalaman pelatihan relevan dengan profesi dalam lima tahun terakhir.",
         "kompetensi": "profesional",
@@ -505,7 +508,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         ]
     },
     {
-        "judul_form": "4. Pengalaman Kerja",
+        "judul_form": "Pengalaman Kerja",
         "kode_form": "FORM-PENGAWAS-PENGALAMAN-KERJA",
         "deskripsi": "Pengalaman kerja responden.",
         "kompetensi": "profesional",
@@ -575,7 +578,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         ]
     },
     {
-        "judul_form": "5. Prestasi / Penghargaan",
+        "judul_form": "Prestasi / Penghargaan",
         "kode_form": "FORM-PENGAWAS-PRESTASI",
         "deskripsi": "Prestasi atau penghargaan yang pernah diperoleh.",
         "kompetensi": "profesional",
@@ -638,7 +641,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         ]
     },
     {
-        "judul_form": "6. Karya / Inovasi / Best Practice",
+        "judul_form": "Karya / Inovasi / Best Practice",
         "kode_form": "FORM-PENGAWAS-KARYA-INOVASI",
         "deskripsi": "Karya, inovasi, atau praktik baik yang pernah dikembangkan.",
         "kompetensi": "profesional",
@@ -701,7 +704,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
         ]
     },
     {
-        "judul_form": "7. Refleksi Diri",
+        "judul_form": "Refleksi Diri",
         "kode_form": "FORM-PENGAWAS-REFLEKSI",
         "deskripsi": "Refleksi kekuatan dan area pengembangan responden sebagai calon/aktif pengawas sekolah.",
         "kompetensi": "kepribadian",
@@ -744,54 +747,8 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
                 "is_active": true
             }
         ]
-    },
-    {
-        "judul_form": "Dokumen Pendukung",
-        "kode_form": "FORM-PENGAWAS-DOKUMEN-PENDUKUNG",
-        "deskripsi": "Bukti dokumen pendukung sesuai petunjuk instrumen portofolio.",
-        "is_scoreable": false,
-        "scoring_config": null,
-        "urutan": 8,
-        "is_active": true,
-        "fields": [
-            {
-                "label": "Bukti Dokumen Pendukung",
-                "deskripsi": "Unggah bukti dokumen pendukung yang relevan dengan data portofolio.",
-                "nama_field": "bukti_dokumen_pendukung",
-                "tipe_field": "file",
-                "placeholder": null,
-                "bantuan": "Format: PDF, DOC, DOCX, PNG, JPG/JPEG. Unggah satu dokumen utama, maksimal 10 MB.",
-                "opsi_field": {
-                    "accept": [
-                        "application/pdf",
-                        "application/msword",
-                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        "image/png",
-                        "image/jpeg"
-                    ],
-                    "max_size_kb": 10240,
-                    "max_files": 1
-                },
-                "nilai_default": null,
-                "validasi": {
-                    "required": false,
-                    "mimes": [
-                        "pdf",
-                        "doc",
-                        "docx",
-                        "png",
-                        "jpg",
-                        "jpeg"
-                    ],
-                    "max": 10240
-                },
-                "scoring_config": null,
-                "urutan": 1,
-                "is_required": false,
-                "is_active": true
-            }
-        ]
     }
+
 ]
 JSON;
 
