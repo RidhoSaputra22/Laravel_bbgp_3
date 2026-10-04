@@ -160,7 +160,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
             $form['scoring_config']['advanced_rules']['question_count']++;
             $questionNumber = $index + 1;
             $form['fields'][] = [
-                'label' => 'Soal '.$question['source_number'].' — '.$question['prompt'],
+                'label' => $question['prompt'],
                 'deskripsi' => $question['stimulus'],
                 'nama_field' => 'soal_'.str_pad((string) $questionNumber, 3, '0', STR_PAD_LEFT),
                 'tipe_field' => 'radio',
