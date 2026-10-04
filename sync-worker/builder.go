@@ -133,6 +133,7 @@ func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment, stag
 	if snapshot, ok := mapAny(row.Combination.Snapshot.Value); ok && validSnapshot(snapshot) {
 		snapshot = cloneMap(snapshot)
 		applyStageConfigs(snapshot, stageConfigs)
+		normalizeSnapshotChoiceOptions(snapshot)
 		randomizeSnapshot(snapshot, row.ID)
 		normalizeScoring(snapshot)
 		return snapshot, "combination"
@@ -144,6 +145,7 @@ func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment, stag
 	}
 	if snapshot, ok := mapAny(row.Attempt.Value); ok && validSnapshot(snapshot) {
 		snapshot = cloneMap(snapshot)
+		normalizeSnapshotChoiceOptions(snapshot)
 		normalizeScoring(snapshot)
 		return snapshot, "attempt"
 	}
@@ -1006,13 +1008,68 @@ func normalizeOption(raw any, fallback string) map[string]any {
 		if value == "" {
 			value = label
 		}
-		return map[string]any{"label": label, "value": value, "score": entry["score"], "level_kompetensi": entry["level_kompetensi"], "level_kompetensi_label": entry["level_kompetensi_label"]}
+		return map[string]any{"label": label, "value": value, "score": optionScore(entry), "level_kompetensi": entry["level_kompetensi"], "level_kompetensi_label": entry["level_kompetensi_label"]}
 	}
 	text, _ := raw.(string)
 	if text == "" {
 		text = fallback
 	}
 	return map[string]any{"label": text, "value": text, "score": nil, "level_kompetensi": nil, "level_kompetensi_label": nil}
+}
+
+func optionScore(entry map[string]any) any {
+	if score, ok := numericValue(entry["score"]); ok {
+		return score
+	}
+	if level, ok := numericValue(entry["level_kompetensi"]); ok && level >= 1 && level <= 5 {
+		return level
+	}
+	return nil
+}
+
+func numericValue(value any) (float64, bool) {
+	switch number := value.(type) {
+	case float64:
+		return number, true
+	case int:
+		return float64(number), true
+	case string:
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(number), 64)
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
+}
+
+func normalizeSnapshotChoiceOptions(snapshot map[string]any) {
+	for _, rawAssessment := range arrayValue(snapshot, "assessments") {
+		assessment, ok := rawAssessment.(map[string]any)
+		if !ok {
+			continue
+		}
+		for _, rawForm := range arrayValue(assessment, "forms") {
+			form, ok := rawForm.(map[string]any)
+			if !ok {
+				continue
+			}
+			for _, rawField := range arrayValue(form, "fields") {
+				field, ok := rawField.(map[string]any)
+				if !ok || !isChoiceField(stringValue(field, "tipe_field")) {
+					continue
+				}
+				field["opsi_field"] = normalizeOptions(field["opsi_field"])
+			}
+		}
+	}
+}
+
+func isChoiceField(fieldType string) bool {
+	switch fieldType {
+	case "radio", "select", "checkbox", "likert":
+		return true
+	default:
+		return false
+	}
 }
 
 func shouldSwapChoiceLabelAndValue(label, value string) bool {

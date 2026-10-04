@@ -89,6 +89,33 @@ func TestTargetSnapshotPrefersLatestCombinationOverAttempt(t *testing.T) {
 	}
 }
 
+func TestTargetSnapshotInfersChoiceScoresFromCompetencyLevels(t *testing.T) {
+	builder := &Builder{}
+	row := TargetRow{
+		ID: 42,
+		Combination: CombinationRow{Snapshot: JSONValue{Valid: true, Value: map[string]any{
+			"assessments": []any{map[string]any{
+				"forms": []any{map[string]any{
+					"fields": []any{map[string]any{
+						"tipe_field": "radio",
+						"opsi_field": []any{
+							map[string]any{"label": "A", "value": "a", "level_kompetensi": 1},
+							map[string]any{"label": "E", "value": "e", "level_kompetensi": 5},
+						},
+					}},
+				}},
+			}},
+		}}},
+	}
+
+	snapshot, _ := builder.targetSnapshot(row, nil, nil)
+	field := snapshot["assessments"].([]any)[0].(map[string]any)["forms"].([]any)[0].(map[string]any)["fields"].([]any)[0].(map[string]any)
+	options := field["opsi_field"].([]any)
+	if options[0].(map[string]any)["score"] != 1.0 || options[1].(map[string]any)["score"] != 5.0 {
+		t.Fatalf("snapshot choice scores were not inferred: %#v", options)
+	}
+}
+
 func TestAllFormsUsesCurrentAssessmentSchema(t *testing.T) {
 	sources := []any{map[string]any{
 		"id": int64(50),

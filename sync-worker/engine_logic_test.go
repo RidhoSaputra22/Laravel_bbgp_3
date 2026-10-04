@@ -154,6 +154,14 @@ func TestNormalizeAndMergeOptions(t *testing.T) {
 	if merged[1].(map[string]any)["score"] != nil {
 		t.Fatalf("unmatched option unexpectedly received metadata: %#v", merged)
 	}
+
+	levels := normalizeOptions([]any{
+		map[string]any{"label": "A", "value": "a", "level_kompetensi": 1},
+		map[string]any{"label": "E", "value": "e", "level_kompetensi": "5"},
+	})
+	if levels[0].(map[string]any)["score"] != 1.0 || levels[1].(map[string]any)["score"] != 5.0 {
+		t.Fatalf("competency levels were not used as scores: %#v", levels)
+	}
 }
 
 func TestSchemaSnapshotFiltersInactiveAndCountsRequired(t *testing.T) {

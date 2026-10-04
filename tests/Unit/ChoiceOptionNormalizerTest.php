@@ -16,6 +16,7 @@ class ChoiceOptionNormalizerTest extends TestCase
 
         $this->assertSame('Mengenali faktor yang memengaruhi perilaku peserta didik.', $normalized['label']);
         $this->assertSame('A', $normalized['value']);
+        $this->assertSame(1.0, $normalized['score']);
         $this->assertSame(1, $normalized['level_kompetensi']);
         $this->assertSame('Level 1: Paham', $normalized['level_kompetensi_label']);
     }
@@ -30,6 +31,7 @@ class ChoiceOptionNormalizerTest extends TestCase
 
         $this->assertSame('Mengembangkan ekosistem belajar yang berkelanjutan.', $normalized['label']);
         $this->assertSame('E', $normalized['value']);
+        $this->assertSame(5.0, $normalized['score']);
         $this->assertSame(5, $normalized['level_kompetensi']);
         $this->assertSame('Level 5: Ahli', $normalized['level_kompetensi_label']);
     }

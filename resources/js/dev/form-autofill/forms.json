@@ -127,6 +127,37 @@
                 { "selector": "#kelengkapan_transport", "value": "Ada", "event": "change" },
                 { "selector": "#kelengkapan_biodata", "value": "Ada", "event": "change" }
             ]
+        },
+        {
+            "name": "Form Eksternal - Tenaga Pendidik",
+            "path": [
+                "/eksternal/form/Tenaga%20Pendidik",
+                "/eksternal/form/Tenaga Pendidik"
+            ],
+            "form": "form[action*='/eksternal/daftar']",
+            "fields": [
+                { "selector": "input[name='nama_lengkap']", "value": "Guru Dev Testing" },
+                { "selector": "input[name='no_ktp']", "value": "7371010101800001" },
+                { "selector": "input[name='email']", "value": "guru.dev@example.test" },
+                { "selector": "input[name='nip']", "value": "198001012010011001" },
+                { "selector": "input[name='npwp']", "value": "123456789012345" },
+                { "selector": "input[name='nuptk']", "value": "6200000000000001" },
+                { "selector": "select[name='status_kepegawaian']", "value": "PNS", "event": "change" },
+                { "selector": "input[name='tempat_lahir']", "value": "Makassar" },
+                { "selector": "input[name='tgl_lahir']", "value": "1990-01-01" },
+                { "selector": "select[name='gender']", "value": "Laki-laki", "event": "change" },
+                { "selector": "input[name='alamat_rumah']", "value": "Jl. Testing Nomor 1, Makassar" },
+                { "selector": "select[name='agama']", "value": "Islam", "event": "change" },
+                { "selector": "select[name='pendidikan']", "value": "S1", "event": "change" },
+                { "selector": "select[name='satuan_pendidikan']", "value": "SD Negeri", "event": "change" },
+                { "selector": "select[name='kabupaten']", "value": "Kota Makassar", "event": "change" },
+                { "selector": "input[name='no_hp']", "value": "081234567890" },
+                { "selector": "input[name='no_wa']", "value": "081234567890" },
+                { "selector": "select[name='jenis_bank']", "value": "Bank BRI", "event": "change" },
+                { "selector": "input[name='no_rek']", "value": "1234567890" },
+                { "selector": "select[name='jenisJabatan']", "value": "Tenaga Pendidik", "event": "change" },
+                { "selector": "select[name='jabJenis']", "value": "Guru", "event": "change", "waitForOption": true }
+            ]
         }
     ]
 }
