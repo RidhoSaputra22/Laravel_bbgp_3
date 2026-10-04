@@ -15,7 +15,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
     {
         $this->persistAssessment([
             'kode_assessment' => 'ASM-PENGAWAS-PORTOFOLIO-2026',
-            'judul' => 'Instrumen Pemetaan Kompetensi Pengawas Sekolah — Tim 1 Bidang Data dan Evaluasi — Portofolio',
+            'judul' => 'Portofolio',
             'deskripsi' => 'Instrumen portofolio pemetaan kompetensi pengawas sekolah BBGTK Sulawesi Selatan Tahun 2026.',
             'petunjuk' => 'Isilah data berikut secara jujur dan lengkap. Sertakan bukti dokumen pendukung pada bagian yang relevan.',
             'instrument_type' => AssessmentInstrumentType::PORTOFOLIO->value,
@@ -30,7 +30,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
 
         $this->persistAssessment([
             'kode_assessment' => 'ASM-PENGAWAS-PGK-2026',
-            'judul' => 'Instrumen Pemetaan Kompetensi Pengawas Sekolah — Tim 1 Bidang Data dan Evaluasi — Pilihan Ganda Kompleks',
+            'judul' => 'Pilihan Ganda Kompleks',
             'deskripsi' => 'Tes pilihan ganda kompleks pemetaan kompetensi kepribadian, sosial, dan profesional pengawas sekolah BBGTK Sulawesi Selatan Tahun 2026.',
             'petunjuk' => 'Pilihlah jawaban yang sesuai dengan kondisi atau pemahaman Anda saat ini secara jujur. Semua pilihan benar dan merepresentasikan Level 1 (Paham) sampai Level 5 (Ahli).',
             'instrument_type' => AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value,
@@ -40,7 +40,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
 
         $this->persistAssessment([
             'kode_assessment' => 'ASM-PENGAWAS-STUDI-KASUS-2026',
-            'judul' => 'Instrumen Pemetaan Kompetensi Pengawas Sekolah — Tim 1 Bidang Data dan Evaluasi — Studi Kasus',
+            'judul' => 'Studi Kasus',
             'deskripsi' => 'Lima studi kasus untuk memetakan kemampuan analisis, pembinaan, kolaborasi, pengembangan satuan pendidikan, dan pemanfaatan teknologi pengawas sekolah.',
             'petunjuk' => 'Analisis setiap kasus dan rumuskan langkah Anda secara sistematis dengan memperhatikan konteks, etika, strategi pendampingan, serta tindak lanjut yang dapat dipantau.',
             'instrument_type' => AssessmentInstrumentType::STUDI_KASUS->value,
@@ -63,6 +63,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
                 'petunjuk' => $config['petunjuk'],
                 'instrument_type' => $config['instrument_type'],
                 'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+                'target_jabatan' => ['Pengawas'],
                 'scoring_config' => $config['scoring_config'],
                 'status' => 'publish',
                 'is_active' => true,
@@ -248,6 +249,7 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
                 "bantuan": "Isi pangkat/golongan terakhir.",
                 "opsi_field": null,
                 "nilai_default": null,
+                "autofill_source": "pangkat_golongan",
                 "validasi": {
                     "required": true
                 },

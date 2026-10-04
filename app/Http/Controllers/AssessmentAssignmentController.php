@@ -1180,6 +1180,8 @@ class AssessmentAssignmentController extends Controller
                             'total_assessments' => (int) $combination->total_assessments,
                             'total_forms' => (int) $combination->total_forms,
                             'total_questions' => (int) $combination->total_questions,
+                            'target_jabatan' => $combination->targetJabatanSelections(),
+                            'target_jabatan_labels' => $combination->target_jabatan_labels,
                             'parent_assessment_signature' => (string) ($combination->getAttribute('parent_assessment_signature') ?? ''),
                             'parent_assessment_label' => (string) ($combination->getAttribute('parent_assessment_label') ?? ''),
                             'source_assessments' => $sourceAssessments,

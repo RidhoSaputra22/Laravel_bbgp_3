@@ -273,6 +273,7 @@ DATA;
                 'petunjuk' => 'Pilihlah jawaban yang sesuai dengan kondisi atau pemahaman Anda saat ini secara jujur. Skala Likert: 1 = Sangat Tidak Setuju/Mampu/Menguasai; 2 = Tidak Setuju/Mampu/Menguasai; 3 = Cukup Setuju/Mampu/Menguasai; 4 = Setuju/Mampu/Menguasai; 5 = Sangat Setuju/Mampu/Menguasai.',
                 'instrument_type' => AssessmentInstrumentType::SKALA_LIKERT->value,
                 'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+                'target_jabatan' => ['Kepala Sekolah'],
                 'scoring_config' => $this->assessmentScoringConfig($forms),
                 'status' => 'publish',
                 'is_active' => true,

@@ -229,7 +229,7 @@ DATA;
 
         $this->persistAssessment([
             'kode_assessment' => self::ASSESSMENT_CODE,
-            'judul' => 'Instrumen Pemetaan Kompetensi Pengawas Sekolah — Tim 1 Bidang Data dan Evaluasi — Angket Kompetensi',
+            'judul' => 'Angket Kompetensi Pengawas',
             'deskripsi' => 'Angket kompetensi pemetaan kompetensi kepribadian, sosial, dan profesional pengawas sekolah BBGTK Sulawesi Selatan Tahun 2026.',
             'petunjuk' => 'Pilihlah jawaban yang sesuai dengan kondisi atau pemahaman Anda saat ini secara jujur. Pilihan jawaban tidak ada yang salah. Skala Likert: 1 = Sangat Tidak Setuju/Mampu/Menguasai; 2 = Tidak Setuju/Mampu/Menguasai; 3 = Cukup Setuju/Mampu/Menguasai; 4 = Setuju/Mampu/Menguasai; 5 = Sangat Setuju/Mampu/Menguasai.',
             'instrument_type' => AssessmentInstrumentType::SKALA_LIKERT->value,
@@ -252,6 +252,7 @@ DATA;
                 'petunjuk' => $config['petunjuk'],
                 'instrument_type' => $config['instrument_type'],
                 'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_KEPENDIDIKAN->value,
+                'target_jabatan' => ['Pengawas'],
                 'scoring_config' => $config['scoring_config'],
                 'status' => 'publish',
                 'is_active' => true,

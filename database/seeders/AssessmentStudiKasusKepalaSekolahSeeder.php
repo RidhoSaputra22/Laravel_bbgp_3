@@ -363,6 +363,7 @@ class AssessmentStudiKasusKepalaSekolahSeeder extends Seeder
                     'petunjuk' => $item['petunjuk'],
                     'instrument_type' => $item['instrument_type'] ?? null,
                     'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
+                    'target_jabatan' => ['Kepala Sekolah'],
                     'scoring_config' => $this->assessmentScoringConfig(),
                     'status' => $item['status'],
                     'is_active' => $item['is_active'],

@@ -1649,7 +1649,23 @@
             }
 
             function getAvailableCombinationOptions(target = getSelectedTargetKetenagaan()) {
-                return target && Array.isArray(combinationOptionsByKetenagaan[target]) ? combinationOptionsByKetenagaan[target] : [];
+                const options = target && Array.isArray(combinationOptionsByKetenagaan[target])
+                    ? combinationOptionsByKetenagaan[target]
+                    : [];
+                const selectedJabatan = getSelectedJabatanIds()
+                    .filter((jabatan) => jabatan !== allTargetJabatan);
+
+                if (selectedJabatan.length === 0) {
+                    return options;
+                }
+
+                return options.filter((option) => {
+                    const targetJabatan = Array.isArray(option.target_jabatan) ? option.target_jabatan : [];
+
+                    return targetJabatan.length === 0
+                        || targetJabatan.includes(allTargetJabatan)
+                        || selectedJabatan.every((jabatan) => targetJabatan.includes(String(jabatan)));
+                });
             }
 
             function getAssignmentTitle() {
