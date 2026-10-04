@@ -39,6 +39,7 @@
 
 - [Table of Contents](#table-of-contents)
 - [Quick start](#quick-start)
+- [Assessment Form Builder](#assessment-form-builder)
 - [Assessment API](#assessment-api)
 - [Assessment target MongoDB projection](#assessment-target-mongodb-projection)
 - [License](#license)
@@ -59,6 +60,11 @@ Several quick start options are available:
 -   Done
 
 Read the [documentation page](https://getstisla.com/docs) for more information on the framework contents, templates and examples, and more.
+
+## Assessment Form Builder
+
+Dokumentasi field, tipe pertanyaan, konfigurasi scoring, dan struktur data
+assessment tersedia di [docs/assessments/form-builder.md](docs/assessments/form-builder.md).
 
 ## Assessment API
 
