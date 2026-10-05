@@ -278,7 +278,9 @@ class AssessmentPemetaanKompetensiPengawasSekolahSeeder extends Seeder
                 "nilai_default": null,
                 "autofill_source": "jabatan",
                 "validasi": {
-                    "required": true
+                    "required": true,
+                    "allow_other_input": true
+
                 },
                 "scoring_config": null,
                 "urutan": 4,

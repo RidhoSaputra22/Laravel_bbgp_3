@@ -6,6 +6,7 @@ use App\Models\ValidatorAssignment;
 use App\Services\Assessment\MongoValidatorAssignmentStore;
 use App\Services\Assessment\ValidatorAssignmentDocumentBuilder;
 use App\Services\AssessmentAssignmentService;
+use App\Services\SyncOutboxPublisher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -39,6 +40,15 @@ class SyncValidatorAssignmentsToMongoJob implements ShouldQueue
             return;
         }
 
+        $driver = (string) config('assessment_mongodb.sync_driver', 'php');
+        if (in_array($driver, ['dual', 'go'], true)) {
+            app(SyncOutboxPublisher::class)->enqueueValidatorAssignments($assignmentIds);
+        }
+
+        if ($driver === 'go') {
+            return;
+        }
+
         $chunkSize = max((int) config('assessment_mongodb.batch_size', 50), 1);
         $ids = collect($assignmentIds)
             ->map(fn ($id) => (int) $id)
@@ -56,7 +66,8 @@ class SyncValidatorAssignmentsToMongoJob implements ShouldQueue
         MongoValidatorAssignmentStore $store,
         ValidatorAssignmentDocumentBuilder $builder
     ): void {
-        if (! (bool) config('assessment_mongodb.enabled')) {
+        if (! (bool) config('assessment_mongodb.enabled')
+            || (string) config('assessment_mongodb.sync_driver', 'php') === 'go') {
             return;
         }
 

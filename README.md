@@ -199,6 +199,30 @@ so old validator target documents are removed from assessment_assignment:
     php artisan assessment:sync-targets-mongodb --reset --force --chunk=100
     php artisan assessment:sync-validator-assignments-mongodb --reset --force --chunk=100
 
+### Go sync worker
+
+Untuk memindahkan proses build dan bulk write ke Go, jalankan migration lalu
+build worker:
+
+```bash
+php artisan migrate
+cd sync-worker
+go test ./...
+go build -o ../storage/app/bbpg-sync-worker .
+```
+
+Gunakan `MONGODB_SYNC_DRIVER=dual` untuk canary. Laravel tetap menulis
+collection production, sedangkan worker berikut menulis collection shadow:
+
+```bash
+storage/app/bbpg-sync-worker --once --mode=shadow
+```
+
+Setelah parity diverifikasi, ubah menjadi `MONGODB_SYNC_DRIVER=go` dan jalankan
+worker setiap menit menggunakan `flock` seperti contoh pada
+`sync-worker/README.md`. Worker memiliki retry, lease recovery, tombstone, dan
+rebuild eksplisit untuk collection target maupun validator.
+
 ## License
 
 **Stisla** is licensed under the [MIT License](LICENSE)
@@ -214,4 +238,3 @@ Thanks to BrowserStack for their support on this open-source project!
 ---
 
 Stisla is created by [Nauval](http://nauv.al) ([Twitter](https://twitter.com/mhdnauvalazhar)). You can support the author by donation [here](https://www.buymeacoffee.com/mhd).
-test

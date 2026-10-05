@@ -111,7 +111,11 @@ class AssessmentCombinationService
         ];
     }
 
-    public function createCombination(array $payload, ?int $generatedBy = null): AssessmentCombination
+    public function createCombination(
+        array $payload,
+        ?int $generatedBy = null,
+        array $combinationAttributes = []
+    ): AssessmentCombination
     {
         $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($payload['target_ketenagaan'] ?? null);
 
@@ -185,7 +189,9 @@ class AssessmentCombinationService
             $signatureHash,
             $selectionConfig,
             $selectedRows,
-            $generatedAt
+            $generatedAt,
+            $selectedSourceAssessments,
+            $combinationAttributes
         ) {
             $combinationData = [
                 'kode_kombinasi' => $kodeKombinasi,
@@ -203,23 +209,32 @@ class AssessmentCombinationService
                 'is_active' => true,
             ];
 
+            $combinationData = array_merge($combinationData, $combinationAttributes);
+
             if (Schema::hasColumn('assessment_combinations', 'target_jabatan')) {
                 $combinationData['target_jabatan'] = $targetJabatan;
             }
 
             $combination = AssessmentCombination::create($combinationData);
 
-            $combination->items()->createMany(
-                collect($selectedRows)
-                    ->map(function (array $row) use ($combination) {
-                        return $this->prepareCombinationItemRow(array_merge($row, [
-                            'assessment_combination_id' => $combination->id,
-                        ]));
-                    })
-                    ->all()
-            );
+            AssessmentCombinationItem::withoutEvents(function () use ($combination, $selectedRows): void {
+                $combination->items()->createMany(
+                    collect($selectedRows)
+                        ->map(function (array $row) use ($combination) {
+                            return $this->prepareCombinationItemRow(array_merge($row, [
+                                'assessment_combination_id' => $combination->id,
+                            ]));
+                        })
+                        ->all()
+                );
+            });
 
-            $snapshot = $this->buildStructureSnapshot($combination, $selectedRows, $generatedAt);
+            $snapshot = $this->buildStructureSnapshot(
+                $combination,
+                $selectedRows,
+                $generatedAt,
+                $selectedSourceAssessments
+            );
 
             $combination->forceFill([
                 'structure_snapshot' => $snapshot,
@@ -314,15 +329,17 @@ class AssessmentCombinationService
             ->filter(fn ($row) => is_array($row))
             ->values();
 
-        $combination->items()->where('assessment_id', $assessment->id)->delete();
+        AssessmentCombinationItem::withoutEvents(function () use ($combination, $assessment, $refreshedRows): void {
+            $combination->items()->where('assessment_id', $assessment->id)->delete();
 
-        if ($refreshedRows->isNotEmpty()) {
-            $combination->items()->createMany(
-                $refreshedRows
-                    ->map(fn (array $row) => $this->prepareCombinationItemRow($row))
-                    ->all()
-            );
-        }
+            if ($refreshedRows->isNotEmpty()) {
+                $combination->items()->createMany(
+                    $refreshedRows
+                        ->map(fn (array $row) => $this->prepareCombinationItemRow($row))
+                        ->all()
+                );
+            }
+        });
 
         $combination->load([
             'items' => function ($query) {
@@ -369,7 +386,8 @@ class AssessmentCombinationService
             'structure_snapshot' => $this->buildStructureSnapshot(
                 $combination,
                 $allRows,
-                $combination->generated_at ?: $combination->created_at ?: now()
+                $combination->generated_at ?: $combination->created_at ?: now(),
+                $sourceAssessments
             ),
             'total_assessments' => (int) $combination->items->pluck('assessment_id')->filter()->unique()->count(),
             'total_forms' => (int) $combination->items->pluck('assessment_form_id')->filter()->unique()->count(),
@@ -857,14 +875,22 @@ class AssessmentCombinationService
     private function buildStructureSnapshot(
         AssessmentCombination $combination,
         array $rows,
-        \Illuminate\Support\Carbon $generatedAt
+        \Illuminate\Support\Carbon $generatedAt,
+        ?Collection $sourceAssessments = null
     ): array {
+        $sourceAssessmentsById = ($sourceAssessments ?? collect())->keyBy(
+            fn (Assessment $assessment) => (int) $assessment->id
+        );
+
         $assessments = collect($rows)
             ->groupBy(fn (array $row) => (int) ($row['assessment_id'] ?? 0))
             ->sortBy(fn (Collection $group) => (int) ($group->first()['assessment_order'] ?? 0))
-            ->map(function (Collection $assessmentRows, int $assessmentId) {
+            ->map(function (Collection $assessmentRows, int $assessmentId) use ($sourceAssessmentsById) {
                 $firstAssessmentRow = $assessmentRows->first();
-                $sourceAssessment = Assessment::query()->find($assessmentId);
+                $sourceAssessment = $sourceAssessmentsById->get($assessmentId);
+                $sourceFormsById = $sourceAssessment?->relationLoaded('forms')
+                    ? $sourceAssessment->forms->keyBy(fn (AssessmentForm $form) => (int) $form->id)
+                    : collect();
                 $assessmentMeta = $this->metadataResolver->decorateAssessment([
                     'id' => $assessmentId,
                     'kode_assessment' => $firstAssessmentRow['assessment_code'] ?? null,
@@ -878,9 +904,9 @@ class AssessmentCombinationService
                 $forms = $assessmentRows
                     ->groupBy(fn (array $row) => (int) ($row['assessment_form_id'] ?? 0))
                     ->sortBy(fn (Collection $group) => (int) ($group->first()['form_order'] ?? 0))
-                    ->map(function (Collection $formRows, int $formId) use ($assessmentMeta) {
+                    ->map(function (Collection $formRows, int $formId) use ($assessmentMeta, $sourceFormsById) {
                         $firstFormRow = $formRows->first();
-                        $sourceForm = AssessmentForm::query()->find($formId);
+                        $sourceForm = $sourceFormsById->get($formId);
                         $formMeta = $this->metadataResolver->decorateForm([
                             'id' => $formId,
                             'judul_form' => $firstFormRow['form_title'] ?? null,

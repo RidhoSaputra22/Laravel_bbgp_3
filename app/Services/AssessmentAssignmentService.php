@@ -750,6 +750,14 @@ class AssessmentAssignmentService
                 $configByAssessmentId
             );
 
+            SyncAssessmentTargetsToMongoJob::dispatchIds(
+                $lockedAssignment->targets()
+                    ->where('is_validator', false)
+                    ->pluck('id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all()
+            );
+
             return [
                 'assignment' => $lockedAssignment
                     ->fresh(['assessments', 'creator', 'sessions', 'combination'])

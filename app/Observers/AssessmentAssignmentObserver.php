@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Jobs\SyncAssessmentTargetsToMongoJob;
 use App\Models\AssessmentAssignment;
+use App\Services\Assessment\AssessmentTargetSyncDispatcher;
 use Illuminate\Support\Facades\Schema;
 
 class AssessmentAssignmentObserver
@@ -38,5 +39,10 @@ class AssessmentAssignmentObserver
                 ->map(fn ($id) => (int) $id)
                 ->all()
         );
+    }
+
+    public function deleting(AssessmentAssignment $assignment): void
+    {
+        app(AssessmentTargetSyncDispatcher::class)->assignments([(int) $assignment->getKey()]);
     }
 }

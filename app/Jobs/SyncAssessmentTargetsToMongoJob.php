@@ -6,6 +6,7 @@ use App\Models\AssessmentAssignmentTarget;
 use App\Services\Assessment\AssessmentAssignmentTargetDocumentBuilder;
 use App\Services\Assessment\MongoAssessmentAssignmentTargetStore;
 use App\Services\AssessmentAssignmentService;
+use App\Services\SyncOutboxPublisher;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -44,6 +45,15 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
             return;
         }
 
+        $driver = (string) config('assessment_mongodb.sync_driver', 'php');
+        if (in_array($driver, ['dual', 'go'], true)) {
+            app(SyncOutboxPublisher::class)->enqueueTargets($targetIds);
+        }
+
+        if ($driver === 'go') {
+            return;
+        }
+
         $chunkSize = min(
             max((int) config('assessment_mongodb.batch_size', 50), 1),
             self::MAX_JOB_BATCH_SIZE
@@ -64,7 +74,8 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
         MongoAssessmentAssignmentTargetStore $store,
         AssessmentAssignmentTargetDocumentBuilder $builder
     ): void {
-        if (! (bool) config('assessment_mongodb.enabled')) {
+        if (! (bool) config('assessment_mongodb.enabled')
+            || (string) config('assessment_mongodb.sync_driver', 'php') === 'go') {
             return;
         }
 

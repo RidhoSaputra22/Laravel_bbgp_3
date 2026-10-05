@@ -7,6 +7,7 @@ use App\Jobs\ResetAssessmentAssignmentsForCombinationGenerationJob;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
@@ -196,15 +197,32 @@ class AssessmentCombinationGenerationService
 
     public function processSequence(int $generationId, int $sequence): ?AssessmentCombination
     {
-        return DB::transaction(function () use ($generationId, $sequence) {
-            $generation = AssessmentCombinationGeneration::query()
-                ->lockForUpdate()
-                ->find($generationId);
+        $generation = AssessmentCombinationGeneration::query()->find($generationId);
 
-            if (! $generation) {
-                return null;
-            }
+        if (! $generation) {
+            return null;
+        }
 
+        $existingCombination = $generation->combinations()
+            ->where('generation_sequence', $sequence)
+            ->first();
+
+        if ($existingCombination) {
+            return $existingCombination;
+        }
+
+        try {
+            return $this->combinationService->createCombination(
+                $this->buildPayloadFromGeneration($generation),
+                $generation->generated_by ? (int) $generation->generated_by : null,
+                [
+                    'assessment_combination_generation_id' => $generation->id,
+                    'generation_sequence' => $sequence,
+                ]
+            );
+        } catch (QueryException $exception) {
+            // A retry can race with the original job. The database unique key
+            // makes the already committed combination the winning result.
             $existingCombination = $generation->combinations()
                 ->where('generation_sequence', $sequence)
                 ->first();
@@ -213,21 +231,8 @@ class AssessmentCombinationGenerationService
                 return $existingCombination;
             }
 
-            $payload = $this->buildPayloadFromGeneration($generation);
-            $combination = $this->combinationService->createCombination(
-                $payload,
-                $generation->generated_by ? (int) $generation->generated_by : null
-            );
-
-            $combination->forceFill([
-                'assessment_combination_generation_id' => $generation->id,
-                'generation_sequence' => $sequence,
-            ])->save();
-
-            $this->refreshGenerationSummary($generation->id);
-
-            return $combination->fresh(['items', 'generator']);
-        });
+            throw $exception;
+        }
     }
 
     public function markAsFailed(int $generationId): void
@@ -349,6 +354,11 @@ class AssessmentCombinationGenerationService
                 ->onConnection(self::QUEUE_CONNECTION)
                 ->onQueue(self::QUEUE_NAME)
                 ->allowFailures();
+
+            $generationId = (int) $generation->id;
+            $pendingBatch->finally(function () use ($generationId): void {
+                app(self::class)->refreshGenerationSummary($generationId);
+            });
 
             $sourceGenerationId = (int) ($generation->reset_source_generation_id ?? 0);
 

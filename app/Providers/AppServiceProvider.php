@@ -5,6 +5,12 @@ namespace App\Providers;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
 use App\Models\AssessmentAttempt;
+use App\Models\Assessment;
+use App\Models\AssessmentCombination;
+use App\Models\AssessmentCombinationItem;
+use App\Models\AssessmentForm;
+use App\Models\AssessmentFormField;
+use App\Models\Pivots\AssessmentAssignmentAssessment;
 use App\Models\Guru;
 use App\Models\ValidatorAssignment;
 use App\Models\ValidatorAssignmentResponse;
@@ -12,8 +18,14 @@ use App\Models\ValidatorForm;
 use App\Models\ValidatorFormField;
 use App\Models\ValidatorFormSection;
 use App\Observers\AssessmentAssignmentObserver;
+use App\Observers\AssessmentAssignmentAssessmentObserver;
 use App\Observers\AssessmentAssignmentTargetObserver;
 use App\Observers\AssessmentAttemptObserver;
+use App\Observers\AssessmentCombinationItemObserver;
+use App\Observers\AssessmentCombinationObserver;
+use App\Observers\AssessmentFormFieldObserver;
+use App\Observers\AssessmentFormObserver;
+use App\Observers\AssessmentObserver;
 use App\Observers\GuruObserver;
 use App\Observers\ValidatorAssignmentObserver;
 use App\Observers\ValidatorAssignmentResponseObserver;
@@ -48,6 +60,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Assessment::observe(AssessmentObserver::class);
+        AssessmentForm::observe(AssessmentFormObserver::class);
+        AssessmentFormField::observe(AssessmentFormFieldObserver::class);
+        AssessmentCombination::observe(AssessmentCombinationObserver::class);
+        AssessmentCombinationItem::observe(AssessmentCombinationItemObserver::class);
+        AssessmentAssignmentAssessment::observe(AssessmentAssignmentAssessmentObserver::class);
         AssessmentAssignmentTarget::observe(AssessmentAssignmentTargetObserver::class);
         AssessmentAttempt::observe(AssessmentAttemptObserver::class);
         AssessmentAssignment::observe(AssessmentAssignmentObserver::class);
