@@ -5,11 +5,18 @@ import (
 	"database/sql"
 	"encoding/json"
 	"hash/crc32"
+	"math"
+	"net/mail"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unicode"
+	"unicode/utf8"
+
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 )
 
 const targetSchemaVersion = "assessment_assignment-target-v1"
@@ -506,17 +513,26 @@ func applyAutofill(forms []any, guru GuruRow) {
 				if !ok {
 					continue
 				}
-				identityForm := stringValue(a, "instrument_type") == "portofolio" && strings.Contains(strings.ToUpper(stringValue(f, "kode_form")+stringValue(f, "judul_form")), "IDENTITAS")
+				identityForm := stringValue(g, "instrument_type") == "portofolio" && strings.Contains(strings.ToUpper(formIdentityName(f)), "IDENTITAS")
 				for _, rfield := range arrayValue(f, "fields") {
 					field, ok := rfield.(map[string]any)
 					if !ok {
 						continue
 					}
-					source := stringValue(field, "autofill_source")
-					if !validAutofillSource(source, stringValue(field, "tipe_field")) {
-						source = inferAutofill(stringValue(field, "label"), stringValue(field, "nama_field"))
+					fieldType, hasFieldType := optionalStringValue(field, "tipe_field")
+					source := normalizeAutofillSource(stringValue(field, "autofill_source"), fieldType, hasFieldType)
+					if source == "" {
+						source = normalizeAutofillSource(
+							inferAutofill(stringValue(field, "label"), stringValue(field, "nama_field")),
+							fieldType,
+							hasFieldType,
+						)
 					}
-					field["autofill_source"] = source
+					if source == "" {
+						field["autofill_source"] = nil
+					} else {
+						field["autofill_source"] = source
+					}
 					field["default_value"] = nil
 					if identityForm && source != "" {
 						field["default_value"] = autofillDefault(field, source, guru)
@@ -525,6 +541,13 @@ func applyAutofill(forms []any, guru GuruRow) {
 			}
 		}
 	}
+}
+
+func formIdentityName(form map[string]any) string {
+	if value, ok := form["kode_form"]; ok && value != nil {
+		return stringValue(form, "kode_form")
+	}
+	return stringValue(form, "judul_form")
 }
 
 var autofillLabels = map[string]string{
@@ -537,42 +560,58 @@ var autofillLabels = map[string]string{
 	"alamat_satuan": "Alamat Satuan Pendidikan", "alamat_rumah": "Alamat Rumah", "npwp": "NPWP", "no_rek": "No. Rekening", "jenis_bank": "Jenis Bank",
 }
 
-func validAutofillSource(source, fieldType string) bool {
+func normalizeAutofillSource(source, fieldType string, hasFieldType bool) string {
+	source = strings.TrimSpace(source)
 	if _, ok := autofillLabels[source]; !ok {
+		return ""
+	}
+	if hasFieldType && !supportsAutofillFieldType(fieldType) {
+		return ""
+	}
+	return source
+}
+
+func supportsAutofillFieldType(fieldType string) bool {
+	switch fieldType {
+	case "text", "textarea", "number", "email", "date", "select", "radio", "checkbox":
+		return true
+	default:
 		return false
 	}
-	return fieldType == "" || fieldType == "text" || fieldType == "textarea" || fieldType == "number" || fieldType == "email" || fieldType == "date" || fieldType == "select" || fieldType == "radio" || fieldType == "checkbox"
 }
 
 func autofillDefault(field map[string]any, source string, guru GuruRow) any {
-	value := guruValue(source, guru)
+	value := strings.TrimSpace(guruValue(source, guru))
 	if value == "" {
 		return nil
 	}
-	fieldType := stringValue(field, "tipe_field")
-	if fieldType == "select" || fieldType == "radio" {
-		matched := ""
-		for _, option := range normalizeOptions(field["opsi_field"]) {
-			if strings.EqualFold(stringValue(option.(map[string]any), "value"), value) || strings.EqualFold(stringValue(option.(map[string]any), "label"), value) {
-				matched = stringValue(option.(map[string]any), "value")
-				break
-			}
-		}
-		if matched == "" {
+	fieldType := strings.TrimSpace(stringValue(field, "tipe_field"))
+	if fieldType == "" {
+		fieldType = "text"
+	}
+
+	switch fieldType {
+	case "checkbox":
+		return resolveCheckboxAutofill(field, value)
+	case "select", "radio":
+		return resolveChoiceAutofill(field, fieldType, value)
+	case "number":
+		if !isNumericAutofill(value) {
 			return nil
 		}
-		value = matched
+	case "email":
+		if !isEmailAutofill(value) {
+			return nil
+		}
+	case "date":
+		normalized, ok := normalizeDateAutofill(value)
+		if !ok {
+			return nil
+		}
+		value = normalized
 	}
-	if fieldType == "date" && source == "tgl_lahir" {
-		value = stringValueAny(nullDate(guru.TglLahir))
-	}
-	if value == "" {
-		return nil
-	}
-	return map[string]any{
-		"source": source, "source_label": autofillLabels[source], "value": value,
-		"answer": map[string]any{"text": value, "payload": map[string]any{"type": fieldType, "value": value}},
-	}
+
+	return value
 }
 
 func stringValueAny(value any) string {
@@ -580,110 +619,306 @@ func stringValueAny(value any) string {
 	return text
 }
 
+func optionalStringValue(value map[string]any, key string) (string, bool) {
+	item, ok := value[key]
+	if !ok || item == nil {
+		return "", false
+	}
+	text, ok := item.(string)
+	return text, ok
+}
+
+func resolveChoiceAutofill(field map[string]any, fieldType, rawValue string) any {
+	for _, rawOption := range normalizeOptions(field["opsi_field"]) {
+		option, ok := rawOption.(map[string]any)
+		if !ok || !matchesAutofillChoice(option, rawValue) {
+			continue
+		}
+		value := strings.TrimSpace(stringValue(option, "value"))
+		if value != "" {
+			return value
+		}
+	}
+
+	if fieldType == "select" && fieldAllowsOtherInput(field) {
+		return rawValue
+	}
+	return nil
+}
+
+func resolveCheckboxAutofill(field map[string]any, rawValue string) any {
+	selectedRawValues := splitAutofillValues(rawValue)
+	if len(selectedRawValues) == 0 {
+		return nil
+	}
+
+	selectedValues := []string{}
+	for _, rawOption := range normalizeOptions(field["opsi_field"]) {
+		option, ok := rawOption.(map[string]any)
+		if !ok {
+			continue
+		}
+		matched := false
+		for _, selected := range selectedRawValues {
+			if matchesAutofillChoice(option, selected) {
+				matched = true
+				break
+			}
+		}
+		if matched {
+			if value := strings.TrimSpace(stringValue(option, "value")); value != "" {
+				selectedValues = append(selectedValues, value)
+			}
+		}
+	}
+	if len(selectedValues) == 0 {
+		return nil
+	}
+	return selectedValues
+}
+
+func splitAutofillValues(value string) []string {
+	parts := strings.FieldsFunc(value, func(r rune) bool {
+		return r == '\r' || r == '\n' || r == ',' || r == ';' || r == '|'
+	})
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if part = strings.TrimSpace(part); part != "" {
+			result = append(result, part)
+		}
+	}
+	return result
+}
+
+func matchesAutofillChoice(option map[string]any, rawValue string) bool {
+	wanted := normalizeKeywordSource(rawValue)
+	if wanted == "" {
+		return false
+	}
+	for _, candidate := range []string{stringValue(option, "value"), stringValue(option, "label")} {
+		if normalizeKeywordSource(candidate) == wanted {
+			return true
+		}
+	}
+	return false
+}
+
+func fieldAllowsOtherInput(field map[string]any) bool {
+	if validation, ok := field["validasi"].(map[string]any); ok {
+		if value, exists := validation["allow_other_input"]; exists && value != nil {
+			allowed, _ := value.(bool)
+			return allowed
+		}
+	}
+	allowed, _ := field["allow_other_input"].(bool)
+	return allowed
+}
+
+func isNumericAutofill(value string) bool {
+	number, err := strconv.ParseFloat(value, 64)
+	return err == nil && !math.IsNaN(number) && !math.IsInf(number, 0)
+}
+
+func isEmailAutofill(value string) bool {
+	parsed, err := mail.ParseAddress(value)
+	at := strings.LastIndex(value, "@")
+	return err == nil && parsed.Address == value && at > 0 && strings.Contains(value[at+1:], ".")
+}
+
+func normalizeDateAutofill(value string) (string, bool) {
+	for _, layout := range []string{
+		"2006-01-02", time.RFC3339, "2006-01-02 15:04:05", "02/01/2006", "01/02/2006",
+	} {
+		if parsed, err := time.Parse(layout, value); err == nil {
+			return parsed.Format("2006-01-02"), true
+		}
+	}
+	return "", false
+}
+
 func guruValue(source string, guru GuruRow) string {
 	switch source {
 	case "nama_lengkap":
-		return stringValueSQL(guru.Nama)
+		return guruString(guru.Nama)
 	case "no_ktp":
-		return stringValueSQL(guru.NIK)
+		return guruString(guru.NIK)
 	case "nip":
-		return stringValueSQL(guru.NIP)
+		return guruString(guru.NIP)
 	case "nuptk":
-		return stringValueSQL(guru.NUPTK)
+		return guruString(guru.NUPTK)
 	case "nip_nuptk":
-		if value := stringValueSQL(guru.NIP); value != "" {
+		if value := guruString(guru.NIP); value != "" {
 			return value
 		}
-		return stringValueSQL(guru.NUPTK)
+		return guruString(guru.NUPTK)
 	case "jabatan":
-		if value := stringValueSQL(guru.Jabatan); value != "" {
+		if value := guruString(guru.Jabatan); value != "" {
 			return value
 		}
-		return stringValueSQL(guru.JenisJabatan)
+		if value := guruString(guru.JenisJabatan); value != "" {
+			return value
+		}
+		if value := guruString(guru.EksternalJabatan); value != "" {
+			return value
+		}
+		return guruString(guru.StatusKepegawaian)
 	case "jenis_jabatan":
-		return stringValueSQL(guru.JenisJabatan)
+		return guruString(guru.JenisJabatan)
 	case "kategori_jabatan":
-		return stringValueSQL(guru.KategoriJabatan)
+		return guruString(guru.KategoriJabatan)
 	case "tugas_jabatan":
-		return stringValueSQL(guru.TugasJabatan)
+		return guruString(guru.TugasJabatan)
 	case "latar_jabatan":
-		return stringValueSQL(guru.LatarJabatan)
+		return guruString(guru.LatarJabatan)
 	case "status_kepegawaian":
-		return stringValueSQL(guru.StatusKepegawaian)
+		return guruString(guru.StatusKepegawaian)
 	case "gender":
-		return stringValueSQL(guru.Gender)
+		return guruString(guru.Gender)
 	case "tempat_lahir":
-		return stringValueSQL(guru.TempatLahir)
+		return guruString(guru.TempatLahir)
 	case "tgl_lahir":
 		return stringValueAny(nullDate(guru.TglLahir))
 	case "agama":
-		return stringValueSQL(guru.Agama)
+		return guruString(guru.Agama)
 	case "pendidikan":
-		return stringValueSQL(guru.Pendidikan)
+		return guruString(guru.Pendidikan)
 	case "npsn_sekolah":
-		return stringValueSQL(guru.NPSNSekolah)
+		return guruString(guru.NPSNSekolah)
 	case "alamat_satuan":
-		return stringValueSQL(guru.AlamatSatuan)
+		return guruString(guru.AlamatSatuan)
 	case "alamat_rumah":
-		return stringValueSQL(guru.AlamatRumah)
+		return guruString(guru.AlamatRumah)
 	case "no_hp":
-		return stringValueSQL(guru.NoHP)
+		return guruString(guru.NoHP)
 	case "no_wa":
-		return stringValueSQL(guru.NoWA)
+		return guruString(guru.NoWA)
 	case "npwp":
-		return stringValueSQL(guru.NPWP)
+		return guruString(guru.NPWP)
 	case "no_rek":
-		return stringValueSQL(guru.NoRek)
+		return guruString(guru.NoRek)
 	case "jenis_bank":
-		return stringValueSQL(guru.JenisBank)
+		return guruString(guru.JenisBank)
 	case "eksternal_jabatan":
-		return stringValueSQL(guru.EksternalJabatan)
+		return guruString(guru.EksternalJabatan)
 	case "kabupaten":
-		return stringValueSQL(guru.Kabupaten)
+		return guruString(guru.Kabupaten)
 	case "satuan_pendidikan":
-		return stringValueSQL(guru.SatuanPendidikan)
+		return guruString(guru.SatuanPendidikan)
 	case "email":
-		return stringValueSQL(guru.Email)
+		return guruString(guru.Email)
 	}
 	return ""
 }
+
+func guruString(value sql.NullString) string {
+	return strings.TrimSpace(stringValueSQL(value))
+}
+
+type autofillInference struct {
+	source  string
+	needles []string
+}
+
+var autofillInferenceMap = []autofillInference{
+	{source: "nama_lengkap", needles: []string{"nama_lengkap", "nama lengkap", "nama peserta"}},
+	{source: "no_ktp", needles: []string{"nik", "no ktp", "nomor ktp", "ktp"}},
+	{source: "nip_nuptk", needles: []string{"nip_nuptk", "nip nuptk"}},
+	{source: "nip", needles: []string{" nip ", "nomor induk pegawai", "nip"}},
+	{source: "nuptk", needles: []string{"nuptk"}},
+	{source: "golongan", needles: []string{"golongan", "pangkat"}},
+	{source: "jabatan", needles: []string{"jabatan"}},
+	{source: "status_kepegawaian", needles: []string{"status_kepegawaian", "status kepegawaian"}},
+	{source: "eksternal_jabatan", needles: []string{"ketenagaan", "kelompok jabatan"}},
+	{source: "jenis_jabatan", needles: []string{"jenis_jabatan", "jenis jabatan"}},
+	{source: "kategori_jabatan", needles: []string{"kategori_jabatan", "kategori jabatan"}},
+	{source: "tugas_jabatan", needles: []string{"tugas_jabatan", "tugas jabatan"}},
+	{source: "latar_jabatan", needles: []string{"latar_jabatan", "latar jabatan"}},
+	{source: "gender", needles: []string{"jenis_kelamin", "jenis kelamin", "gender", "kelamin"}},
+	{source: "tempat_lahir", needles: []string{"tempat_lahir", "tempat lahir"}},
+	{source: "tgl_lahir", needles: []string{"tanggal_lahir", "tanggal lahir", "tgl_lahir", "tgl lahir", "lahir"}},
+	{source: "agama", needles: []string{"agama"}},
+	{source: "pendidikan", needles: []string{"pendidikan", "kualifikasi akademik"}},
+	{source: "email", needles: []string{"email", "surel"}},
+	{source: "no_hp", needles: []string{"no_hp", "nomor hp", "no hp", "telepon"}},
+	{source: "no_wa", needles: []string{"no_wa", "nomor wa", "nomor whatsapp", "whatsapp"}},
+	{source: "satuan_pendidikan", needles: []string{"satuan_pendidikan", "satuan pendidikan", "sekolah", "instansi"}},
+	{source: "npsn_sekolah", needles: []string{"npsn"}},
+	{source: "kabupaten", needles: []string{"kabupaten_kota", "kabupaten kota", "kabupaten", "kota"}},
+	{source: "alamat_satuan", needles: []string{"alamat_satuan", "alamat satuan"}},
+	{source: "alamat_rumah", needles: []string{"alamat_rumah", "alamat rumah"}},
+	{source: "npwp", needles: []string{"npwp"}},
+	{source: "no_rek", needles: []string{"no_rek", "nomor rekening", "rekening"}},
+	{source: "jenis_bank", needles: []string{"jenis_bank", "jenis bank", "bank"}},
+}
+
 func inferAutofill(label, name string) string {
-	text := strings.ToLower(label + " " + name)
-	switch {
-	case strings.Contains(text, "nama"):
+	candidates := []string{normalizeKeywordSource(name), normalizeKeywordSource(label)}
+	candidates = filterNonEmpty(candidates)
+	if containsString(candidates, "nama") || containsString(candidates, "nama lengkap") {
 		return "nama_lengkap"
-	case strings.Contains(text, "nik"), strings.Contains(text, "ktp"):
-		return "no_ktp"
-	case strings.Contains(text, "kabupaten"), strings.Contains(text, "kota"):
-		return "kabupaten"
-	case strings.Contains(text, "nuptk"):
-		return "nuptk"
-	case strings.Contains(text, "nip"):
-		return "nip"
-	case strings.Contains(text, "email"), strings.Contains(text, "surel"):
-		return "email"
-	case strings.Contains(text, "status kepegawaian"):
-		return "status_kepegawaian"
-	case strings.Contains(text, "jenis kelamin"), strings.Contains(text, "gender"):
-		return "gender"
-	case strings.Contains(text, "tempat lahir"):
-		return "tempat_lahir"
-	case strings.Contains(text, "tanggal lahir"), strings.Contains(text, "tgl lahir"):
-		return "tgl_lahir"
-	case strings.Contains(text, "pendidikan"), strings.Contains(text, "kualifikasi akademik"):
-		return "pendidikan"
-	case strings.Contains(text, "satuan pendidikan"), strings.Contains(text, "sekolah"):
-		return "satuan_pendidikan"
-	case strings.Contains(text, "npsn"):
-		return "npsn_sekolah"
-	case strings.Contains(text, "no hp"), strings.Contains(text, "nomor hp"):
-		return "no_hp"
-	case strings.Contains(text, "whatsapp"), strings.Contains(text, "no wa"):
-		return "no_wa"
-	case strings.Contains(text, "jabatan"):
-		return "jabatan"
+	}
+	haystack := strings.Join(candidates, " ")
+	for _, entry := range autofillInferenceMap {
+		for _, needle := range entry.needles {
+			if normalized := normalizeKeywordSource(needle); normalized != "" && containsString(candidates, normalized) {
+				return entry.source
+			}
+		}
+	}
+	for _, entry := range autofillInferenceMap {
+		for _, needle := range entry.needles {
+			if normalized := normalizeKeywordSource(needle); normalized != "" && strings.Contains(haystack, normalized) {
+				return entry.source
+			}
+		}
 	}
 	return ""
+}
+
+func filterNonEmpty(values []string) []string {
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if value != "" {
+			result = append(result, value)
+		}
+	}
+	return result
+}
+
+func containsString(values []string, wanted string) bool {
+	for _, value := range values {
+		if value == wanted {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeKeywordSource(value string) string {
+	transformed, _, err := transform.String(norm.NFD, strings.ToLower(value))
+	if err == nil {
+		value = transformed
+	}
+
+	var builder strings.Builder
+	space := false
+	for _, r := range value {
+		if unicode.Is(unicode.Mn, r) {
+			continue
+		}
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			if space && builder.Len() > 0 {
+				builder.WriteByte(' ')
+			}
+			builder.WriteRune(r)
+			space = false
+			continue
+		}
+		if builder.Len() > 0 {
+			space = true
+		}
+	}
+	return strings.TrimSpace(builder.String())
 }
 
 func normalizeOptions(options any) []any {
@@ -706,7 +941,11 @@ func normalizeOptions(options any) []any {
 			break
 		}
 		for key, raw := range values {
-			result = append(result, normalizeOption(raw, key))
+			if entry, ok := raw.(map[string]any); ok {
+				result = append(result, normalizeOption(entry, key))
+				continue
+			}
+			result = append(result, normalizeOption(map[string]any{"label": raw, "value": key}, ""))
 		}
 	}
 	filtered := result[:0]
@@ -756,7 +995,11 @@ func mergeLookupOptions(lookup, stored []any) []any {
 
 func normalizeOption(raw any, fallback string) map[string]any {
 	if entry, ok := raw.(map[string]any); ok {
-		label, value := stringValue(entry, "label"), stringValue(entry, "value")
+		rawLabel, rawValue := strings.TrimSpace(stringValue(entry, "label")), strings.TrimSpace(stringValue(entry, "value"))
+		label, value := rawLabel, rawValue
+		if shouldSwapChoiceLabelAndValue(label, value) {
+			label, value = value, label
+		}
 		if label == "" {
 			label = fallback
 		}
@@ -770,6 +1013,26 @@ func normalizeOption(raw any, fallback string) map[string]any {
 		text = fallback
 	}
 	return map[string]any{"label": text, "value": text, "score": nil, "level_kompetensi": nil, "level_kompetensi_label": nil}
+}
+
+func shouldSwapChoiceLabelAndValue(label, value string) bool {
+	return looksLikeChoiceCode(label) && looksLikeChoiceText(value)
+}
+
+func looksLikeChoiceCode(value string) bool {
+	if value == "" || strings.IndexFunc(value, unicode.IsSpace) >= 0 || utf8.RuneCountInString(value) > 6 {
+		return false
+	}
+	for _, r := range value {
+		if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '.' || r == '_' || r == '-') {
+			return false
+		}
+	}
+	return true
+}
+
+func looksLikeChoiceText(value string) bool {
+	return value != "" && (strings.IndexFunc(value, unicode.IsSpace) >= 0 || utf8.RuneCountInString(value) >= 6)
 }
 
 func validSnapshot(value map[string]any) bool { return len(arrayValue(value, "assessments")) > 0 }

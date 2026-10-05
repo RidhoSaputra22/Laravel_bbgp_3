@@ -213,13 +213,63 @@ func TestAutofillInfersIdentityValues(t *testing.T) {
 	applyAutofill(forms, guru)
 
 	fields := arrayValue(arrayValue(arrayValue(forms[0].(map[string]any), "assessments")[0].(map[string]any), "forms")[0].(map[string]any), "fields")
-	nameDefault := fields[0].(map[string]any)["default_value"].(map[string]any)
-	if nameDefault["value"] != "Guru Contoh" || nameDefault["source"] != "nama_lengkap" {
-		t.Fatalf("name autofill is wrong: %#v", nameDefault)
+	if fields[0].(map[string]any)["default_value"] != "Guru Contoh" {
+		t.Fatalf("name autofill is wrong: %#v", fields[0].(map[string]any)["default_value"])
 	}
-	cityDefault := fields[1].(map[string]any)["default_value"].(map[string]any)
-	if cityDefault["value"] != "Gowa" || cityDefault["source"] != "kabupaten" {
-		t.Fatalf("city autofill is wrong: %#v", cityDefault)
+	if fields[1].(map[string]any)["default_value"] != "Gowa" {
+		t.Fatalf("city autofill is wrong: %#v", fields[1].(map[string]any)["default_value"])
+	}
+}
+
+func TestAutofillMatchesPHPResolverForChoiceAndValidationFields(t *testing.T) {
+	forms := []any{map[string]any{
+		"instrument_type": "portofolio",
+		"assessments": []any{map[string]any{
+			"forms": []any{map[string]any{
+				"kode_form": "FORM-IDENTITAS",
+				"fields": []any{
+					map[string]any{"label": "Nama Peserta", "tipe_field": "text"},
+					map[string]any{
+						"autofill_source": "jabatan",
+						"tipe_field":      "checkbox",
+						"opsi_field": []any{
+							map[string]any{"label": "Guru", "value": "guru"},
+							map[string]any{"label": "Kepala Sekolah", "value": "kepala"},
+						},
+					},
+					map[string]any{
+						"autofill_source": "eksternal_jabatan",
+						"tipe_field":      "select",
+						"validasi":        map[string]any{"allow_other_input": true},
+						"opsi_field":      []any{map[string]any{"label": "Guru", "value": "guru"}},
+					},
+					map[string]any{"autofill_source": "email", "tipe_field": "email"},
+					map[string]any{"autofill_source": "no_hp", "tipe_field": "number"},
+				},
+			}},
+		}},
+	}}
+	guru := GuruRow{
+		Nama:             sql.NullString{String: "Guru Contoh", Valid: true},
+		Jabatan:          sql.NullString{String: "Guru; Kepala Sekolah", Valid: true},
+		EksternalJabatan: sql.NullString{String: "Pengawas Madrasah", Valid: true},
+		Email:            sql.NullString{String: "bukan-email", Valid: true},
+		NoHP:             sql.NullString{String: "bukan-angka", Valid: true},
+	}
+	applyAutofill(forms, guru)
+
+	fields := arrayValue(arrayValue(arrayValue(forms[0].(map[string]any), "assessments")[0].(map[string]any), "forms")[0].(map[string]any), "fields")
+	if fields[0].(map[string]any)["default_value"] != "Guru Contoh" {
+		t.Fatalf("inferred text autofill is wrong: %#v", fields[0])
+	}
+	if got := fields[1].(map[string]any)["default_value"]; !reflect.DeepEqual(got, []string{"guru", "kepala"}) {
+		t.Fatalf("checkbox autofill is wrong: %#v", got)
+	}
+	if fields[2].(map[string]any)["default_value"] != "Pengawas Madrasah" {
+		t.Fatalf("select other autofill is wrong: %#v", fields[2])
+	}
+	if fields[3].(map[string]any)["default_value"] != nil || fields[4].(map[string]any)["default_value"] != nil {
+		t.Fatalf("invalid typed autofill should be empty: %#v", fields[3:5])
 	}
 }
 
