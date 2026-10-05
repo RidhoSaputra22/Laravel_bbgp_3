@@ -8,6 +8,7 @@ use App\Models\AssessmentAssignmentTarget;
 use App\Models\Guru;
 use App\Services\Assessment\AssessmentAssignmentTargetDocumentBuilder;
 use App\Services\Assessment\AssessmentQuestionRandomizerService;
+use App\Services\Assessment\MongoAssessmentAssignmentTargetStore;
 use App\Services\AssessmentAssignmentService;
 use App\Support\Assessment\ScoringConfigNormalizer;
 use Illuminate\Support\Facades\Queue;
@@ -293,6 +294,37 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, function ($job) {
             return $job->queue === AssessmentAssignmentService::SYNC_QUEUE_NAME
                 && count($job->targetIds) <= 50;
+        });
+    }
+
+    public function test_sync_dispatcher_caps_an_excessive_batch_size(): void
+    {
+        config()->set('assessment_mongodb.enabled', true);
+        config()->set('assessment_mongodb.batch_size', 5000);
+        Queue::fake();
+
+        SyncAssessmentTargetsToMongoJob::dispatchIds(range(1, 201));
+
+        Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, 3);
+        Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, function ($job) {
+            return count($job->targetIds) <= 100;
+        });
+    }
+
+    public function test_oversized_existing_job_fans_out_before_loading_targets(): void
+    {
+        config()->set('assessment_mongodb.enabled', true);
+        Queue::fake();
+
+        $store = Mockery::mock(MongoAssessmentAssignmentTargetStore::class);
+        $store->shouldReceive('assertAvailable')->once();
+
+        (new SyncAssessmentTargetsToMongoJob(range(1, 201)))
+            ->handle($store, Mockery::mock(AssessmentAssignmentTargetDocumentBuilder::class));
+
+        Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, 3);
+        Queue::assertPushed(SyncAssessmentTargetsToMongoJob::class, function ($job) {
+            return count($job->targetIds) <= 100;
         });
     }
 }

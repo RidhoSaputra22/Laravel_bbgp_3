@@ -122,6 +122,13 @@ class AssessmentAssignmentTargetDocumentBuilder
         }
     }
 
+    public function clearCaches(): void
+    {
+        $this->assignmentCache = [];
+        $this->assignmentSchemaLoaded = [];
+        $this->reusableSnapshots = [];
+    }
+
     /**
      * Attach assignments once per process instead of eager-loading the same
      * assessment/forms schema for every target chunk.

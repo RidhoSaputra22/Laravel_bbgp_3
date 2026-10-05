@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Jobs\ProcessAssessmentAssignmentTargetsJob;
+use App\Jobs\ResetAssessmentAssignmentsForCombinationGenerationJob;
 use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentTarget;
@@ -10,9 +11,9 @@ use App\Models\AssessmentAttempt;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use App\Models\Guru;
-use App\Support\Assessment\AssessmentSchoolTargetKey;
 use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\AssessmentAssignmentService;
+use App\Support\Assessment\AssessmentSchoolTargetKey;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,7 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
 
         config()->set('database.default', 'sqlite');
         config()->set('database.connections.sqlite.database', ':memory:');
+        config()->set('assessment_mongodb.enabled', false);
 
         DB::purge('sqlite');
         DB::reconnect('sqlite');
@@ -1008,6 +1010,88 @@ class AssessmentAssignmentServiceSelectAllTest extends TestCase
         $this->assertDatabaseHas('assessment_combinations', [
             'id' => $unrelatedCombination->id,
             'assessment_combination_generation_id' => $otherGeneration->id,
+        ]);
+    }
+
+    public function test_reset_generation_job_keeps_assignment_and_switches_it_to_new_combination(): void
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => 'ASM-051',
+            'judul' => 'Assessment Reset Kombinasi',
+            'status' => 'publish',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+        $sourceGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-ASM-TEST-0051-OLD',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'status' => 'selesai',
+        ]);
+        $replacementGeneration = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-ASM-TEST-0051-NEW',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'status' => 'selesai',
+        ]);
+        $sourceCombination = $this->createCombinationForGeneration(
+            $sourceGeneration,
+            'KMB-ASM-051-OLD',
+            [$assessment->id]
+        );
+        $replacementCombination = $this->createCombinationForGeneration(
+            $replacementGeneration,
+            'KMB-ASM-051-NEW',
+            [$assessment->id]
+        );
+        $guru = $this->createGuru([
+            'nama_lengkap' => 'Guru Reset Kombinasi',
+            'email' => 'reset-kombinasi@example.test',
+        ]);
+        $assignment = $this->createAssignmentForDeletion(
+            'PNG-RST-001',
+            $assessment,
+            $sourceCombination->id
+        );
+        $target = AssessmentAssignmentTarget::query()->create([
+            'assessment_assignment_id' => $assignment->id,
+            'assessment_combination_id' => $sourceCombination->id,
+            'guru_id' => $guru->id,
+            'status' => 'dikerjakan',
+            'assigned_at' => now(),
+            'started_at' => now(),
+        ]);
+        AssessmentAttempt::query()->create([
+            'assessment_assignment_target_id' => $target->id,
+            'status' => 'in_progress',
+        ]);
+
+        (new ResetAssessmentAssignmentsForCombinationGenerationJob(
+            $sourceGeneration->id,
+            $replacementGeneration->id
+        ))->handle(
+            app(AssessmentAssignmentService::class),
+            app(AssessmentCombinationGenerationService::class)
+        );
+
+        $assignment->refresh();
+        $target = AssessmentAssignmentTarget::query()
+            ->where('assessment_assignment_id', $assignment->id)
+            ->where('guru_id', $guru->id)
+            ->firstOrFail();
+
+        $this->assertDatabaseHas('assessment_assignments', [
+            'id' => $assignment->id,
+            'assessment_combination_id' => $replacementCombination->id,
+        ]);
+        $this->assertSame('ditugaskan', $target->status);
+        $this->assertSame($replacementCombination->id, (int) $target->assessment_combination_id);
+        $this->assertDatabaseCount('assessment_attempts', 0);
+        $this->assertDatabaseMissing('assessment_combination_generations', [
+            'id' => $sourceGeneration->id,
+        ]);
+        $this->assertDatabaseHas('assessment_combination_generations', [
+            'id' => $replacementGeneration->id,
         ]);
     }
 

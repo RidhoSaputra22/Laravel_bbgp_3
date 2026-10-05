@@ -18,6 +18,7 @@ class AssessmentCombinationGeneration extends Model
         'selection_config',
         'status',
         'job_batch_id',
+        'reset_source_generation_id',
         'generated_by',
         'processed_at',
     ];
@@ -26,6 +27,7 @@ class AssessmentCombinationGeneration extends Model
         'selection_config' => 'array',
         'target_jabatan' => 'array',
         'total_kombinasi' => 'integer',
+        'reset_source_generation_id' => 'integer',
         'processed_at' => 'datetime',
     ];
 

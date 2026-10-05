@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Throwable;
 
 class AssessmentAssignmentController extends Controller
@@ -122,25 +123,70 @@ class AssessmentAssignmentController extends Controller
         })->all();
     }
 
-    public function mongoProgress(?string $assignmentId = null): JsonResponse
+    public function mongoProgress(?string $assignmentId = null): JsonResponse|View
     {
         $this->authorizeAccess();
 
-        $assignments = AssessmentAssignment::query()
+        $query = AssessmentAssignment::query()
             ->withoutPreview()
             ->withCount([
                 'targets as mongodb_target_count' => fn ($query) => $query
                     ->where('status', '!=', 'dibatalkan')
                     ->where('is_validator', false),
             ])
-            ->when(
-                filled($assignmentId),
-                fn ($query) => $query->whereKey((int) $assignmentId)
-            )
-            ->get(['id', 'is_active', 'total_target', 'total_ditugaskan']);
+            ->when(filled($assignmentId), fn ($query) => $query->whereKey((int) $assignmentId));
 
-        return response()->json([
-            'data' => $this->buildMongoSyncProgress($assignments),
+        $assignments = $query->get([
+            'id',
+            'kode_penugasan',
+            'judul_penugasan',
+            'target_ketenagaan',
+            'is_active',
+            'status_distribusi',
+            'total_target',
+            'total_ditugaskan',
+            'created_at',
+        ]);
+
+        if (filled($assignmentId)) {
+            return response()->json([
+                'data' => $this->buildMongoSyncProgress($assignments),
+            ]);
+        }
+
+        $activeAssignments = $assignments
+            ->filter(fn (AssessmentAssignment $assignment) => (bool) $assignment->is_active)
+            ->values();
+        $progressByAssignmentId = $this->buildMongoSyncProgress($activeAssignments);
+        $progressRows = $activeAssignments
+            ->map(function (AssessmentAssignment $assignment) use ($progressByAssignmentId) {
+                $progress = $progressByAssignmentId[$assignment->id] ?? [
+                    'synced' => 0,
+                    'total' => (int) ($assignment->mongodb_target_count ?? $assignment->total_target ?? 0),
+                    'percent' => 0,
+                    'complete' => false,
+                ];
+
+                return [
+                    'assignment' => $assignment,
+                    'progress' => $progress,
+                ];
+            })
+            ->values();
+
+        $summary = [
+            'assignment_total' => $progressRows->count(),
+            'complete_total' => $progressRows->filter(fn (array $row) => $row['progress']['complete'])->count(),
+            'pending_total' => $progressRows->filter(fn (array $row) => ! $row['progress']['complete'])->count(),
+            'synced_total' => $progressRows->sum(fn (array $row) => (int) $row['progress']['synced']),
+            'target_total' => $progressRows->sum(fn (array $row) => (int) $row['progress']['total']),
+        ];
+
+        return view('pages.admin.assessment.assignment.mongodb-progress', [
+            'menu' => $this->menu,
+            'progressRows' => $progressRows,
+            'summary' => $summary,
+            'mongoAvailable' => $this->mongoTargetStore->available(),
         ]);
     }
 

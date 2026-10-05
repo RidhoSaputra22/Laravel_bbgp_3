@@ -111,6 +111,9 @@ class SyncAssessmentTargetsToMongo extends Command
                     $failed += $targets->count();
                     $this->output->writeln('');
                     $this->warn('Batch gagal: '.$exception->getMessage());
+                } finally {
+                    unset($documents);
+                    $builder->clearCaches();
                 }
 
                 $progressBar->advance($targets->count());

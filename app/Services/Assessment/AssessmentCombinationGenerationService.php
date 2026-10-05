@@ -3,6 +3,7 @@
 namespace App\Services\Assessment;
 
 use App\Jobs\ProcessAssessmentCombinationGenerationJob;
+use App\Jobs\ResetAssessmentAssignmentsForCombinationGenerationJob;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
@@ -58,6 +59,28 @@ class AssessmentCombinationGenerationService
         });
     }
 
+    public function createReplacementGeneration(
+        AssessmentCombinationGeneration $sourceGeneration,
+        ?int $generatedBy = null
+    ): AssessmentCombinationGeneration {
+        if (! Schema::hasColumn('assessment_combination_generations', 'reset_source_generation_id')) {
+            throw new RuntimeException(
+                'Migration reset kombinasi belum dijalankan. Jalankan php artisan migrate terlebih dahulu.'
+            );
+        }
+
+        $replacementGeneration = $this->createGenerationRecord(
+            $this->buildPayloadFromGeneration($sourceGeneration),
+            $generatedBy
+        );
+
+        $replacementGeneration->forceFill([
+            'reset_source_generation_id' => $sourceGeneration->id,
+        ])->save();
+
+        return $replacementGeneration->fresh();
+    }
+
     public function dispatchGeneration(
         AssessmentCombinationGeneration $generation
     ): AssessmentCombinationGeneration {
@@ -77,6 +100,8 @@ class AssessmentCombinationGenerationService
                 'status' => 'selesai',
                 'processed_at' => now(),
             ])->save();
+
+            $this->dispatchAssignmentReset($generation->fresh());
 
             return [
                 'generation' => $generation->fresh(['generator'])->loadCount('combinations'),
@@ -126,6 +151,12 @@ class AssessmentCombinationGenerationService
                 ->whereKey($generation->id)
                 ->delete();
         });
+    }
+
+    public function cancelGenerationProcessing(AssessmentCombinationGeneration $generation): void
+    {
+        $this->cancelGenerationBatch($generation->job_batch_id);
+        $this->purgeGenerationQueueArtifacts($generation->id);
     }
 
     public function buildGenerationMonitoring(
@@ -264,6 +295,10 @@ class AssessmentCombinationGenerationService
                 $selectionConfig['target_jabatan'] ?? $generation->targetJabatanSelections()
                     ?? [Assessment::TARGET_JABATAN_ALL]
             ) ?: [Assessment::TARGET_JABATAN_ALL],
+            'total_kombinasi' => max(
+                (int) ($selectionConfig['total_kombinasi'] ?? $generation->total_kombinasi),
+                1
+            ),
             'included_assessment_ids' => $this->normalizeAssessmentIds(
                 $selectionConfig['included_assessment_ids'] ?? []
             ),
@@ -309,12 +344,25 @@ class AssessmentCombinationGenerationService
             ->all();
 
         try {
-            $batch = Bus::batch($jobs)
+            $pendingBatch = Bus::batch($jobs)
                 ->name('Generate Kombinasi '.$generation->kode_generate)
                 ->onConnection(self::QUEUE_CONNECTION)
                 ->onQueue(self::QUEUE_NAME)
-                ->allowFailures()
-                ->dispatch();
+                ->allowFailures();
+
+            $sourceGenerationId = (int) ($generation->reset_source_generation_id ?? 0);
+
+            if ($sourceGenerationId > 0) {
+                $replacementGenerationId = (int) $generation->id;
+                $pendingBatch->then(function () use ($sourceGenerationId, $replacementGenerationId): void {
+                    ResetAssessmentAssignmentsForCombinationGenerationJob::dispatch(
+                        $sourceGenerationId,
+                        $replacementGenerationId
+                    );
+                });
+            }
+
+            $batch = $pendingBatch->dispatch();
 
             $generation->forceFill([
                 'job_batch_id' => $batch->id,
@@ -331,6 +379,20 @@ class AssessmentCombinationGenerationService
 
             throw $exception;
         }
+    }
+
+    private function dispatchAssignmentReset(AssessmentCombinationGeneration $generation): void
+    {
+        $sourceGenerationId = (int) ($generation->reset_source_generation_id ?? 0);
+
+        if ($sourceGenerationId < 1) {
+            return;
+        }
+
+        ResetAssessmentAssignmentsForCombinationGenerationJob::dispatch(
+            $sourceGenerationId,
+            (int) $generation->id
+        );
     }
 
     private function buildBatchMonitoring(AssessmentCombinationGeneration $generation): ?array

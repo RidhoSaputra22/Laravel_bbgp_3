@@ -175,6 +175,7 @@ class AssessmentCombinationMonitoringViewTest extends TestCase
         $this->assertInstanceOf(View::class, $view);
         $this->assertSame('pages.admin.assessment.combination.index', $view->getName());
         $this->assertStringContainsString('Edit & Reset', $view->render());
+        $this->assertStringContainsString('Reset Semua Kombinasi', $view->render());
 
         $datas = $view->getData()['datas'];
         $generations = $view->getData()['generations'];

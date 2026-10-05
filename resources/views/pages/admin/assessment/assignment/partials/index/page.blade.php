@@ -14,6 +14,9 @@
                     <a href="{{ route('assessment.monitoring.index') }}" class="btn btn-light mr-2">
                         <i class="fas fa-chart-line"></i> Monitoring
                     </a>
+                    <a href="{{ route('assessment.assignment.mongodb-progress') }}" class="btn btn-info mr-2">
+                        <i class="fas fa-database"></i> Progress MongoDB
+                    </a>
                     <a href="{{ route('assessment.assignment.create') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Buat Penugasan
                     </a>

@@ -10,6 +10,7 @@
         $activeGenerationCount = $generations->where('status', 'diproses')->count();
         $failedGenerationCount = $generations->where('status', 'gagal')->count();
         $hasRunningGeneration = $activeGenerationCount > 0;
+        $hasPendingReset = $generations->contains(fn ($generation) => filled($generation->reset_source_generation_id));
     @endphp
 
     <div class="main-content">
@@ -20,6 +21,21 @@
                     <a href="{{ route('assessment.index') }}" class="btn btn-light mr-2">
                         <i class="fas fa-arrow-left"></i> Assessment
                     </a>
+                    @if ($generations->isNotEmpty() && ! $hasPendingReset)
+                        <form action="{{ route('assessment.combination.generation.reset-all') }}" method="POST"
+                            class="d-inline-block mr-2"
+                            onsubmit="return confirm(@js('Reset semua kombinasi soal? Seluruh proses generate akan dibuat ulang. Penugasan assessment tetap dipertahankan dan dialihkan ke kombinasi baru setelah job selesai.'))">
+                            @csrf
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-sync-alt mr-1"></i> Reset Semua Kombinasi
+                            </button>
+                        </form>
+                    @elseif ($hasPendingReset)
+                        <button type="button" class="btn btn-warning mr-2" disabled
+                            title="Menunggu job reset penugasan selesai">
+                            <i class="fas fa-sync-alt mr-1"></i> Reset Sedang Diproses
+                        </button>
+                    @endif
                     <a href="{{ route('assessment.combination.create') }}" class="btn btn-primary">
                         <i class="fas fa-random"></i> Buat Kombinasi
                     </a>
@@ -113,6 +129,12 @@
                             </div>
                         @endif
 
+                        @if ($hasPendingReset)
+                            <div class="alert alert-warning">
+                                Reset penugasan sedang diproses oleh job. Tombol reset semua akan aktif kembali setelah proses selesai.
+                            </div>
+                        @endif
+
                         @if ($generations->isEmpty())
                             <div class="empty-state" data-height="220">
                                 <div class="empty-state-icon bg-primary">
@@ -151,6 +173,11 @@
                                                     <small class="text-muted">
                                                         Batch ID: {{ $generation->job_batch_id ?: 'Belum tersimpan' }}
                                                     </small>
+                                                    @if (filled($generation->reset_source_generation_id))
+                                                        <small class="badge badge-warning d-block mt-1">
+                                                            Menunggu reset penugasan
+                                                        </small>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <small class="d-inline-block mb-1">

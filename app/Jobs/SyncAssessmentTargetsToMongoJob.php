@@ -18,6 +18,11 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    // Each document contains the complete assessment snapshot.
+    private const MAX_JOB_BATCH_SIZE = 100;
+
+    private const DOCUMENT_BATCH_SIZE = 10;
+
     public int $tries = 3;
 
     public int $timeout = 120;
@@ -39,7 +44,10 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
             return;
         }
 
-        $chunkSize = max((int) config('assessment_mongodb.batch_size', 50), 1);
+        $chunkSize = min(
+            max((int) config('assessment_mongodb.batch_size', 50), 1),
+            self::MAX_JOB_BATCH_SIZE
+        );
         $ids = collect($targetIds)
             ->map(fn ($id) => (int) $id)
             ->filter(fn (int $id) => $id > 0)
@@ -72,24 +80,44 @@ class SyncAssessmentTargetsToMongoJob implements ShouldQueue
             return;
         }
 
-        $targets = AssessmentAssignmentTarget::query()
-            ->select(AssessmentAssignmentTargetDocumentBuilder::targetColumns())
-            ->whereIn('id', $ids)
-            ->whereHas('assignment', fn ($query) => $query->withoutPreview())
-            ->where('is_validator', false)
-            ->with($builder->targetRelations())
-            ->get()
-            ->keyBy('id');
+        if (count($ids) > self::MAX_JOB_BATCH_SIZE) {
+            foreach (array_chunk($ids, self::MAX_JOB_BATCH_SIZE) as $chunk) {
+                static::dispatch($chunk);
+            }
 
-        $builder->hydrateAssignments($targets->values());
+            return;
+        }
 
-        $documents = $targets
-            ->map(fn (AssessmentAssignmentTarget $target) => $builder->document($target, $target->assignment))
-            ->values()
-            ->all();
-        $store->bulkUpsert($documents);
+        $foundIds = [];
 
-        $missingIds = array_values(array_diff($ids, $targets->keys()->map(fn ($id) => (int) $id)->all()));
+        foreach (array_chunk($ids, self::DOCUMENT_BATCH_SIZE) as $documentIds) {
+            $targets = AssessmentAssignmentTarget::query()
+                ->select(AssessmentAssignmentTargetDocumentBuilder::targetColumns())
+                ->whereIn('id', $documentIds)
+                ->whereHas('assignment', fn ($query) => $query->withoutPreview())
+                ->where('is_validator', false)
+                ->with($builder->targetRelations())
+                ->get()
+                ->keyBy('id');
+
+            try {
+                $builder->hydrateAssignments($targets->values());
+                $documents = $targets
+                    ->map(fn (AssessmentAssignmentTarget $target) => $builder->document($target, $target->assignment))
+                    ->values()
+                    ->all();
+                $store->bulkUpsert($documents);
+
+                foreach ($targets->keys() as $targetId) {
+                    $foundIds[(int) $targetId] = true;
+                }
+            } finally {
+                unset($documents, $targets);
+                $builder->clearCaches();
+            }
+        }
+
+        $missingIds = array_values(array_diff($ids, array_keys($foundIds)));
 
         if ($missingIds !== []) {
             $store->markDeleted($missingIds, $builder);

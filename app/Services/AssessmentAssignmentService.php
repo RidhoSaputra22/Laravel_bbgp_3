@@ -454,6 +454,124 @@ class AssessmentAssignmentService
         return $summary;
     }
 
+    public function resetAssignmentsForCombinationGeneration(
+        AssessmentCombinationGeneration $sourceGeneration,
+        AssessmentCombinationGeneration $replacementGeneration
+    ): array {
+        $sourceCombinationIds = $sourceGeneration->combinations
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+        $replacementCombinationIds = $replacementGeneration->combinations
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn (int $id) => $id > 0)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($sourceCombinationIds === [] || $replacementCombinationIds === []) {
+            return [
+                'source_combination_count' => count($sourceCombinationIds),
+                'replacement_combination_count' => count($replacementCombinationIds),
+                'assignment_count' => 0,
+                'reset_assignment_count' => 0,
+                'reset_target_count' => 0,
+                'deleted_attempt_count' => 0,
+                'deleted_answer_count' => 0,
+                'deleted_file_count' => 0,
+            ];
+        }
+
+        $assignmentIds = $this->buildAssignmentsForCombinationIdsQuery($sourceCombinationIds)
+            ->orderBy('id')
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        $summary = [
+            'source_combination_count' => count($sourceCombinationIds),
+            'replacement_combination_count' => count($replacementCombinationIds),
+            'assignment_count' => count($assignmentIds),
+            'reset_assignment_count' => 0,
+            'reset_target_count' => 0,
+            'deleted_attempt_count' => 0,
+            'deleted_answer_count' => 0,
+            'deleted_file_count' => 0,
+        ];
+
+        foreach ($assignmentIds as $assignmentId) {
+            $assignment = AssessmentAssignment::query()->find($assignmentId);
+
+            if (
+                ! $assignment
+                || ! $this->assignmentUsesCombinationIds($assignment->id, $sourceCombinationIds)
+            ) {
+                continue;
+            }
+
+            $result = $this->resetAssignmentToCombinationIds($assignment, $replacementCombinationIds);
+
+            $summary['reset_assignment_count']++;
+            $summary['reset_target_count'] += (int) ($result['reset_target_count'] ?? 0);
+            $summary['deleted_attempt_count'] += (int) ($result['deleted_attempt_count'] ?? 0);
+            $summary['deleted_answer_count'] += (int) ($result['deleted_answer_count'] ?? 0);
+            $summary['deleted_file_count'] += (int) ($result['deleted_file_count'] ?? 0);
+        }
+
+        return $summary;
+    }
+
+    private function resetAssignmentToCombinationIds(
+        AssessmentAssignment $assignment,
+        array $combinationIds
+    ): array {
+        $assignment->load('assessments');
+        $stageConfigs = $assignment->assessments
+            ->mapWithKeys(fn ($assessment) => [
+                (int) $assessment->id => is_array($assessment->pivot?->stage_config ?? null)
+                    ? $assessment->pivot->stage_config
+                    : [],
+            ])
+            ->all();
+        $payload = [
+            'judul_penugasan' => $assignment->judul_penugasan,
+            'target_ketenagaan' => $assignment->target_ketenagaan,
+            'assessment_combination_id' => count($combinationIds) === 1 ? $combinationIds[0] : null,
+            'assessment_combination_ids' => $combinationIds,
+            'target_jabatan' => $assignment->target_jabatan ?? [],
+            'target_kabupaten' => $assignment->target_kabupaten ?? [],
+            'target_satuan_pendidikan' => $assignment->target_satuan_pendidikan ?? [],
+            'deskripsi' => $assignment->deskripsi,
+            'tanggal_mulai' => $assignment->tanggal_mulai?->toDateString(),
+            'jam_mulai' => filled($assignment->jam_mulai)
+                ? substr((string) $assignment->jam_mulai, 0, 5)
+                : null,
+            'tanggal_selesai' => $assignment->tanggal_selesai?->toDateString(),
+            'session_enabled' => $assignment->usesSessionScheduling(),
+            'durasi_sesi_jam' => $assignment->durasi_sesi_jam,
+            'security_config' => $assignment->security_config ?? [],
+            'stage_configs' => $stageConfigs,
+        ];
+
+        return $this->updateAssignment($assignment, $payload, $assignment->assigned_by);
+    }
+
+    private function assignmentUsesCombinationIds(int $assignmentId, array $combinationIds): bool
+    {
+        return AssessmentAssignment::query()
+            ->whereKey($assignmentId)
+            ->where(function (Builder $query) use ($combinationIds) {
+                $query->whereIn('assessment_combination_id', $combinationIds)
+                    ->orWhereHas('targets', function (Builder $targetQuery) use ($combinationIds) {
+                        $targetQuery->whereIn('assessment_combination_id', $combinationIds);
+                    });
+            })
+            ->exists();
+    }
+
     public function retryAssignment(AssessmentAssignment $assignment): array
     {
         $resumeRows = $this->resolveRetryTargetRows($assignment->fresh(['sessions']));
@@ -1696,6 +1814,45 @@ class AssessmentAssignmentService
         ?AssessmentKetenagaanType $targetKetenagaan = null,
         array $selectedJabatan = []
     ): Collection {
+        if (array_key_exists('assessment_combination_ids', $payload)) {
+            $combinationIds = collect((array) $payload['assessment_combination_ids'])
+                ->map(fn ($combinationId) => (int) $combinationId)
+                ->filter(fn (int $combinationId) => $combinationId > 0)
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($combinationIds === []) {
+                return collect();
+            }
+
+            $columns = [
+                'id',
+                'target_ketenagaan',
+                'is_active',
+            ];
+
+            if (! Schema::hasTable('assessment_combination_items')
+                && Schema::hasColumn('assessment_combinations', 'structure_snapshot')) {
+                $columns[] = 'structure_snapshot';
+            }
+
+            return AssessmentCombination::query()
+                ->whereIn('id', $combinationIds)
+                ->where('is_active', true)
+                ->when(
+                    $targetKetenagaan,
+                    fn ($query) => $query->where('target_ketenagaan', $targetKetenagaan->value)
+                )
+                ->when(
+                    Schema::hasColumn('assessment_combinations', 'generation_sequence'),
+                    fn ($query) => $query->orderBy('generation_sequence')
+                )
+                ->orderBy('id')
+                ->select($columns)
+                ->get();
+        }
+
         if ($targetKetenagaan) {
             $combinationPool = $this->getAvailableCombinationsForKetenagaan(
                 $targetKetenagaan,

@@ -343,10 +343,9 @@
                             Form ini memuat ulang pengaturan lama agar bisa Anda ubah sebelum generate ulang.
                         </div>
                         <div class="mb-0">
-                            Saat disimpan, batch lama akan dibatalkan bila masih berjalan, riwayat generate lama akan
-                            dihapus, dan
-                            {{ $relatedAssignmentUsageCount }}
-                            penugasan assessment terkait akan ikut dibersihkan sebelum proses baru dibuat.
+                            Saat disimpan, batch lama akan dibatalkan bila masih berjalan. Riwayat generate lama ditahan
+                            sementara, lalu {{ $relatedAssignmentUsageCount }} penugasan assessment terkait direset melalui
+                            job agar memakai kombinasi baru.
                         </div>
                     </div>
                 @endif
@@ -596,12 +595,12 @@
                         </p>
                         <ul class="pl-3 mb-3">
                             <li>Batch lama akan dibatalkan jika masih berjalan.</li>
-                            <li>Seluruh kombinasi dari riwayat ini akan dihapus dan diganti proses baru.</li>
-                            <li>{{ $relatedAssignmentUsageCount }} penugasan assessment terkait akan ikut dihapus permanen.</li>
-                            <li>Peserta yang terkait dengan penugasan lama harus diproses ulang dari hasil generate baru.</li>
+                            <li>Seluruh kombinasi dari riwayat ini akan diganti melalui proses baru.</li>
+                            <li>{{ $relatedAssignmentUsageCount }} penugasan assessment terkait tetap dipertahankan.</li>
+                            <li>Setelah generate baru selesai, job akan mereset target, attempt, dan jawaban agar peserta memakai kombinasi baru.</li>
                         </ul>
                         <div class="alert alert-warning mb-0">
-                            Lanjutkan hanya jika pengaturan lama memang harus dibersihkan dan dibuat ulang.
+                            Jangan hapus proses lama sebelum job reset selesai; riwayat lama diperlukan sebagai pengaman selama antrean berjalan.
                         </div>
                     </div>
                     <div class="modal-footer">

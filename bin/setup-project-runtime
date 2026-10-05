@@ -23,7 +23,20 @@ tar -xzf "$build_dir/mongodb.tgz" -C "$build_dir/source" --strip-components=1
 
 cd "$build_dir/source"
 "$phpize_bin"
-./configure --with-php-config="$php_config_bin"
+configure_args=(
+    "--with-php-config=$php_config_bin"
+    '--with-mongodb-ssl=openssl'
+)
+
+if command -v brew >/dev/null 2>&1; then
+    openssl_prefix="$(brew --prefix openssl@3 2>/dev/null || true)"
+
+    if [[ -n "$openssl_prefix" ]]; then
+        configure_args+=("--with-openssl-dir=$openssl_prefix")
+    fi
+fi
+
+./configure "${configure_args[@]}"
 make -j"${BUILD_JOBS:-2}"
 cp modules/mongodb.so "$runtime_dir/mongodb.so"
 
