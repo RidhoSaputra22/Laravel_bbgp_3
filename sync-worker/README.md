@@ -4,6 +4,10 @@ Worker one-shot untuk sinkronisasi MySQL ke MongoDB. Worker membaca tabel
 `sync_outbox`, membangun ulang snapshot target/validator dari source MySQL, lalu
 menulis bulk upsert yang idempotent ke MongoDB.
 
+Event untuk target atau validator yang sudah tidak ada lagi di MySQL menghapus
+projection lama di MongoDB. Tombstone hanya digunakan internal oleh builder dan
+tidak disimpan sebagai dokumen yang bisa tampil sebagai assessment tanpa judul.
+
 ## Build
 
 ```bash
@@ -75,9 +79,22 @@ Jalankan langsung di terminal sampai seluruh outbox kosong:
 bash bin/sync-worker --drain
 ```
 
+Reset collection target dan validator, upsert ulang seluruh data dari MySQL,
+lalu proses outbox:
+
+```bash
+bash bin/sync-worker --drain --reset
+```
+
+Perintah `--drain --reset` menghapus isi kedua collection terlebih dahulu,
+membangun ulang snapshot dari MySQL, lalu memproses event pending.
+
 Mode `--drain` memproses batch berulang sampai tidak ada event pending, lalu
 keluar. Terminal menampilkan satu progress bar yang diperbarui setiap batch.
 Batas waktu `SYNC_MAX_RUNTIME_SECONDS` berlaku per batch.
+
+Mode rebuild juga menampilkan satu progress bar; pada `--rebuild=all`, totalnya
+mencakup target dan validator.
 
 Perintah tersebut bersifat one-shot: setelah satu batch selesai worker keluar.
 Worker sekarang mencetak status `starting` beserta versi/hash engine, koneksi

@@ -24,6 +24,9 @@ func main() {
 	if *once && *drain {
 		log.Fatal("--once and --drain cannot be used together")
 	}
+	if *reset && !*drain && *rebuild == "" {
+		log.Fatal("--reset requires --drain or --rebuild")
+	}
 	if *showVersion {
 		log.Printf("sync-worker %s", engineVersionLine())
 		return
@@ -104,6 +107,12 @@ func main() {
 		return
 	}
 	if *drain {
+		if *reset {
+			if err := worker.Rebuild(ctx, "all", true); err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("reset rebuild complete kind=all")
+		}
 		if err := worker.RunUntilEmpty(context.Background(), config.MaxRuntime); err != nil {
 			log.Fatal(err)
 		}

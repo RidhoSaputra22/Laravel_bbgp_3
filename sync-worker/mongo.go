@@ -44,10 +44,23 @@ func (w *MongoWriter) Upsert(ctx context.Context, collection string, documents [
 		if !ok || id == "" {
 			return fmt.Errorf("document has no string _id")
 		}
+		if isTombstone(document) {
+			models = append(models, mongo.NewDeleteOneModel().SetFilter(bson.M{"_id": id}))
+			continue
+		}
 		models = append(models, mongo.NewReplaceOneModel().SetFilter(bson.M{"_id": id}).SetReplacement(document).SetUpsert(true))
 	}
 	_, err := w.collection(collection).BulkWrite(ctx, models, options.BulkWrite().SetOrdered(false))
 	return err
+}
+
+func isTombstone(document map[string]any) bool {
+	meta, ok := document["meta"].(map[string]any)
+	if !ok {
+		return false
+	}
+	source, ok := meta["snapshot_source"].(string)
+	return ok && source == "tombstone"
 }
 
 func (w *MongoWriter) RebuildReset(ctx context.Context, collection string) error {

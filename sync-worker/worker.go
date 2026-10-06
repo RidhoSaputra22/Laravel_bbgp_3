@@ -171,28 +171,40 @@ func (w *Worker) Rebuild(ctx context.Context, kind string, reset bool) error {
 			}
 		}
 	}
+	var targetIDs, validatorIDs []int64
 	if kind == "targets" || kind == "all" {
 		ids, err := listIDs(ctx, w.db.db, `SELECT t.id FROM assessment_assignment_targets t JOIN assessment_assignments a ON a.id=t.assessment_assignment_id WHERE t.is_validator=0 AND (a.kode_penugasan IS NULL OR a.kode_penugasan NOT LIKE 'PREVIEW-ADM-%') ORDER BY t.id`)
 		if err != nil {
 			return err
 		}
-		if err := w.rebuildTargets(ctx, ids); err != nil {
-			return err
-		}
+		targetIDs = ids
 	}
 	if kind == "validators" || kind == "all" {
 		ids, err := listIDs(ctx, w.db.db, `SELECT id FROM validator_assignments ORDER BY id`)
 		if err != nil {
 			return err
 		}
-		if err := w.rebuildValidators(ctx, ids); err != nil {
+		validatorIDs = ids
+	}
+
+	processed := 0
+	total := len(targetIDs) + len(validatorIDs)
+	renderProgress(processed, total)
+	defer fmt.Println()
+	if targetIDs != nil {
+		if err := w.rebuildTargets(ctx, targetIDs, &processed, total); err != nil {
+			return err
+		}
+	}
+	if validatorIDs != nil {
+		if err := w.rebuildValidators(ctx, validatorIDs, &processed, total); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (w *Worker) rebuildTargets(ctx context.Context, ids []int64) error {
+func (w *Worker) rebuildTargets(ctx context.Context, ids []int64, processed *int, total int) error {
 	for start := 0; start < len(ids); start += w.config.BatchSize {
 		end := start + w.config.BatchSize
 		if end > len(ids) {
@@ -205,11 +217,12 @@ func (w *Worker) rebuildTargets(ctx context.Context, ids []int64) error {
 		if err := w.mongo.Upsert(ctx, w.config.TargetCollection, docs); err != nil {
 			return err
 		}
-		log.Printf("rebuild targets=%d/%d", end, len(ids))
+		*processed += end - start
+		renderProgress(*processed, total)
 	}
 	return nil
 }
-func (w *Worker) rebuildValidators(ctx context.Context, ids []int64) error {
+func (w *Worker) rebuildValidators(ctx context.Context, ids []int64, processed *int, total int) error {
 	for start := 0; start < len(ids); start += w.config.BatchSize {
 		end := start + w.config.BatchSize
 		if end > len(ids) {
@@ -222,7 +235,8 @@ func (w *Worker) rebuildValidators(ctx context.Context, ids []int64) error {
 		if err := w.mongo.Upsert(ctx, w.config.ValidatorCollection, docs); err != nil {
 			return err
 		}
-		log.Printf("rebuild validators=%d/%d", end, len(ids))
+		*processed += end - start
+		renderProgress(*processed, total)
 	}
 	return nil
 }

@@ -438,6 +438,24 @@ func TestMongoWriterValidationAndNoop(t *testing.T) {
 	}
 }
 
+func TestTombstoneDetection(t *testing.T) {
+	if !isTombstone(targetTombstone(42)) {
+		t.Fatal("target tombstone was not detected")
+	}
+	if isTombstone(map[string]any{"sync": map[string]any{"is_active": true}}) {
+		t.Fatal("active document was detected as tombstone")
+	}
+	if isTombstone(map[string]any{
+		"meta": map[string]any{"snapshot_source": "validator_assignment"},
+		"sync": map[string]any{"is_active": false},
+	}) {
+		t.Fatal("cancelled assignment was detected as tombstone")
+	}
+	if isTombstone(map[string]any{"_id": "assessment-target:42"}) {
+		t.Fatal("document without sync state was detected as tombstone")
+	}
+}
+
 func TestNullAndDateHelpers(t *testing.T) {
 	date := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.FixedZone("WITA", 8*60*60))
 	if nullString(sql.NullString{String: "x", Valid: true}) != "x" || nullString(sql.NullString{}) != nil {
