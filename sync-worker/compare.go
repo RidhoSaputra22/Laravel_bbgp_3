@@ -78,7 +78,9 @@ func stripVolatile(value any) {
 	switch current := value.(type) {
 	case map[string]any:
 		for key := range current {
-			if key == "generated_at" || key == "synced_at" || key == "captured_at" {
+			if key == "generated_at" || key == "synced_at" || key == "captured_at" ||
+				key == "engine_schema_version" || key == "engine_name" || key == "engine_version" ||
+				key == "engine_hash" || key == "engine_build_time" {
 				delete(current, key)
 				continue
 			}

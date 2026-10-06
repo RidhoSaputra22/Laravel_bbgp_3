@@ -32,6 +32,9 @@ func TestTargetTombstoneContract(t *testing.T) {
 	if !ok || sync["is_active"] != false {
 		t.Fatalf("unexpected sync tombstone: %#v", document["sync"])
 	}
+	if sync["engine_schema_version"] != syncEngineSchemaVersion || sync["engine_hash"] == "" {
+		t.Fatalf("engine identity missing from target tombstone: %#v", sync)
+	}
 }
 
 func TestValidatorTombstoneContract(t *testing.T) {
@@ -45,6 +48,9 @@ func TestValidatorTombstoneContract(t *testing.T) {
 	sync, ok := document["sync"].(map[string]any)
 	if !ok || sync["is_active"] != false {
 		t.Fatalf("unexpected validator sync tombstone: %#v", document["sync"])
+	}
+	if sync["engine_schema_version"] != syncEngineSchemaVersion || sync["engine_hash"] == "" {
+		t.Fatalf("engine identity missing from validator tombstone: %#v", sync)
 	}
 	if assignments, ok := document["assessment_assignments"].([]any); !ok || len(assignments) != 0 {
 		t.Fatalf("unexpected validator tombstone assignments: %#v", document["assessment_assignments"])

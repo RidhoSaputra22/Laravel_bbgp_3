@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+output="$project_root/storage/app/bbpg-sync-worker"
+
+git_value() {
+    git -C "$project_root" "$@" 2>/dev/null || true
+}
+
+version="${SYNC_ENGINE_VERSION:-$(git_value describe --tags --always --dirty)}"
+hash="${SYNC_ENGINE_HASH:-$(git_value rev-parse HEAD)}"
+build_time="${SYNC_ENGINE_BUILD_TIME:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
+
+if [[ -z "$version" ]]; then
+    version="dev"
+fi
+if [[ -z "$hash" ]]; then
+    hash="unknown"
+fi
+
+mkdir -p "$(dirname -- "$output")"
+(
+    cd "$project_root/sync-worker"
+    go build \
+        -trimpath \
+        -ldflags "-s -w -X main.engineVersion=$version -X main.engineHash=$hash -X main.engineBuildTime=$build_time" \
+        -o "$output" \
+        .
+)
+
+echo "Built $output"
+echo "version=$version hash=$hash build_time=$build_time"

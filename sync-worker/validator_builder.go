@@ -182,7 +182,7 @@ func validatorDocument(row ValidatorRow) map[string]any {
 			"total_questions": totalQuestions, "required_questions": requiredQuestions,
 			"scored_questions": scoredQuestions, "scoring_scope": "validator_form_only", "generated_at": now,
 		},
-		"sync": map[string]any{"is_active": stringValueSQL(row.Status) != "cancelled", "source_updated_at": nullTime(row.UpdatedAt), "synced_at": now},
+		"sync": withEngineMetadata(map[string]any{"is_active": stringValueSQL(row.Status) != "cancelled", "source_updated_at": nullTime(row.UpdatedAt), "synced_at": now}),
 	}
 }
 
@@ -192,7 +192,7 @@ func validatorTombstone(id int64) map[string]any {
 		"_id": "validator-assignment:" + itoa(id), "schema_version": validatorSchemaVersion,
 		"validator_assignment_id": id, "assessment_assignments": []any{},
 		"meta": map[string]any{"snapshot_source": "tombstone", "generated_at": now},
-		"sync": map[string]any{"is_active": false, "source_updated_at": now, "synced_at": now, "deleted_at": now},
+		"sync": withEngineMetadata(map[string]any{"is_active": false, "source_updated_at": now, "synced_at": now, "deleted_at": now}),
 	}
 }
 

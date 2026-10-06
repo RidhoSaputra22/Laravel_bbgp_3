@@ -192,11 +192,11 @@ func (b *Builder) targetDocument(row TargetRow, snapshot map[string]any, source 
 		"combination": targetCombination(row),
 		"forms":       forms,
 		"meta":        meta,
-		"sync": map[string]any{
+		"sync": withEngineMetadata(map[string]any{
 			"is_active":         true,
 			"source_updated_at": nullTime(row.UpdatedAt),
 			"synced_at":         nowISO(),
-		},
+		}),
 	}
 }
 
@@ -209,7 +209,7 @@ func targetTombstone(id int64) map[string]any {
 		"target":               map[string]any{"id": id, "status": "dibatalkan"},
 		"forms":                []any{},
 		"meta":                 map[string]any{"snapshot_source": "tombstone", "generated_at": now},
-		"sync":                 map[string]any{"is_active": false, "source_updated_at": now, "synced_at": now, "deleted_at": now},
+		"sync":                 withEngineMetadata(map[string]any{"is_active": false, "source_updated_at": now, "synced_at": now, "deleted_at": now}),
 	}
 }
 

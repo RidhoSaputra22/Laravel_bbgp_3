@@ -19,9 +19,14 @@ func main() {
 	compare := flag.String("compare", "", "targets, validators, or all shadow documents")
 	reset := flag.Bool("reset", false, "delete the selected collection before rebuild")
 	retryFailed := flag.Bool("retry-failed", false, "make failed outbox rows pending")
+	showVersion := flag.Bool("version", false, "print engine version and hash")
 	flag.Parse()
 	if *once && *drain {
 		log.Fatal("--once and --drain cannot be used together")
+	}
+	if *showVersion {
+		log.Printf("sync-worker %s", engineVersionLine())
+		return
 	}
 
 	config, err := loadConfig()
@@ -35,7 +40,7 @@ func main() {
 		log.Fatal("--mode must be live or shadow")
 	}
 	debug.SetMemoryLimit(config.MemoryLimitBytes)
-	log.Printf("sync-worker starting mode=%s batch_size=%d memory_limit=%dMiB max_runtime=%s", *mode, config.BatchSize, config.MemoryLimitBytes/(1024*1024), config.MaxRuntime)
+	log.Printf("sync-worker starting %s mode=%s batch_size=%d memory_limit=%dMiB max_runtime=%s", engineVersionLine(), *mode, config.BatchSize, config.MemoryLimitBytes/(1024*1024), config.MaxRuntime)
 	startedAt := time.Now()
 	defer func() {
 		log.Printf("sync-worker finished duration=%s", time.Since(startedAt).Round(time.Millisecond))

@@ -10,8 +10,18 @@ menulis bulk upsert yang idempotent ke MongoDB.
 cd sync-worker
 go mod download
 go test ./...
-go build -o ../storage/app/bbpg-sync-worker .
+cd ..
+bash bin/build-sync-worker
+storage/app/bbpg-sync-worker --version
 ```
+
+Build menyuntikkan versi Git, commit hash penuh, dan waktu build ke binary.
+Metadata yang sama ikut ditulis ke `sync.engine_schema_version`,
+`sync.engine_name`, `sync.engine_version`, `sync.engine_hash`, dan
+`sync.engine_build_time` pada setiap dokumen target/validator. Jika binary
+dibangun tanpa `bin/build-sync-worker`, Go tetap mencoba membaca metadata Git
+dari build info; gunakan script tersebut untuk hasil yang eksplisit di
+hosting.
 
 Pemeriksaan statis dan race detector:
 
@@ -70,8 +80,9 @@ keluar. Terminal menampilkan satu progress bar yang diperbarui setiap batch.
 Batas waktu `SYNC_MAX_RUNTIME_SECONDS` berlaku per batch.
 
 Perintah tersebut bersifat one-shot: setelah satu batch selesai worker keluar.
-Worker sekarang mencetak status `starting`, koneksi MySQL/MongoDB, `outbox
-idle` bila tidak ada event, jumlah event yang diproses, dan `finished`.
+Worker sekarang mencetak status `starting` beserta versi/hash engine, koneksi
+MySQL/MongoDB, `outbox idle` bila tidak ada event, jumlah event yang diproses,
+dan `finished`.
 
 Mode shadow:
 

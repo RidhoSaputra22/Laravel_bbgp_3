@@ -388,6 +388,22 @@ func TestCanonicalDocumentRemovesVolatileValues(t *testing.T) {
 	}
 }
 
+func TestEngineMetadataIsEmbeddedAndIgnoredByParityComparison(t *testing.T) {
+	syncState := withEngineMetadata(map[string]any{"is_active": true})
+	if syncState["engine_schema_version"] != syncEngineSchemaVersion ||
+		syncState["engine_name"] != "bbpg-sync-worker" {
+		t.Fatalf("engine metadata is incomplete: %#v", syncState)
+	}
+	if syncState["engine_version"] == "" || syncState["engine_hash"] == "" || syncState["engine_build_time"] == "" {
+		t.Fatalf("engine build identity is incomplete: %#v", syncState)
+	}
+
+	canonical := canonicalDocument(map[string]any{"sync": syncState})
+	if _, ok := canonical["sync"].(map[string]any)["engine_hash"]; ok {
+		t.Fatal("engine metadata should not affect production/shadow parity")
+	}
+}
+
 func TestIndexDocumentsSkipsMalformedIDs(t *testing.T) {
 	documents := []map[string]any{
 		{"_id": "assessment-target:10"},
