@@ -2,8 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
+use App\Models\Guru;
+use App\Models\User;
 use App\Models\ValidatorForm;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class AssessmentValidasiAhliSeeder extends Seeder
 {
@@ -12,6 +16,8 @@ class AssessmentValidasiAhliSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->seedValidatorUsers();
+
         $assessments = [
             [
                 'kode_assessment' => 'ASM-VALIDASI-AHLI-001',
@@ -354,6 +360,87 @@ class AssessmentValidasiAhliSeeder extends Seeder
                     ]);
                 }
             }
+        }
+    }
+
+    private function seedValidatorUsers(): void
+    {
+        $validators = [
+            'Suryani, SE, MM',
+            'Muh Asri, S.Pd',
+            'Dr. Arman Agung, M.Pd',
+            'Dr. Ayatollah Hidayat, S.Pd., M.Pd',
+            'Prof. Dr. Hasnawai Haris, M.Hum',
+            'Prof. Dr. Muhammad Jufri, S.Psi., M.Si., M.Psi., Psikolog',
+            'Prof. Dr. Nurhikmah H., S.Pd., M.Si',
+            'Prof. Dr. Muhammad Yunus, M.Pd.',
+            'Prof. Dr. Asdar, M.Pd.',
+            'Dr. Pantja Nurwahidin, M.Pd',
+            'Herman Heriadi, S.Kom., M.Kom',
+            'Asmuddin, S.T.P., M.A.P',
+            'Herawati, S.Pd., M.Pd., Kons',
+            'Dr. Alphian Sahruddin, S.Pd., M.Pd',
+        ];
+
+        foreach ($validators as $index => $name) {
+            $number = $index + 11;
+            $username = 'validator'.$number;
+            $noKtp = '990000000000000'.$number;
+            $password = Hash::make('12345');
+
+            $payload = [
+                'name' => $name,
+                'username' => $username,
+                'no_ktp' => $noKtp,
+                'password' => $password,
+                'role' => 'stakeholder',
+            ];
+
+            User::updateOrCreate(
+                ['username' => $username, 'role' => 'stakeholder'],
+                $payload
+            );
+
+            Admin::updateOrCreate(
+                ['username' => $username, 'role' => 'stakeholder'],
+                $payload
+            );
+
+            Guru::updateOrCreate(
+                ['no_ktp' => $noKtp],
+                [
+                    'nama_lengkap' => $name,
+                    'email' => $username.'@bbgtk.test',
+                    'no_ktp' => $noKtp,
+                    'nip' => '199000000000000'.$number,
+                    'tempat_lahir' => 'Makassar',
+                    'tgl_lahir' => '1990-01-01',
+                    'gender' => 'Laki-laki',
+                    'jabatan' => 'Validator',
+                    'status' => 'Belum Kawin',
+                    'status_kepegawaian' => 'PNS',
+                    'agama' => 'Islam',
+                    'pendidikan' => 'S1',
+                    'kabupaten' => 'Kota Makassar',
+                    'satuan_pendidikan' => 'BBGTK Sulawesi Selatan',
+                    'alamat_satuan' => 'BBGTK Sulawesi Selatan',
+                    'alamat_rumah' => 'Makassar',
+                    'no_hp' => '08129900000'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                    'no_wa' => '08129900000'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                    'pas_foto' => '',
+                    'no_rek' => '990000000'.$number,
+                    'jenis_bank' => 'Bank BRI',
+                    'npsn_sekolah' => '-',
+                    'npwp' => '99000000000000'.$number,
+                    'nuptk' => '990000000000000'.$number,
+                    'eksternal_jabatan' => 'Stakeholder',
+                    'jenis_jabatan' => 'Validator',
+                    'kategori_jabatan' => '',
+                    'tugas_jabatan' => '',
+                    'latar_jabatan' => '',
+                    'is_verif' => 'sudah',
+                ]
+            );
         }
     }
 
