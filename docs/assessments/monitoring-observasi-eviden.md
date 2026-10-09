@@ -1,5 +1,105 @@
 # Sistematika Penilaian Monitoring / Observasi / Eviden
 
+## Export dan import struktur assessment
+
+Struktur assessment dapat dipindahkan melalui menu **Export JSON** dan
+**Validasi & Import** pada halaman Assessment. Formatnya mempertahankan pola
+API assessment yang sudah digunakan project (`meta` dan `data`) dengan schema
+`database-assessment-v1`.
+
+```json
+{
+  "meta": {
+    "schema": "database-assessment-v1",
+    "version": 1,
+    "export_type": "assessment-package",
+    "streaming": true
+  },
+  "data": {
+    "kode_assessment": "ASM-MOE-2026",
+    "judul": "Monitoring Observasi Eviden",
+    "instrument_type": "monitoring_observasi_eviden",
+    "target_ketenagaan": "tenaga_pendidik",
+    "target_jabatan": ["__all__"],
+    "scoring_config": {
+      "profile": "monitoring_observasi_eviden",
+      "weight": 0.2,
+      "verification_gap_threshold": 1.5
+    },
+    "status": "draft",
+    "is_active": true,
+    "forms": [
+      {
+        "kode_form": "FORM-01",
+        "judul_form": "Bukti Pelaksanaan",
+        "kompetensi": "profesional",
+        "is_scoreable": true,
+        "scoring_config": {"weight": 1},
+        "urutan": 1,
+        "is_active": true,
+        "fields": [
+          {
+            "label": "Keterangan bukti",
+            "nama_field": "keterangan_bukti",
+            "tipe_field": "textarea",
+            "validasi": {"required": true},
+            "scoring_config": {
+              "enabled": true,
+              "method": "keyword_coverage",
+              "weight": 1
+            },
+            "dependency_config": null,
+            "opsi_field": null,
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true
+          }
+        ]
+      }
+    ]
+  },
+  "included": {
+    "assignment_configs": [
+      {
+        "kode_penugasan": "TUGAS-MOE-2026",
+        "judul_penugasan": "Penugasan Monitoring",
+        "security_config": {
+          "enabled": true,
+          "lock_mode": "strict",
+          "max_serious_violations": 3
+        },
+        "assessments": [
+          {"kode_assessment": "ASM-MOE-2026", "urutan": 1, "stage_config": {}}
+        ],
+        "sessions": []
+      }
+    ]
+  }
+}
+```
+
+`data` memuat seluruh konfigurasi assessment, form, pertanyaan, opsi,
+validasi, autofill, lookup, dependency, serta scoring pada level assessment,
+form, dan field. `included.assignment_configs` memuat konfigurasi penugasan,
+stage, sesi, dan security guard. ID database tidak dipakai sebagai referensi
+import; kode assessment/form/penugasan menjadi identitas portable.
+
+Sebelum job dibuat, file dibaca streaming dan divalidasi penuh: schema, tipe
+field, properti yang dikenali, field wajib, nama field ganda, scoring, stage,
+dan security config. Setelah valid, file disimpan sementara dan job pada queue
+default dipanggil. Job membaca ulang file secara streaming,
+melakukan upsert berdasarkan `kode_assessment`, mengganti struktur form/soal,
+memulihkan konfigurasi penugasan tanpa target peserta, lalu menyegarkan
+kombinasi assessment.
+
+Data runtime berikut sengaja tidak dipindahkan: target peserta, attempt,
+jawaban, file jawaban, dan event pelanggaran keamanan. Jalankan worker untuk
+memproses import:
+
+```bash
+php artisan queue:work
+```
+
 ## Tujuan
 
 Monitoring, Observasi, dan Eviden digunakan untuk menilai pelaksanaan kegiatan, perilaku yang diamati, capaian angka, kelengkapan bukti, serta kualitas catatan lapangan. Rubriknya disesuaikan dengan bentuk bukti pada setiap form.

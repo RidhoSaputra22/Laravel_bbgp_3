@@ -6,6 +6,7 @@ use App\Http\Controllers\Assessment\PortalAttemptController as AssessmentPortalA
 use App\Http\Controllers\Assessment\PortalController as AssessmentPortalController;
 use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;
 use App\Http\Controllers\Assessment\PortalSecurityController as AssessmentPortalSecurityController;
+use App\Http\Controllers\AssessmentPackageController;
 use App\Http\Controllers\EvaluasiPelaksanaanResultController;
 use App\Http\Controllers\GuruDashboardController;
 use App\Http\Controllers\PegawaiController;
@@ -15,7 +16,6 @@ use App\Http\Controllers\SekolahController as AdminSekolahController;
 use App\Http\Controllers\User\SekolahController as UserSekolahController;
 use App\Http\Controllers\ValidatorTaskController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Session;
 
 /*
 |--------------------------------------------------------------------------
@@ -171,7 +171,7 @@ Route::group(
             Route::get('/profile/{id}', 'AdminController@profile')->name('profile.index')->middleware('AdminOnly');
             Route::put('/profile/update', 'AdminController@profile_update')->name('profile.update')->middleware('AdminOnly');
 
-                Route::get('/fetch-sekolah', 'GuruController@fetchSekolah')->name('fetchSekolah')->middleware('AdminOnly');
+            Route::get('/fetch-sekolah', 'GuruController@fetchSekolah')->name('fetchSekolah')->middleware('AdminOnly');
 
             // Guru / Eksternal
             Route::prefix('eksternal')->group(function () {
@@ -229,7 +229,7 @@ Route::group(
             });
 
             // Berkas
-                Route::prefix('berkas')->group(function () {
+            Route::prefix('berkas')->group(function () {
                 Route::get('/', 'BerkasController@index')->name('berkas.index');
                 Route::get('/create', 'BerkasController@create')->name('berkas.create');
                 Route::post('/store', 'BerkasController@store')->name('berkas.store');
@@ -387,6 +387,12 @@ Route::group(
                 Route::get('/', 'AssessmentController@index')->name('assessment.index');
                 Route::get('/create', 'AssessmentController@create')->name('assessment.create');
                 Route::post('/store', 'AssessmentController@store')->name('assessment.store');
+                Route::get('/export/{assessment}', [AssessmentPackageController::class, 'export'])
+                    ->name('assessment.export');
+                Route::post('/import', [AssessmentPackageController::class, 'import'])
+                    ->name('assessment.import');
+                Route::get('/import/status/{import}', [AssessmentPackageController::class, 'status'])
+                    ->name('assessment.import.status');
                 Route::get('/show/{id}', 'AssessmentController@show')->name('assessment.show');
                 Route::get('/edit/{id}', 'AssessmentController@edit')->name('assessment.edit');
                 Route::put('/update/{id}', 'AssessmentController@update')->name('assessment.update');
@@ -454,18 +460,22 @@ Route::group(
             });
 
             Route::prefix('evaluasi-pelaksanaan')->middleware('AdminOnly')->group(function () {
-                    Route::prefix('bank-soal')->group(function () {
-                        Route::get('/', 'AssessmentController@index')->name('evaluasi.pelaksanaan.bank-soal.index');
-                        Route::get('/create', 'AssessmentController@create')->name('evaluasi.pelaksanaan.bank-soal.create');
-                        Route::post('/store', 'AssessmentController@store')->name('evaluasi.pelaksanaan.bank-soal.store');
-                        Route::get('/show/{id}', 'AssessmentController@show')->name('evaluasi.pelaksanaan.bank-soal.show');
-                        Route::get('/edit/{id}', 'AssessmentController@edit')->name('evaluasi.pelaksanaan.bank-soal.edit');
-                        Route::put('/update/{id}', 'AssessmentController@update')->name('evaluasi.pelaksanaan.bank-soal.update');
-                        Route::post('/hapus/{id}', 'AssessmentController@destroy')->name('evaluasi.pelaksanaan.bank-soal.destroy');
-                    });
+                Route::prefix('bank-soal')->group(function () {
+                    Route::get('/', 'AssessmentController@index')->name('evaluasi.pelaksanaan.bank-soal.index');
+                    Route::get('/create', 'AssessmentController@create')->name('evaluasi.pelaksanaan.bank-soal.create');
+                    Route::post('/store', 'AssessmentController@store')->name('evaluasi.pelaksanaan.bank-soal.store');
+                    Route::get('/export/{assessment}', [AssessmentPackageController::class, 'export'])
+                        ->name('evaluasi.pelaksanaan.bank-soal.export');
+                    Route::post('/import', [AssessmentPackageController::class, 'import'])
+                        ->name('evaluasi.pelaksanaan.bank-soal.import');
+                    Route::get('/show/{id}', 'AssessmentController@show')->name('evaluasi.pelaksanaan.bank-soal.show');
+                    Route::get('/edit/{id}', 'AssessmentController@edit')->name('evaluasi.pelaksanaan.bank-soal.edit');
+                    Route::put('/update/{id}', 'AssessmentController@update')->name('evaluasi.pelaksanaan.bank-soal.update');
+                    Route::post('/hapus/{id}', 'AssessmentController@destroy')->name('evaluasi.pelaksanaan.bank-soal.destroy');
+                });
 
-                    Route::get('/hasil-evaluasi', [EvaluasiPelaksanaanResultController::class, 'index'])
-                        ->name('evaluasi.pelaksanaan.hasil.index');
+                Route::get('/hasil-evaluasi', [EvaluasiPelaksanaanResultController::class, 'index'])
+                    ->name('evaluasi.pelaksanaan.hasil.index');
             });
 
             // Kegiatan
@@ -502,7 +512,6 @@ Route::group(
                 Route::put('/update', 'HonorController@update')->name('honor.update');
                 Route::post('/hapus/{id}', 'HonorController@destroy')->name('honor.hapus');
                 Route::get('/cetak/{jabatan}', 'HonorController@cetak')->name('honor.cetak');
-
 
                 Route::get('/cetakExcelPanitia/{id_kegiatan}/{jabatan}', 'HonorController@cetakExcelPanitia')->name('honor.cetakExcelPanitia');
                 Route::get('/cetakExcelNarasumber/{id_kegiatan}/{jabatan}', 'HonorController@cetakExcelNarasumber')->name('honor.cetakExcelNarasumber');

@@ -6,6 +6,12 @@
     $assessmentDeleteRoute = $isEvaluationPelaksanaan
         ? $assessmentRoutePrefix.'.destroy'
         : 'assessment.hapus';
+    $assessmentExportRoute = $isEvaluationPelaksanaan
+        ? $assessmentRoutePrefix.'.export'
+        : 'assessment.export';
+    $assessmentImportRoute = $isEvaluationPelaksanaan
+        ? $assessmentRoutePrefix.'.import'
+        : 'assessment.import';
     $pageHeading = $isEvaluationPelaksanaan ? 'Bank Soal Evaluasi Pelaksanaan' : 'Data Assessment';
     $createLabel = $isEvaluationPelaksanaan ? 'Tambah Bank Soal' : 'Tambah Assessment';
 @endphp
@@ -45,6 +51,53 @@
             </div>
 
             <div class="section-body">
+                @if (session('assessment_import_notice'))
+                    @php($importNotice = session('assessment_import_notice'))
+                    <div class="alert alert-info">
+                        {{ $importNotice['message'] ?? 'Import JSON masuk antrean.' }}
+                        @if (!empty($importNotice['summary']))
+                            <div class="small mt-1">
+                                {{ $importNotice['summary']['forms'] ?? 0 }} form,
+                                {{ $importNotice['summary']['fields'] ?? 0 }} pertanyaan,
+                                {{ $importNotice['summary']['assignments'] ?? 0 }} konfigurasi penugasan.
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                @if ($errors->has('file'))
+                    <div class="alert alert-danger">{{ $errors->first('file') }}</div>
+                @endif
+
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">Export / Import Struktur Assessment</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">
+                            JSON mengikuti schema <code>database-assessment-v1</code> dan mencakup konfigurasi
+                            assessment, form, pertanyaan, scoring, validasi, dependency, serta guard penugasan.
+                            Data peserta, jawaban, attempt, dan event keamanan tidak ikut diimpor.
+                        </p>
+                        <form action="{{ route($assessmentImportRoute) }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="form-row align-items-end">
+                                <div class="form-group col-md-8 mb-md-0">
+                                    <label for="assessment-json-file">File JSON assessment</label>
+                                    <input id="assessment-json-file" type="file" name="file" class="form-control-file"
+                                        accept=".json,application/json,text/plain" required>
+                                    <small class="form-text text-muted">Maksimal 512 MB. File divalidasi penuh sebelum masuk queue.</small>
+                                </div>
+                                <div class="form-group col-md-4 mb-md-0">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-upload"></i> Validasi &amp; Import
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-lg-4 col-md-6 col-12">
                         <div class="card card-statistic-1">
@@ -187,6 +240,10 @@
                                                     <a href="{{ route($assessmentRoutePrefix.'.edit', $data->id) }}"
                                                         class="btn btn-warning btn-sm my-1">
                                                         <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{{ route($assessmentExportRoute, $data->id) }}"
+                                                        class="btn btn-success btn-sm my-1" title="Export JSON">
+                                                        <i class="fas fa-download"></i>
                                                     </a>
                                                     <button onclick="deleteData({{ $data->id }}, 'assessment', '{{ route($assessmentDeleteRoute, $data->id) }}')"
                                                         class="btn btn-danger btn-sm my-1">
