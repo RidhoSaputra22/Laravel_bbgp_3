@@ -604,36 +604,6 @@
             }
           },
           {
-            "id": 361,
-            "assessment_form_id": 127,
-            "label": "Lama Menjabat sebagai Kepala Sekolah (Tahun)",
-            "nama_field": "lama_menjabat_kepala_sekolah_tahun",
-            "tipe_field": "number",
-            "placeholder": "Contoh: 4",
-            "bantuan": "Isi total lama menjabat sebagai kepala sekolah dalam tahun!",
-            "opsi_field": null,
-            "nilai_default": null,
-            "autofill_source": null,
-            "lookup_source": null,
-            "dependency_config": null,
-            "validasi": {
-              "required": true,
-              "tipe_field": "number",
-              "allow_other_input": false
-            },
-            "urutan": 8,
-            "is_required": true,
-            "is_active": true,
-            "created_at": "2026-07-08T02:52:36.000000Z",
-            "updated_at": "2026-10-06T02:32:52.000000Z",
-            "deskripsi": "Masukkan total lama menjabat sebagai kepala sekolah dalam tahun!",
-            "scoring_config": {
-              "method": "numeric_threshold",
-              "enabled": false,
-              "numeric_direction": "greater_is_better"
-            }
-          },
-          {
             "id": 432,
             "assessment_form_id": 127,
             "label": "Unggah SK Kepala Sekolah",
@@ -656,7 +626,7 @@
               "tipe_field": "file",
               "allow_other_input": false
             },
-            "urutan": 9,
+            "urutan": 8,
             "is_required": true,
             "is_active": true,
             "created_at": "2026-07-22T08:41:20.000000Z",
@@ -899,76 +869,40 @@
       {
         "id": 130,
         "assessment_id": 6,
-        "judul_form": "Riwayat Pengalaman Menjabat sebagai Kepala Sekolah",
-        "kode_form": "FORM-KS-PENGALAMAN-MENGAJAR",
-        "deskripsi": "Riwayat pengalaman responden dalam menjalankan tugas sebagai kepala sekolah.",
+        "judul_form": "Lama Menjabat sebagai Kepala Sekolah",
+        "kode_form": "FORM-KS-LAMA-MENJABAT",
+        "deskripsi": "Total lama responden menjabat sebagai kepala sekolah.",
         "urutan": 4,
         "is_active": true,
         "created_at": "2026-07-08T02:52:36.000000Z",
         "updated_at": "2026-10-11T00:00:00.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "P3",
-        "indikator_label": "Pengalaman praktik pendidikan",
+        "indikator_label": "Lama menjabat sebagai kepala sekolah",
         "is_scoreable": true,
         "scoring_config": {
           "weight": 15,
           "profile": "portofolio",
-          "advanced_rules_text": "{\n    \"aspect_name\": \"Pengalaman praktik pendidikan\",\n    \"rubric_code\": \"P3\",\n    \"form_formula\": \"Level form dihasilkan dari auto scoring field utama, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n    \"scoring_note\": \"Menilai relevansi pengalaman pendidikan sebagai bekal kepemimpinan sekolah.\",\n    \"accepted_evidence\": [\n        \"surat tugas\",\n        \"riwayat kerja\",\n        \"portofolio mengajar\",\n        \"dokumen pengalaman\"\n    ],\n    \"competency_target\": \"profesional\"\n}"
+          "advanced_rules_text": "{\n    \"aspect_name\": \"Lama menjabat sebagai kepala sekolah\",\n    \"rubric_code\": \"P3\",\n    \"form_formula\": \"Level form dihasilkan dari penilaian field lama menjabat, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n    \"scoring_note\": \"Menilai durasi pengalaman menjabat sebagai kepala sekolah.\",\n    \"accepted_evidence\": [\n        \"SK Kepala Sekolah\",\n        \"surat tugas\",\n        \"riwayat kerja\"\n    ],\n    \"competency_target\": \"profesional\"\n}"
         },
         "fields": [
           {
             "id": 364,
             "assessment_form_id": 130,
-            "label": "Riwayat Pengalaman Menjabat sebagai Kepala Sekolah",
-            "nama_field": "riwayat_pengalaman_mengajar",
-            "tipe_field": "repeater",
-            "placeholder": "",
-            "bantuan": "Tambahkan pengalaman penugasan sebagai kepala sekolah!",
-            "opsi_field": {
-              "columns": [
-                {
-                  "label": "Jabatan / Tugas",
-                  "nama_field": "pengalaman",
-                  "opsi_field": [],
-                  "tipe_field": "text",
-                  "is_required": true,
-                  "placeholder": "Contoh: Kepala Sekolah"
-                },
-                {
-                  "label": "Sekolah / Lembaga",
-                  "nama_field": "lembaga",
-                  "opsi_field": [],
-                  "tipe_field": "text",
-                  "is_required": true,
-                  "placeholder": "Nama sekolah/lembaga"
-                },
-                {
-                  "label": "Periode Menjabat",
-                  "nama_field": "tahun",
-                  "opsi_field": [],
-                  "tipe_field": "text",
-                  "is_required": true,
-                  "placeholder": "Contoh: 2019–2024"
-                },
-                {
-                  "label": "Tautan SK / Bukti",
-                  "nama_field": "tautan_link_google_drive",
-                  "opsi_field": [],
-                  "tipe_field": "url",
-                  "is_required": true,
-                  "placeholder": ""
-                }
-              ],
-              "max_rows": 100,
-              "min_rows": 1
-            },
+            "label": "Lama Menjabat sebagai Kepala Sekolah (Tahun)",
+            "nama_field": "lama_menjabat_kepala_sekolah_tahun",
+            "tipe_field": "number",
+            "placeholder": "Contoh: 4",
+            "bantuan": "Isi total lama menjabat sebagai kepala sekolah dalam tahun!",
+            "opsi_field": null,
             "nilai_default": null,
             "autofill_source": null,
             "lookup_source": null,
             "dependency_config": null,
             "validasi": {
               "required": true,
-              "tipe_field": "repeater",
+              "tipe_field": "number",
+              "min": 0,
               "allow_other_input": false
             },
             "urutan": 1,
@@ -976,21 +910,17 @@
             "is_active": true,
             "created_at": "2026-07-08T02:52:36.000000Z",
             "updated_at": "2026-10-11T00:00:00.000000Z",
-            "deskripsi": "Cantumkan pengalaman menjabat sebagai kepala sekolah!",
+            "deskripsi": "Masukkan total lama menjabat sebagai kepala sekolah dalam tahun!",
             "scoring_config": {
-              "method": "repeater_completeness",
+              "method": "numeric_threshold",
               "weight": 100,
-              "enabled": true,
+              "enabled": false,
               "profile": "portofolio",
-              "min_words": 12,
               "scale_max": 5,
               "scale_min": 1,
               "rubric_code": "P3",
-              "reference_answer": "Pengalaman pendidikan menunjukkan kesinambungan peran dan relevansi pengalaman terhadap pengembangan kepemimpinan sekolah.",
-              "synonym_map_text": "pengalaman: mengajar\nkepemimpinan: pendidikan",
               "numeric_direction": "greater_is_better",
-              "advanced_rules_text": "{\n    \"min_words\": 12,\n    \"target_rows\": 1,\n    \"signal_keywords\": [\n        \"guru\",\n        \"wali kelas\",\n        \"pengalaman\",\n        \"sekolah\"\n    ]\n}",
-              "keyword_groups_text": "pengalaman, lembaga, tahun, kepemimpinan"
+              "advanced_rules_text": "{\n    \"numeric_direction\": \"greater_is_better\"\n}"
             }
           }
         ]
