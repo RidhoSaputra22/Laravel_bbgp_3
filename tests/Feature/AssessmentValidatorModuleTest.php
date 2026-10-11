@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\AssessmentAssignment;
 use App\Models\Guru;
 use App\Models\User;
+use App\Models\ValidatorAssignment;
 use App\Models\ValidatorForm;
 use App\Services\Assessment\ValidatorAssignmentService;
 use App\Support\Assessment\ValidatorAccess;
@@ -35,6 +36,8 @@ class AssessmentValidatorModuleTest extends TestCase
         $migration->up();
         $multiAssignmentMigration = require database_path('migrations/2026_09_09_000000_add_assessment_assignments_to_validator_assignments.php');
         $multiAssignmentMigration->up();
+        $sourceModeMigration = require database_path('migrations/2026_10_02_000001_add_source_mode_to_validator_assignments_table.php');
+        $sourceModeMigration->up();
     }
 
     protected function tearDown(): void
@@ -257,6 +260,58 @@ class AssessmentValidatorModuleTest extends TestCase
         $response->assertRedirect(route('assessment.validator.assignment.index'));
         $this->assertDatabaseCount('validator_assignments', 0);
         $this->assertDatabaseCount('validator_assignment_assessment_assignments', 0);
+    }
+
+    public function test_admin_can_refresh_all_validator_question_snapshots(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '106');
+        $otherValidator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '107');
+        [$assessment, $sourceAssignment] = $this->createAssessment();
+        [$form, $scoredField, $noteField] = $this->createValidatorForm();
+        $service = app(ValidatorAssignmentService::class);
+
+        $assignments = collect([
+            [$validator, 'QA Reset Satu'],
+            [$otherValidator, 'QA Reset Dua'],
+        ])->map(function (array $data) use ($form, $sourceAssignment, $service, $scoredField, $noteField) {
+            [$validator, $title] = $data;
+            $assignment = $service->create([
+                'title' => $title,
+                'validator_form_id' => $form->id,
+                'source_mode' => ValidatorAssignment::SOURCE_MODE_ALL_FORMS,
+                'assessment_assignment_ids' => [$sourceAssignment->id],
+                'validator_user_id' => $validator->id,
+            ], null);
+            $assignment->load('validatorForm.sections.fields');
+            $service->submit($assignment, [
+                $scoredField->id => '5',
+                $noteField->id => 'Jawaban lama.',
+            ], 'approved', 'Catatan lama.');
+
+            return $assignment;
+        });
+
+        $assessment->forms()->first()->fields()->first()->update([
+            'label' => 'Butir Assessment Terbaru',
+        ]);
+
+        $this->withSession(['cek' => true, 'role' => 'admin'])
+            ->post(route('assessment.validator.assignment.refresh-all'))
+            ->assertRedirect(route('assessment.validator.assignment.index'));
+
+        $this->assertDatabaseCount('validator_assignments', 2);
+        $this->assertDatabaseCount('validator_assignment_responses', 4);
+        $this->assertSame(
+            [
+                'submitted',
+                'submitted',
+            ],
+            ValidatorAssignment::query()->whereIn('id', $assignments->pluck('id'))->orderBy('id')->pluck('status')->all()
+        );
+        $this->assertSame(
+            'Butir Assessment Terbaru',
+            data_get($assignments->first()->fresh()->assessment_assignment_snapshots, '0.assessments.0.forms.0.fields.0.label')
+        );
     }
 
     public function test_admin_panel_and_validator_workspace_have_separate_access_rules(): void

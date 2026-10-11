@@ -368,8 +368,10 @@ Route::group(
                         Route::post('/', 'ValidatorAssignmentController@store')->name('assessment.validator.assignment.store');
                         Route::delete('/hapus-semua', 'ValidatorAssignmentController@destroyAll')
                             ->name('assessment.validator.assignment.destroy-all');
-                        Route::post('/{assignment}/reset', 'ValidatorAssignmentController@reset')
-                            ->name('assessment.validator.assignment.reset');
+                        Route::post('/perbarui-soal-semua', 'ValidatorAssignmentController@refreshAllQuestions')
+                            ->name('assessment.validator.assignment.refresh-all');
+                        Route::post('/{assignment}/perbarui-soal', 'ValidatorAssignmentController@refreshQuestions')
+                            ->name('assessment.validator.assignment.refresh');
                         Route::get('/{assignment}/download', 'ValidatorAssignmentController@downloadResultPdf')
                             ->name('assessment.validator.assignment.download');
                         Route::get('/{assignment}', 'ValidatorAssignmentController@show')->name('assessment.validator.assignment.show');

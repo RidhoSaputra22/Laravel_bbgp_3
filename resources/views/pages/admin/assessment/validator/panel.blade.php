@@ -5,6 +5,30 @@
         <section class="section">
             <div class="section-header">
                 <h1>Panel Validator Assessment</h1>
+                <div class="section-header-breadcrumb">
+                    @if ($assignmentCount > 0)
+                        <form method="POST" action="{{ route('assessment.validator.assignment.refresh-all') }}"
+                            class="d-inline mr-2"
+                            onsubmit="return confirm('Perbarui soal SEMUA penugasan validator sesuai kombinasi dan form assessment terbaru? Progres dan hasil validasi tidak akan dihapus.')">
+                            @csrf
+                            <button class="btn btn-warning" title="Perbarui soal semua penugasan validator">
+                                <i class="fas fa-sync-alt"></i> Perbarui Soal
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('assessment.validator.assignment.destroy-all') }}"
+                            class="d-inline mr-2"
+                            onsubmit="return confirm('Hapus SEMUA penugasan validator beserta seluruh hasil validasinya? Tindakan ini tidak dapat dibatalkan.')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn btn-danger" title="Hapus semua penugasan dan hasil validasi">
+                                <i class="fas fa-trash-alt"></i> Hapus Semua
+                            </button>
+                        </form>
+                    @endif
+                    <a href="{{ route('assessment.validator.assignment.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Buat Penugasan
+                    </a>
+                </div>
             </div>
 
             <div class="section-body">

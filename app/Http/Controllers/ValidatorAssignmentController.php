@@ -189,15 +189,31 @@ class ValidatorAssignmentController extends Controller
         ]);
     }
 
-    public function reset(ValidatorAssignment $assignment)
+    public function refreshQuestions(ValidatorAssignment $assignment)
     {
         ValidatorAccess::authorizeAdmin();
 
-        $this->assignmentService->reset($assignment);
+        $this->assignmentService->refreshQuestions($assignment);
 
         return redirect()
             ->route('assessment.validator.assignment.index')
-            ->with('validator_success', 'Validasi berhasil direset. Progres lama dihapus dan status dikembalikan menjadi Ditugaskan.');
+            ->with('validator_success', 'Soal validator berhasil diperbarui sesuai kombinasi atau form assessment terbaru. Progres validasi tetap dipertahankan.');
+    }
+
+    public function refreshAllQuestions()
+    {
+        ValidatorAccess::authorizeAdmin();
+
+        $total = ValidatorAssignment::query()->count();
+        ValidatorAssignment::query()->eachById(
+            fn (ValidatorAssignment $assignment) => $this->assignmentService->refreshQuestions($assignment)
+        );
+
+        return redirect()
+            ->route('assessment.validator.assignment.index')
+            ->with('validator_success', $total
+                ? "$total penugasan validator berhasil diperbarui dengan soal terbaru. Progres validasi tetap dipertahankan."
+                : 'Tidak ada penugasan validator untuk diperbarui.');
     }
 
     public function destroy(ValidatorAssignment $assignment)

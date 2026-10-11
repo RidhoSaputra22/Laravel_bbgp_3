@@ -10,6 +10,14 @@
                         <i class="fas fa-arrow-left"></i> Panel
                     </a>
                     @if ($assignments->total() > 0)
+                        <form method="POST" action="{{ route('assessment.validator.assignment.refresh-all') }}"
+                            class="d-inline mr-2"
+                            onsubmit="return confirm('Perbarui soal SEMUA penugasan validator sesuai kombinasi dan form assessment terbaru? Progres dan hasil validasi tidak akan dihapus.')">
+                            @csrf
+                            <button class="btn btn-warning" title="Perbarui soal semua penugasan validator">
+                                <i class="fas fa-sync-alt"></i> Perbarui Soal
+                            </button>
+                        </form>
                         <form method="POST" action="{{ route('assessment.validator.assignment.destroy-all') }}"
                             class="d-inline mr-2"
                             onsubmit="return confirm('Hapus SEMUA penugasan validator beserta seluruh hasil validasinya? Tindakan ini tidak dapat dibatalkan.')">
@@ -103,13 +111,12 @@
                                                     <a href="{{ route('assessment.validator.assignment.show', $assignment) }}"
                                                         class="btn btn-info btn-sm"><i class="fas fa-eye"></i></a>
                                                     <form method="POST"
-                                                        action="{{ route('assessment.validator.assignment.reset', $assignment) }}"
+                                                        action="{{ route('assessment.validator.assignment.refresh', $assignment) }}"
                                                         class="d-inline"
-                                                        onsubmit="return confirm('Reset validasi ini? Seluruh progres, jawaban, nilai, dan hasil lama akan dihapus.')">
+                                                        onsubmit="return confirm('Perbarui soal validator ini sesuai kombinasi atau form assessment terbaru? Progres dan hasil validasi tidak akan dihapus.')">
                                                         @csrf
-                                                        <button class="btn btn-warning btn-sm" title="Reset progres validasi"
-                                                            {{ $assignment->status === 'assigned' ? 'disabled' : '' }}>
-                                                            <i class="fas fa-undo"></i>
+                                                        <button class="btn btn-warning btn-sm" title="Perbarui soal validator">
+                                                            <i class="fas fa-sync-alt"></i>
                                                         </button>
                                                     </form>
                                                     <form method="POST"

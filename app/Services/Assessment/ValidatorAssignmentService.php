@@ -355,20 +355,55 @@ class ValidatorAssignmentService
         });
     }
 
-    public function reset(ValidatorAssignment $assignment): void
+    public function refreshQuestions(ValidatorAssignment $assignment): void
     {
         DB::transaction(function () use ($assignment) {
-            $assignment->responses()->delete();
-            $assignment->update([
-                'status' => 'assigned',
-                'started_at' => null,
-                'submitted_at' => null,
-                'score_total' => null,
-                'score_max' => null,
-                'score_percentage' => null,
-                'recommendation' => null,
-                'final_notes' => null,
+            $assignment->load([
+                'assessmentAssignments.assessments.forms.fields',
+                'assessmentAssignments.combination',
             ]);
+
+            $sourceAssignments = $assignment->assessmentAssignments;
+
+            if ($sourceAssignments->isEmpty()) {
+                return;
+            }
+
+            $sourceMode = $this->normalizeSourceMode($assignment->source_mode);
+            $selectedCombinationIds = $sourceMode === ValidatorAssignment::SOURCE_MODE_COMBINATION
+                ? $sourceAssignments
+                    ->values()
+                    ->mapWithKeys(function (AssessmentAssignment $sourceAssignment, int $index) use ($assignment) {
+                        $combinationId = (int) data_get(
+                            $assignment->assessment_assignment_snapshots,
+                            $index.'.combination_id',
+                            0
+                        );
+
+                        return $combinationId > 0
+                            ? [(int) $sourceAssignment->id => $combinationId]
+                            : [];
+                    })
+                    ->all()
+                : [];
+            $combinationSnapshots = $sourceMode === ValidatorAssignment::SOURCE_MODE_COMBINATION
+                ? $this->loadCombinationSnapshots($sourceAssignments, $selectedCombinationIds)
+                : [];
+            $snapshots = $sourceAssignments
+                ->map(fn (AssessmentAssignment $sourceAssignment) => $this->buildAssessmentAssignmentSnapshot(
+                    $sourceAssignment,
+                    $combinationSnapshots[(int) $sourceAssignment->id] ?? [],
+                    $sourceMode
+                ))
+                ->values()
+                ->all();
+            $firstAssessmentSnapshot = data_get($snapshots, '0.assessments.0');
+
+            $assignment->forceFill([
+                'assessment_id' => $firstAssessmentSnapshot['id'] ?? $assignment->assessment_id,
+                'assessment_snapshot' => $firstAssessmentSnapshot ?: $assignment->assessment_snapshot,
+                'assessment_assignment_snapshots' => $snapshots,
+            ])->save();
         });
     }
 
