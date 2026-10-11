@@ -1,0 +1,4769 @@
+{
+  "meta": {
+    "schema": "database-assessment-v1",
+    "version": 1,
+    "export_type": "assessment-package",
+    "exported_at": "2026-10-10T18:49:54.231821Z",
+    "application": "Laravel",
+    "streaming": true,
+    "runtime_data_excluded": [
+      "assessment_assignment_targets",
+      "assessment_attempts",
+      "assessment_attempt_answers",
+      "assessment_attempt_security_events"
+    ]
+  },
+  "data": {
+    "id": 2,
+    "kode_assessment": "ASM-PORTOFOLIO-001",
+    "judul": "Portofolio Guru",
+    "slug": "portofolio-guru",
+    "deskripsi": "Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri guru.",
+    "petunjuk": "Isi data sesuai jabatan Guru dan kondisi sebenarnya! Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB! Unggah SK Guru dalam format PDF/JPG/JPEG/PNG, maksimal 5 MB per berkas! Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator! Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional!",
+    "status": "publish",
+    "is_active": true,
+    "created_at": "2026-06-29T06:41:15.000000Z",
+    "updated_at": "2026-10-11T00:00:00.000000Z",
+    "instrument_type": "portofolio",
+    "kategori": "assessment",
+    "target_ketenagaan": "tenaga_pendidik",
+    "target_jabatan": [
+      "Guru"
+    ],
+    "scoring_config": {
+      "weight": 0.3,
+      "profile": "portofolio",
+      "verification_gap_threshold": 1.5,
+      "empty_response_threshold_percent": 10
+    },
+    "forms": [
+      {
+        "id": 134,
+        "assessment_id": 2,
+        "judul_form": "Identitas Responden",
+        "kode_form": "FORM-IDENTITAS",
+        "deskripsi": "Data identitas dasar responden pada instrumen portofolio guru.",
+        "urutan": 1,
+        "is_active": true,
+        "created_at": "2026-07-08T02:53:03.000000Z",
+        "updated_at": "2026-10-11T00:00:00.000000Z",
+        "kompetensi": "",
+        "indikator_kode": "",
+        "indikator_label": "",
+        "is_scoreable": false,
+        "scoring_config": null,
+        "fields": [
+          {
+            "id": 368,
+            "assessment_form_id": 134,
+            "label": "Nama Lengkap",
+            "nama_field": "nama_lengkap",
+            "tipe_field": "text",
+            "placeholder": "Masukkan nama lengkap",
+            "bantuan": "Gunakan nama sesuai data administrasi!",
+            "opsi_field": null,
+            "nilai_default": null,
+            "autofill_source": "nama_lengkap",
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "text",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:30:00.000000Z",
+            "deskripsi": "Tuliskan nama lengkap sesuai identitas resmi!",
+            "scoring_config": {
+              "method": "semantic_similarity",
+              "enabled": false,
+              "min_words": 8,
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"tuliskan nama\",\n    \"nama lengkap\",\n    \"identitas resmi\",\n    \"resmi gunakan\",\n    \"tuliskan\"\n  ]\n}",
+              "keyword_groups_text": "tuliskan nama, nama lengkap, identitas resmi, resmi gunakan, tuliskan, nama"
+            }
+          },
+          {
+            "id": 429,
+            "assessment_form_id": 134,
+            "label": "Foto Diri Memegang Surat Tugas Asesmen",
+            "nama_field": "foto_diri_memegang_surat_tugas_asesmen",
+            "tipe_field": "file",
+            "placeholder": "",
+            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen! Format JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "opsi_field": {
+              "max_files": 1,
+              "input_mode": "file",
+              "max_size_kb": 5120,
+              "accept": ".jpg,.jpeg,.png"
+            },
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "file",
+              "allow_other_input": false
+            },
+            "urutan": 2,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-11T00:00:00.000000Z",
+            "updated_at": "2026-10-11T00:00:00.000000Z",
+            "deskripsi": "Foto diri sambil memegang surat tugas asesmen.",
+            "scoring_config": {
+              "method": "presence",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 369,
+            "assessment_form_id": 134,
+            "label": "NIP/NUPTK",
+            "nama_field": "nip_nuptk",
+            "tipe_field": "text",
+            "placeholder": "Masukkan NIP atau NUPTK",
+            "bantuan": "Isi salah satu nomor identitas kepegawaian yang tersedia!",
+            "opsi_field": null,
+            "nilai_default": null,
+            "autofill_source": "nip_nuptk",
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "text",
+              "allow_other_input": false
+            },
+            "urutan": 3,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:30:29.000000Z",
+            "deskripsi": "Masukkan Nomor Induk Pegawai atau Nomor Unik Pendidik dan Tenaga Kependidikan!",
+            "scoring_config": {
+              "method": "semantic_similarity",
+              "enabled": false,
+              "min_words": 8,
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"masukkan nomor\",\n    \"nomor induk\",\n    \"induk pegawai\",\n    \"nomor unik\",\n    \"masukkan\"\n  ]\n}",
+              "keyword_groups_text": "masukkan nomor, nomor induk, induk pegawai, nomor unik, masukkan, nomor"
+            }
+          },
+          {
+            "id": 370,
+            "assessment_form_id": 134,
+            "label": "Pangkat / Golongan",
+            "nama_field": "pangkat_golongan",
+            "tipe_field": "select",
+            "placeholder": "Contoh: Pembina Utama Muda / IV-c",
+            "bantuan": "Isi sesuai data kepegawaian terbaru!",
+            "opsi_field": [
+              {
+                "label": "I",
+                "value": "I"
+              },
+              {
+                "label": "I/a",
+                "value": "I/a"
+              },
+              {
+                "label": "I/b",
+                "value": "I/b"
+              },
+              {
+                "label": "I/c",
+                "value": "I/c"
+              },
+              {
+                "label": "I/d",
+                "value": "I/d"
+              },
+              {
+                "label": "II",
+                "value": "II"
+              },
+              {
+                "label": "II/a",
+                "value": "II/a"
+              },
+              {
+                "label": "II/b",
+                "value": "II/b"
+              },
+              {
+                "label": "II/c",
+                "value": "II/c"
+              },
+              {
+                "label": "II/d",
+                "value": "II/d"
+              },
+              {
+                "label": "III",
+                "value": "III"
+              },
+              {
+                "label": "III/a",
+                "value": "III/a"
+              },
+              {
+                "label": "III/b",
+                "value": "III/b"
+              },
+              {
+                "label": "III/c",
+                "value": "III/c"
+              },
+              {
+                "label": "III/d",
+                "value": "III/d"
+              },
+              {
+                "label": "IV",
+                "value": "IV"
+              },
+              {
+                "label": "IV/a",
+                "value": "IV/a"
+              },
+              {
+                "label": "IV/b",
+                "value": "IV/b"
+              },
+              {
+                "label": "IV/c",
+                "value": "IV/c"
+              },
+              {
+                "label": "IV/d",
+                "value": "IV/d"
+              },
+              {
+                "label": "IX",
+                "value": "IX"
+              },
+              {
+                "label": "Tidak ada",
+                "value": "Tidak ada"
+              },
+              {
+                "label": "V",
+                "value": "V"
+              },
+              {
+                "label": "VI",
+                "value": "VI"
+              },
+              {
+                "label": "VII",
+                "value": "VII"
+              },
+              {
+                "label": "VIII",
+                "value": "VIII"
+              },
+              {
+                "label": "X",
+                "value": "X"
+              },
+              {
+                "label": "XI",
+                "value": "XI"
+              },
+              {
+                "label": "XII",
+                "value": "XII"
+              },
+              {
+                "label": "XIII",
+                "value": "XIII"
+              },
+              {
+                "label": "XIV",
+                "value": "XIV"
+              },
+              {
+                "label": "XV",
+                "value": "XV"
+              },
+              {
+                "label": "XVI",
+                "value": "XVI"
+              },
+              {
+                "label": "XVII",
+                "value": "XVII"
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": "golongan",
+            "lookup_source": "master_golongan",
+            "dependency_config": null,
+            "validasi": {
+              "required": false,
+              "tipe_field": "select",
+              "allow_other_input": true
+            },
+            "urutan": 4,
+            "is_required": false,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:30:40.000000Z",
+            "deskripsi": "Pilih pangkat atau golongan terakhir, jika ada!",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "enabled": false,
+              "min_words": 8,
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"tuliskan pangkat\",\n    \"golongan terakhir\",\n    \"data kepegawaian\",\n    \"kepegawaian terbaru\",\n    \"tuliskan\"\n  ]\n}",
+              "keyword_groups_text": "tuliskan pangkat, golongan terakhir, data kepegawaian, kepegawaian terbaru, tuliskan, pangkat"
+            }
+          },
+          {
+            "id": 371,
+            "assessment_form_id": 134,
+            "label": "Jabatan",
+            "nama_field": "jabatan",
+            "tipe_field": "select",
+            "placeholder": "Pilih jabatan",
+            "bantuan": "Paket ini disusun untuk Guru. Pilih jabatan sesuai penugasan asesmen Anda!",
+            "opsi_field": [
+              {
+                "label": "Guru",
+                "value": "Guru"
+              },
+              {
+                "label": "Kepala Sekolah",
+                "value": "Kepala Sekolah"
+              },
+              {
+                "label": "Pengawas",
+                "value": "Pengawas"
+              }
+            ],
+            "nilai_default": "Guru",
+            "autofill_source": "jabatan",
+            "lookup_source": "master_jabatan_pendidik",
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "select",
+              "allow_other_input": false
+            },
+            "urutan": 5,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:30:49.000000Z",
+            "deskripsi": "Pilih jabatan utama yang sedang dijalankan!",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 372,
+            "assessment_form_id": 134,
+            "label": "Satuan Pendidikan",
+            "nama_field": "satuan_pendidikan",
+            "tipe_field": "select",
+            "placeholder": "Contoh: SMP Negeri 1 Jambi",
+            "bantuan": "Isi nama sekolah atau instansi saat ini!",
+            "opsi_field": [
+              {
+                "label": "Dinas Pendidikan",
+                "value": "Dinas Pendidikan"
+              },
+              {
+                "label": "KB",
+                "value": "KB"
+              },
+              {
+                "label": "Lainnya",
+                "value": "Lainnya"
+              },
+              {
+                "label": "PKBM",
+                "value": "PKBM"
+              },
+              {
+                "label": "SD Negeri",
+                "value": "SD Negeri"
+              },
+              {
+                "label": "SD Swasta",
+                "value": "SD Swasta"
+              },
+              {
+                "label": "SKB",
+                "value": "SKB"
+              },
+              {
+                "label": "SLB",
+                "value": "SLB"
+              },
+              {
+                "label": "SMA Negeri",
+                "value": "SMA Negeri"
+              },
+              {
+                "label": "SMA Swasta",
+                "value": "SMA Swasta"
+              },
+              {
+                "label": "SMK Negeri",
+                "value": "SMK Negeri"
+              },
+              {
+                "label": "SMK Swasta",
+                "value": "SMK Swasta"
+              },
+              {
+                "label": "SMP Negeri",
+                "value": "SMP Negeri"
+              },
+              {
+                "label": "SMP Swasta",
+                "value": "SMP Swasta"
+              },
+              {
+                "label": "SPS",
+                "value": "SPS"
+              },
+              {
+                "label": "TK Negeri",
+                "value": "TK Negeri"
+              },
+              {
+                "label": "TK Swasta",
+                "value": "TK Swasta"
+              },
+              {
+                "label": "TPA",
+                "value": "TPA"
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": "satuan_pendidikan",
+            "lookup_source": "master_satuan_pendidikan",
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "select",
+              "allow_other_input": false
+            },
+            "urutan": 6,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:30:54.000000Z",
+            "deskripsi": "Pilih nama satuan pendidikan tempat bertugas!",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "enabled": false,
+              "min_words": 8,
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"tuliskan nama\",\n    \"nama satuan\",\n    \"satuan pendidikan\",\n    \"pendidikan tempat\",\n    \"tuliskan\"\n  ]\n}",
+              "keyword_groups_text": "tuliskan nama, nama satuan, satuan pendidikan, pendidikan tempat, tuliskan, nama"
+            }
+          },
+          {
+            "id": 373,
+            "assessment_form_id": 134,
+            "label": "Kabupaten/Kota",
+            "nama_field": "kabupaten_kota",
+            "tipe_field": "select",
+            "placeholder": "Contoh: Kota Jambi",
+            "bantuan": "Gunakan nama wilayah secara lengkap!",
+            "opsi_field": [
+              {
+                "label": "Kabupaten Bantaeng",
+                "value": "Kabupaten Bantaeng"
+              },
+              {
+                "label": "Kabupaten Barru",
+                "value": "Kabupaten Barru"
+              },
+              {
+                "label": "Kabupaten Bone",
+                "value": "Kabupaten Bone"
+              },
+              {
+                "label": "Kabupaten Bulukumba",
+                "value": "Kabupaten Bulukumba"
+              },
+              {
+                "label": "Kabupaten Enrekang",
+                "value": "Kabupaten Enrekang"
+              },
+              {
+                "label": "Kabupaten Gowa",
+                "value": "Kabupaten Gowa"
+              },
+              {
+                "label": "Kabupaten Jeneponto",
+                "value": "Kabupaten Jeneponto"
+              },
+              {
+                "label": "Kabupaten Kepulauan Selayar",
+                "value": "Kabupaten Kepulauan Selayar"
+              },
+              {
+                "label": "Kabupaten Luwu",
+                "value": "Kabupaten Luwu"
+              },
+              {
+                "label": "Kabupaten Luwu Timur",
+                "value": "Kabupaten Luwu Timur"
+              },
+              {
+                "label": "Kabupaten Luwu Utara",
+                "value": "Kabupaten Luwu Utara"
+              },
+              {
+                "label": "Kabupaten Maros",
+                "value": "Kabupaten Maros"
+              },
+              {
+                "label": "Kabupaten Pangkep",
+                "value": "Kabupaten Pangkep"
+              },
+              {
+                "label": "Kabupaten Pinrang",
+                "value": "Kabupaten Pinrang"
+              },
+              {
+                "label": "Kabupaten Sidrap",
+                "value": "Kabupaten Sidrap"
+              },
+              {
+                "label": "Kabupaten Sinjai",
+                "value": "Kabupaten Sinjai"
+              },
+              {
+                "label": "Kabupaten Soppeng",
+                "value": "Kabupaten Soppeng"
+              },
+              {
+                "label": "Kabupaten Takalar",
+                "value": "Kabupaten Takalar"
+              },
+              {
+                "label": "Kabupaten Tana Toraja",
+                "value": "Kabupaten Tana Toraja"
+              },
+              {
+                "label": "Kabupaten Toraja Utara",
+                "value": "Kabupaten Toraja Utara"
+              },
+              {
+                "label": "Kabupaten Wajo",
+                "value": "Kabupaten Wajo"
+              },
+              {
+                "label": "Kota Makassar",
+                "value": "Kota Makassar"
+              },
+              {
+                "label": "Kota Palopo",
+                "value": "Kota Palopo"
+              },
+              {
+                "label": "Kota Parepare",
+                "value": "Kota Parepare"
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": "kabupaten",
+            "lookup_source": "master_kabupaten",
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "select",
+              "allow_other_input": false
+            },
+            "urutan": 7,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:30:58.000000Z",
+            "deskripsi": "Pilih kabupaten atau kota lokasi satuan pendidikan!",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "enabled": false,
+              "min_words": 8,
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"tuliskan kabupaten\",\n    \"kota lokasi\",\n    \"lokasi satuan\",\n    \"satuan pendidikan\",\n    \"tuliskan\"\n  ]\n}",
+              "keyword_groups_text": "tuliskan kabupaten, kota lokasi, lokasi satuan, satuan pendidikan, tuliskan, kabupaten"
+            }
+          },
+          {
+            "id": 374,
+            "assessment_form_id": 134,
+            "label": "Lama Bertugas sebagai Guru (Tahun)",
+            "nama_field": "lama_bertugas_sebagai_guru_tahun",
+            "tipe_field": "number",
+            "placeholder": "Contoh: 8",
+            "bantuan": "Isi total lama bertugas sebagai guru dalam tahun!",
+            "opsi_field": null,
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "number",
+              "allow_other_input": false
+            },
+            "urutan": 8,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:31:04.000000Z",
+            "deskripsi": "Masukkan total lama bertugas sebagai guru dalam tahun!",
+            "scoring_config": {
+              "method": "numeric_threshold",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 430,
+            "assessment_form_id": 134,
+            "label": "Unggah SK Guru",
+            "nama_field": "upload_sk_guru",
+            "tipe_field": "file",
+            "placeholder": "",
+            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai guru! Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "opsi_field": {
+              "max_files": 1,
+              "input_mode": "file",
+              "max_size_kb": 5120,
+              "accept": ".pdf,.jpg,.jpeg,.png"
+            },
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "file",
+              "allow_other_input": false
+            },
+            "urutan": 9,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-20T22:13:55.000000Z",
+            "updated_at": "2026-10-06T02:31:13.000000Z",
+            "deskripsi": "SK pengangkatan atau penugasan sebagai guru.",
+            "scoring_config": {
+              "method": "presence",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          }
+        ]
+      },
+      {
+        "id": 135,
+        "assessment_id": 2,
+        "judul_form": "Riwayat Pendidikan Formal",
+        "kode_form": "FORM-PENDIDIKAN",
+        "deskripsi": "Riwayat pendidikan formal guru dengan jenjang S1, S2, atau S3.",
+        "urutan": 2,
+        "is_active": true,
+        "created_at": "2026-07-08T02:53:03.000000Z",
+        "updated_at": "2026-10-11T00:00:00.000000Z",
+        "kompetensi": "profesional",
+        "indikator_kode": "4.1",
+        "indikator_label": "Kualifikasi akademik",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 5,
+          "profile": "portofolio",
+          "advanced_rules_text": "{\n  \"aspect_name\": \"Relevansi riwayat pendidikan formal\",\n  \"rubric_code\": \"P1\",\n  \"form_formula\": \"Level form dihasilkan dari auto scoring field utama, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n  \"scoring_note\": \"Menilai relevansi pendidikan formal dan program studi dengan kebutuhan jabatan.\",\n  \"accepted_evidence\": [\n    \"ijazah\",\n    \"transkrip\",\n    \"bukti studi lanjut\"\n  ],\n  \"competency_target\": \"profesional\"\n}",
+          "exclude_from_competency": true
+        },
+        "fields": [
+          {
+            "id": 375,
+            "assessment_form_id": 135,
+            "label": "Riwayat Pendidikan Formal",
+            "nama_field": "riwayat_pendidikan_formal",
+            "tipe_field": "repeater",
+            "placeholder": "",
+            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3!",
+            "opsi_field": {
+              "columns": [
+                {
+                  "label": "Jenjang",
+                  "nama_field": "jenjang",
+                  "opsi_field": [
+                    "S1",
+                    "S2",
+                    "S3"
+                  ],
+                  "tipe_field": "select",
+                  "is_required": true,
+                  "placeholder": ""
+                },
+                {
+                  "label": "Gelar",
+                  "nama_field": "gelar",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": false,
+                  "placeholder": "Contoh: S.Pd., M.Pd."
+                },
+                {
+                  "label": "Program Studi",
+                  "nama_field": "program_studi",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": false,
+                  "placeholder": "Contoh: Pendidikan Bahasa Indonesia"
+                },
+                {
+                  "label": "Lembaga",
+                  "nama_field": "lembaga",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": true,
+                  "placeholder": "Nama perguruan tinggi/lembaga"
+                },
+                {
+                  "label": "Tahun Perolehan",
+                  "nama_field": "tahun_perolehan",
+                  "opsi_field": [],
+                  "tipe_field": "number",
+                  "is_required": false,
+                  "placeholder": "2020"
+                },
+                {
+                  "label": "Tautan/Link Google Drive",
+                  "nama_field": "tautan_link_google_drive",
+                  "opsi_field": [],
+                  "tipe_field": "url",
+                  "is_required": true,
+                  "placeholder": ""
+                }
+              ],
+              "max_rows": 3,
+              "min_rows": 1
+            },
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "repeater",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-06T02:31:24.000000Z",
+            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3!",
+            "scoring_config": {
+              "method": "repeater_completeness",
+              "weight": 100,
+              "enabled": true,
+              "profile": "portofolio",
+              "min_words": 12,
+              "scale_max": 5,
+              "scale_min": 1,
+              "rubric_code": "P1",
+              "reference_answer": "Riwayat pendidikan menunjukkan relevansi jenjang pendidikan, program studi, lembaga, dan kaitannya dengan jabatan.",
+              "synonym_map_text": "pelatihan: diklat, bimtek, workshop\npenerapan: implementasi, praktik",
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n  \"min_words\": 18,\n  \"target_rows\": 1,\n  \"signal_keywords\": [\n    \"ijazah\",\n    \"lembaga\",\n    \"program studi\",\n    \"penerapan\"\n  ]\n}",
+              "keyword_groups_text": "pendidikan, program, kebutuhan, penerapan"
+            }
+          }
+        ]
+      },
+      {
+        "id": 136,
+        "assessment_id": 2,
+        "judul_form": "Pengalaman Pelatihan",
+        "kode_form": "FORM-PELATIHAN",
+        "deskripsi": "Pengalaman pelatihan yang relevan dengan profesi dalam lima tahun terakhir.",
+        "urutan": 3,
+        "is_active": true,
+        "created_at": "2026-07-08T02:53:03.000000Z",
+        "updated_at": "2026-10-11T00:00:00.000000Z",
+        "kompetensi": "profesional",
+        "indikator_kode": "4.2",
+        "indikator_label": "Pengembangan profesi berkelanjutan",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 5,
+          "profile": "portofolio",
+          "advanced_rules_text": "{\n    \"aspect_name\": \"Relevansi pelatihan dan penerapan\",\n    \"rubric_code\": \"P1\",\n    \"form_formula\": \"Level form dihasilkan dari auto scoring field utama, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n    \"scoring_note\": \"Menilai relevansi pelatihan, bukti penerapan, dan hubungan dengan kebutuhan kelas atau sekolah.\",\n    \"accepted_evidence\": [\n        \"sertifikat pelatihan\",\n        \"agenda\",\n        \"jurnal refleksi\",\n        \"rencana tindak lanjut\",\n        \"bukti penerapan\"\n    ],\n    \"competency_target\": \"profesional\"\n}",
+          "exclude_from_competency": true
+        },
+        "fields": [
+          {
+            "id": 376,
+            "assessment_form_id": 136,
+            "label": "Pengalaman Pelatihan Relevan",
+            "nama_field": "pengalaman_pelatihan_relevan",
+            "tipe_field": "repeater",
+            "placeholder": "",
+            "bantuan": "Tambahkan satu baris untuk setiap pelatihan!",
+            "opsi_field": {
+              "columns": [
+                {
+                  "label": "Nama Pelatihan",
+                  "nama_field": "nama_pelatihan",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": true,
+                  "placeholder": "Nama pelatihan"
+                },
+                {
+                  "label": "Penyelenggara",
+                  "nama_field": "penyelenggara",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": true,
+                  "placeholder": "Nama penyelenggara"
+                },
+                {
+                  "label": "Tahun",
+                  "nama_field": "tahun",
+                  "opsi_field": [],
+                  "tipe_field": "number",
+                  "is_required": true,
+                  "placeholder": "2025"
+                },
+                {
+                  "label": "Durasi (JP)",
+                  "nama_field": "durasi_jp",
+                  "opsi_field": [],
+                  "tipe_field": "number",
+                  "is_required": false,
+                  "placeholder": "32"
+                },
+                {
+                  "label": "Tautan/Link Google Drive",
+                  "nama_field": "tautan_link_google_drive",
+                  "opsi_field": [],
+                  "tipe_field": "url",
+                  "is_required": true,
+                  "placeholder": ""
+                }
+              ],
+              "max_rows": 100,
+              "min_rows": 0
+            },
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": false,
+              "tipe_field": "repeater",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": false,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-11T00:00:00.000000Z",
+            "deskripsi": "Cantumkan pelatihan, workshop, bimtek, seminar, atau program pengembangan profesi dalam lima tahun terakhir!",
+            "scoring_config": {
+              "method": "repeater_completeness",
+              "weight": 100,
+              "enabled": true,
+              "profile": "portofolio",
+              "min_words": 12,
+              "scale_max": 5,
+              "scale_min": 1,
+              "rubric_code": "P1",
+              "reference_answer": "Pelatihan yang dicantumkan relevan dengan kebutuhan kelas atau sekolah, memiliki penyelenggara dan tahun yang jelas, serta menunjukkan dampak penerapan.",
+              "synonym_map_text": "dampak: manfaat, hasil\npelatihan: workshop, seminar, bimtek, diklat",
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n    \"min_words\": 18,\n    \"target_rows\": 1,\n    \"signal_keywords\": [\n        \"pelatihan\",\n        \"penyelenggara\",\n        \"dampak\",\n        \"sertifikat\"\n    ]\n}",
+              "keyword_groups_text": "pelatihan, penyelenggara, tahun, dampak, penerapan"
+            }
+          }
+        ]
+      },
+      {
+        "id": 137,
+        "assessment_id": 2,
+        "judul_form": "Riwayat Pengalaman Mengajar sebagai Guru",
+        "kode_form": "FORM-PENGALAMAN-MENGAJAR",
+        "deskripsi": "Riwayat pengalaman responden dalam menjalankan tugas sebagai guru.",
+        "urutan": 4,
+        "is_active": true,
+        "created_at": "2026-07-08T02:53:03.000000Z",
+        "updated_at": "2026-10-11T00:00:00.000000Z",
+        "kompetensi": "pedagogik",
+        "indikator_kode": "1.2",
+        "indikator_label": "Pengalaman praktik pembelajaran",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 20,
+          "profile": "portofolio",
+          "advanced_rules_text": "{\n    \"aspect_name\": \"Praktik pedagogik berpusat pada peserta didik\",\n    \"rubric_code\": \"P2\",\n    \"form_formula\": \"Level form dihasilkan dari auto scoring field utama, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n    \"scoring_note\": \"Dipakai sebagai sumber skor portofolio pedagogik pada rekap akhir kompetensi.\",\n    \"accepted_evidence\": [\n        \"modul ajar\",\n        \"perangkat asesmen\",\n        \"contoh umpan balik\",\n        \"dokumentasi kegiatan belajar\"\n    ],\n    \"competency_target\": \"pedagogik\"\n}"
+        },
+        "fields": [
+          {
+            "id": 377,
+            "assessment_form_id": 137,
+            "label": "Riwayat Pengalaman Mengajar sebagai Guru",
+            "nama_field": "riwayat_pengalaman_mengajar",
+            "tipe_field": "repeater",
+            "placeholder": "",
+            "bantuan": "Tambahkan satu baris untuk setiap pengalaman mengajar!",
+            "opsi_field": {
+              "columns": [
+                {
+                  "label": "Pengalaman",
+                  "nama_field": "pengalaman",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": true,
+                  "placeholder": "Contoh: Guru Mata Pelajaran IPA"
+                },
+                {
+                  "label": "Lembaga",
+                  "nama_field": "lembaga",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": true,
+                  "placeholder": "Nama sekolah/lembaga"
+                },
+                {
+                  "label": "Tahun",
+                  "nama_field": "tahun",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": true,
+                  "placeholder": "Contoh: 2019–2024"
+                },
+                {
+                  "label": "Tautan/Link Google Drive",
+                  "nama_field": "tautan_link_google_drive",
+                  "opsi_field": [],
+                  "tipe_field": "url",
+                  "is_required": true,
+                  "placeholder": ""
+                }
+              ],
+              "max_rows": 100,
+              "min_rows": 1
+            },
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "repeater",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:03.000000Z",
+            "updated_at": "2026-10-11T00:00:00.000000Z",
+            "deskripsi": "Cantumkan pengalaman mengajar sebagai guru!",
+            "scoring_config": {
+              "method": "repeater_completeness",
+              "weight": 100,
+              "enabled": true,
+              "profile": "portofolio",
+              "min_words": 12,
+              "scale_max": 5,
+              "scale_min": 1,
+              "rubric_code": "P2",
+              "reference_answer": "Pengalaman mengajar menunjukkan praktik pembelajaran aktif, asesmen atau umpan balik, penyesuaian strategi, dan keberpihakan pada kebutuhan peserta didik.",
+              "synonym_map_text": "asesmen: penilaian, evaluasi\npeserta: siswa\numpan balik: feedback",
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n    \"min_words\": 20,\n    \"target_rows\": 1,\n    \"signal_keywords\": [\n        \"pembelajaran aktif\",\n        \"asesmen\",\n        \"umpan balik\",\n        \"partisipasi\"\n    ]\n}",
+              "keyword_groups_text": "pengalaman, strategi, partisipasi, asesmen, kebutuhan"
+            }
+          }
+        ]
+      },
+      {
+        "id": 140,
+        "assessment_id": 2,
+        "judul_form": "Karya/Inovasi/Prestasi/Diseminasi",
+        "kode_form": "FORM-KARYA-INOVASI",
+        "deskripsi": "Kontribusi profesional guru berupa karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi.",
+        "urutan": 7,
+        "is_active": true,
+        "created_at": "2026-07-08T02:53:04.000000Z",
+        "updated_at": "2026-10-11T00:00:00.000000Z",
+        "kompetensi": "profesional",
+        "indikator_kode": "4.5",
+        "indikator_label": "Karya, inovasi, prestasi, dan diseminasi",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 10,
+          "profile": "portofolio",
+          "advanced_rules_text": "{\n    \"aspect_name\": \"Karya, inovasi, praktik baik, prestasi, dan diseminasi\",\n    \"rubric_code\": \"P6\",\n    \"form_formula\": \"Level form dihasilkan dari auto scoring field utama, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n    \"scoring_note\": \"Memperkuat mutu portofolio secara lintas kompetensi, tetapi tidak menjadi sumber langsung skor kompetensi akhir.\",\n    \"accepted_evidence\": [\n        \"naskah\",\n        \"media atau produk\",\n        \"laporan implementasi\",\n        \"data dampak\",\n        \"dokumentasi diseminasi\"\n    ],\n    \"competency_target\": \"profesional\"\n}",
+          "exclude_from_competency": true
+        },
+        "fields": [
+          {
+            "id": 380,
+            "assessment_form_id": 140,
+            "label": "Karya/Artikel/HAKI/Inovasi/Praktik Baik/Prestasi/Diseminasi",
+            "nama_field": "karya_artikel_haki_inovasi_praktik_baik_prestasi_diseminasi",
+            "tipe_field": "repeater",
+            "placeholder": "",
+            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki!",
+            "opsi_field": {
+              "columns": [
+                {
+                  "label": "Jenis Kontribusi",
+                  "nama_field": "jenis_kontribusi",
+                  "opsi_field": [
+                    "Karya",
+                    "Artikel",
+                    "HAKI",
+                    "Inovasi",
+                    "Praktik Baik",
+                    "Prestasi",
+                    "Penghargaan",
+                    "Diseminasi"
+                  ],
+                  "tipe_field": "select",
+                  "is_required": false,
+                  "placeholder": "Pilih jika memiliki kontribusi"
+                },
+                {
+                  "label": "Judul / Nama Kontribusi",
+                  "nama_field": "judul_kontribusi",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": false,
+                  "placeholder": "Judul karya, artikel, inovasi, praktik baik, atau kegiatan"
+                },
+                {
+                  "label": "Deskripsi Singkat",
+                  "nama_field": "deskripsi_singkat",
+                  "opsi_field": [],
+                  "tipe_field": "textarea",
+                  "is_required": false,
+                  "placeholder": "Jelaskan kontribusi dan hasilnya secara singkat"
+                },
+                {
+                  "label": "Tahun",
+                  "nama_field": "tahun",
+                  "opsi_field": [],
+                  "tipe_field": "number",
+                  "is_required": false,
+                  "placeholder": "2026"
+                },
+                {
+                  "label": "Nomor Pendaftaran / Sertifikat HAKI (jika ada)",
+                  "nama_field": "nomor_haki",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": false,
+                  "placeholder": "Isi nomor HAKI jika jenis kontribusinya HAKI"
+                },
+                {
+                  "label": "DOI / ISBN / ISSN (jika ada)",
+                  "nama_field": "identitas_publikasi",
+                  "opsi_field": [],
+                  "tipe_field": "text",
+                  "is_required": false,
+                  "placeholder": "Isi identitas publikasi jika tersedia"
+                },
+                {
+                  "label": "Tautan Bukti / Publikasi",
+                  "nama_field": "tautan_bukti_publikasi",
+                  "opsi_field": [],
+                  "tipe_field": "url",
+                  "is_required": false,
+                  "placeholder": "Tautan dokumen, artikel, atau bukti kontribusi"
+                }
+              ],
+              "max_rows": 100,
+              "min_rows": 0
+            },
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": false,
+              "tipe_field": "repeater",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": false,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:04.000000Z",
+            "updated_at": "2026-10-11T00:00:00.000000Z",
+            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada!",
+            "scoring_config": {
+              "method": "repeater_completeness",
+              "weight": 100,
+              "enabled": true,
+              "profile": "portofolio",
+              "min_words": 13,
+              "scale_max": 5,
+              "scale_min": 1,
+              "rubric_code": "P6",
+              "reference_answer": "Karya, inovasi, prestasi, atau diseminasi terdokumentasi jelas, diterapkan, menunjukkan dampak, dan memiliki potensi replikasi atau berbagi praktik baik.",
+              "synonym_map_text": "replikasi: adaptasi, pengembangan\ndiseminasi: berbagi, publikasi",
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n    \"min_words\": 20,\n    \"target_rows\": 1,\n    \"signal_keywords\": [\n        \"inovasi\",\n        \"dampak\",\n        \"diseminasi\",\n        \"prestasi\"\n    ]\n}",
+              "keyword_groups_text": "karya, praktik baik, prestasi, dampak, diseminasi"
+            }
+          }
+        ]
+      },
+      {
+        "id": 141,
+        "assessment_id": 2,
+        "judul_form": "Refleksi Diri",
+        "kode_form": "FORM-REFLEKSI-DIRI",
+        "deskripsi": "Refleksi diri responden sebagai guru.",
+        "urutan": 8,
+        "is_active": true,
+        "created_at": "2026-07-08T02:53:04.000000Z",
+        "updated_at": "2026-10-11T00:00:00.000000Z",
+        "kompetensi": "kepribadian",
+        "indikator_kode": "2.2",
+        "indikator_label": "Refleksi dan pengembangan diri",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 15,
+          "profile": "portofolio",
+          "advanced_rules_text": "{\n    \"aspect_name\": \"Kepribadian, integritas, regulasi emosi, dan refleksi\",\n    \"rubric_code\": \"P3\",\n    \"form_formula\": \"Level form dihasilkan dari auto scoring field utama, lalu dikonversi ke skala 1-5 sesuai rubrik portofolio.\",\n    \"scoring_note\": \"Dipakai sebagai sumber skor portofolio kepribadian pada rekap akhir kompetensi.\",\n    \"accepted_evidence\": [\n        \"refleksi tertulis\",\n        \"rencana tindakan\",\n        \"catatan evaluasi diri\",\n        \"bukti perubahan praktik\"\n    ],\n    \"competency_target\": \"kepribadian\"\n}"
+        },
+        "fields": [
+          {
+            "id": 381,
+            "assessment_form_id": 141,
+            "label": "Kekuatan dan Area Pengembangan sebagai Guru",
+            "nama_field": "kekuatan_dan_area_pengembangan_diri",
+            "tipe_field": "textarea",
+            "placeholder": "Tuliskan kekuatan, tantangan, dan kebutuhan pengembangan diri Anda.",
+            "bantuan": "",
+            "opsi_field": null,
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "textarea",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-07-08T02:53:04.000000Z",
+            "updated_at": "2026-10-06T02:32:19.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "semantic_similarity",
+              "weight": 100,
+              "enabled": true,
+              "profile": "portofolio",
+              "min_words": 30,
+              "scale_max": 5,
+              "scale_min": 1,
+              "rubric_code": "P3",
+              "reference_answer": "Jawaban reflektif menjelaskan kekuatan, area pengembangan, bukti pengalaman, pertimbangan etik, tujuan pengembangan, dan rencana tindakan yang terukur.",
+              "synonym_map_text": "rencana: target, langkah\nrefleksi: evaluasi diri, renungan\npengembangan: perbaikan, peningkatan",
+              "numeric_direction": "greater_is_better",
+              "advanced_rules_text": "{\n    \"min_words\": 30,\n    \"signal_keywords\": [\n        \"integritas\",\n        \"refleksi\",\n        \"pengembangan\",\n        \"rencana tindakan\"\n    ],\n    \"structure_markers\": {\n        \"analysis\": [\n            \"kekuatan\",\n            \"tantangan\",\n            \"pengalaman\",\n            \"dampak\"\n        ],\n        \"strategy\": [\n            \"tujuan\",\n            \"rencana\",\n            \"langkah\",\n            \"perbaikan\"\n        ],\n        \"evaluation\": [\n            \"indikator\",\n            \"monitoring\",\n            \"refleksi\",\n            \"umpan balik\"\n        ]\n    }\n}",
+              "keyword_groups_text": "kekuatan, area, refleksi, etik, rencana",
+              "confidence_threshold": 0.55
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "included": {
+    "assignment_configs": [
+      {
+        "kode_penugasan": "TGS-ASM-20260915-013815-H70M",
+        "judul_penugasan": "Assessment Guru SIMBBGTK",
+        "is_active": true,
+        "session_enabled": true,
+        "target_ketenagaan": "tenaga_pendidik",
+        "target_jabatan": [
+          "Guru",
+          "GURU HONORER",
+          "Guru Pamong PPG UIN ALAUDDIN MAKASSAR",
+          "GURU PEMBANTU",
+          "Tutor"
+        ],
+        "target_kabupaten": [
+          "BANTUL",
+          "Kabupaten Bantaeng",
+          "Kabupaten Barru",
+          "Kabupaten Bone",
+          "Kabupaten Bulukumba",
+          "Kabupaten Enrekang",
+          "Kabupaten Gowa",
+          "Kabupaten Jeneponto",
+          "Kabupaten Kepulauan Selayar",
+          "Kabupaten Luwu",
+          "Kabupaten Luwu Timur",
+          "Kabupaten Luwu Utara",
+          "Kabupaten Maros",
+          "Kabupaten Pangkep",
+          "Kabupaten Pinrang",
+          "Kabupaten Sidrap",
+          "Kabupaten Sinjai",
+          "Kabupaten Soppeng",
+          "Kabupaten Takalar",
+          "Kabupaten Tana Toraja",
+          "Kabupaten Toraja Utara",
+          "Kabupaten Wajo",
+          "Kota Makassar",
+          "Kota Palopo",
+          "Kota Parepare",
+          "Sinjai"
+        ],
+        "target_satuan_pendidikan": [
+          "BANTUL|||SLB",
+          "Kabupaten Bantaeng|||KB",
+          "Kabupaten Bantaeng|||Lainnya",
+          "Kabupaten Bantaeng|||SD Negeri",
+          "Kabupaten Bantaeng|||SD Swasta",
+          "Kabupaten Bantaeng|||SKB",
+          "Kabupaten Bantaeng|||SLB",
+          "Kabupaten Bantaeng|||SMA Negeri",
+          "Kabupaten Bantaeng|||SMK Negeri",
+          "Kabupaten Bantaeng|||SMK Swasta",
+          "Kabupaten Bantaeng|||SMP Negeri",
+          "Kabupaten Bantaeng|||SMP Swasta",
+          "Kabupaten Bantaeng|||TK Negeri",
+          "Kabupaten Bantaeng|||TK Swasta",
+          "Kabupaten Barru|||Dinas Pendidikan",
+          "Kabupaten Barru|||KB",
+          "Kabupaten Barru|||SD Negeri",
+          "Kabupaten Barru|||SLB",
+          "Kabupaten Barru|||SMA Negeri",
+          "Kabupaten Barru|||SMK Negeri",
+          "Kabupaten Barru|||SMP Negeri",
+          "Kabupaten Barru|||SMP Swasta",
+          "Kabupaten Barru|||SPS",
+          "Kabupaten Barru|||TK Negeri",
+          "Kabupaten Barru|||TK Swasta",
+          "Kabupaten Bone|||Dinas Pendidikan",
+          "Kabupaten Bone|||KB",
+          "Kabupaten Bone|||Lainnya",
+          "Kabupaten Bone|||SD Negeri",
+          "Kabupaten Bone|||SD Swasta",
+          "Kabupaten Bone|||SKB",
+          "Kabupaten Bone|||SMA Negeri",
+          "Kabupaten Bone|||SMA Swasta",
+          "Kabupaten Bone|||SMK Negeri",
+          "Kabupaten Bone|||SMP Negeri",
+          "Kabupaten Bone|||SMP Swasta",
+          "Kabupaten Bone|||TK Negeri",
+          "Kabupaten Bone|||TK Swasta",
+          "Kabupaten Bulukumba|||Dinas Pendidikan",
+          "Kabupaten Bulukumba|||Lainnya",
+          "Kabupaten Bulukumba|||SD Negeri",
+          "Kabupaten Bulukumba|||SD Swasta",
+          "Kabupaten Bulukumba|||SLB",
+          "Kabupaten Bulukumba|||SMA Negeri",
+          "Kabupaten Bulukumba|||SMK Negeri",
+          "Kabupaten Bulukumba|||SMK Swasta",
+          "Kabupaten Bulukumba|||SMP Negeri",
+          "Kabupaten Bulukumba|||TK Negeri",
+          "Kabupaten Bulukumba|||TK Swasta",
+          "Kabupaten Enrekang|||Dinas Pendidikan",
+          "Kabupaten Enrekang|||KB",
+          "Kabupaten Enrekang|||Lainnya",
+          "Kabupaten Enrekang|||SD Negeri",
+          "Kabupaten Enrekang|||SD Swasta",
+          "Kabupaten Enrekang|||SLB",
+          "Kabupaten Enrekang|||SMA Negeri",
+          "Kabupaten Enrekang|||SMA Swasta",
+          "Kabupaten Enrekang|||SMK Negeri",
+          "Kabupaten Enrekang|||SMK Swasta",
+          "Kabupaten Enrekang|||SMP Negeri",
+          "Kabupaten Enrekang|||SMP Swasta",
+          "Kabupaten Enrekang|||TK Negeri",
+          "Kabupaten Enrekang|||TK Swasta",
+          "Kabupaten Gowa|||Dinas Pendidikan",
+          "Kabupaten Gowa|||KB",
+          "Kabupaten Gowa|||SD Negeri",
+          "Kabupaten Gowa|||SD Swasta",
+          "Kabupaten Gowa|||SLB",
+          "Kabupaten Gowa|||SMA Negeri",
+          "Kabupaten Gowa|||SMA Swasta",
+          "Kabupaten Gowa|||SMK Negeri",
+          "Kabupaten Gowa|||SMK Swasta",
+          "Kabupaten Gowa|||SMP Negeri",
+          "Kabupaten Gowa|||SMP Swasta",
+          "Kabupaten Gowa|||SPS",
+          "Kabupaten Gowa|||TK Negeri",
+          "Kabupaten Gowa|||TK Swasta",
+          "Kabupaten Gowa|||TPA",
+          "Kabupaten Jeneponto|||Dinas Pendidikan",
+          "Kabupaten Jeneponto|||KB",
+          "Kabupaten Jeneponto|||Lainnya",
+          "Kabupaten Jeneponto|||SD Negeri",
+          "Kabupaten Jeneponto|||SD Swasta",
+          "Kabupaten Jeneponto|||SLB",
+          "Kabupaten Jeneponto|||SMA Negeri",
+          "Kabupaten Jeneponto|||SMK Negeri",
+          "Kabupaten Jeneponto|||SMP Negeri",
+          "Kabupaten Jeneponto|||SMP Swasta",
+          "Kabupaten Jeneponto|||TK Negeri",
+          "Kabupaten Jeneponto|||TK Swasta",
+          "Kabupaten Kepulauan Selayar|||Dinas Pendidikan",
+          "Kabupaten Kepulauan Selayar|||KB",
+          "Kabupaten Kepulauan Selayar|||Lainnya",
+          "Kabupaten Kepulauan Selayar|||SD Negeri",
+          "Kabupaten Kepulauan Selayar|||SD Swasta",
+          "Kabupaten Kepulauan Selayar|||SMA Negeri",
+          "Kabupaten Kepulauan Selayar|||SMA Swasta",
+          "Kabupaten Kepulauan Selayar|||SMK Negeri",
+          "Kabupaten Kepulauan Selayar|||SMP Negeri",
+          "Kabupaten Kepulauan Selayar|||SMP Swasta",
+          "Kabupaten Kepulauan Selayar|||TK Negeri",
+          "Kabupaten Kepulauan Selayar|||TK Swasta",
+          "Kabupaten Luwu|||Dinas Pendidikan",
+          "Kabupaten Luwu|||Lainnya",
+          "Kabupaten Luwu|||SD Negeri",
+          "Kabupaten Luwu|||SD Swasta",
+          "Kabupaten Luwu|||SMA Negeri",
+          "Kabupaten Luwu|||SMK Negeri",
+          "Kabupaten Luwu|||SMK Swasta",
+          "Kabupaten Luwu|||SMP Negeri",
+          "Kabupaten Luwu|||SMP Swasta",
+          "Kabupaten Luwu|||SPS",
+          "Kabupaten Luwu|||TK Negeri",
+          "Kabupaten Luwu Timur|||SD Negeri",
+          "Kabupaten Luwu Timur|||SD Swasta",
+          "Kabupaten Luwu Timur|||SLB",
+          "Kabupaten Luwu Timur|||SMA Negeri",
+          "Kabupaten Luwu Timur|||SMA Swasta",
+          "Kabupaten Luwu Timur|||SMK Negeri",
+          "Kabupaten Luwu Timur|||SMP Negeri",
+          "Kabupaten Luwu Timur|||SMP Swasta",
+          "Kabupaten Luwu Timur|||TK Negeri",
+          "Kabupaten Luwu Timur|||TK Swasta",
+          "Kabupaten Luwu Utara|||Dinas Pendidikan",
+          "Kabupaten Luwu Utara|||SD Negeri",
+          "Kabupaten Luwu Utara|||SMA Negeri",
+          "Kabupaten Luwu Utara|||SMK Negeri",
+          "Kabupaten Luwu Utara|||SMP Negeri",
+          "Kabupaten Luwu Utara|||TK Negeri",
+          "Kabupaten Luwu Utara|||TK Swasta",
+          "Kabupaten Maros|||Dinas Pendidikan",
+          "Kabupaten Maros|||KB",
+          "Kabupaten Maros|||SD Negeri",
+          "Kabupaten Maros|||SD Swasta",
+          "Kabupaten Maros|||SLB",
+          "Kabupaten Maros|||SMA Negeri",
+          "Kabupaten Maros|||SMA Swasta",
+          "Kabupaten Maros|||SMK Negeri",
+          "Kabupaten Maros|||SMP Negeri",
+          "Kabupaten Maros|||SMP Swasta",
+          "Kabupaten Maros|||TK Negeri",
+          "Kabupaten Maros|||TK Swasta",
+          "Kabupaten Pangkep|||Dinas Pendidikan",
+          "Kabupaten Pangkep|||KB",
+          "Kabupaten Pangkep|||Lainnya",
+          "Kabupaten Pangkep|||SD Negeri",
+          "Kabupaten Pangkep|||SD Swasta",
+          "Kabupaten Pangkep|||SKB",
+          "Kabupaten Pangkep|||SLB",
+          "Kabupaten Pangkep|||SMA Negeri",
+          "Kabupaten Pangkep|||SMA Swasta",
+          "Kabupaten Pangkep|||SMK Negeri",
+          "Kabupaten Pangkep|||SMK Swasta",
+          "Kabupaten Pangkep|||SMP Negeri",
+          "Kabupaten Pangkep|||SMP Swasta",
+          "Kabupaten Pangkep|||TK Negeri",
+          "Kabupaten Pangkep|||TK Swasta",
+          "Kabupaten Pinrang|||SD Negeri",
+          "Kabupaten Pinrang|||SD Swasta",
+          "Kabupaten Pinrang|||SMA Negeri",
+          "Kabupaten Pinrang|||SMK Negeri",
+          "Kabupaten Pinrang|||SMK Swasta",
+          "Kabupaten Pinrang|||SMP Negeri",
+          "Kabupaten Pinrang|||SMP Swasta",
+          "Kabupaten Pinrang|||SPS",
+          "Kabupaten Pinrang|||TK Negeri",
+          "Kabupaten Pinrang|||TK Swasta",
+          "Kabupaten Sidrap|||Dinas Pendidikan",
+          "Kabupaten Sidrap|||KB",
+          "Kabupaten Sidrap|||SD Negeri",
+          "Kabupaten Sidrap|||SD Swasta",
+          "Kabupaten Sidrap|||SMA Negeri",
+          "Kabupaten Sidrap|||SMA Swasta",
+          "Kabupaten Sidrap|||SMK Negeri",
+          "Kabupaten Sidrap|||SMP Negeri",
+          "Kabupaten Sidrap|||SMP Swasta",
+          "Kabupaten Sidrap|||SPS",
+          "Kabupaten Sidrap|||TK Negeri",
+          "Kabupaten Sidrap|||TK Swasta",
+          "Kabupaten Sinjai|||Dinas Pendidikan",
+          "Kabupaten Sinjai|||KB",
+          "Kabupaten Sinjai|||Lainnya",
+          "Kabupaten Sinjai|||PKBM",
+          "Kabupaten Sinjai|||SD Negeri",
+          "Kabupaten Sinjai|||SD Swasta",
+          "Kabupaten Sinjai|||SLB",
+          "Kabupaten Sinjai|||SMA Negeri",
+          "Kabupaten Sinjai|||SMA Swasta",
+          "Kabupaten Sinjai|||SMK Negeri",
+          "Kabupaten Sinjai|||SMP Negeri",
+          "Kabupaten Sinjai|||TK Negeri",
+          "Kabupaten Sinjai|||TK Swasta",
+          "Kabupaten Soppeng|||Dinas Pendidikan",
+          "Kabupaten Soppeng|||KB",
+          "Kabupaten Soppeng|||Lainnya",
+          "Kabupaten Soppeng|||SD Negeri",
+          "Kabupaten Soppeng|||SD Swasta",
+          "Kabupaten Soppeng|||SKB",
+          "Kabupaten Soppeng|||SLB",
+          "Kabupaten Soppeng|||SMA Negeri",
+          "Kabupaten Soppeng|||SMA Swasta",
+          "Kabupaten Soppeng|||SMK Negeri",
+          "Kabupaten Soppeng|||SMK Swasta",
+          "Kabupaten Soppeng|||SMP Negeri",
+          "Kabupaten Soppeng|||SMP Swasta",
+          "Kabupaten Soppeng|||SPS",
+          "Kabupaten Soppeng|||TK Negeri",
+          "Kabupaten Soppeng|||TK Swasta",
+          "Kabupaten Soppeng|||TPA",
+          "Kabupaten Takalar|||Dinas Pendidikan",
+          "Kabupaten Takalar|||KB",
+          "Kabupaten Takalar|||SD Negeri",
+          "Kabupaten Takalar|||SD Swasta",
+          "Kabupaten Takalar|||SKB",
+          "Kabupaten Takalar|||SMA Negeri",
+          "Kabupaten Takalar|||SMK Negeri",
+          "Kabupaten Takalar|||SMK Swasta",
+          "Kabupaten Takalar|||SMP Negeri",
+          "Kabupaten Takalar|||SMP Swasta",
+          "Kabupaten Takalar|||TK Negeri",
+          "Kabupaten Takalar|||TK Swasta",
+          "Kabupaten Tana Toraja|||Dinas Pendidikan",
+          "Kabupaten Tana Toraja|||Lainnya",
+          "Kabupaten Tana Toraja|||SD Negeri",
+          "Kabupaten Tana Toraja|||SLB",
+          "Kabupaten Tana Toraja|||SMA Negeri",
+          "Kabupaten Tana Toraja|||SMA Swasta",
+          "Kabupaten Tana Toraja|||SMK Negeri",
+          "Kabupaten Tana Toraja|||SMK Swasta",
+          "Kabupaten Tana Toraja|||SMP Negeri",
+          "Kabupaten Tana Toraja|||SMP Swasta",
+          "Kabupaten Tana Toraja|||TK Negeri",
+          "Kabupaten Tana Toraja|||TK Swasta",
+          "Kabupaten Toraja Utara|||SD Negeri",
+          "Kabupaten Toraja Utara|||SD Swasta",
+          "Kabupaten Toraja Utara|||SMA Negeri",
+          "Kabupaten Toraja Utara|||SMA Swasta",
+          "Kabupaten Toraja Utara|||SMK Negeri",
+          "Kabupaten Toraja Utara|||SMK Swasta",
+          "Kabupaten Toraja Utara|||SMP Negeri",
+          "Kabupaten Toraja Utara|||TK Negeri",
+          "Kabupaten Toraja Utara|||TK Swasta",
+          "Kabupaten Wajo|||Dinas Pendidikan",
+          "Kabupaten Wajo|||KB",
+          "Kabupaten Wajo|||Lainnya",
+          "Kabupaten Wajo|||SD Negeri",
+          "Kabupaten Wajo|||SD Swasta",
+          "Kabupaten Wajo|||SLB",
+          "Kabupaten Wajo|||SMA Negeri",
+          "Kabupaten Wajo|||SMK Negeri",
+          "Kabupaten Wajo|||SMP Negeri",
+          "Kabupaten Wajo|||SMP Swasta",
+          "Kabupaten Wajo|||SPS",
+          "Kabupaten Wajo|||TK Negeri",
+          "Kabupaten Wajo|||TK Swasta",
+          "Kota Makassar|||Dinas Pendidikan",
+          "Kota Makassar|||KB",
+          "Kota Makassar|||Lainnya",
+          "Kota Makassar|||PKBM",
+          "Kota Makassar|||SD Negeri",
+          "Kota Makassar|||SD Swasta",
+          "Kota Makassar|||SKB",
+          "Kota Makassar|||SLB",
+          "Kota Makassar|||SMA Negeri",
+          "Kota Makassar|||SMA Swasta",
+          "Kota Makassar|||SMK Negeri",
+          "Kota Makassar|||SMK Swasta",
+          "Kota Makassar|||SMP Negeri",
+          "Kota Makassar|||SMP Swasta",
+          "Kota Makassar|||TK Negeri",
+          "Kota Makassar|||TK Swasta",
+          "Kota Palopo|||Dinas Pendidikan",
+          "Kota Palopo|||Lainnya",
+          "Kota Palopo|||SD Negeri",
+          "Kota Palopo|||SD Swasta",
+          "Kota Palopo|||SLB",
+          "Kota Palopo|||SMA Negeri",
+          "Kota Palopo|||SMA Swasta",
+          "Kota Palopo|||SMK Negeri",
+          "Kota Palopo|||SMK Swasta",
+          "Kota Palopo|||SMP Negeri",
+          "Kota Palopo|||SMP Swasta",
+          "Kota Palopo|||TK Negeri",
+          "Kota Parepare|||Dinas Pendidikan",
+          "Kota Parepare|||SD Negeri",
+          "Kota Parepare|||SD Swasta",
+          "Kota Parepare|||SMA Negeri",
+          "Kota Parepare|||SMK Negeri",
+          "Kota Parepare|||SMK Swasta",
+          "Kota Parepare|||SMP Negeri",
+          "Kota Parepare|||TK Negeri",
+          "Kota Parepare|||TK Swasta",
+          "Sinjai|||SD Negeri"
+        ],
+        "deskripsi": null,
+        "tanggal_mulai": null,
+        "tanggal_selesai": null,
+        "status_distribusi": "selesai",
+        "kapasitas_per_sesi": 41,
+        "durasi_sesi_jam": 3,
+        "security_config": {
+          "enabled": true,
+          "require_fullscreen": true,
+          "max_serious_violations": 3,
+          "temporary_lock_seconds": 2,
+          "fullscreen_grace_seconds": 10
+        },
+        "jam_mulai": null,
+        "assessments": [
+          {
+            "kode_assessment": "ASM-PORTOFOLIO-001",
+            "urutan": 1,
+            "stage_config": {
+              "enabled": true,
+              "security": {
+                "enabled": false,
+                "require_fullscreen": false,
+                "max_serious_violations": 3,
+                "temporary_lock_seconds": 2,
+                "fullscreen_grace_seconds": 10
+              },
+              "entry_mode": "direct",
+              "allow_draft": true,
+              "finalize_mode": "manual",
+              "admin_gate_enabled": false,
+              "time_limit_minutes": null,
+              "lock_until_previous_stages_completed": false
+            }
+          }
+        ],
+        "sessions": [
+          {
+            "nomor_sesi": 1,
+            "label_sesi": "Sesi 1",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 2,
+            "label_sesi": "Sesi 2",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 3,
+            "label_sesi": "Sesi 3",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 4,
+            "label_sesi": "Sesi 4",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 5,
+            "label_sesi": "Sesi 5",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 6,
+            "label_sesi": "Sesi 6",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 7,
+            "label_sesi": "Sesi 7",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 8,
+            "label_sesi": "Sesi 8",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 9,
+            "label_sesi": "Sesi 9",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 10,
+            "label_sesi": "Sesi 10",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 11,
+            "label_sesi": "Sesi 11",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 12,
+            "label_sesi": "Sesi 12",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 13,
+            "label_sesi": "Sesi 13",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 14,
+            "label_sesi": "Sesi 14",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 15,
+            "label_sesi": "Sesi 15",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 16,
+            "label_sesi": "Sesi 16",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 17,
+            "label_sesi": "Sesi 17",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 18,
+            "label_sesi": "Sesi 18",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 19,
+            "label_sesi": "Sesi 19",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 20,
+            "label_sesi": "Sesi 20",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 21,
+            "label_sesi": "Sesi 21",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 22,
+            "label_sesi": "Sesi 22",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 23,
+            "label_sesi": "Sesi 23",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 24,
+            "label_sesi": "Sesi 24",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 25,
+            "label_sesi": "Sesi 25",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 26,
+            "label_sesi": "Sesi 26",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 27,
+            "label_sesi": "Sesi 27",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 28,
+            "label_sesi": "Sesi 28",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 29,
+            "label_sesi": "Sesi 29",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 30,
+            "label_sesi": "Sesi 30",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 31,
+            "label_sesi": "Sesi 31",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 32,
+            "label_sesi": "Sesi 32",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 33,
+            "label_sesi": "Sesi 33",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 34,
+            "label_sesi": "Sesi 34",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 35,
+            "label_sesi": "Sesi 35",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 36,
+            "label_sesi": "Sesi 36",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 37,
+            "label_sesi": "Sesi 37",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 38,
+            "label_sesi": "Sesi 38",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 39,
+            "label_sesi": "Sesi 39",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 40,
+            "label_sesi": "Sesi 40",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 41,
+            "label_sesi": "Sesi 41",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 42,
+            "label_sesi": "Sesi 42",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 43,
+            "label_sesi": "Sesi 43",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 44,
+            "label_sesi": "Sesi 44",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 45,
+            "label_sesi": "Sesi 45",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 46,
+            "label_sesi": "Sesi 46",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 47,
+            "label_sesi": "Sesi 47",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 48,
+            "label_sesi": "Sesi 48",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 49,
+            "label_sesi": "Sesi 49",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 50,
+            "label_sesi": "Sesi 50",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 51,
+            "label_sesi": "Sesi 51",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 52,
+            "label_sesi": "Sesi 52",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 53,
+            "label_sesi": "Sesi 53",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 54,
+            "label_sesi": "Sesi 54",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 55,
+            "label_sesi": "Sesi 55",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 56,
+            "label_sesi": "Sesi 56",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 57,
+            "label_sesi": "Sesi 57",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 58,
+            "label_sesi": "Sesi 58",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 59,
+            "label_sesi": "Sesi 59",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 60,
+            "label_sesi": "Sesi 60",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 61,
+            "label_sesi": "Sesi 61",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 62,
+            "label_sesi": "Sesi 62",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 63,
+            "label_sesi": "Sesi 63",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 64,
+            "label_sesi": "Sesi 64",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 65,
+            "label_sesi": "Sesi 65",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 66,
+            "label_sesi": "Sesi 66",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 67,
+            "label_sesi": "Sesi 67",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 68,
+            "label_sesi": "Sesi 68",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 69,
+            "label_sesi": "Sesi 69",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 70,
+            "label_sesi": "Sesi 70",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 71,
+            "label_sesi": "Sesi 71",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 72,
+            "label_sesi": "Sesi 72",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 73,
+            "label_sesi": "Sesi 73",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 74,
+            "label_sesi": "Sesi 74",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 75,
+            "label_sesi": "Sesi 75",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 76,
+            "label_sesi": "Sesi 76",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 77,
+            "label_sesi": "Sesi 77",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 78,
+            "label_sesi": "Sesi 78",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 79,
+            "label_sesi": "Sesi 79",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 80,
+            "label_sesi": "Sesi 80",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 81,
+            "label_sesi": "Sesi 81",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 82,
+            "label_sesi": "Sesi 82",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 83,
+            "label_sesi": "Sesi 83",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 84,
+            "label_sesi": "Sesi 84",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 85,
+            "label_sesi": "Sesi 85",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 86,
+            "label_sesi": "Sesi 86",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 87,
+            "label_sesi": "Sesi 87",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 88,
+            "label_sesi": "Sesi 88",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 89,
+            "label_sesi": "Sesi 89",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 90,
+            "label_sesi": "Sesi 90",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 91,
+            "label_sesi": "Sesi 91",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 92,
+            "label_sesi": "Sesi 92",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 93,
+            "label_sesi": "Sesi 93",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 94,
+            "label_sesi": "Sesi 94",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 95,
+            "label_sesi": "Sesi 95",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 96,
+            "label_sesi": "Sesi 96",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 97,
+            "label_sesi": "Sesi 97",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 98,
+            "label_sesi": "Sesi 98",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 99,
+            "label_sesi": "Sesi 99",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 100,
+            "label_sesi": "Sesi 100",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 101,
+            "label_sesi": "Sesi 101",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 102,
+            "label_sesi": "Sesi 102",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 103,
+            "label_sesi": "Sesi 103",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 104,
+            "label_sesi": "Sesi 104",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 105,
+            "label_sesi": "Sesi 105",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 106,
+            "label_sesi": "Sesi 106",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 107,
+            "label_sesi": "Sesi 107",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 108,
+            "label_sesi": "Sesi 108",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 109,
+            "label_sesi": "Sesi 109",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 110,
+            "label_sesi": "Sesi 110",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 111,
+            "label_sesi": "Sesi 111",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 112,
+            "label_sesi": "Sesi 112",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 113,
+            "label_sesi": "Sesi 113",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 114,
+            "label_sesi": "Sesi 114",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 115,
+            "label_sesi": "Sesi 115",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 116,
+            "label_sesi": "Sesi 116",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 117,
+            "label_sesi": "Sesi 117",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 118,
+            "label_sesi": "Sesi 118",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 119,
+            "label_sesi": "Sesi 119",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 120,
+            "label_sesi": "Sesi 120",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 121,
+            "label_sesi": "Sesi 121",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 122,
+            "label_sesi": "Sesi 122",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 123,
+            "label_sesi": "Sesi 123",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 124,
+            "label_sesi": "Sesi 124",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 125,
+            "label_sesi": "Sesi 125",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 126,
+            "label_sesi": "Sesi 126",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 127,
+            "label_sesi": "Sesi 127",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 128,
+            "label_sesi": "Sesi 128",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 129,
+            "label_sesi": "Sesi 129",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 130,
+            "label_sesi": "Sesi 130",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 131,
+            "label_sesi": "Sesi 131",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 132,
+            "label_sesi": "Sesi 132",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 133,
+            "label_sesi": "Sesi 133",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 134,
+            "label_sesi": "Sesi 134",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 135,
+            "label_sesi": "Sesi 135",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 136,
+            "label_sesi": "Sesi 136",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 137,
+            "label_sesi": "Sesi 137",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 138,
+            "label_sesi": "Sesi 138",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 139,
+            "label_sesi": "Sesi 139",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 140,
+            "label_sesi": "Sesi 140",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 141,
+            "label_sesi": "Sesi 141",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 142,
+            "label_sesi": "Sesi 142",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 143,
+            "label_sesi": "Sesi 143",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 144,
+            "label_sesi": "Sesi 144",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 145,
+            "label_sesi": "Sesi 145",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 146,
+            "label_sesi": "Sesi 146",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 147,
+            "label_sesi": "Sesi 147",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 148,
+            "label_sesi": "Sesi 148",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 149,
+            "label_sesi": "Sesi 149",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 150,
+            "label_sesi": "Sesi 150",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 151,
+            "label_sesi": "Sesi 151",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 152,
+            "label_sesi": "Sesi 152",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 153,
+            "label_sesi": "Sesi 153",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 154,
+            "label_sesi": "Sesi 154",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 155,
+            "label_sesi": "Sesi 155",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 156,
+            "label_sesi": "Sesi 156",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 157,
+            "label_sesi": "Sesi 157",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 158,
+            "label_sesi": "Sesi 158",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 159,
+            "label_sesi": "Sesi 159",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 160,
+            "label_sesi": "Sesi 160",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 161,
+            "label_sesi": "Sesi 161",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 162,
+            "label_sesi": "Sesi 162",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 163,
+            "label_sesi": "Sesi 163",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 164,
+            "label_sesi": "Sesi 164",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 165,
+            "label_sesi": "Sesi 165",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 166,
+            "label_sesi": "Sesi 166",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 167,
+            "label_sesi": "Sesi 167",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 168,
+            "label_sesi": "Sesi 168",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 169,
+            "label_sesi": "Sesi 169",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 170,
+            "label_sesi": "Sesi 170",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 171,
+            "label_sesi": "Sesi 171",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 172,
+            "label_sesi": "Sesi 172",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 173,
+            "label_sesi": "Sesi 173",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 174,
+            "label_sesi": "Sesi 174",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 175,
+            "label_sesi": "Sesi 175",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 176,
+            "label_sesi": "Sesi 176",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 177,
+            "label_sesi": "Sesi 177",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 178,
+            "label_sesi": "Sesi 178",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 179,
+            "label_sesi": "Sesi 179",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 180,
+            "label_sesi": "Sesi 180",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 181,
+            "label_sesi": "Sesi 181",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 182,
+            "label_sesi": "Sesi 182",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 183,
+            "label_sesi": "Sesi 183",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 184,
+            "label_sesi": "Sesi 184",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 185,
+            "label_sesi": "Sesi 185",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 186,
+            "label_sesi": "Sesi 186",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 187,
+            "label_sesi": "Sesi 187",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 188,
+            "label_sesi": "Sesi 188",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 189,
+            "label_sesi": "Sesi 189",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 190,
+            "label_sesi": "Sesi 190",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 191,
+            "label_sesi": "Sesi 191",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 192,
+            "label_sesi": "Sesi 192",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 193,
+            "label_sesi": "Sesi 193",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 194,
+            "label_sesi": "Sesi 194",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 195,
+            "label_sesi": "Sesi 195",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 196,
+            "label_sesi": "Sesi 196",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 197,
+            "label_sesi": "Sesi 197",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 198,
+            "label_sesi": "Sesi 198",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 199,
+            "label_sesi": "Sesi 199",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 200,
+            "label_sesi": "Sesi 200",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 201,
+            "label_sesi": "Sesi 201",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 202,
+            "label_sesi": "Sesi 202",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 203,
+            "label_sesi": "Sesi 203",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 204,
+            "label_sesi": "Sesi 204",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 205,
+            "label_sesi": "Sesi 205",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 206,
+            "label_sesi": "Sesi 206",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 207,
+            "label_sesi": "Sesi 207",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 208,
+            "label_sesi": "Sesi 208",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 209,
+            "label_sesi": "Sesi 209",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 210,
+            "label_sesi": "Sesi 210",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 211,
+            "label_sesi": "Sesi 211",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 212,
+            "label_sesi": "Sesi 212",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 213,
+            "label_sesi": "Sesi 213",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 214,
+            "label_sesi": "Sesi 214",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 215,
+            "label_sesi": "Sesi 215",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 216,
+            "label_sesi": "Sesi 216",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 217,
+            "label_sesi": "Sesi 217",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 218,
+            "label_sesi": "Sesi 218",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 219,
+            "label_sesi": "Sesi 219",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 220,
+            "label_sesi": "Sesi 220",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 221,
+            "label_sesi": "Sesi 221",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 222,
+            "label_sesi": "Sesi 222",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 223,
+            "label_sesi": "Sesi 223",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 224,
+            "label_sesi": "Sesi 224",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 225,
+            "label_sesi": "Sesi 225",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 226,
+            "label_sesi": "Sesi 226",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 227,
+            "label_sesi": "Sesi 227",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 228,
+            "label_sesi": "Sesi 228",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 229,
+            "label_sesi": "Sesi 229",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 230,
+            "label_sesi": "Sesi 230",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 231,
+            "label_sesi": "Sesi 231",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 232,
+            "label_sesi": "Sesi 232",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 233,
+            "label_sesi": "Sesi 233",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 234,
+            "label_sesi": "Sesi 234",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 235,
+            "label_sesi": "Sesi 235",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 236,
+            "label_sesi": "Sesi 236",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 237,
+            "label_sesi": "Sesi 237",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 238,
+            "label_sesi": "Sesi 238",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 239,
+            "label_sesi": "Sesi 239",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 240,
+            "label_sesi": "Sesi 240",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 241,
+            "label_sesi": "Sesi 241",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 242,
+            "label_sesi": "Sesi 242",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 243,
+            "label_sesi": "Sesi 243",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 244,
+            "label_sesi": "Sesi 244",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 245,
+            "label_sesi": "Sesi 245",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 246,
+            "label_sesi": "Sesi 246",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 247,
+            "label_sesi": "Sesi 247",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 248,
+            "label_sesi": "Sesi 248",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 249,
+            "label_sesi": "Sesi 249",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 250,
+            "label_sesi": "Sesi 250",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 251,
+            "label_sesi": "Sesi 251",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 252,
+            "label_sesi": "Sesi 252",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 253,
+            "label_sesi": "Sesi 253",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 254,
+            "label_sesi": "Sesi 254",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 255,
+            "label_sesi": "Sesi 255",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 256,
+            "label_sesi": "Sesi 256",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 257,
+            "label_sesi": "Sesi 257",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 258,
+            "label_sesi": "Sesi 258",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 259,
+            "label_sesi": "Sesi 259",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 260,
+            "label_sesi": "Sesi 260",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 261,
+            "label_sesi": "Sesi 261",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 262,
+            "label_sesi": "Sesi 262",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 263,
+            "label_sesi": "Sesi 263",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 264,
+            "label_sesi": "Sesi 264",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 265,
+            "label_sesi": "Sesi 265",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 266,
+            "label_sesi": "Sesi 266",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 267,
+            "label_sesi": "Sesi 267",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 268,
+            "label_sesi": "Sesi 268",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 269,
+            "label_sesi": "Sesi 269",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 270,
+            "label_sesi": "Sesi 270",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 271,
+            "label_sesi": "Sesi 271",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 272,
+            "label_sesi": "Sesi 272",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 273,
+            "label_sesi": "Sesi 273",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 274,
+            "label_sesi": "Sesi 274",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 275,
+            "label_sesi": "Sesi 275",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 276,
+            "label_sesi": "Sesi 276",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 277,
+            "label_sesi": "Sesi 277",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 278,
+            "label_sesi": "Sesi 278",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 279,
+            "label_sesi": "Sesi 279",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 280,
+            "label_sesi": "Sesi 280",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 281,
+            "label_sesi": "Sesi 281",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 282,
+            "label_sesi": "Sesi 282",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 283,
+            "label_sesi": "Sesi 283",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 284,
+            "label_sesi": "Sesi 284",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 285,
+            "label_sesi": "Sesi 285",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 286,
+            "label_sesi": "Sesi 286",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 287,
+            "label_sesi": "Sesi 287",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 288,
+            "label_sesi": "Sesi 288",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 289,
+            "label_sesi": "Sesi 289",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 290,
+            "label_sesi": "Sesi 290",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 291,
+            "label_sesi": "Sesi 291",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 292,
+            "label_sesi": "Sesi 292",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 293,
+            "label_sesi": "Sesi 293",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 294,
+            "label_sesi": "Sesi 294",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 295,
+            "label_sesi": "Sesi 295",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 296,
+            "label_sesi": "Sesi 296",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 297,
+            "label_sesi": "Sesi 297",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 298,
+            "label_sesi": "Sesi 298",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 299,
+            "label_sesi": "Sesi 299",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 300,
+            "label_sesi": "Sesi 300",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 301,
+            "label_sesi": "Sesi 301",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 302,
+            "label_sesi": "Sesi 302",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 303,
+            "label_sesi": "Sesi 303",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 304,
+            "label_sesi": "Sesi 304",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 305,
+            "label_sesi": "Sesi 305",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 306,
+            "label_sesi": "Sesi 306",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 307,
+            "label_sesi": "Sesi 307",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 308,
+            "label_sesi": "Sesi 308",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 309,
+            "label_sesi": "Sesi 309",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 310,
+            "label_sesi": "Sesi 310",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 311,
+            "label_sesi": "Sesi 311",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 312,
+            "label_sesi": "Sesi 312",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 313,
+            "label_sesi": "Sesi 313",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 314,
+            "label_sesi": "Sesi 314",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 315,
+            "label_sesi": "Sesi 315",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 316,
+            "label_sesi": "Sesi 316",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 317,
+            "label_sesi": "Sesi 317",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 318,
+            "label_sesi": "Sesi 318",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 319,
+            "label_sesi": "Sesi 319",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 320,
+            "label_sesi": "Sesi 320",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 321,
+            "label_sesi": "Sesi 321",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 322,
+            "label_sesi": "Sesi 322",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 323,
+            "label_sesi": "Sesi 323",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 324,
+            "label_sesi": "Sesi 324",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 325,
+            "label_sesi": "Sesi 325",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 326,
+            "label_sesi": "Sesi 326",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 327,
+            "label_sesi": "Sesi 327",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 328,
+            "label_sesi": "Sesi 328",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 329,
+            "label_sesi": "Sesi 329",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 330,
+            "label_sesi": "Sesi 330",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 331,
+            "label_sesi": "Sesi 331",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 332,
+            "label_sesi": "Sesi 332",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 333,
+            "label_sesi": "Sesi 333",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 334,
+            "label_sesi": "Sesi 334",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 335,
+            "label_sesi": "Sesi 335",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 336,
+            "label_sesi": "Sesi 336",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 337,
+            "label_sesi": "Sesi 337",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 338,
+            "label_sesi": "Sesi 338",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 339,
+            "label_sesi": "Sesi 339",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 340,
+            "label_sesi": "Sesi 340",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 341,
+            "label_sesi": "Sesi 341",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 342,
+            "label_sesi": "Sesi 342",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 343,
+            "label_sesi": "Sesi 343",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 344,
+            "label_sesi": "Sesi 344",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 345,
+            "label_sesi": "Sesi 345",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 346,
+            "label_sesi": "Sesi 346",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 347,
+            "label_sesi": "Sesi 347",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 348,
+            "label_sesi": "Sesi 348",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 349,
+            "label_sesi": "Sesi 349",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 350,
+            "label_sesi": "Sesi 350",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 351,
+            "label_sesi": "Sesi 351",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 352,
+            "label_sesi": "Sesi 352",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 353,
+            "label_sesi": "Sesi 353",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 354,
+            "label_sesi": "Sesi 354",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 355,
+            "label_sesi": "Sesi 355",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 356,
+            "label_sesi": "Sesi 356",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 357,
+            "label_sesi": "Sesi 357",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 358,
+            "label_sesi": "Sesi 358",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 359,
+            "label_sesi": "Sesi 359",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 360,
+            "label_sesi": "Sesi 360",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 361,
+            "label_sesi": "Sesi 361",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 362,
+            "label_sesi": "Sesi 362",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 363,
+            "label_sesi": "Sesi 363",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 364,
+            "label_sesi": "Sesi 364",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 365,
+            "label_sesi": "Sesi 365",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 366,
+            "label_sesi": "Sesi 366",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 367,
+            "label_sesi": "Sesi 367",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 368,
+            "label_sesi": "Sesi 368",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 369,
+            "label_sesi": "Sesi 369",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 370,
+            "label_sesi": "Sesi 370",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 371,
+            "label_sesi": "Sesi 371",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 372,
+            "label_sesi": "Sesi 372",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 373,
+            "label_sesi": "Sesi 373",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 374,
+            "label_sesi": "Sesi 374",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 375,
+            "label_sesi": "Sesi 375",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 376,
+            "label_sesi": "Sesi 376",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 377,
+            "label_sesi": "Sesi 377",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 378,
+            "label_sesi": "Sesi 378",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 379,
+            "label_sesi": "Sesi 379",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 380,
+            "label_sesi": "Sesi 380",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 381,
+            "label_sesi": "Sesi 381",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 382,
+            "label_sesi": "Sesi 382",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 383,
+            "label_sesi": "Sesi 383",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 384,
+            "label_sesi": "Sesi 384",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 385,
+            "label_sesi": "Sesi 385",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 386,
+            "label_sesi": "Sesi 386",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 387,
+            "label_sesi": "Sesi 387",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 388,
+            "label_sesi": "Sesi 388",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 389,
+            "label_sesi": "Sesi 389",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 390,
+            "label_sesi": "Sesi 390",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 391,
+            "label_sesi": "Sesi 391",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 392,
+            "label_sesi": "Sesi 392",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 393,
+            "label_sesi": "Sesi 393",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 394,
+            "label_sesi": "Sesi 394",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 395,
+            "label_sesi": "Sesi 395",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 396,
+            "label_sesi": "Sesi 396",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 397,
+            "label_sesi": "Sesi 397",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 398,
+            "label_sesi": "Sesi 398",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          },
+          {
+            "nomor_sesi": 399,
+            "label_sesi": "Sesi 399",
+            "kapasitas_peserta": 41,
+            "durasi_sesi_jam": 3,
+            "waktu_mulai": null,
+            "waktu_selesai": null
+          }
+        ]
+      }
+    ]
+  }
+}
