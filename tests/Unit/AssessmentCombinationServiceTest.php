@@ -168,7 +168,7 @@ class AssessmentCombinationServiceTest extends TestCase
         $this->assertSame(0, $sosial['available_question_count']);
     }
 
-    public function test_catalog_uses_the_exact_target_jabatan_configuration(): void
+    public function test_catalog_includes_assessments_that_apply_to_any_selected_jabatan(): void
     {
         $allJabatanAssessment = $this->createAssessmentFixture();
         $pengawasAssessment = $this->createSingleFieldAssessment(
@@ -189,8 +189,30 @@ class AssessmentCombinationServiceTest extends TestCase
             ->map(fn ($assessmentId) => (int) $assessmentId)
             ->all();
 
-        $this->assertSame([$pengawasAssessment->id], $catalogIds);
-        $this->assertNotContains($allJabatanAssessment->id, $catalogIds);
+        $this->assertEqualsCanonicalizing(
+            [$allJabatanAssessment->id, $pengawasAssessment->id],
+            $catalogIds
+        );
+
+        $guruAssessment = $this->createSingleFieldAssessment(
+            'ASM-GURU',
+            'Assessment Guru',
+            'studi_kasus'
+        );
+        $guruAssessment->forceFill([
+            'target_jabatan' => ['Guru'],
+        ])->save();
+
+        $catalog = app(AssessmentCombinationService::class)->buildAssessmentCatalogByKetenagaan(
+            'tenaga_pendidik',
+            ['Guru', 'GURU HONORER', 'Guru Pamong']
+        );
+        $catalogIds = collect($catalog['tenaga_pendidik'] ?? [])
+            ->pluck('assessment_id')
+            ->map(fn ($assessmentId) => (int) $assessmentId)
+            ->all();
+
+        $this->assertContains($guruAssessment->id, $catalogIds);
     }
 
     public function test_it_creates_combination_by_competency_and_auto_includes_forms_without_competency(): void
@@ -253,6 +275,40 @@ class AssessmentCombinationServiceTest extends TestCase
 
         $this->assertNotNull($snapshotIdentityForm);
         $this->assertSame(2, count($snapshotIdentityForm['fields'] ?? []));
+    }
+
+    public function test_it_regenerates_a_combination_without_creating_a_new_row(): void
+    {
+        $assessment = $this->createAssessmentFixture();
+        $payload = [
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'competency_selection_modes' => [
+                $assessment->id => [
+                    'pedagogik' => 'count',
+                    'kepribadian' => 'all',
+                ],
+            ],
+            'competency_take_counts' => [
+                $assessment->id => [
+                    'pedagogik' => 2,
+                    'kepribadian' => 1,
+                ],
+            ],
+        ];
+
+        $service = app(AssessmentCombinationService::class);
+        $combination = $service->createCombination($payload);
+        $combinationId = $combination->id;
+
+        $regenerated = $service->regenerateCombination($combination, $payload);
+
+        $this->assertSame($combinationId, $regenerated->id);
+        $this->assertSame(1, AssessmentCombination::query()->count());
+        $this->assertSame(
+            $combinationId,
+            (int) $regenerated->items->first()->assessment_combination_id
+        );
+        $this->assertSame(5, $regenerated->total_questions);
     }
 
     public function test_it_orders_combination_snapshot_by_stage_flow_instead_of_title(): void
@@ -343,6 +399,59 @@ class AssessmentCombinationServiceTest extends TestCase
                 ->map(fn ($assessmentId) => (int) $assessmentId)
                 ->all()
         );
+    }
+
+    public function test_sync_deduplicates_rows_that_resolve_to_the_same_current_field(): void
+    {
+        $assessment = $this->createSingleFieldAssessment(
+            'ASM-DUPLICATE-MAPPING',
+            'Assessment Mapping Duplikat',
+            'portofolio'
+        );
+        $currentField = $assessment->forms()->firstOrFail()->fields()->firstOrFail();
+
+        $combination = AssessmentCombination::query()->create([
+            'kode_kombinasi' => 'KMB-DUPLICATE-MAPPING',
+            'judul' => 'Kombinasi Mapping Duplikat',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'is_active' => true,
+        ]);
+
+        $legacyItem = [
+            'assessment_combination_id' => $combination->id,
+            'assessment_id' => $assessment->id,
+            'assessment_form_id' => 999,
+            'assessment_form_field_id' => 998,
+            'assessment_code' => $assessment->kode_assessment,
+            'assessment_title' => $assessment->judul,
+            'form_code' => null,
+            'form_title' => null,
+            'field_label' => 'Field legacy',
+            'field_name' => null,
+            'field_type' => 'text',
+            'assessment_order' => 1,
+            'form_order' => 1,
+            'field_order' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        DB::table('assessment_combination_items')->insert([
+            $legacyItem,
+            array_merge($legacyItem, [
+                'assessment_form_field_id' => 997,
+                'field_label' => 'Field legacy kedua',
+            ]),
+        ]);
+
+        $result = app(AssessmentCombinationService::class)
+            ->syncCombinationsForAssessment($assessment);
+
+        $items = $combination->fresh()->items()->get();
+
+        $this->assertSame(1, $result['updated']);
+        $this->assertCount(1, $items);
+        $this->assertSame((int) $currentField->id, (int) $items->first()->assessment_form_field_id);
     }
 
     private function createAssessmentFixture(): Assessment

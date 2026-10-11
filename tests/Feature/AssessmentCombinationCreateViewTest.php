@@ -147,10 +147,10 @@ class AssessmentCombinationCreateViewTest extends TestCase
                 'menu' => 'assessment-kombinasi',
                 'generation' => $generation,
                 'isEditMode' => true,
-                'pageTitle' => 'Edit & Reset Generate Kombinasi',
+                'pageTitle' => 'Edit & Reset Kombinasi',
                 'formAction' => route('assessment.combination.generation.reset', 99),
                 'formMethod' => 'POST',
-                'submitLabel' => 'Reset dan Generate Ulang',
+                'submitLabel' => 'Reset Isi Kombinasi',
                 'relatedAssignmentUsageCount' => 2,
                 'initialFormData' => [
                     'target_ketenagaan' => 'tenaga_pendidik',
@@ -204,10 +204,10 @@ class AssessmentCombinationCreateViewTest extends TestCase
                 ],
             ]);
 
-        $response->assertSee('Edit & Reset Generate Kombinasi');
+        $response->assertSee('Edit &amp; Reset Kombinasi', false);
         $response->assertSee('Mode edit/reset untuk proses KBG-ASM-20260806-0001-ABCD');
-        $response->assertSee('Reset dan Generate Ulang');
-        $response->assertSee('Ya, Reset dan Generate Ulang');
+        $response->assertSee('Reset Isi Kombinasi');
+        $response->assertSee('Ya, Reset Isi Kombinasi');
         $response->assertSee('id="combinationEditWarningModal"', false);
         $response->assertSee('action="'.route('assessment.combination.generation.reset', 99).'"', false);
         $response->assertDontSee('action="'.route('assessment.combination.store').'"', false);

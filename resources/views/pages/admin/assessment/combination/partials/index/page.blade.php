@@ -24,7 +24,7 @@
                     @if ($generations->isNotEmpty() && ! $hasPendingReset)
                         <form action="{{ route('assessment.combination.generation.reset-all') }}" method="POST"
                             class="d-inline-block mr-2"
-                            onsubmit="return confirm(@js('Reset semua kombinasi soal? Seluruh proses generate akan dibuat ulang. Penugasan assessment tetap dipertahankan dan dialihkan ke kombinasi baru setelah job selesai.'))">
+                            onsubmit="return confirm(@js('Reset semua kombinasi soal? Isi kombinasi akan dibuat ulang pada row yang sama. Penugasan assessment tetap dipertahankan.'))">
                             @csrf
                             <button type="submit" class="btn btn-warning">
                                 <i class="fas fa-sync-alt mr-1"></i> Reset Semua Kombinasi

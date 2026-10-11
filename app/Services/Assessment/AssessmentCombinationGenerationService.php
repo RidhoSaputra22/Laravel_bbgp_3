@@ -4,6 +4,7 @@ namespace App\Services\Assessment;
 
 use App\Jobs\ProcessAssessmentCombinationGenerationJob;
 use App\Jobs\ResetAssessmentAssignmentsForCombinationGenerationJob;
+use App\Jobs\ResetAssessmentCombinationGenerationJob;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
@@ -37,6 +38,8 @@ class AssessmentCombinationGenerationService
         array $payload,
         ?int $generatedBy = null
     ): AssessmentCombinationGeneration {
+        $payload = $this->combinationService->synchronizeCombinationPayload($payload);
+
         return DB::transaction(function () use ($payload, $generatedBy) {
             $generationData = [
                 'kode_generate' => $this->generateUniqueCode(),
@@ -82,6 +85,103 @@ class AssessmentCombinationGenerationService
         return $replacementGeneration->fresh();
     }
 
+    public function prepareInPlaceReset(
+        AssessmentCombinationGeneration $generation,
+        ?array $payload = null,
+        ?int $generatedBy = null
+    ): AssessmentCombinationGeneration {
+        if (! Schema::hasColumn('assessment_combination_generations', 'reset_source_generation_id')) {
+            throw new RuntimeException(
+                'Migration reset kombinasi belum dijalankan. Jalankan php artisan migrate terlebih dahulu.'
+            );
+        }
+
+        $payload = $this->combinationService->synchronizeCombinationPayload(
+            $payload ?? $this->buildPayloadFromGeneration($generation)
+        );
+        $this->assertInPlaceResetCanRun($generation, $payload);
+        $requestedCount = max((int) ($payload['total_kombinasi'] ?? 1), 1);
+
+        $generationData = [
+            'target_ketenagaan' => (string) ($payload['target_ketenagaan'] ?? ''),
+            'total_kombinasi' => $requestedCount,
+            'selection_config' => $this->buildSelectionConfig($payload),
+            'status' => 'diproses',
+            'job_batch_id' => null,
+            'reset_source_generation_id' => $generation->id,
+            'generated_by' => $generatedBy ?: $generation->generated_by,
+            'processed_at' => null,
+        ];
+
+        if (Schema::hasColumn('assessment_combination_generations', 'target_jabatan')) {
+            $generationData['target_jabatan'] = Assessment::normalizeTargetJabatan(
+                $payload['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
+            ) ?: [Assessment::TARGET_JABATAN_ALL];
+        }
+
+        $generation->forceFill($generationData)->save();
+
+        return $generation->fresh();
+    }
+
+    public function validateInPlaceReset(
+        AssessmentCombinationGeneration $generation,
+        ?array $payload = null
+    ): void {
+        $payload = $this->combinationService->synchronizeCombinationPayload(
+            $payload ?? $this->buildPayloadFromGeneration($generation)
+        );
+
+        $this->assertInPlaceResetCanRun($generation, $payload);
+    }
+
+    public function dispatchInPlaceReset(
+        AssessmentCombinationGeneration $generation
+    ): AssessmentCombinationGeneration {
+        try {
+            $generationId = (int) $generation->id;
+            $pendingBatch = Bus::batch([new ResetAssessmentCombinationGenerationJob($generationId)])
+                ->name('Reset Kombinasi '.$generation->kode_generate)
+                ->onConnection(self::QUEUE_CONNECTION)
+                ->onQueue(self::QUEUE_NAME);
+
+            $pendingBatch->finally(function () use ($generationId): void {
+                app(self::class)->refreshGenerationSummary($generationId);
+            });
+
+            $batch = $pendingBatch->dispatch();
+
+            $generation->forceFill([
+                'job_batch_id' => $batch->id,
+            ])->save();
+
+            return $generation->fresh(['generator'])->loadCount('combinations');
+        } catch (Throwable $exception) {
+            $generation->forceFill([
+                'status' => 'gagal',
+                'reset_source_generation_id' => null,
+                'processed_at' => null,
+            ])->save();
+
+            throw $exception;
+        }
+    }
+
+    public function regenerateGenerationCombinations(
+        AssessmentCombinationGeneration $generation
+    ): void {
+        $payload = $this->buildPayloadFromGeneration($generation);
+        $generatedBy = $generation->generated_by ? (int) $generation->generated_by : null;
+
+        foreach ($generation->combinations()->get() as $combination) {
+            $this->combinationService->regenerateCombination(
+                $combination,
+                $payload,
+                $generatedBy
+            );
+        }
+    }
+
     public function dispatchGeneration(
         AssessmentCombinationGeneration $generation
     ): AssessmentCombinationGeneration {
@@ -90,9 +190,42 @@ class AssessmentCombinationGenerationService
         return $generation->fresh(['generator'])->loadCount('combinations');
     }
 
+    public function validateGeneration(AssessmentCombinationGeneration $generation): void
+    {
+        $this->combinationService->validateCombinationPayload(
+            $this->buildPayloadFromGeneration($generation)
+        );
+    }
+
     public function retryGeneration(AssessmentCombinationGeneration $generation): array
     {
         $monitoring = $this->buildGenerationMonitoring($generation, false);
+
+        if ($this->isInPlaceReset($generation)) {
+            if (! ($monitoring['retry_available'] ?? false)) {
+                throw new InvalidArgumentException('Reset kombinasi masih berjalan. Tunggu sampai antrean selesai.');
+            }
+
+            $this->cancelGenerationBatch($generation->job_batch_id);
+            $this->purgeGenerationQueueArtifacts($generation->id);
+
+            $generation->forceFill([
+                'status' => 'diproses',
+                'job_batch_id' => null,
+                'processed_at' => null,
+            ])->save();
+
+            $freshGeneration = $this->dispatchInPlaceReset($generation->fresh());
+
+            return [
+                'generation' => $freshGeneration,
+                'resumed_count' => (int) $generation->total_kombinasi,
+                'queued' => true,
+                'already_complete' => false,
+                'all_failed' => true,
+            ];
+        }
+
         $missingSequences = $this->resolveMissingSequenceNumbers($generation->fresh());
         $resumeCount = count($missingSequences);
 
@@ -175,7 +308,7 @@ class AssessmentCombinationGenerationService
             || (bool) ($batch['finished'] ?? false)
             || $batchPendingJobs === 0;
         $retryAvailable = $generation->status === 'gagal'
-            && $missingTotal > 0
+            && ($missingTotal > 0 || $this->isInPlaceReset($generation))
             && $batchFinished;
 
         return [
@@ -184,7 +317,9 @@ class AssessmentCombinationGenerationService
             'missing_total' => $missingTotal,
             'retry_available' => $retryAvailable,
             'all_failed' => $generatedTotal < 1 && $missingTotal > 0,
-            'action_label' => $generatedTotal > 0 ? 'Resume Sisa Gagal' : 'Retry Semua Gagal',
+            'action_label' => $this->isInPlaceReset($generation)
+                ? 'Retry Reset Kombinasi'
+                : ($generatedTotal > 0 ? 'Resume Sisa Gagal' : 'Retry Semua Gagal'),
             'queue_progress' => $batch['progress'] ?? ($targetTotal > 0
                 ? (int) round(($generatedTotal / $targetTotal) * 100)
                 : 0),
@@ -294,7 +429,7 @@ class AssessmentCombinationGenerationService
     {
         $selectionConfig = (array) ($generation->selection_config ?? []);
 
-        return [
+        return $this->combinationService->synchronizeCombinationPayload([
             'target_ketenagaan' => $selectionConfig['target_ketenagaan'] ?? $generation->target_ketenagaan,
             'target_jabatan' => Assessment::normalizeTargetJabatan(
                 $selectionConfig['target_jabatan'] ?? $generation->targetJabatanSelections()
@@ -309,7 +444,21 @@ class AssessmentCombinationGenerationService
             ),
             'competency_selection_modes' => $selectionConfig['competency_selection_modes'] ?? [],
             'competency_take_counts' => $selectionConfig['competency_take_counts'] ?? [],
-        ];
+        ]);
+    }
+
+    private function assertInPlaceResetCanRun(
+        AssessmentCombinationGeneration $generation,
+        array $payload
+    ): void {
+        $existingCount = $generation->combinations()->count();
+        $requestedCount = max((int) ($payload['total_kombinasi'] ?? 1), 1);
+
+        if ($existingCount !== $requestedCount) {
+            throw new InvalidArgumentException(
+                'Jumlah kombinasi tidak boleh diubah saat reset. Hapus riwayat lalu buat generate baru.'
+            );
+        }
     }
 
     private function normalizeAssessmentIds(mixed $assessmentIds): array
@@ -403,6 +552,11 @@ class AssessmentCombinationGenerationService
             $sourceGenerationId,
             (int) $generation->id
         );
+    }
+
+    private function isInPlaceReset(AssessmentCombinationGeneration $generation): bool
+    {
+        return (int) ($generation->reset_source_generation_id ?? 0) === (int) $generation->id;
     }
 
     private function buildBatchMonitoring(AssessmentCombinationGeneration $generation): ?array

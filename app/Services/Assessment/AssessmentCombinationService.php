@@ -11,6 +11,7 @@ use App\Models\AssessmentCombinationItem;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
 use App\Support\Assessment\AssessmentStructureMetadataResolver;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -117,30 +118,67 @@ class AssessmentCombinationService
         array $combinationAttributes = []
     ): AssessmentCombination
     {
-        $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($payload['target_ketenagaan'] ?? null);
+        $generated = $this->buildGeneratedCombinationData($payload);
 
-        if (! $targetKetenagaan) {
-            throw new InvalidArgumentException('Ketenagaan kombinasi tidak valid.');
-        }
+        return DB::transaction(function () use (
+            $generatedBy,
+            $generated,
+            $combinationAttributes
+        ) {
+            $combinationData = array_merge(
+                $this->buildCombinationData($generated, $generatedBy),
+                $combinationAttributes
+            );
 
-        $targetJabatan = Assessment::normalizeTargetJabatan(
-            $payload['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
-        );
-        $targetJabatan = $targetJabatan !== [] ? $targetJabatan : [Assessment::TARGET_JABATAN_ALL];
-        $sourceAssessments = $this->getSourceAssessments($targetKetenagaan, $targetJabatan);
-        $selectedSourceAssessments = $this->resolveSelectedSourceAssessments(
-            $sourceAssessments,
-            $payload['included_assessment_ids'] ?? []
-        );
+            $combination = AssessmentCombination::create($combinationData);
 
-        if ($selectedSourceAssessments->isEmpty()) {
-            throw new InvalidArgumentException('Pilih minimal satu assessment sumber.');
-        }
+            $this->replaceCombinationItems(
+                $combination,
+                $generated['selected_rows'],
+                $generated['generated_at'],
+                $generated['selected_source_assessments']
+            );
 
-        $competencySelections = $this->normalizeCompetencySelections(
-            $payload['competency_selection_modes'] ?? [],
-            $payload['competency_take_counts'] ?? [],
-        );
+            return $combination->load(['items', 'generator']);
+        });
+    }
+
+    public function regenerateCombination(
+        AssessmentCombination $combination,
+        array $payload,
+        ?int $generatedBy = null
+    ): AssessmentCombination {
+        $generated = $this->buildGeneratedCombinationData($payload, (int) $combination->id);
+
+        return DB::transaction(function () use ($combination, $generated, $generatedBy) {
+            $combination = AssessmentCombination::query()
+                ->lockForUpdate()
+                ->findOrFail($combination->id);
+
+            AssessmentCombination::withoutEvents(function () use ($combination, $generated, $generatedBy): void {
+                $combination->forceFill($this->buildCombinationData($generated, $generatedBy))->save();
+            });
+
+            $this->replaceCombinationItems(
+                $combination,
+                $generated['selected_rows'],
+                $generated['generated_at'],
+                $generated['selected_source_assessments']
+            );
+
+            return $combination->load(['items', 'generator']);
+        });
+    }
+
+    private function buildGeneratedCombinationData(
+        array $payload,
+        ?int $ignoreCombinationId = null
+    ): array {
+        $selectionContext = $this->resolveSelectionContext($payload);
+        $targetKetenagaan = $selectionContext['target_ketenagaan'];
+        $targetJabatan = $selectionContext['target_jabatan'];
+        $selectedSourceAssessments = $selectionContext['selected_source_assessments'];
+        $competencySelections = $selectionContext['competency_selections'];
         $selectedRows = [];
         $selectionConfigAssessments = [];
         $selectionAttempts = 0;
@@ -159,6 +197,10 @@ class AssessmentCombinationService
             $isDuplicate = $signatureHash !== ''
                 && AssessmentCombination::query()
                     ->where('target_ketenagaan', $targetKetenagaan->value)
+                    ->when(
+                        $ignoreCombinationId,
+                        fn ($query) => $query->where('id', '!=', $ignoreCombinationId)
+                    )
                     ->where('signature_hash', $signatureHash)
                     ->exists();
         } while ($isDuplicate && $selectionAttempts < 10);
@@ -167,81 +209,143 @@ class AssessmentCombinationService
             throw new InvalidArgumentException('Kombinasi belum memiliki soal terpilih.');
         }
 
-        $generatedAt = now();
-        $kodeKombinasi = $this->generateUniqueCode();
-        $selectionConfig = [
+        return [
             'target_ketenagaan' => $targetKetenagaan->value,
             'target_jabatan' => $targetJabatan,
-            'included_assessment_ids' => $selectedSourceAssessments
-                ->pluck('id')
-                ->map(fn ($assessmentId) => (int) $assessmentId)
-                ->values()
-                ->all(),
-            'assessments' => $selectionConfigAssessments,
+            'selected_source_assessments' => $selectedSourceAssessments,
+            'selected_rows' => $selectedRows,
+            'random_seed' => $randomSeed,
+            'signature_hash' => $signatureHash,
+            'selection_config' => [
+                'target_ketenagaan' => $targetKetenagaan->value,
+                'target_jabatan' => $targetJabatan,
+                'included_assessment_ids' => $selectedSourceAssessments
+                    ->pluck('id')
+                    ->map(fn ($assessmentId) => (int) $assessmentId)
+                    ->values()
+                    ->all(),
+                'assessments' => $selectionConfigAssessments,
+            ],
+            'generated_at' => now(),
+        ];
+    }
+
+    private function buildCombinationData(array $generated, ?int $generatedBy = null): array
+    {
+        $selectedRows = $generated['selected_rows'];
+        $kodeKombinasi = $this->generateUniqueCode();
+        $combinationData = [
+            'kode_kombinasi' => $kodeKombinasi,
+            'judul' => $kodeKombinasi,
+            'deskripsi' => null,
+            'target_ketenagaan' => $generated['target_ketenagaan'],
+            'random_seed' => $generated['random_seed'],
+            'signature_hash' => $generated['signature_hash'],
+            'selection_config' => $generated['selection_config'],
+            'total_assessments' => (int) collect($selectedRows)->pluck('assessment_id')->filter()->unique()->count(),
+            'total_forms' => (int) collect($selectedRows)->pluck('assessment_form_id')->filter()->unique()->count(),
+            'total_questions' => count($selectedRows),
+            'generated_by' => $generatedBy ?: null,
+            'generated_at' => $generated['generated_at'],
+            'is_active' => true,
         ];
 
-        return DB::transaction(function () use (
-            $generatedBy,
-            $targetKetenagaan,
-            $targetJabatan,
-            $kodeKombinasi,
-            $randomSeed,
-            $signatureHash,
-            $selectionConfig,
-            $selectedRows,
-            $generatedAt,
-            $selectedSourceAssessments,
-            $combinationAttributes
-        ) {
-            $combinationData = [
-                'kode_kombinasi' => $kodeKombinasi,
-                'judul' => $kodeKombinasi,
-                'deskripsi' => null,
-                'target_ketenagaan' => $targetKetenagaan->value,
-                'random_seed' => $randomSeed,
-                'signature_hash' => $signatureHash,
-                'selection_config' => $selectionConfig,
-                'total_assessments' => (int) collect($selectedRows)->pluck('assessment_id')->filter()->unique()->count(),
-                'total_forms' => (int) collect($selectedRows)->pluck('assessment_form_id')->filter()->unique()->count(),
-                'total_questions' => count($selectedRows),
-                'generated_by' => $generatedBy ?: null,
-                'generated_at' => $generatedAt,
-                'is_active' => true,
-            ];
+        if (Schema::hasColumn('assessment_combinations', 'target_jabatan')) {
+            $combinationData['target_jabatan'] = $generated['target_jabatan'];
+        }
 
-            $combinationData = array_merge($combinationData, $combinationAttributes);
+        return $combinationData;
+    }
 
-            if (Schema::hasColumn('assessment_combinations', 'target_jabatan')) {
-                $combinationData['target_jabatan'] = $targetJabatan;
-            }
+    private function replaceCombinationItems(
+        AssessmentCombination $combination,
+        array $selectedRows,
+        Carbon $generatedAt,
+        Collection $selectedSourceAssessments
+    ): void {
+        AssessmentCombinationItem::withoutEvents(function () use ($combination, $selectedRows): void {
+            $combination->items()->delete();
+            $combination->items()->createMany(
+                collect($selectedRows)
+                    ->map(function (array $row) use ($combination) {
+                        return $this->prepareCombinationItemRow(array_merge($row, [
+                            'assessment_combination_id' => $combination->id,
+                        ]));
+                    })
+                    ->all()
+            );
+        });
 
-            $combination = AssessmentCombination::create($combinationData);
-
-            AssessmentCombinationItem::withoutEvents(function () use ($combination, $selectedRows): void {
-                $combination->items()->createMany(
-                    collect($selectedRows)
-                        ->map(function (array $row) use ($combination) {
-                            return $this->prepareCombinationItemRow(array_merge($row, [
-                                'assessment_combination_id' => $combination->id,
-                            ]));
-                        })
-                        ->all()
-                );
-            });
-
-            $snapshot = $this->buildStructureSnapshot(
+        $combination->forceFill([
+            'structure_snapshot' => $this->buildStructureSnapshot(
                 $combination,
                 $selectedRows,
                 $generatedAt,
                 $selectedSourceAssessments
-            );
+            ),
+        ])->save();
+    }
 
-            $combination->forceFill([
-                'structure_snapshot' => $snapshot,
-            ])->save();
+    public function validateCombinationPayload(array $payload): void
+    {
+        $selectionContext = $this->resolveSelectionContext($payload);
+        [$selectedRows] = $this->buildSelectionRows(
+            $selectionContext['selected_source_assessments'],
+            $selectionContext['competency_selections'],
+            Str::upper(Str::random(16))
+        );
 
-            return $combination->load(['items', 'generator']);
-        });
+        if ($selectedRows === []) {
+            throw new InvalidArgumentException('Kombinasi belum memiliki soal terpilih.');
+        }
+    }
+
+    public function synchronizeCombinationPayload(array $payload): array
+    {
+        $selectionContext = $this->resolveSelectionContext($payload);
+        $selectionModes = [];
+        $takeCounts = [];
+
+        foreach ($selectionContext['selected_source_assessments']->values() as $assessmentIndex => $assessment) {
+            $analysis = $this->analyzeAssessmentSource($assessment, $assessmentIndex);
+            $assessmentId = (int) $assessment->id;
+
+            foreach (KompetensiGuru::cases() as $kompetensi) {
+                $competencyKey = $kompetensi->value;
+                $availableCount = count(
+                    $analysis['competency_pools'][$competencyKey]['pool'] ?? []
+                );
+
+                if ($availableCount < 1) {
+                    continue;
+                }
+
+                $selection = $selectionContext['competency_selections'][$assessmentId][$competencyKey]
+                    ?? [
+                        'mode' => 'count',
+                        'count' => min(10, $availableCount),
+                    ];
+                $mode = ($selection['mode'] ?? 'count') === 'all' ? 'all' : 'count';
+                $requestedCount = max((int) ($selection['count'] ?? 0), 0);
+
+                $selectionModes[$assessmentId][$competencyKey] = $mode;
+                $takeCounts[$assessmentId][$competencyKey] = $mode === 'all'
+                    ? $availableCount
+                    : min($requestedCount, $availableCount);
+            }
+        }
+
+        return array_merge($payload, [
+            'target_ketenagaan' => $selectionContext['target_ketenagaan']->value,
+            'target_jabatan' => $selectionContext['target_jabatan'],
+            'included_assessment_ids' => $selectionContext['selected_source_assessments']
+                ->pluck('id')
+                ->map(fn ($assessmentId) => (int) $assessmentId)
+                ->values()
+                ->all(),
+            'competency_selection_modes' => $selectionModes,
+            'competency_take_counts' => $takeCounts,
+        ]);
     }
 
     public function getSourceAssessments(
@@ -271,7 +375,7 @@ class AssessmentCombinationService
             ->get()
             ->filter(function (Assessment $assessment) use ($selectedJabatan) {
                 if ($selectedJabatan !== [] && Schema::hasColumn('assessments', 'target_jabatan')) {
-                    if (! $assessment->matchesTargetJabatanSelections($selectedJabatan)) {
+                    if (! $assessment->appliesToJabatanSelections($selectedJabatan)) {
                         return false;
                     }
                 }
@@ -292,6 +396,39 @@ class AssessmentCombinationService
                 ];
             })
             ->values();
+    }
+
+    private function resolveSelectionContext(array $payload): array
+    {
+        $targetKetenagaan = AssessmentKetenagaanType::tryFromMixed($payload['target_ketenagaan'] ?? null);
+
+        if (! $targetKetenagaan) {
+            throw new InvalidArgumentException('Ketenagaan kombinasi tidak valid.');
+        }
+
+        $targetJabatan = Assessment::normalizeTargetJabatan(
+            $payload['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]
+        );
+        $targetJabatan = $targetJabatan !== [] ? $targetJabatan : [Assessment::TARGET_JABATAN_ALL];
+        $sourceAssessments = $this->getSourceAssessments($targetKetenagaan, $targetJabatan);
+        $selectedSourceAssessments = $this->resolveSelectedSourceAssessments(
+            $sourceAssessments,
+            $payload['included_assessment_ids'] ?? []
+        );
+
+        if ($selectedSourceAssessments->isEmpty()) {
+            throw new InvalidArgumentException('Pilih minimal satu assessment sumber.');
+        }
+
+        return [
+            'target_ketenagaan' => $targetKetenagaan,
+            'target_jabatan' => $targetJabatan,
+            'selected_source_assessments' => $selectedSourceAssessments,
+            'competency_selections' => $this->normalizeCompetencySelections(
+                $payload['competency_selection_modes'] ?? [],
+                $payload['competency_take_counts'] ?? [],
+            ),
+        ];
     }
 
     private function resolveSelectedSourceAssessments(
@@ -327,6 +464,8 @@ class AssessmentCombinationService
         $refreshedRows = $affectedItems
             ->map(fn (AssessmentCombinationItem $item) => $this->resolveRefreshedRowForAssessmentItem($item, $context))
             ->filter(fn ($row) => is_array($row))
+            // Fallback matching can map multiple legacy rows to one current field.
+            ->unique(fn (array $row) => (int) $row['assessment_form_field_id'])
             ->values();
 
         AssessmentCombinationItem::withoutEvents(function () use ($combination, $assessment, $refreshedRows): void {
@@ -683,7 +822,9 @@ class AssessmentCombinationService
 
                     if ($requestedCount > $availableCount) {
                         throw new InvalidArgumentException(
-                            'Jumlah soal kompetensi melebihi soal aktif yang tersedia.'
+                            'Jumlah soal kompetensi melebihi soal aktif yang tersedia: '
+                            .$assessment->judul.' / '.$kompetensi->label()
+                            .' (diminta: '.$requestedCount.', tersedia: '.$availableCount.').'
                         );
                     }
 
@@ -1299,7 +1440,7 @@ class AssessmentCombinationService
             $targetJabatan !== []
             && Schema::hasColumn('assessments', 'target_jabatan')
         ) {
-            if (! $assessment->matchesTargetJabatanSelections($targetJabatan)) {
+            if (! $assessment->appliesToJabatanSelections($targetJabatan)) {
                 return false;
             }
         }

@@ -138,6 +138,45 @@ class AssessmentPackageFlowTest extends TestCase
         });
     }
 
+    public function test_admin_imports_multiple_files_in_a_sequential_chain(): void
+    {
+        $first = $this->createCompleteAssessment('ASM-IMPORT-FIRST');
+        $second = $this->createCompleteAssessment('ASM-IMPORT-SECOND');
+        Storage::fake('assessment_private');
+        Queue::fake();
+
+        $response = $this->withSession(['cek' => true, 'role' => 'admin'])
+            ->post(route('assessment.import'), [
+                'files' => [
+                    UploadedFile::fake()->createWithContent(
+                        'first.json',
+                        json_encode($this->exportPayload($first['assessment']), JSON_THROW_ON_ERROR)
+                    ),
+                    UploadedFile::fake()->createWithContent(
+                        'second.json',
+                        json_encode($this->exportPayload($second['assessment']), JSON_THROW_ON_ERROR)
+                    ),
+                ],
+            ]);
+
+        $response->assertRedirect()
+            ->assertSessionHas('assessment_import_notice');
+
+        $imports = AssessmentImport::query()
+            ->whereIn('original_name', ['first.json', 'second.json'])
+            ->orderBy('id')
+            ->get();
+        $this->assertCount(2, $imports);
+        Storage::disk('assessment_private')->assertExists($imports[0]->path);
+        Storage::disk('assessment_private')->assertExists($imports[1]->path);
+
+        Queue::assertPushed(ProcessAssessmentImportJob::class, 1);
+        $firstJob = Queue::pushed(ProcessAssessmentImportJob::class)[0];
+        $this->assertSame($imports[0]->id, $firstJob->importId);
+        $this->assertCount(1, $firstJob->chained);
+        $this->assertSame($imports[1]->id, unserialize($firstJob->chained[0])->importId);
+    }
+
     public function test_queued_job_imports_every_configuration_value_without_distortion(): void
     {
         $fixture = $this->createCompleteAssessment('ASM-IMPORT-JOB');

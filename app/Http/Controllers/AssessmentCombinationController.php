@@ -210,43 +210,29 @@ class AssessmentCombinationController extends Controller
             ]);
         }
 
-        $generation = AssessmentCombinationGeneration::query()
-            ->with('combinations:id,assessment_combination_generation_id,kode_kombinasi')
-            ->findOrFail($id);
+        $generation = AssessmentCombinationGeneration::query()->findOrFail($id);
         $validated = $this->validatePayload($request);
-        $replacementGeneration = null;
-        $cleanupResult = $this->emptyGenerationCleanupSummary();
+        $assignmentCount = 0;
 
         try {
             $this->generationService->cancelGenerationProcessing($generation);
-            $replacementGeneration = $this->generationService->createGenerationRecord(
+            $assignmentCount = $this->assignmentService
+                ->countAssignmentsForCombinationGeneration($generation);
+            $generation = $this->generationService->prepareInPlaceReset(
+                $generation,
                 $validated,
                 session('user_id') ? (int) session('user_id') : null
             );
-            $replacementGeneration->forceFill([
-                'reset_source_generation_id' => $generation->id,
-            ])->save();
-
-            $cleanupResult['assignment_count'] = $this->assignmentService
-                ->countAssignmentsForCombinationGeneration($generation);
-            $replacementGeneration = $this->generationService->dispatchGeneration($replacementGeneration->fresh());
+            $generation = $this->generationService->dispatchInPlaceReset($generation);
 
             return redirect()
-                ->route('assessment.combination.generation.show', $replacementGeneration->id)
+                ->route('assessment.combination.generation.show', $generation->id)
                 ->with(
                     'combination_notice',
-                    $this->buildGenerationResetNotice($generation, $replacementGeneration, $cleanupResult)
+                    $this->buildGenerationResetNotice($generation, $assignmentCount)
                 );
         } catch (\Throwable $exception) {
             report($exception);
-
-            if ($replacementGeneration) {
-                try {
-                    $this->generationService->deleteGenerationHistory($replacementGeneration->fresh());
-                } catch (\Throwable $cleanupException) {
-                    report($cleanupException);
-                }
-            }
 
             return back()
                 ->withInput()
@@ -290,7 +276,22 @@ class AssessmentCombinationController extends Controller
                 ->with('combination_notice', 'Belum ada kombinasi soal yang perlu direset.');
         }
 
-        $replacementGenerations = [];
+        try {
+            foreach ($generations as $generation) {
+                $this->generationService->validateInPlaceReset($generation);
+            }
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('assessment.combination.index')
+                ->withErrors([
+                    'combination' => $exception->getMessage() !== ''
+                        ? $exception->getMessage()
+                        : 'Reset semua kombinasi tidak dapat dijalankan.',
+                ]);
+        }
+
         $assignmentCount = 0;
 
         try {
@@ -298,18 +299,17 @@ class AssessmentCombinationController extends Controller
                 $this->generationService->cancelGenerationProcessing($generation);
                 $assignmentCount += $this->assignmentService
                     ->countAssignmentsForCombinationGeneration($generation);
-
-                $replacementGeneration = $this->generationService->createReplacementGeneration(
+                $generation = $this->generationService->prepareInPlaceReset(
                     $generation,
+                    null,
                     session('user_id') ? (int) session('user_id') : null
                 );
-                $replacementGenerations[] = $replacementGeneration;
-                $this->generationService->dispatchGeneration($replacementGeneration);
+                $this->generationService->dispatchInPlaceReset($generation);
             }
 
             $parts = [
                 'Reset semua kombinasi untuk '.$generations->count().' proses generate berhasil dikirim ke antrean.',
-                'Penugasan tetap dipertahankan dan akan dialihkan ke kombinasi baru oleh job.',
+                'Row kombinasi lama dipakai kembali sehingga jumlah kombinasi tidak bertambah.',
             ];
 
             if ($assignmentCount > 0) {
@@ -321,14 +321,6 @@ class AssessmentCombinationController extends Controller
                 ->with('combination_notice', implode(' ', $parts));
         } catch (\Throwable $exception) {
             report($exception);
-
-            foreach ($replacementGenerations as $replacementGeneration) {
-                try {
-                    $this->generationService->deleteGenerationHistory($replacementGeneration->fresh());
-                } catch (\Throwable $cleanupException) {
-                    report($cleanupException);
-                }
-            }
 
             return redirect()
                 ->route('assessment.combination.index')
@@ -408,6 +400,7 @@ class AssessmentCombinationController extends Controller
 
         return AssessmentCombinationGeneration::query()
             ->whereNotNull('reset_source_generation_id')
+            ->whereColumn('reset_source_generation_id', '!=', 'id')
             ->pluck('reset_source_generation_id')
             ->map(fn ($generationId) => (int) $generationId)
             ->filter(fn (int $generationId) => $generationId > 0)
@@ -424,12 +417,12 @@ class AssessmentCombinationController extends Controller
             'menu' => $this->menu,
             'generation' => $generation,
             'isEditMode' => $generation !== null,
-            'pageTitle' => $generation ? 'Edit & Reset Generate Kombinasi' : 'Buat Kombinasi Soal',
+            'pageTitle' => $generation ? 'Edit & Reset Kombinasi' : 'Buat Kombinasi Soal',
             'formAction' => $generation
                 ? route('assessment.combination.generation.reset', $generation->id)
                 : route('assessment.combination.store'),
             'formMethod' => 'POST',
-            'submitLabel' => $generation ? 'Reset dan Generate Ulang' : 'Kirim ke Antrean Generate',
+            'submitLabel' => $generation ? 'Reset Isi Kombinasi' : 'Kirim ke Antrean Generate',
             'ketenagaanOptions' => AssessmentKetenagaanType::options(),
             'assessmentCatalogByKetenagaan' => $this->combinationService->buildAssessmentCatalogByKetenagaan(),
             'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
@@ -911,29 +904,21 @@ class AssessmentCombinationController extends Controller
 
     private function buildGenerationResetNotice(
         AssessmentCombinationGeneration $generation,
-        AssessmentCombinationGeneration $replacementGeneration,
-        array $result
+        int $assignmentCount
     ): string {
         $parts = [
             'Pengaturan '.$generation->kode_generate.' berhasil direset.',
-            'Proses baru '.$replacementGeneration->kode_generate.' dikirim ke antrean batch.',
-            'Penugasan assessment terkait tetap dipertahankan dan akan direset otomatis memakai kombinasi baru setelah generate selesai.',
+            'Kombinasi lama dipakai kembali dan isinya dibuat ulang melalui antrean batch.',
+            'Penugasan assessment tetap dipertahankan dan akan disegarkan setelah proses selesai.',
         ];
 
-        if (($result['assignment_count'] ?? 0) > 0) {
-            $parts[] = ($result['assignment_count']).' penugasan menunggu proses reset melalui job.';
+        if ($assignmentCount > 0) {
+            $parts[] = $assignmentCount.' penugasan menunggu proses reset melalui job.';
         }
 
-        $parts[] = 'Kombinasi lama akan dibersihkan setelah seluruh reset penugasan berhasil.';
+        $parts[] = 'Jumlah row kombinasi tidak bertambah.';
 
         return implode(' ', $parts);
     }
 
-    private function emptyGenerationCleanupSummary(): array
-    {
-        return [
-            'combination_count' => 0,
-            'assignment_count' => 0,
-        ];
-    }
 }

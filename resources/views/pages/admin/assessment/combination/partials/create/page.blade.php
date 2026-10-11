@@ -340,12 +340,12 @@
                             Mode edit/reset untuk proses {{ $generation->kode_generate }}
                         </div>
                         <div class="mb-2">
-                            Form ini memuat ulang pengaturan lama agar bisa Anda ubah sebelum generate ulang.
+                            Form ini memuat ulang pengaturan lama agar bisa Anda ubah sebelum reset kombinasi.
                         </div>
                         <div class="mb-0">
                             Saat disimpan, batch lama akan dibatalkan bila masih berjalan. Riwayat generate lama ditahan
-                            sementara, lalu {{ $relatedAssignmentUsageCount }} penugasan assessment terkait direset melalui
-                            job agar memakai kombinasi baru.
+                            sementara, lalu {{ $relatedAssignmentUsageCount }} penugasan assessment terkait disegarkan melalui
+                            job. Row kombinasi yang ada dipakai kembali sehingga jumlahnya tidak bertambah.
                         </div>
                     </div>
                 @endif
@@ -489,7 +489,7 @@
                                     <div class="mb-3">
                                         <div class="text-muted small">Kode Proses</div>
                                         <div class="font-weight-bold">
-                                            {{ $isEditMode && $generation ? $generation->kode_generate . ' akan diganti proses baru' : 'Otomatis saat masuk antrean' }}
+                                            {{ $isEditMode && $generation ? $generation->kode_generate . ' akan diproses ulang' : 'Otomatis saat masuk antrean' }}
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -542,10 +542,10 @@
                                 <div class="combination-summary-panel mb-4">
                                     <div class="text-muted small mb-2">Info Penting</div>
                                     <div class="font-weight-bold mb-2" id="current-source-title">
-                                        {{ $isEditMode ? 'Perbarui pengaturan sebelum reset generate' : 'Pilih ketenagaan untuk melihat sumber assessment.' }}
+                                        {{ $isEditMode ? 'Perbarui pengaturan sebelum reset kombinasi' : 'Pilih ketenagaan untuk melihat sumber assessment.' }}
                                     </div>
                                     <div class="text-muted small mb-0" id="current-source-description">
-                                        {{ $isEditMode ? 'Setelah submit, proses lama dibersihkan lalu Anda diarahkan ke monitoring generate baru.' : 'Setelah submit, Anda akan diarahkan ke halaman monitoring progres generate kombinasi.' }}
+                                        {{ $isEditMode ? 'Setelah submit, isi kombinasi dibuat ulang pada row yang sama.' : 'Setelah submit, Anda akan diarahkan ke halaman monitoring progres generate kombinasi.' }}
                                     </div>
                                 </div>
 
@@ -595,9 +595,9 @@
                         </p>
                         <ul class="pl-3 mb-3">
                             <li>Batch lama akan dibatalkan jika masih berjalan.</li>
-                            <li>Seluruh kombinasi dari riwayat ini akan diganti melalui proses baru.</li>
+                            <li>Isi seluruh kombinasi dari riwayat ini akan dibuat ulang pada row yang sama.</li>
                             <li>{{ $relatedAssignmentUsageCount }} penugasan assessment terkait tetap dipertahankan.</li>
-                            <li>Setelah generate baru selesai, job akan mereset target, attempt, dan jawaban agar peserta memakai kombinasi baru.</li>
+                            <li>Setelah reset selesai, job akan menyegarkan target, attempt, dan jawaban peserta.</li>
                         </ul>
                         <div class="alert alert-warning mb-0">
                             Jangan hapus proses lama sebelum job reset selesai; riwayat lama diperlukan sebagai pengaman selama antrean berjalan.
@@ -606,7 +606,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-dismiss="modal">Batal</button>
                         <button type="button" class="btn btn-warning" id="combination-edit-confirm-button">
-                            Ya, Reset dan Generate Ulang
+                            Ya, Reset Isi Kombinasi
                         </button>
                     </div>
                 </div>

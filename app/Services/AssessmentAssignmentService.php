@@ -1628,7 +1628,7 @@ class AssessmentAssignmentService
                     ->get()
                     ->filter(
                         fn (Assessment $assessment) => ! Schema::hasColumn('assessments', 'target_jabatan')
-                            || $assessment->coversJabatanSelections($selectedJabatan)
+                            || $assessment->appliesToJabatanSelections($selectedJabatan)
                     )
                     ->pluck('id')
                     ->map(fn ($assessmentId) => (int) $assessmentId)
@@ -1909,7 +1909,7 @@ class AssessmentAssignmentService
 
             if (
                 $legacyCombination
-                && ($selectedJabatan === [] || $legacyCombination->coversJabatanSelections($selectedJabatan))
+                && ($selectedJabatan === [] || $legacyCombination->appliesToJabatanSelections($selectedJabatan))
             ) {
                 return collect([$legacyCombination]);
             }
@@ -1943,7 +1943,7 @@ class AssessmentAssignmentService
 
         $combination = $query->firstOrFail();
 
-        return $selectedJabatan !== [] && ! $combination->coversJabatanSelections($selectedJabatan)
+        return $selectedJabatan !== [] && ! $combination->appliesToJabatanSelections($selectedJabatan)
             ? null
             : $combination;
     }
@@ -1971,7 +1971,7 @@ class AssessmentAssignmentService
 
         if ($selectedJabatan !== []) {
             $availableCombinations = $availableCombinations
-                ->filter(fn (AssessmentCombination $combination) => $combination->coversJabatanSelections($selectedJabatan))
+                ->filter(fn (AssessmentCombination $combination) => $combination->appliesToJabatanSelections($selectedJabatan))
                 ->values();
         }
 
@@ -2000,7 +2000,7 @@ class AssessmentAssignmentService
                     $assessmentIds = $assessmentIdsByCombination->get($combination->id, []);
 
                     return $assessmentIds === [] || collect($assessmentIds)->every(
-                        fn (int $assessmentId) => $assessmentsById->get($assessmentId)?->coversJabatanSelections(
+                        fn (int $assessmentId) => $assessmentsById->get($assessmentId)?->appliesToJabatanSelections(
                             $selectedJabatan
                         ) ?? false
                     );

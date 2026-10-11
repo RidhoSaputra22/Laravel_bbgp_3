@@ -87,6 +87,7 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
             $table->json('selection_config')->nullable();
             $table->string('status')->default('diproses');
             $table->string('job_batch_id')->nullable();
+            $table->unsignedBigInteger('reset_source_generation_id')->nullable();
             $table->unsignedBigInteger('generated_by')->nullable();
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
@@ -248,6 +249,44 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
         $this->assertSame([1, 2], array_map('intval', $storedSequences));
     }
 
+    public function test_in_place_reset_keeps_generation_and_combination_rows(): void
+    {
+        $assessment = $this->createAssessmentFixture();
+        $payload = [
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'included_assessment_ids' => [$assessment->id],
+            'competency_selection_modes' => [
+                $assessment->id => ['pedagogik' => 'count'],
+            ],
+            'competency_take_counts' => [
+                $assessment->id => ['pedagogik' => 2],
+            ],
+        ];
+        $generationService = app(AssessmentCombinationGenerationService::class);
+        $combinationService = app(AssessmentCombinationService::class);
+        $generation = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-ASM-IN-PLACE-0001',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 1,
+            'selection_config' => $combinationService->synchronizeCombinationPayload($payload),
+            'status' => 'selesai',
+        ]);
+        $combination = $combinationService->createCombination($payload, null, [
+            'assessment_combination_generation_id' => $generation->id,
+            'generation_sequence' => 1,
+        ]);
+
+        $prepared = $generationService->prepareInPlaceReset($generation);
+
+        $this->assertSame($generation->id, $prepared->id);
+        $this->assertSame($generation->id, $prepared->fresh()->id);
+        $this->assertSame($generation->id, (int) $prepared->reset_source_generation_id);
+        $this->assertSame(1, AssessmentCombinationGeneration::query()->count());
+        $this->assertSame(1, AssessmentCombination::query()->count());
+        $this->assertSame($combination->id, AssessmentCombination::query()->first()->id);
+    }
+
     public function test_it_retries_only_missing_generation_sequences(): void
     {
         $assessment = $this->createAssessmentFixture();
@@ -303,6 +342,45 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
             ->all();
 
         $this->assertSame([1, 2, 3], array_map('intval', $storedSequences));
+    }
+
+    public function test_it_synchronizes_generation_counts_with_current_active_questions(): void
+    {
+        $assessment = $this->createAssessmentFixture();
+        $generation = AssessmentCombinationGeneration::query()->create([
+            'kode_generate' => 'KBG-ASM-INVALID-0001',
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'total_kombinasi' => 2,
+            'selection_config' => [
+                'target_ketenagaan' => 'tenaga_pendidik',
+                'total_kombinasi' => 2,
+                'included_assessment_ids' => [$assessment->id],
+                'competency_selection_modes' => [
+                    $assessment->id => ['pedagogik' => 'count'],
+                ],
+                'competency_take_counts' => [
+                    $assessment->id => ['pedagogik' => 4],
+                ],
+            ],
+            'status' => 'diproses',
+        ]);
+
+        $service = app(AssessmentCombinationGenerationService::class);
+        $service->validateGeneration($generation);
+
+        $payload = app(AssessmentCombinationService::class)->synchronizeCombinationPayload([
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'included_assessment_ids' => [$assessment->id],
+            'competency_selection_modes' => [
+                $assessment->id => ['pedagogik' => 'count'],
+            ],
+            'competency_take_counts' => [
+                $assessment->id => ['pedagogik' => 4],
+            ],
+        ]);
+
+        $this->assertSame(3, $payload['competency_take_counts'][$assessment->id]['pedagogik']);
+        $this->assertSame('diproses', $generation->fresh()->status);
     }
 
     public function test_it_marks_failed_generation_with_partial_success_as_resumeable(): void

@@ -8,6 +8,7 @@ use App\Models\AssessmentImport;
 use App\Services\Assessment\AssessmentPackageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -27,51 +28,103 @@ class AssessmentPackageController extends Controller
         $this->authorizeAccess();
 
         $validated = $request->validate([
-            'file' => ['required', 'file', 'mimes:json,txt', 'max:524288'],
+            'files' => ['required_without:file', 'array', 'min:1'],
+            'files.*' => ['file', 'mimes:json,txt', 'max:524288'],
+            // Keep accepting the old field name for existing clients.
+            'file' => ['nullable', 'file', 'mimes:json,txt', 'max:524288'],
         ], [
-            'file.required' => 'File JSON assessment wajib dipilih.',
+            'files.required_without' => 'Minimal satu file JSON assessment wajib dipilih.',
+            'files.min' => 'Minimal satu file JSON assessment wajib dipilih.',
+            'files.*.mimes' => 'File import harus berformat JSON.',
+            'files.*.max' => 'Ukuran setiap file import maksimal 512 MB.',
             'file.mimes' => 'File import harus berformat JSON.',
             'file.max' => 'Ukuran file import maksimal 512 MB.',
         ]);
 
-        $file = $validated['file'];
-        $disk = 'assessment_private';
-        $path = $file->storeAs(
-            'assessment-imports',
-            Str::uuid()->toString().'.json',
-            $disk
-        );
-
-        if (! $path) {
-            return back()->withErrors(['file' => 'File JSON gagal disimpan sementara.']);
+        $files = $validated['files'] ?? [];
+        if (isset($validated['file'])) {
+            $files[] = $validated['file'];
         }
 
-        $absolutePath = Storage::disk($disk)->path($path);
-        $validation = $this->service->validateFile($absolutePath);
+        $disk = 'assessment_private';
+        $storedFiles = [];
 
-        if (! $validation['valid']) {
-            Storage::disk($disk)->delete($path);
+        foreach ($files as $file) {
+            $path = $file->storeAs(
+                'assessment-imports',
+                Str::uuid()->toString().'.json',
+                $disk
+            );
+
+            if (! $path) {
+                Storage::disk($disk)->delete(array_column($storedFiles, 'path'));
+
+                return back()->withErrors(['file' => 'File JSON gagal disimpan sementara.']);
+            }
+
+            $storedFiles[] = [
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+            ];
+        }
+
+        $validations = [];
+        $validationErrors = [];
+
+        foreach ($storedFiles as $storedFile) {
+            $validation = $this->service->validateFile(
+                Storage::disk($disk)->path($storedFile['path'])
+            );
+            $validations[] = $validation;
+
+            if (! $validation['valid']) {
+                foreach ($validation['errors'] as $error) {
+                    $validationErrors[] = $storedFile['original_name'].': '.$error;
+                }
+            }
+        }
+
+        if ($validationErrors !== []) {
+            Storage::disk($disk)->delete(array_column($storedFiles, 'path'));
 
             return back()
                 ->withInput()
-                ->withErrors(['file' => implode(' ', $validation['errors'])]);
+                ->withErrors(['file' => implode(' ', $validationErrors)]);
         }
 
-        $import = AssessmentImport::query()->create([
-            'disk' => $disk,
-            'path' => $path,
-            'original_name' => $file->getClientOriginalName(),
-            'status' => 'queued',
-            'summary' => $validation['summary'],
-            'requested_by' => session('user_id') ?: null,
-        ]);
+        $imports = [];
+        foreach ($storedFiles as $index => $storedFile) {
+            $imports[] = AssessmentImport::query()->create([
+                'disk' => $disk,
+                'path' => $storedFile['path'],
+                'original_name' => $storedFile['original_name'],
+                'status' => 'queued',
+                'summary' => $validations[$index]['summary'],
+                'requested_by' => session('user_id') ?: null,
+            ]);
+        }
 
-        ProcessAssessmentImportJob::dispatch($import->id);
+        Bus::chain(array_map(
+            static fn (AssessmentImport $import): ProcessAssessmentImportJob => new ProcessAssessmentImportJob($import->id),
+            $imports
+        ))->dispatch();
+
+        $summary = count($imports) === 1
+            ? [...$validations[0]['summary'], 'files' => 1]
+            : [
+                'assessment_code' => null,
+                'assessment_title' => null,
+                'files' => count($imports),
+                'forms' => array_sum(array_map(static fn (AssessmentImport $import): int => (int) ($import->summary['forms'] ?? 0), $imports)),
+                'fields' => array_sum(array_map(static fn (AssessmentImport $import): int => (int) ($import->summary['fields'] ?? 0), $imports)),
+                'assignments' => array_sum(array_map(static fn (AssessmentImport $import): int => (int) ($import->summary['assignments'] ?? 0), $imports)),
+            ];
 
         return back()->with('assessment_import_notice', [
-            'import_id' => $import->id,
-            'message' => 'JSON valid dan import masuk antrean queue default.',
-            'summary' => $validation['summary'],
+            'import_id' => count($imports) === 1 ? $imports[0]->id : null,
+            'import_ids' => array_map(static fn (AssessmentImport $import): int => $import->id, $imports),
+            'message' => count($imports).' file JSON valid dan akan diimport satu per satu melalui queue default.',
+            'summary' => $summary,
         ]);
     }
 

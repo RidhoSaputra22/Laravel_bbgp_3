@@ -7,13 +7,14 @@ use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\AssessmentAssignmentService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
+use InvalidArgumentException;
 use Throwable;
 
 class ResetAllAssessmentCombinations extends Command
 {
     protected $signature = 'assessment:reset-all-combinations {--force : Lewati konfirmasi}';
 
-    protected $description = 'Reset semua kombinasi soal dengan membuat ulang seluruh proses generate';
+    protected $description = 'Reset isi semua kombinasi soal tanpa menambah row';
 
     public function handle(
         AssessmentCombinationGenerationService $generationService,
@@ -45,8 +46,46 @@ class ResetAllAssessmentCombinations extends Command
             return self::SUCCESS;
         }
 
+        $validationErrors = [];
+
+        foreach ($generations as $generation) {
+            try {
+                $generationService->validateGeneration($generation);
+
+                if ($generation->combinations()->count() !== max((int) $generation->total_kombinasi, 1)) {
+                    throw new InvalidArgumentException(
+                        'Jumlah kombinasi tersimpan tidak sama dengan jumlah kombinasi yang diminta.'
+                    );
+                }
+            } catch (Throwable $exception) {
+                if (! $exception instanceof InvalidArgumentException) {
+                    report($exception);
+                }
+
+                $validationErrors[] = [
+                    'generation' => $generation,
+                    'message' => $exception->getMessage(),
+                ];
+            }
+        }
+
+        if ($validationErrors !== []) {
+            $this->error('Preflight reset gagal. Tidak ada data atau queue yang dibuat.');
+
+            foreach ($validationErrors as $validationError) {
+                $generation = $validationError['generation'];
+                $this->line(sprintf(
+                    '- %s: %s',
+                    $generation->kode_generate ?: 'Generation #'.$generation->id,
+                    $validationError['message']
+                ));
+            }
+
+            return self::FAILURE;
+        }
+
         if (! $this->option('force') && ! $this->confirm(
-            'Reset semua kombinasi soal dan buat ulang seluruh proses generate?',
+            'Reset isi semua kombinasi soal pada row yang sama?',
             false
         )) {
             $this->warn('Reset dibatalkan. Tidak ada data yang diubah.');
@@ -54,28 +93,17 @@ class ResetAllAssessmentCombinations extends Command
             return self::SUCCESS;
         }
 
-        $replacementGenerations = [];
         $assignmentCount = 0;
 
         try {
             foreach ($generations as $generation) {
                 $generationService->cancelGenerationProcessing($generation);
                 $assignmentCount += $assignmentService->countAssignmentsForCombinationGeneration($generation);
-
-                $replacementGeneration = $generationService->createReplacementGeneration($generation);
-                $replacementGenerations[] = $replacementGeneration;
-                $generationService->dispatchGeneration($replacementGeneration);
+                $generation = $generationService->prepareInPlaceReset($generation);
+                $generationService->dispatchInPlaceReset($generation);
             }
         } catch (Throwable $exception) {
             report($exception);
-
-            foreach ($replacementGenerations as $replacementGeneration) {
-                try {
-                    $generationService->deleteGenerationHistory($replacementGeneration->fresh());
-                } catch (Throwable $cleanupException) {
-                    report($cleanupException);
-                }
-            }
 
             $this->error('Terjadi kesalahan saat mereset semua kombinasi soal.');
 
@@ -86,7 +114,7 @@ class ResetAllAssessmentCombinations extends Command
             'Reset semua kombinasi untuk '.$generations->count().
             ' proses generate berhasil dikirim ke antrean.'
         );
-        $this->line('Penugasan tetap dipertahankan dan akan dialihkan ke kombinasi baru oleh job.');
+        $this->line('Row kombinasi lama dipakai kembali sehingga jumlah kombinasi tidak bertambah.');
 
         if ($assignmentCount > 0) {
             $this->line($assignmentCount.' penugasan menunggu proses reset.');

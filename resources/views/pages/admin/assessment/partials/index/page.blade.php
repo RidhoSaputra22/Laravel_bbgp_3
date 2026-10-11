@@ -84,9 +84,9 @@
                             <div class="form-row align-items-end">
                                 <div class="form-group col-md-8 mb-md-0">
                                     <label for="assessment-json-file">File JSON assessment</label>
-                                    <input id="assessment-json-file" type="file" name="file" class="form-control-file"
-                                        accept=".json,application/json,text/plain" required>
-                                    <small class="form-text text-muted">Maksimal 512 MB. File divalidasi penuh sebelum masuk queue.</small>
+                                    <input id="assessment-json-file" type="file" name="files[]" class="form-control-file"
+                                        accept=".json,application/json,text/plain" multiple required>
+                                    <small class="form-text text-muted">Pilih satu atau beberapa file. Maksimal 512 MB per file; semua file divalidasi sebelum masuk queue.</small>
                                 </div>
                                 <div class="form-group col-md-4 mb-md-0">
                                     <button type="submit" class="btn btn-primary btn-block">
