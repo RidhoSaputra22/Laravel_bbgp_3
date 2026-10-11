@@ -83,22 +83,17 @@ class SyncValidatorAssignmentsToMongoJob implements ShouldQueue
             return;
         }
 
-        $assignments = ValidatorAssignment::query()
+        $foundIds = [];
+        ValidatorAssignment::query()
             ->whereIn('id', $ids)
             ->with($builder->relations())
-            ->get()
-            ->keyBy('id');
-        $documents = $assignments
-            ->map(fn (ValidatorAssignment $assignment) => $builder->document($assignment))
-            ->values()
-            ->all();
+            ->lazyById(1)
+            ->each(function (ValidatorAssignment $assignment) use ($store, $builder, &$foundIds): void {
+                $store->bulkUpsert([$builder->document($assignment)]);
+                $foundIds[] = (int) $assignment->getKey();
+            });
 
-        $store->bulkUpsert($documents);
-
-        $missingIds = array_values(array_diff(
-            $ids,
-            $assignments->keys()->map(fn ($id) => (int) $id)->all()
-        ));
+        $missingIds = array_values(array_diff($ids, $foundIds));
 
         if ($missingIds !== []) {
             $store->markDeleted($missingIds, $builder);

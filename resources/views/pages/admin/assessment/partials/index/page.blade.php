@@ -14,6 +14,14 @@
         : 'assessment.import';
     $pageHeading = $isEvaluationPelaksanaan ? 'Bank Soal Evaluasi Pelaksanaan' : 'Data Assessment';
     $createLabel = $isEvaluationPelaksanaan ? 'Tambah Bank Soal' : 'Tambah Assessment';
+    $ketenagaanOptions = $ketenagaanOptions ?? \App\Enum\AssessmentKetenagaanType::options();
+    $jabatanOptionsByKetenagaan = $jabatanOptionsByKetenagaan ?? [];
+    $instrumentFilterOptions = [
+        \App\Enum\AssessmentInstrumentType::PORTOFOLIO->value => 'Portofolio',
+        \App\Enum\AssessmentInstrumentType::STUDI_KASUS->value => 'Studi Kasus',
+        \App\Enum\AssessmentInstrumentType::PILIHAN_GANDA_KOMPLEKS->value => 'Pilihan Ganda',
+        \App\Enum\AssessmentInstrumentType::SKALA_LIKERT->value => 'Angket',
+    ];
 @endphp
 
 @push('styles')
@@ -172,6 +180,34 @@
                                 @endunless
                             </div>
                         @else
+                            @unless ($isEvaluationPelaksanaan)
+                                <div class="form-row align-items-end mb-4">
+                                    <div class="form-group col-md-4 mb-md-0">
+                                        <label for="filter-assessment-ketenagaan">Ketenagaan</label>
+                                        <select class="form-control" id="filter-assessment-ketenagaan">
+                                            <option value="">-- Semua Ketenagaan --</option>
+                                            @foreach ($ketenagaanOptions as $value => $label)
+                                                <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-md-0">
+                                        <label for="filter-assessment-instrument">Instrumen Soal</label>
+                                        <select class="form-control" id="filter-assessment-instrument">
+                                            <option value="">-- Semua Instrumen --</option>
+                                            @foreach ($instrumentFilterOptions as $value => $label)
+                                                <option value="{{ $value }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 mb-md-0">
+                                        <label for="filter-assessment-jabatan">Jabatan</label>
+                                        <select class="form-control" id="filter-assessment-jabatan" disabled>
+                                            <option value="">-- Pilih Ketenagaan Dahulu --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            @endunless
                             <div class="table-responsive">
                                 <table class="table table-striped" id="table-assessment-index">
                                     <thead>
@@ -187,7 +223,9 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($datas as $data)
-                                            <tr>
+                                            <tr data-ketenagaan="{{ $data->target_ketenagaan }}"
+                                                data-instrument="{{ $data->instrument_type }}"
+                                                data-jabatan="{{ implode('|', $data->targetJabatanSelections()) }}">
                                                 <td class="text-center">{{ $loop->iteration }}</td>
                                                 <td>
                                                     <div class="font-weight-bold">{{ $data->kode_assessment }}</div>
@@ -278,7 +316,7 @@
                 return;
             }
 
-            table.DataTable({
+            const dataTable = table.DataTable({
                 order: [],
                 pageLength: 10,
                 autoWidth: false,
@@ -292,6 +330,73 @@
                     url: 'https://cdn.datatables.net/plug-ins/2.1.0/i18n/id.json',
                 },
             });
+
+            @unless ($isEvaluationPelaksanaan)
+                const jabatanOptionsByKetenagaan = @json($jabatanOptionsByKetenagaan);
+                const filterKetenagaan = $('#filter-assessment-ketenagaan');
+                const filterInstrument = $('#filter-assessment-instrument');
+                const filterJabatan = $('#filter-assessment-jabatan');
+
+                function refreshJabatanOptions() {
+                    const ketenagaan = filterKetenagaan.val();
+
+                    filterJabatan.empty();
+
+                    if (!ketenagaan) {
+                        filterJabatan
+                            .prop('disabled', true)
+                            .append('<option value="">-- Pilih Ketenagaan Dahulu --</option>');
+                        return;
+                    }
+
+                    filterJabatan
+                        .prop('disabled', false)
+                        .append('<option value="">-- Semua Jabatan --</option>');
+
+                    (jabatanOptionsByKetenagaan[ketenagaan] || []).forEach(function(item) {
+                        if (item.id !== '{{ \App\Models\Assessment::TARGET_JABATAN_ALL }}') {
+                            filterJabatan.append($('<option>', {
+                                value: item.id,
+                                text: item.label,
+                            }));
+                        }
+                    });
+                }
+
+                $.fn.dataTable.ext.search.push(function(settings, searchData, dataIndex) {
+                    if (settings.nTable.id !== 'table-assessment-index') {
+                        return true;
+                    }
+
+                    const row = dataTable.row(dataIndex).node();
+
+                    if (!row) {
+                        return true;
+                    }
+
+                    const selectedKetenagaan = filterKetenagaan.val();
+                    const selectedInstrument = filterInstrument.val();
+                    const selectedJabatan = filterJabatan.val();
+                    const rowJabatan = (row.dataset.jabatan || '').split('|');
+
+                    return (!selectedKetenagaan || row.dataset.ketenagaan === selectedKetenagaan)
+                        && (!selectedInstrument || row.dataset.instrument === selectedInstrument)
+                        && (!selectedJabatan
+                            || rowJabatan.includes('{{ \App\Models\Assessment::TARGET_JABATAN_ALL }}')
+                            || rowJabatan.includes(selectedJabatan));
+                });
+
+                filterKetenagaan.on('change', function() {
+                    refreshJabatanOptions();
+                    dataTable.draw();
+                });
+                filterInstrument.on('change', function() {
+                    dataTable.draw();
+                });
+                filterJabatan.on('change', function() {
+                    dataTable.draw();
+                });
+            @endunless
         });
     </script>
 @endpush

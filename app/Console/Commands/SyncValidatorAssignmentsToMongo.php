@@ -12,7 +12,7 @@ class SyncValidatorAssignmentsToMongo extends Command
 {
     protected $signature = 'assessment:sync-validator-assignments-mongodb
         {--assignment= : Only sync one validator assignment ID}
-        {--chunk=100 : Number of assignments processed per batch}
+        {--chunk=1 : Number of assignments processed per batch}
         {--dry-run : Count assignments without writing to MongoDB}
         {--reset : Delete every existing validator document before a full backfill}
         {--force : Skip the confirmation prompt for --reset}';

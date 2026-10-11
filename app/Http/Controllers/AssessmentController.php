@@ -55,6 +55,8 @@ class AssessmentController extends Controller
         return view('pages.admin.assessment.index', [
             ...$this->viewContext(),
             'datas' => $datas,
+            'ketenagaanOptions' => AssessmentKetenagaanType::options(),
+            'jabatanOptionsByKetenagaan' => $this->buildJabatanOptionsByKetenagaan(),
         ]);
     }
 
