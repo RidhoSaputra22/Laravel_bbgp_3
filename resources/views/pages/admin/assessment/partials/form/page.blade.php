@@ -1295,14 +1295,35 @@
                 .replace(/^_+|_+$/g, '')
                 .replace(/_+/g, '_')
                 .replace(/^(?:soal_)?\d+_/, '');
-            const buildAutoFieldNameHint = (labelValue) => {
-                const generatedName = slugifyFieldName(labelValue);
+            const compactFieldNamePattern = /^f_[a-z0-9]{8}$/;
+            const generateCompactFieldName = () => {
+                const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                const values = new Uint32Array(8);
 
-                if (!generatedName) {
-                    return 'Nama field otomatis akan muncul setelah label diisi.';
+                if (window.crypto?.getRandomValues) {
+                    window.crypto.getRandomValues(values);
+                } else {
+                    values.set(Array.from({
+                        length: 8
+                    }, () => Math.floor(Math.random() * 0xffffffff)));
                 }
 
-                return `Nama field otomatis: <code>${escapeHtml(generatedName)}</code>`;
+                return `f_${Array.from(values, (value) => alphabet[value % alphabet.length]).join('')}`;
+            };
+            const isCompactFieldName = (value) => compactFieldNamePattern.test(String(value || '').trim());
+            const resolveCompactFieldName = (value) => {
+                const normalizedValue = String(value || '').trim().toLowerCase();
+
+                return isCompactFieldName(normalizedValue) ? normalizedValue : generateCompactFieldName();
+            };
+            const buildAutoFieldNameHint = (fieldNameValue = '') => {
+                const generatedName = String(fieldNameValue || '').trim();
+
+                if (!generatedName) {
+                    return 'Kode field compact otomatis dibuat saat field ditambahkan.';
+                }
+
+                return `Kode field compact: <code>${escapeHtml(generatedName)}</code>`;
             };
             const normalizeAutofillKeyword = (value) => String(value || '')
                 .toLowerCase()
@@ -2316,7 +2337,7 @@
                 max_rows: 10,
                 columns: [{
                         label: 'Kolom 1',
-                        nama_field: 'kolom_1',
+                        nama_field: generateCompactFieldName(),
                         tipe_field: 'text',
                         placeholder: 'Isi kolom 1',
                         opsi_field: [],
@@ -2325,7 +2346,7 @@
                     },
                     {
                         label: 'Kolom 2',
-                        nama_field: 'kolom_2',
+                        nama_field: generateCompactFieldName(),
                         tipe_field: 'text',
                         placeholder: 'Isi kolom 2',
                         opsi_field: [],
@@ -2353,8 +2374,7 @@
                 const rawColumn = column && typeof column === 'object' ? column : {};
                 const label = String(rawColumn.label ?? '').trim();
                 const explicitFieldName = String(rawColumn.nama_field ?? '').trim();
-                const generatedFieldName = slugifyFieldName(explicitFieldName || label ||
-                    `kolom_${index + 1}`) || `kolom_${index + 1}`;
+                const generatedFieldName = slugifyFieldName(explicitFieldName) || generateCompactFieldName();
 
                 return {
                     label: label,
@@ -2613,10 +2633,15 @@
                     $fields.slice(0, fieldIndex).each(function() {
                         const $parentField = $(this);
                         const label = $parentField.find('.field-label-input').val()?.trim() || '';
-                        const value = slugifyFieldName(label);
-                        const previousValue = String($parentField.data('dependencyFieldName') || '');
+                        const value = $parentField.find('.assessment-field-name-input').val()?.trim() ||
+                            resolveCompactFieldName('');
+                        const aliases = [
+                            value,
+                            String($parentField.data('legacyFieldName') || '').trim(),
+                            slugifyFieldName(label),
+                        ].filter(Boolean);
 
-                        if (selectedValue && selectedValue === previousValue && previousValue !== value) {
+                        if (selectedValue && aliases.includes(selectedValue)) {
                             selectedValue = value;
                         }
 
@@ -2636,8 +2661,13 @@
                 });
 
                 $fields.each(function() {
-                    const label = $(this).find('.field-label-input').val()?.trim() || '';
-                    $(this).data('dependencyFieldName', slugifyFieldName(label));
+                    const fieldName = $(this).find('.assessment-field-name-input').val()?.trim() ||
+                        resolveCompactFieldName('');
+
+                    $(this)
+                        .find('.assessment-field-name-input')
+                        .val(fieldName);
+                    $(this).data('legacyFieldName', String($(this).data('legacyFieldName') || '').trim());
                 });
             };
 
@@ -2653,7 +2683,11 @@
                 const fieldIndex = $fields.index($fieldCard);
 
                 return $fields.slice(0, fieldIndex).filter(function() {
-                    return slugifyFieldName($(this).find('.field-label-input').val()?.trim() || '') === parentName;
+                    const fieldName = $(this).find('.assessment-field-name-input').val()?.trim() || '';
+
+                    return fieldName === parentName ||
+                        String($(this).data('legacyFieldName') || '').trim() === parentName ||
+                        slugifyFieldName($(this).find('.field-label-input').val()?.trim() || '') === parentName;
                 }).first();
             };
 
@@ -2959,6 +2993,8 @@
 
             const buildFieldCard = (formIndex, fieldIndex, fieldData = {}) => {
                 const fieldType = fieldData.tipe_field || 'text';
+                const fieldName = resolveCompactFieldName(fieldData.nama_field);
+                const legacyFieldName = String(fieldData.legacy_field_name || '').trim();
                 const showTextOptions = textOptionFieldTypes.includes(fieldType);
                 const showMultipleChoiceOptions = fieldType === multipleChoiceFieldType;
                 const showLikertOptions = fieldType === likertFieldType;
@@ -2994,6 +3030,7 @@
                     (fieldData.lookup_source || suggestedLookupSource);
                 const fieldPrefix = `forms[${formIndex}][fields][${fieldIndex}]`;
                 const fieldIdName = `${fieldPrefix}[id]`;
+                const fieldNameName = `${fieldPrefix}[nama_field]`;
                 const labelName = `${fieldPrefix}[label]`;
                 const deskripsiName = `${fieldPrefix}[deskripsi]`;
                 const tipeFieldName = `${fieldPrefix}[tipe_field]`;
@@ -3085,11 +3122,14 @@
                 );
 
                 return `
-                    <div class="${fieldCardClass}" data-field-index="${fieldIndex}" data-radio-option-counter="${radioOptions.length}">
+                    <div class="${fieldCardClass}" data-field-index="${fieldIndex}" data-legacy-field-name="${escapeHtml(legacyFieldName)}" data-radio-option-counter="${radioOptions.length}">
                         <div class="card-body">
                             <input type="hidden" class="assessment-field-id-input"
                                 name="${fieldIdName}"
                                 value="${escapeHtml(fieldData.id || '')}">
+                            <input type="hidden" class="assessment-field-name-input"
+                                name="${fieldNameName}"
+                                value="${escapeHtml(fieldName)}">
                             <input type="hidden"
                                 name="${rawOpsiFieldJsonName}"
                                 value="${escapeHtml(fieldData.raw_opsi_field_json || '')}">
@@ -3118,7 +3158,7 @@
                                             required>
                                         ${buildInvalidFeedback(labelName)}
                                         <small class="form-text text-muted auto-field-name-hint">
-                                            ${buildAutoFieldNameHint(fieldData.label)}
+                                            ${buildAutoFieldNameHint(fieldName)}
                                         </small>
                                     </div>
                                 </div>
@@ -3956,11 +3996,20 @@
                         form.fields :
                         createDefaultFormData(formIndex).fields;
 
-                    normalizedForm.fields = rawFields.map((field, fieldIndex) => ({
-                        ...createDefaultFieldData(fieldIndex),
-                        ...(field || {}),
-                        urutan: fieldIndex + 1,
-                    }));
+                    normalizedForm.fields = rawFields.map((field, fieldIndex) => {
+                        const rawField = field || {};
+                        const rawFieldName = String(rawField.nama_field || '').trim();
+
+                        return {
+                            ...createDefaultFieldData(fieldIndex),
+                            ...rawField,
+                            nama_field: resolveCompactFieldName(rawFieldName),
+                            legacy_field_name: isCompactFieldName(rawFieldName)
+                                ? String(rawField.legacy_field_name || '').trim()
+                                : rawFieldName,
+                            urutan: fieldIndex + 1,
+                        };
+                    });
 
                     return normalizedForm;
                 });
@@ -4063,9 +4112,17 @@
             const appendField = ($formCard, fieldData = {}, options = {}) => {
                 const formIndex = Number($formCard.data('form-index'));
                 const fieldIndex = Number($formCard.attr('data-field-counter'));
+                const rawFieldName = String(fieldData.nama_field || '').trim();
+                const normalizedFieldData = {
+                    ...fieldData,
+                    nama_field: resolveCompactFieldName(rawFieldName),
+                    legacy_field_name: isCompactFieldName(rawFieldName)
+                        ? String(fieldData.legacy_field_name || '').trim()
+                        : rawFieldName,
+                };
 
                 $formCard.find('.assessment-field-list').append(buildFieldCard(formIndex, fieldIndex,
-                    fieldData));
+                    normalizedFieldData));
                 $formCard.attr('data-field-counter', fieldIndex + 1);
 
                 const $fieldCard = $formCard.find('.assessment-field-card').last();
@@ -4565,8 +4622,11 @@
             };
 
             const updateAutoFieldNameHint = ($fieldCard) => {
-                const labelValue = $fieldCard.find('.field-label-input').val()?.trim() || '';
-                $fieldCard.find('.auto-field-name-hint').html(buildAutoFieldNameHint(labelValue));
+                const fieldName = $fieldCard.find('.assessment-field-name-input').val()?.trim() ||
+                    resolveCompactFieldName('');
+
+                $fieldCard.find('.assessment-field-name-input').val(fieldName);
+                $fieldCard.find('.auto-field-name-hint').html(buildAutoFieldNameHint(fieldName));
             };
 
             const toggleEmptyState = () => {
@@ -4595,9 +4655,7 @@
             };
 
             const getRepeaterColumnDefaultName = ($columnRow) => {
-                const rowIndex = Number($columnRow.attr('data-column-index') || 0);
-                const labelValue = $columnRow.find('.repeater-column-label-input').val()?.trim() || '';
-                return slugifyFieldName(labelValue || `kolom_${rowIndex + 1}`) || `kolom_${rowIndex + 1}`;
+                return $columnRow.find('.repeater-column-name-input').val()?.trim() || generateCompactFieldName();
             };
 
             const isRepeaterColumnNameAutoGenerated = ($nameInput) => {
@@ -4621,7 +4679,7 @@
                 $columnRow.find('.repeater-column-row__title').text(`Kolom ${columnIndex + 1}`);
                 $columnRow.find('.repeater-column-row__meta').text(labelValue || 'Label kolom belum diisi');
 
-                if (!currentName || autoGenerated) {
+                if (!currentName) {
                     $nameInput.val(defaultName);
                     $nameInput.data('autoGenerated', true);
                 }
@@ -4731,7 +4789,8 @@
                 return {
                     id: fieldId > 0 ? fieldId : null,
                     label: $fieldCard.find('input[name$="[label]"]').val()?.trim() || '',
-                    nama_field: slugifyFieldName($fieldCard.find('input[name$="[label]"]').val()?.trim() || ''),
+                    nama_field: $fieldCard.find('.assessment-field-name-input').val()?.trim() ||
+                        resolveCompactFieldName(''),
                     deskripsi: $fieldCard.find('textarea[name$="[deskripsi]"]').val()?.trim() || '',
                     tipe_field: fieldType,
                     placeholder: $fieldCard.find('input[name$="[placeholder]"]').val()?.trim() || '',
@@ -5016,7 +5075,7 @@
                             .map((field) => ({
                                 label: field.label || 'Field tanpa label',
                                 description: field.deskripsi || '',
-                                name: slugifyFieldName(field.label || ''),
+                                name: field.nama_field || resolveCompactFieldName(''),
                                 type: field.tipe_field || 'text',
                                 placeholder: field.placeholder || '',
                                 helpText: field.bantuan || '',

@@ -12,7 +12,7 @@ class AssessmentTargetSyncDispatcher
 {
     public function assignments(array $assignmentIds): void
     {
-        if (! $this->active()) {
+        if (! $this->active() || ! $this->targetSchemaReady()) {
             return;
         }
 
@@ -32,10 +32,19 @@ class AssessmentTargetSyncDispatcher
             return;
         }
 
-        if ($this->active()) {
+        if (
+            $this->active()
+            && $this->targetSchemaReady()
+            && Schema::hasTable('assessment_assignment_assessments')
+        ) {
             $this->dispatch($this->pivotTargets('assessment_id', $ids));
         }
         $this->dispatchValidatorsForAssessments($ids);
+    }
+
+    public function validatorsForAssessments(array $assessmentIds): void
+    {
+        $this->dispatchValidatorsForAssessments($assessmentIds);
     }
 
     public function forms(array $formIds): void
@@ -45,7 +54,11 @@ class AssessmentTargetSyncDispatcher
             return;
         }
 
-        if ($this->active()) {
+        if (
+            $this->active()
+            && $this->targetSchemaReady()
+            && Schema::hasTable('assessment_assignment_assessments')
+        ) {
             $this->dispatch(DB::table('assessment_assignment_targets as target')
                 ->join('assessment_assignment_assessments as stage', 'stage.assessment_assignment_id', '=', 'target.assessment_assignment_id')
                 ->join('assessment_forms as form', 'form.assessment_id', '=', 'stage.assessment_id')
@@ -72,7 +85,11 @@ class AssessmentTargetSyncDispatcher
             return;
         }
 
-        if ($this->active()) {
+        if (
+            $this->active()
+            && $this->targetSchemaReady()
+            && Schema::hasTable('assessment_assignment_assessments')
+        ) {
             $this->dispatch(DB::table('assessment_assignment_targets as target')
                 ->join('assessment_assignment_assessments as stage', 'stage.assessment_assignment_id', '=', 'target.assessment_assignment_id')
                 ->join('assessment_forms as form', 'form.assessment_id', '=', 'stage.assessment_id')
@@ -96,7 +113,7 @@ class AssessmentTargetSyncDispatcher
 
     public function combinations(array $combinationIds): void
     {
-        if (! $this->active()) {
+        if (! $this->active() || ! $this->targetSchemaReady()) {
             return;
         }
 
@@ -115,10 +132,20 @@ class AssessmentTargetSyncDispatcher
             ->all());
     }
 
+    private function targetSchemaReady(): bool
+    {
+        return Schema::hasTable('assessment_assignment_targets')
+            && Schema::hasColumn('assessment_assignment_targets', 'is_validator');
+    }
+
     private function pivotTargets(string $column, array $ids): array
     {
         $ids = $this->ids($ids);
-        if ($ids === []) {
+        if (
+            $ids === []
+            || ! $this->targetSchemaReady()
+            || ! Schema::hasTable('assessment_assignment_assessments')
+        ) {
             return [];
         }
 
@@ -139,7 +166,11 @@ class AssessmentTargetSyncDispatcher
     private function dispatchValidatorsForAssessments(array $assessmentIds): void
     {
         $ids = $this->ids($assessmentIds);
-        if ($ids === [] || ! (bool) config('assessment_mongodb.enabled')) {
+        if (
+            $ids === []
+            || ! (bool) config('assessment_mongodb.enabled')
+            || ! Schema::hasTable('validator_assignments')
+        ) {
             return;
         }
 

@@ -37,6 +37,56 @@ func TestTargetTombstoneContract(t *testing.T) {
 	}
 }
 
+func TestTargetDocumentExcludesStageControlMetadataButKeepsFormRules(t *testing.T) {
+	builder := &Builder{}
+	row := TargetRow{ID: 42, Assignment: AssignmentRow{ID: 7}}
+	snapshot := map[string]any{
+		"assessments": []any{map[string]any{
+			"stage_index": 1,
+			"stage_config": map[string]any{
+				"admin_gate_enabled":                   true,
+				"lock_until_previous_stages_completed": true,
+				"security":                             map[string]any{"require_fullscreen": true},
+			},
+			"instrument_type": "studi_kasus",
+			"forms": []any{map[string]any{
+				"fields": []any{map[string]any{
+					"validasi":       map[string]any{"required": true},
+					"scoring_config": map[string]any{"method": "keyword_coverage"},
+				}},
+			}},
+		}},
+		"meta": map[string]any{
+			"total_questions": 1,
+			"randomization":   map[string]any{"version": 2},
+		},
+	}
+
+	document := builder.targetDocument(row, snapshot, "assignment")
+	assessment := document["forms"].([]any)[0].(map[string]any)["assessments"].([]any)[0].(map[string]any)
+	field := assessment["forms"].([]any)[0].(map[string]any)["fields"].([]any)[0].(map[string]any)
+
+	if _, ok := assessment["stage_index"]; ok {
+		t.Fatal("stage index must not be synchronized to MongoDB")
+	}
+	if _, ok := assessment["stage_config"]; ok {
+		t.Fatal("stage control metadata must not be synchronized to MongoDB")
+	}
+	if !reflect.DeepEqual(field["validasi"], map[string]any{"required": true}) {
+		t.Fatalf("field validation was not preserved: %#v", field["validasi"])
+	}
+	if !reflect.DeepEqual(field["scoring_config"], map[string]any{"method": "keyword_coverage"}) {
+		t.Fatalf("field scoring was not preserved: %#v", field["scoring_config"])
+	}
+	meta := document["meta"].(map[string]any)
+	if _, ok := meta["total_questions"]; ok {
+		t.Fatal("snapshot counters must not be synchronized to MongoDB")
+	}
+	if _, ok := meta["randomization"]; ok {
+		t.Fatal("randomization metadata must not be synchronized to MongoDB")
+	}
+}
+
 func TestValidatorTombstoneContract(t *testing.T) {
 	document := validatorTombstone(91)
 	if document["_id"] != "validator-assignment:91" {
@@ -77,7 +127,7 @@ func TestTargetSnapshotPrefersLatestCombinationOverAttempt(t *testing.T) {
 		}}},
 	}
 
-	snapshot, source := builder.targetSnapshot(row, nil, nil)
+	snapshot, source := builder.targetSnapshot(row, nil)
 	if source != "combination" {
 		t.Fatalf("expected combination source, got %q", source)
 	}
@@ -108,7 +158,7 @@ func TestTargetSnapshotInfersChoiceScoresFromCompetencyLevels(t *testing.T) {
 		}}},
 	}
 
-	snapshot, _ := builder.targetSnapshot(row, nil, nil)
+	snapshot, _ := builder.targetSnapshot(row, nil)
 	field := snapshot["assessments"].([]any)[0].(map[string]any)["forms"].([]any)[0].(map[string]any)["fields"].([]any)[0].(map[string]any)
 	options := field["opsi_field"].([]any)
 	if options[0].(map[string]any)["score"] != 1.0 || options[1].(map[string]any)["score"] != 5.0 {

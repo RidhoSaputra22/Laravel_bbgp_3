@@ -272,7 +272,6 @@ type SchemaAssessment struct {
 	Instructions sql.NullString
 	Instrument   sql.NullString
 	Scoring      JSONValue
-	StageConfig  JSONValue
 	Active       bool
 	Index        int
 	Forms        []SchemaForm
@@ -287,7 +286,6 @@ func (d *Database) loadSchemas(ctx context.Context, assignmentIDs []int64) (map[
 		SELECT
 			aa.assessment_assignment_id, a.id, a.kode_assessment, a.judul,
 			a.deskripsi, a.petunjuk, a.instrument_type, a.scoring_config, a.is_active,
-			aa.stage_config,
 			f.id, f.judul_form, f.kode_form, f.deskripsi, f.kompetensi,
 			f.indikator_kode, f.indikator_label, f.is_scoreable, f.scoring_config,
 			ff.id, ff.assessment_form_id, ff.label, ff.deskripsi,
@@ -319,7 +317,7 @@ func (d *Database) loadSchemas(ctx context.Context, assignmentIDs []int64) (map[
 		if err := rows.Scan(
 			&assignmentID, &assessment.ID, &assessment.Code, &assessment.Title,
 			&assessment.Description, &assessment.Instructions, &assessment.Instrument,
-			&assessment.Scoring, &assessmentActive, &assessment.StageConfig,
+			&assessment.Scoring, &assessmentActive,
 			&form.ID, &form.Title, &form.Code, &form.Description, &form.Competency,
 			&form.IndicatorCode, &form.IndicatorLabel, &scoreable, &form.Scoring,
 			&field.ID, &field.FormID, &field.Label, &field.Description,
@@ -444,33 +442,6 @@ func (d *Database) loadCombinationSnapshots(ctx context.Context, ids []int64) (m
 		}
 	}
 	return result, nil
-}
-
-func (d *Database) loadStageConfigs(ctx context.Context, assignmentIDs []int64) (map[int64]map[int64]map[string]any, error) {
-	result := map[int64]map[int64]map[string]any{}
-	if len(assignmentIDs) == 0 {
-		return result, nil
-	}
-	placeholders, args := inClause(assignmentIDs)
-	rows, err := d.db.QueryContext(ctx, "SELECT assessment_assignment_id, assessment_id, stage_config FROM assessment_assignment_assessments WHERE assessment_assignment_id IN ("+placeholders+")", args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var assignmentID, assessmentID int64
-		var config JSONValue
-		if err := rows.Scan(&assignmentID, &assessmentID, &config); err != nil {
-			return nil, err
-		}
-		if value, ok := config.Value.(map[string]any); ok {
-			if result[assignmentID] == nil {
-				result[assignmentID] = map[int64]map[string]any{}
-			}
-			result[assignmentID][assessmentID] = value
-		}
-	}
-	return result, rows.Err()
 }
 
 func (d *Database) lookupLabels(ctx context.Context, table string) []string {

@@ -107,25 +107,6 @@ func TestConfigValidationAndDSNDefaults(t *testing.T) {
 	}
 }
 
-func TestStageConfigDefaultsAndOverrides(t *testing.T) {
-	defaults := stageConfig("studi_kasus", 1, nil)
-	if defaults["enabled"] != true || defaults["entry_mode"] != "start_button" || defaults["finalize_mode"] != "auto" {
-		t.Fatalf("unexpected study-case defaults: %#v", defaults)
-	}
-
-	configured := stageConfig("pilihan_ganda_kompleks", 2, map[string]any{
-		"time_limit_minutes": 30,
-		"security":           map[string]any{"enabled": false},
-	})
-	if configured["time_limit_minutes"] != 30 {
-		t.Fatalf("time limit override was lost: %#v", configured)
-	}
-	security := configured["security"].(map[string]any)
-	if security["enabled"] != false || security["require_fullscreen"] != true {
-		t.Fatalf("nested config merge is wrong: %#v", security)
-	}
-}
-
 func TestNormalizeAndMergeOptions(t *testing.T) {
 	options := normalizeOptions([]any{
 		"B",
@@ -309,14 +290,14 @@ func TestTargetSnapshotFallbackOrder(t *testing.T) {
 		}},
 	}
 	builder := &Builder{}
-	if snapshot, source := builder.targetSnapshot(row, nil, nil); source != "attempt" || stringValue(arrayValue(arrayValue(arrayValue(snapshot, "assessments")[0].(map[string]any), "forms")[0].(map[string]any), "fields")[0].(map[string]any), "label") != "attempt" {
+	if snapshot, source := builder.targetSnapshot(row, nil); source != "attempt" || stringValue(arrayValue(arrayValue(arrayValue(snapshot, "assessments")[0].(map[string]any), "forms")[0].(map[string]any), "fields")[0].(map[string]any), "label") != "attempt" {
 		t.Fatalf("attempt fallback failed: source=%q snapshot=%#v", source, snapshot)
 	}
 
 	row.Attempt = JSONValue{}
 	assignment, source := builder.targetSnapshot(row, []SchemaAssessment{{
 		ID: 1, Active: true, Forms: []SchemaForm{{ID: 2, Fields: []SchemaField{{ID: 3, Active: true, Label: sql.NullString{String: "assignment", Valid: true}}}}},
-	}}, nil)
+	}})
 	if source != "assignment" || stringValue(arrayValue(arrayValue(arrayValue(assignment, "assessments")[0].(map[string]any), "forms")[0].(map[string]any), "fields")[0].(map[string]any), "label") != "assignment" {
 		t.Fatalf("assignment fallback failed: source=%q snapshot=%#v", source, assignment)
 	}

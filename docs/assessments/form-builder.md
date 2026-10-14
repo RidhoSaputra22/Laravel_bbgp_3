@@ -152,16 +152,17 @@ Setiap pertanyaan dibuat dengan tombol **Tambah Field**.
 | ID | `fields[*][id]` | Tidak | Hanya digunakan saat edit untuk mempertahankan field database yang sudah ada. Field baru tidak memiliki ID sebelum disimpan. |
 
 Nama field (`nama_field`) tidak diisi manual pada field utama. Sistem membuatnya
-otomatis dari label menggunakan format `snake_case`. Prefix nomor soal di awal
-label seperti `1. Nama` dibuang. Contoh:
+otomatis sebagai kode acak compact berformat `f_` + 8 karakter alfanumerik.
+Contoh:
 
 ```text
 Label:     Nama Lengkap Peserta
-nama_field: nama_lengkap_peserta
+nama_field: f_k7m2p9x4
 ```
 
 Nama field harus unik di dalam satu form. Nama field ini menjadi key jawaban
 peserta, key auto-fill, dan referensi `parent_field` pada field dependency.
+Nama field lama tetap diterima saat membaca payload legacy.
 
 ### 4.1 Data teknis yang ikut membentuk field
 
@@ -325,7 +326,7 @@ Contoh konfigurasi tabel:
   "columns": [
     {
       "label": "Nama Pelatihan",
-      "nama_field": "nama_pelatihan",
+      "nama_field": "f_2m8q1v7a",
       "tipe_field": "text",
       "placeholder": "Contoh: Pelatihan Pembelajaran Berdiferensiasi",
       "opsi_field": [],
@@ -333,7 +334,7 @@ Contoh konfigurasi tabel:
     },
     {
       "label": "Tahun",
-      "nama_field": "tahun",
+      "nama_field": "f_9x4k6p2c",
       "tipe_field": "number",
       "placeholder": "2026",
       "opsi_field": [],
@@ -723,7 +724,7 @@ Backend kemudian melakukan normalisasi berikut:
 1. membuat atau mempertahankan kode assessment;
 2. membuat slug dari judul;
 3. membuat kode form jika kosong;
-4. membuat `nama_field` dari label;
+4. membuat `nama_field` sebagai kode acak compact;
 5. mengubah teks opsi menjadi `opsi_field` JSON;
 6. mengubah konfigurasi dependency/repeater menjadi JSON;
 7. menggabungkan `is_required` ke `validasi.required`;

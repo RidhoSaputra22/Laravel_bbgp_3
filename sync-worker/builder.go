@@ -19,7 +19,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-const targetSchemaVersion = "assessment_assignment-target-v1"
+const targetSchemaVersion = "assessment_assignment-target-v2"
 const validatorSchemaVersion = "validator_assignment-v1"
 
 var instrumentOrder = map[string]int{
@@ -82,19 +82,6 @@ func (b *Builder) BuildTargets(ctx context.Context, ids []int64) ([]map[string]a
 			}
 		}
 	}
-	allAssignmentIDs := make([]int64, 0, len(rows))
-	allSeen := map[int64]bool{}
-	for _, row := range rows {
-		if !allSeen[row.AssignmentID] {
-			allAssignmentIDs = append(allAssignmentIDs, row.AssignmentID)
-			allSeen[row.AssignmentID] = true
-		}
-	}
-	stageConfigs, err := b.db.loadStageConfigs(ctx, allAssignmentIDs)
-	if err != nil {
-		return nil, err
-	}
-
 	documents := make([]map[string]any, len(ids))
 	workers := b.concurrency
 	if workers < 1 {
@@ -116,7 +103,7 @@ func (b *Builder) BuildTargets(ctx context.Context, ids []int64) ([]map[string]a
 					documents[index] = targetTombstone(id)
 					continue
 				}
-				snapshot, source := b.targetSnapshot(row, schemas[row.AssignmentID], stageConfigs[row.AssignmentID])
+				snapshot, source := b.targetSnapshot(row, schemas[row.AssignmentID])
 				documents[index] = b.targetDocument(row, snapshot, source)
 			}
 		}()
@@ -129,10 +116,9 @@ func (b *Builder) BuildTargets(ctx context.Context, ids []int64) ([]map[string]a
 	return documents, nil
 }
 
-func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment, stageConfigs map[int64]map[string]any) (map[string]any, string) {
+func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment) (map[string]any, string) {
 	if snapshot, ok := mapAny(row.Combination.Snapshot.Value); ok && validSnapshot(snapshot) {
 		snapshot = cloneMap(snapshot)
-		applyStageConfigs(snapshot, stageConfigs)
 		normalizeSnapshotChoiceOptions(snapshot)
 		randomizeSnapshot(snapshot, row.ID)
 		normalizeScoring(snapshot)
@@ -152,25 +138,10 @@ func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment, stag
 	return snapshot, "assignment"
 }
 
-func applyStageConfigs(snapshot map[string]any, configured map[int64]map[string]any) {
-	for index, raw := range arrayValue(snapshot, "assessments") {
-		assessment, ok := raw.(map[string]any)
-		if !ok {
-			continue
-		}
-		assessment["stage_config"] = stageConfig(stringValue(assessment, "instrument_type"), index, configured[int64Value(assessment, "id")])
-	}
-}
-
 func (b *Builder) targetDocument(row TargetRow, snapshot map[string]any, source string) map[string]any {
 	forms := groupedForms(snapshot)
 	applyAutofill(forms, row.Guru)
-	meta := mapValue(snapshot, "meta")
-	if meta == nil {
-		meta = map[string]any{}
-	}
-	meta["snapshot_source"] = source
-	meta["generated_at"] = nowISO()
+	meta := map[string]any{"snapshot_source": source, "generated_at": nowISO()}
 	return map[string]any{
 		"_id":                  "assessment-target:" + itoa(row.ID),
 		"schema_version":       targetSchemaVersion,
@@ -263,14 +234,12 @@ func schemaSnapshot(row TargetRow, assessments []SchemaAssessment) map[string]an
 	result := make([]any, 0, len(assessments))
 	allFields := 0
 	requiredFields := 0
-	stageIndex := 0
 	for _, assessment := range assessments {
 		if !assessment.Active {
 			continue
 		}
 		assessmentMap := map[string]any{
-			"id": assessment.ID, "stage_index": stageIndex,
-			"stage_config":    stageConfig(stringValueSQL(assessment.Instrument), stageIndex, jsonObject(assessment.StageConfig)),
+			"id":              assessment.ID,
 			"kode_assessment": nullString(assessment.Code), "judul": nullString(assessment.Title),
 			"deskripsi": nullString(assessment.Description), "petunjuk": nullString(assessment.Instructions),
 			"instrument_type":  nullString(assessment.Instrument),
@@ -319,50 +288,11 @@ func schemaSnapshot(row TargetRow, assessments []SchemaAssessment) map[string]an
 		}
 		assessmentMap["forms"] = forms
 		result = append(result, assessmentMap)
-		stageIndex++
 	}
 	return map[string]any{
 		"generated_at": nowISO(), "assignment": map[string]any{"id": row.Assignment.ID, "kode_penugasan": nullString(row.Assignment.Code), "judul_penugasan": nullString(row.Assignment.Title)},
 		"assessments": result,
 		"meta":        map[string]any{"total_questions": allFields, "required_questions": requiredFields, "randomization": map[string]any{"version": 2, "question_order": "fixed", "choice_order": "radio_options_for_pilihan_ganda_kompleks"}},
-	}
-}
-
-func stageConfig(instrument string, index int, configured map[string]any) map[string]any {
-	enabled, entry, draft, finalize := false, "direct", false, "manual"
-	var timeLimit any
-	securityEnabled, fullscreen := false, false
-	switch instrument {
-	case "portofolio":
-		enabled, draft = true, true
-	case "studi_kasus":
-		enabled, entry, finalize, securityEnabled, fullscreen = true, "start_button", "auto", true, true
-	case "pilihan_ganda_kompleks":
-		enabled, finalize, timeLimit, securityEnabled, fullscreen = true, "auto", 90, true, true
-	case "skala_likert":
-		enabled, finalize = true, "auto"
-	default:
-		enabled = index < 3
-	}
-	defaults := map[string]any{
-		"enabled": enabled, "entry_mode": entry, "allow_draft": draft, "finalize_mode": finalize,
-		"admin_gate_enabled": index > 0, "lock_until_previous_stages_completed": index > 0,
-		"time_limit_minutes": timeLimit,
-		"security":           map[string]any{"enabled": securityEnabled, "require_fullscreen": fullscreen, "max_serious_violations": 3, "temporary_lock_seconds": 2, "fullscreen_grace_seconds": 10},
-	}
-	mergeMap(defaults, configured)
-	return defaults
-}
-
-func mergeMap(destination, source map[string]any) {
-	for key, value := range source {
-		if nested, ok := value.(map[string]any); ok {
-			if target, ok := destination[key].(map[string]any); ok {
-				mergeMap(target, nested)
-				continue
-			}
-		}
-		destination[key] = value
 	}
 }
 
@@ -373,6 +303,9 @@ func groupedForms(snapshot map[string]any) []any {
 		if !ok {
 			continue
 		}
+		assessment = cloneMap(assessment)
+		delete(assessment, "stage_index")
+		delete(assessment, "stage_config")
 		instrument := stringValue(assessment, "instrument_type")
 		groups[instrument] = append(groups[instrument], assessment)
 	}

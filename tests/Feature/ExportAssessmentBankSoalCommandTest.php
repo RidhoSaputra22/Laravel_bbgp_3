@@ -49,10 +49,13 @@ class ExportAssessmentBankSoalCommandTest extends TestCase
             $this->assertSame(0, Artisan::call('assessment:export-bank-soal', [
                 '--path' => $directory,
             ]));
-            $payload = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+            $json = (string) file_get_contents($path);
+            $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
             $this->assertSame('ASM-COMMAND-EXPORT', $payload['data']['kode_assessment']);
             $this->assertArrayNotHasKey('old', $payload);
+            $this->assertStringContainsString("{\n  \"meta\": {", $json);
+            $this->assertStringContainsString("\n    \"forms\": [", $json);
         } finally {
             @unlink($path);
             @rmdir($directory);

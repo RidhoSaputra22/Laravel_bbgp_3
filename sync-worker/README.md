@@ -4,6 +4,10 @@ Worker one-shot untuk sinkronisasi MySQL ke MongoDB. Worker membaca tabel
 `sync_outbox`, membangun ulang snapshot target/validator dari source MySQL, lalu
 menulis bulk upsert yang idempotent ke MongoDB.
 
+Projection target hanya membawa konten assessment seperti form, field, scoring,
+dan validasi. Metadata akses tahap seperti stage lock, admin gate, timeout, dan
+security fullscreen tidak dikirim ke MongoDB.
+
 Event untuk target atau validator yang sudah tidak ada lagi di MySQL menghapus
 projection lama di MongoDB. Tombstone hanya digunakan internal oleh builder dan
 tidak disimpan sebagai dokumen yang bisa tampil sebagai assessment tanpa judul.

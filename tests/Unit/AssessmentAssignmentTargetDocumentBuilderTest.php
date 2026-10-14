@@ -87,6 +87,65 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $this->assertTrue($document['sync']['is_active']);
     }
 
+    public function test_mongo_projection_excludes_stage_control_metadata_but_keeps_form_rules(): void
+    {
+        $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);
+        $randomizer->shouldReceive('buildSnapshot')->once()->andReturn([
+            'assessments' => [[
+                'id' => 20,
+                'stage_index' => 1,
+                'stage_config' => [
+                    'admin_gate_enabled' => true,
+                    'lock_until_previous_stages_completed' => true,
+                    'security' => ['require_fullscreen' => true],
+                ],
+                'instrument_type' => 'studi_kasus',
+                'forms' => [[
+                    'id' => 30,
+                    'fields' => [[
+                        'id' => 40,
+                        'validasi' => ['required' => true],
+                        'scoring_config' => ['method' => 'keyword_coverage'],
+                    ]],
+                ]],
+            ]],
+            'meta' => [
+                'total_questions' => 1,
+                'randomization' => ['version' => 2],
+            ],
+        ]);
+        $randomizer->shouldReceive('randomizeSnapshotForTarget')
+            ->once()
+            ->andReturnUsing(fn (array $snapshot): array => $snapshot);
+
+        $assignment = new AssessmentAssignment(['target_ketenagaan' => 'tenaga_pendidik']);
+        $assignment->id = 34;
+        $assignment->setRelation('combination', null);
+
+        $target = new AssessmentAssignmentTarget(['status' => 'ditugaskan']);
+        $target->id = 115844;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('guru', null);
+        $target->setRelation('combination', null);
+        $target->setRelation('attempt', null);
+
+        $document = (new AssessmentAssignmentTargetDocumentBuilder(
+            $randomizer,
+            Mockery::mock(ScoringConfigNormalizer::class)
+        ))->document($target, $assignment);
+
+        $assessment = $document['forms'][0]['assessments'][0];
+        $field = $assessment['forms'][0]['fields'][0];
+
+        $this->assertArrayNotHasKey('stage_index', $assessment);
+        $this->assertArrayNotHasKey('stage_config', $assessment);
+        $this->assertSame(['required' => true], $field['validasi']);
+        $this->assertSame(['method' => 'keyword_coverage'], $field['scoring_config']);
+        $this->assertArrayNotHasKey('total_questions', $document['meta']);
+        $this->assertArrayNotHasKey('randomization', $document['meta']);
+        $this->assertSame('assignment', $document['meta']['snapshot_source']);
+    }
+
     public function test_it_adds_autofill_values_only_to_portfolio_identity_form_in_mongo_documents(): void
     {
         $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);

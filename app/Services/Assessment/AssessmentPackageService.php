@@ -259,9 +259,13 @@ class AssessmentPackageService
             ],
         ];
 
-        echo '{"meta":'.$this->encode($meta).',"data":';
-        $this->writeAssessment($assessment);
-        echo ',"included":{"assignment_configs":[';
+        echo "{\n";
+        echo $this->indent(1).'"meta": '.$this->encodeInline($meta, 1).",\n";
+        echo $this->indent(1).'"data": ';
+        $this->writeAssessment($assessment, 1);
+        echo ",\n";
+        echo $this->indent(1).'"included": {'."\n";
+        echo $this->indent(2).'"assignment_configs": [';
 
         $first = true;
         AssessmentAssignment::query()
@@ -269,18 +273,18 @@ class AssessmentPackageService
             ->orderBy('id')
             ->cursor()
             ->each(function (AssessmentAssignment $assignment) use (&$first, $assessment): void {
-                if (! $first) {
-                    echo ',';
-                }
+                echo $first ? "\n" : ",\n";
 
                 $first = false;
-                echo $this->encode($this->assignmentExportData($assignment, $assessment));
+                echo $this->encodePretty($this->assignmentExportData($assignment, $assessment), 3);
             });
 
-        echo ']}}';
+        echo $first ? "]\n" : "\n".$this->indent(2)."]\n";
+        echo $this->indent(1)."}\n";
+        echo "}\n";
     }
 
-    private function writeAssessment(Assessment $assessment): void
+    private function writeAssessment(Assessment $assessment, int $depth): void
     {
         $attributes = $assessment->attributesToArray();
         unset($attributes['forms']);
@@ -297,15 +301,13 @@ class AssessmentPackageService
                 echo ',';
             }
 
+            echo "\n".$this->indent($depth + 1)
+                .$this->encode((string) $key).': '.$this->encodeInline($value, $depth + 1);
             $first = false;
-            echo $this->encode((string) $key).':'.$this->encode($value);
         }
 
-        if (! $first) {
-            echo ',';
-        }
-
-        echo '"forms":[';
+        echo ($first ? "\n" : ",\n")
+            .$this->indent($depth + 1).'"forms": [';
         $firstForm = true;
 
         AssessmentForm::query()
@@ -313,55 +315,56 @@ class AssessmentPackageService
             ->orderBy('urutan')
             ->orderBy('id')
             ->cursor()
-            ->each(function (AssessmentForm $form) use (&$firstForm): void {
-                if (! $firstForm) {
-                    echo ',';
-                }
+            ->each(function (AssessmentForm $form) use (&$firstForm, $depth): void {
+                echo $firstForm ? "\n" : ",\n";
 
                 $firstForm = false;
-                $attributes = $form->attributesToArray();
-                $fields = [];
-
-                echo '{';
-                $first = true;
-
-                foreach ($attributes as $key => $value) {
-                    if (! in_array($key, self::FORM_KEYS, true)) {
-                        continue;
-                    }
-
-                    if (! $first) {
-                        echo ',';
-                    }
-
-                    $first = false;
-                    echo $this->encode((string) $key).':'.$this->encode($value);
-                }
-
-                if (! $first) {
-                    echo ',';
-                }
-
-                echo '"fields":[';
-                $firstField = true;
-                $form->fields()
-                    ->orderBy('urutan')
-                    ->orderBy('id')
-                    ->cursor()
-                    ->each(function ($field) use (&$firstField): void {
-                        if (! $firstField) {
-                            echo ',';
-                        }
-
-                        $firstField = false;
-                        $attributes = $field->attributesToArray();
-                        $attributes = array_intersect_key($attributes, array_flip(self::FIELD_KEYS));
-                        echo $this->encode($attributes);
-                    });
-                echo ']}';
+                $this->writeForm($form, $depth + 2);
             });
 
-        echo ']}';
+        echo $firstForm ? ']' : "\n".$this->indent($depth + 1).']';
+        echo "\n".$this->indent($depth).'}';
+    }
+
+    private function writeForm(AssessmentForm $form, int $depth): void
+    {
+        $attributes = $form->attributesToArray();
+
+        echo $this->indent($depth).'{';
+        $first = true;
+
+        foreach ($attributes as $key => $value) {
+            if (! in_array($key, self::FORM_KEYS, true)) {
+                continue;
+            }
+
+            echo ($first ? "\n" : ",\n")
+                .$this->indent($depth + 1)
+                .$this->encode((string) $key).': '.$this->encodeInline($value, $depth + 1);
+            $first = false;
+        }
+
+        echo ($first ? "\n" : ",\n")
+            .$this->indent($depth + 1).'"fields": [';
+        $firstField = true;
+
+        $form->fields()
+            ->orderBy('urutan')
+            ->orderBy('id')
+            ->cursor()
+            ->each(function ($field) use (&$firstField, $depth): void {
+                echo $firstField ? "\n" : ",\n";
+
+                $firstField = false;
+                $attributes = array_intersect_key(
+                    $field->attributesToArray(),
+                    array_flip(self::FIELD_KEYS)
+                );
+                echo $this->encodePretty($attributes, $depth + 2);
+            });
+
+        echo $firstField ? ']' : "\n".$this->indent($depth + 1).']';
+        echo "\n".$this->indent($depth).'}';
     }
 
     /** @return array<string,mixed> */
@@ -739,11 +742,58 @@ class AssessmentPackageService
         return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
     }
 
+    private function encodePretty(mixed $value, int $depth): string
+    {
+        return $this->indentJson($this->encode($value), $depth);
+    }
+
+    private function encodeInline(mixed $value, int $depth): string
+    {
+        $lines = explode("\n", $this->encode($value));
+        $first = array_shift($lines);
+
+        if ($lines === []) {
+            return $first;
+        }
+
+        return $first."\n".implode(
+            "\n",
+            array_map(fn (string $line): string => $this->indentJsonLine($line, $depth), $lines)
+        );
+    }
+
+    private function indentJson(string $json, int $depth): string
+    {
+        return implode(
+            "\n",
+            array_map(
+                fn (string $line): string => $this->indentJsonLine($line, $depth),
+                explode("\n", $json)
+            )
+        );
+    }
+
+    private function indentJsonLine(string $line, int $depth): string
+    {
+        preg_match('/^( *)/', $line, $matches);
+        $relativeDepth = intdiv(strlen($matches[1] ?? ''), 4);
+
+        return $this->indent($depth + $relativeDepth).ltrim($line);
+    }
+
+    private function indent(int $depth): string
+    {
+        return str_repeat('  ', $depth);
+    }
+
     private function encode(mixed $value): string
     {
         return json_encode(
             $value,
-            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+            JSON_PRETTY_PRINT
+                | JSON_UNESCAPED_UNICODE
+                | JSON_UNESCAPED_SLASHES
+                | JSON_THROW_ON_ERROR
         );
     }
 }

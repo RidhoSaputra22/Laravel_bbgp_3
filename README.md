@@ -178,8 +178,14 @@ and fallback.
 
 The sync worker loads only the assignment combination snapshot when it is
 available; the full assessment/form tree is loaded lazily only for assignments
-that need the fallback schema. The MongoDB client is reused by long-lived queue
-workers. Restart workers after changing code or `.env`:
+that need the fallback schema.
+
+The MongoDB projection contains assignment content (`forms`, `fields`, scoring,
+validation, and related schema data), while stage access/guard metadata—stage
+locks, admin gates, time limits, and fullscreen security settings—is excluded.
+Rebuild the collection after this projection schema change so old documents are
+replaced. The MongoDB client is reused by long-lived queue workers. Restart
+workers after changing code or `.env`:
 
 ```bash
 php artisan queue:restart

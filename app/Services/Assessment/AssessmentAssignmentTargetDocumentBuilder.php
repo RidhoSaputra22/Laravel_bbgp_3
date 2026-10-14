@@ -14,7 +14,7 @@ use Illuminate\Support\Collection;
 
 class AssessmentAssignmentTargetDocumentBuilder
 {
-    public const SCHEMA_VERSION = 'assessment_assignment-target-v1';
+    public const SCHEMA_VERSION = 'assessment_assignment-target-v2';
 
     /** @var array<int, AssessmentAssignment> */
     private array $assignmentCache = [];
@@ -495,8 +495,10 @@ class AssessmentAssignmentTargetDocumentBuilder
     ): array {
         $assignment ??= $target->assignment;
         $participant = $this->participant($target, $assignment);
-        $this->applyAutofillDefaults($participant['forms'], $target->guru);
+        $forms = $this->stripMongoStageMetadata($participant['forms']);
+        $this->applyAutofillDefaults($forms, $target->guru);
         $syncedAt = now()->toIso8601String();
+        $snapshotSource = $participant['meta']['snapshot_source'] ?? 'assignment';
 
         return [
             '_id' => 'assessment-target:'.$target->id,
@@ -526,14 +528,42 @@ class AssessmentAssignmentTargetDocumentBuilder
                 'timed_out_at' => $participant['timed_out_at'],
             ],
             'combination' => $participant['combination'],
-            'forms' => $participant['forms'],
-            'meta' => array_merge($participant['meta'], ['generated_at' => $syncedAt]),
+            'forms' => $forms,
+            'meta' => [
+                'snapshot_source' => $snapshotSource,
+                'generated_at' => $syncedAt,
+            ],
             'sync' => [
                 'is_active' => true,
                 'source_updated_at' => $target->updated_at?->toISOString(),
                 'synced_at' => $syncedAt,
             ],
         ];
+    }
+
+    /**
+     * MongoDB receives assessment content only; stage access/security belongs
+     * to the Laravel portal and attempt lifecycle.
+     */
+    private function stripMongoStageMetadata(array $forms): array
+    {
+        foreach ($forms as &$instrumentGroup) {
+            if (! is_array($instrumentGroup['assessments'] ?? null)) {
+                continue;
+            }
+
+            foreach ($instrumentGroup['assessments'] as &$assessment) {
+                if (! is_array($assessment)) {
+                    continue;
+                }
+
+                unset($assessment['stage_index'], $assessment['stage_config']);
+            }
+            unset($assessment);
+        }
+        unset($instrumentGroup);
+
+        return $forms;
     }
 
     public function tombstone(int $targetId): array

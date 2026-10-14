@@ -14,12 +14,14 @@ use App\Models\JabatanPendidik;
 use App\Models\JabatanStakeHolder;
 use App\Jobs\SyncAssessmentTargetsToMongoJob;
 use App\Services\Assessment\AssessmentCombinationService;
+use App\Services\Assessment\AssessmentTargetSyncDispatcher;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\AssessmentDependentOptionResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
 use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\ParticipantAutoFillResolver;
 use App\Support\Assessment\ScoringGuidanceAssistant;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +38,8 @@ class AssessmentController extends Controller
         private readonly AssessmentCombinationService $combinationService,
         private readonly ParticipantAutoFillResolver $participantAutoFillResolver,
         private readonly AssessmentFieldLookupResolver $fieldLookupResolver,
-        private readonly AssessmentDependentOptionResolver $dependentOptionResolver
+        private readonly AssessmentDependentOptionResolver $dependentOptionResolver,
+        private readonly AssessmentTargetSyncDispatcher $assessmentTargetSyncDispatcher
     ) {
     }
 
@@ -133,9 +136,15 @@ class AssessmentController extends Controller
                     : ($validated['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]);
             }
 
-            $assessment = Assessment::create($assessmentData);
+            $assessment = Model::withoutEvents(function () use ($assessmentData, $validated): Assessment {
+                $assessment = Assessment::create($assessmentData);
 
-            $this->syncForms($assessment, $validated['forms']);
+                $this->syncForms($assessment, $validated['forms']);
+
+                return $assessment;
+            });
+
+            $this->syncAssessmentTargetsAfterChange($assessment);
 
             DB::commit();
 
@@ -238,12 +247,16 @@ class AssessmentController extends Controller
                     : ($validated['target_jabatan'] ?? [Assessment::TARGET_JABATAN_ALL]);
             }
 
-            $assessment->update($assessmentData);
+            $combinationSync = Model::withoutEvents(function () use ($assessment, $assessmentData, $validated): array {
+                $assessment->update($assessmentData);
 
-            $this->syncForms($assessment, $validated['forms']);
-            $assessment->load(['forms.fields']);
-            $combinationSync = $this->combinationService->syncCombinationsForAssessment($assessment);
-            $this->syncAssessmentTargetsToMongo(
+                $this->syncForms($assessment, $validated['forms']);
+                $assessment->load(['forms.fields']);
+
+                return $this->combinationService->syncCombinationsForAssessment($assessment);
+            });
+
+            $this->syncAssessmentTargetsAfterChange(
                 $assessment,
                 $combinationSync['combination_ids'] ?? []
             );
@@ -464,6 +477,7 @@ class AssessmentController extends Controller
                 'forms.*.fields' => 'required|array|min:1',
                 'forms.*.fields.*.id' => 'nullable|integer',
                 'forms.*.fields.*.label' => 'required|string|max:255',
+                'forms.*.fields.*.nama_field' => 'nullable|string|max:32',
                 'forms.*.fields.*.deskripsi' => 'nullable|string',
                 'forms.*.fields.*.tipe_field' => [
                     'required',
@@ -606,7 +620,15 @@ class AssessmentController extends Controller
                 }
 
                 foreach (($form['fields'] ?? []) as $fieldIndex => $field) {
-                    $namaField = $this->generateFieldNameFromLabel($field['label'] ?? '');
+                    $namaField = trim((string) ($field['nama_field'] ?? ''));
+
+                    if ($namaField === '') {
+                        $namaField = (int) ($field['id'] ?? 0) > 0
+                            ? $this->generateFieldNameFromLabel($field['label'] ?? '')
+                            : $this->generateCompactFieldName();
+                    }
+
+                    $namaField = Str::slug($namaField, '_');
                     $lookupSource = $this->resolveFieldLookupSource(
                         $field['lookup_source'] ?? null,
                         $field['tipe_field'] ?? null,
@@ -615,17 +637,10 @@ class AssessmentController extends Controller
                         $targetKetenagaan
                     );
 
-                    if ($namaField === '') {
-                        $validator->errors()->add(
-                            "forms.$formIndex.fields.$fieldIndex.label",
-                            'Label field harus mengandung huruf atau angka agar nama field otomatis bisa dibuat.'
-                        );
-                    }
-
                     if (in_array($namaField, $usedFieldNames, true)) {
                         $validator->errors()->add(
                             "forms.$formIndex.fields.$fieldIndex.label",
-                            'Label field tidak boleh sama. Ubah label agar berbeda.'
+                            'Kode field harus unik dalam satu form.'
                         );
                     }
 
@@ -883,13 +898,20 @@ class AssessmentController extends Controller
             ->get()
             ->keyBy('id');
         $retainedFieldIds = [];
+        $usedFieldNames = [];
 
         foreach (array_values($fields) as $fieldIndex => $fieldData) {
             $submittedFieldId = (int) ($fieldData['id'] ?? 0);
             $existingField = $submittedFieldId > 0 ? $existingFields->get($submittedFieldId) : null;
             $existingValidation = is_array($existingField?->validasi) ? $existingField->validasi : [];
             $submittedValidation = is_array($fieldData['validasi'] ?? null) ? $fieldData['validasi'] : [];
-            $generatedFieldName = $this->generateFieldNameFromLabel($fieldData['label'] ?? '');
+            $generatedFieldName = $this->resolveFieldNameForSync($fieldData, $existingField);
+
+            while (in_array($generatedFieldName, $usedFieldNames, true)) {
+                $generatedFieldName = $this->generateCompactFieldName();
+            }
+
+            $usedFieldNames[] = $generatedFieldName;
             $fieldAttributes = [
                 'label' => $fieldData['label'],
                 'deskripsi' => $fieldData['deskripsi'] ?? null,
@@ -953,6 +975,12 @@ class AssessmentController extends Controller
         if ($fieldIdsToDelete !== []) {
             $form->fields()->whereIn('id', $fieldIdsToDelete)->delete();
         }
+    }
+
+    private function syncAssessmentTargetsAfterChange(Assessment $assessment, array $combinationIds = []): void
+    {
+        $this->syncAssessmentTargetsToMongo($assessment, $combinationIds);
+        $this->assessmentTargetSyncDispatcher->validatorsForAssessments([(int) $assessment->getKey()]);
     }
 
     private function syncAssessmentTargetsToMongo(Assessment $assessment, array $combinationIds = []): void
@@ -1309,6 +1337,10 @@ class AssessmentController extends Controller
             ->filter(fn($column) => is_array($column))
             ->map(function (array $column) use ($allowedColumnTypes) {
                 $fieldName = Str::slug(trim((string) ($column['nama_field'] ?? '')), '_');
+
+                if ($fieldName === '') {
+                    $fieldName = $this->generateCompactFieldName();
+                }
                 $fieldType = trim((string) ($column['tipe_field'] ?? 'text')) ?: 'text';
                 $fieldType = in_array($fieldType, $allowedColumnTypes, true) ? $fieldType : 'text';
                 $options = collect(Arr::wrap($column['opsi_field'] ?? []))
@@ -1630,6 +1662,26 @@ class AssessmentController extends Controller
         $normalizedLabel = str_replace(['/', '\\'], ' ', $normalizedLabel);
 
         return Str::slug($normalizedLabel, '_');
+    }
+
+    private function resolveFieldNameForSync(array $fieldData, mixed $existingField = null): string
+    {
+        $submittedName = Str::lower(trim((string) ($fieldData['nama_field'] ?? '')));
+
+        if ($submittedName !== '') {
+            return Str::slug($submittedName, '_');
+        }
+
+        if (! $existingField) {
+            return $this->generateCompactFieldName();
+        }
+
+        return $this->generateFieldNameFromLabel($fieldData['label'] ?? '');
+    }
+
+    private function generateCompactFieldName(): string
+    {
+        return 'f_'.Str::lower(Str::random(8));
     }
 
     private function resolveFieldAutoFillSource(
