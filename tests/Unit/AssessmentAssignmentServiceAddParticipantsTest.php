@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Jobs\SyncExternalGuruToAssessmentAssignmentsJob;
 use App\Models\AssessmentAssignment;
 use App\Models\AssessmentAssignmentSession;
 use App\Models\AssessmentAssignmentTarget;
@@ -271,6 +272,36 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
                 $exception->errors()['guru_ids'][0] ?? null
             );
         }
+    }
+
+    public function test_external_guru_job_assigns_matching_guru_once(): void
+    {
+        $assignment = AssessmentAssignment::query()->create([
+            'kode_penugasan' => 'TGS-EXT-001',
+            'judul_penugasan' => 'Penugasan Eksternal',
+            'session_enabled' => false,
+            'target_ketenagaan' => 'tenaga_pendidik',
+            'target_jabatan' => ['Guru'],
+            'target_kabupaten' => ['Kota Makassar'],
+            'target_satuan_pendidikan' => [],
+            'status_distribusi' => 'draft',
+        ]);
+
+        $guru = Guru::withoutEvents(fn () => $this->createGuru([
+            'jenis_jabatan' => 'Guru',
+            'kabupaten' => 'Kota Makassar',
+        ]));
+
+        $job = new SyncExternalGuruToAssessmentAssignmentsJob($guru->id);
+        $job->handle(app(AssessmentAssignmentService::class));
+        $job->handle(app(AssessmentAssignmentService::class));
+
+        $this->assertDatabaseCount('assessment_assignment_targets', 1);
+        $this->assertDatabaseHas('assessment_assignment_targets', [
+            'assessment_assignment_id' => $assignment->id,
+            'guru_id' => $guru->id,
+            'status' => 'ditugaskan',
+        ]);
     }
 
     private function createGuru(array $overrides = []): Guru

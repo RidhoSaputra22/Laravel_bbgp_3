@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncExternalGuruToAssessmentAssignmentsJob;
 use App\Models\Admin;
 use App\Models\Agenda;
 use App\Models\Artikel;
@@ -25,6 +26,7 @@ use App\Models\SatuanPendidikan;
 use App\Models\Sekolah;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -404,7 +406,13 @@ class UserController extends Controller
 
             User::create($reg);
             Admin::create($reg);
-            Guru::create($r);
+            $guru = Guru::create($r);
+
+            if (Schema::hasTable('assessment_assignments')
+                && Schema::hasTable('assessment_assignment_targets')) {
+                SyncExternalGuruToAssessmentAssignmentsJob::dispatch((int) $guru->getKey())
+                    ->afterCommit();
+            }
 
             // akun login
 
