@@ -136,7 +136,7 @@
     <div class="mb-3 flex items-start justify-between gap-4">
         <div class="min-w-0">
             <label @if (!in_array($fieldType, ['radio', 'likert', 'checkbox', 'repeater'], true)) for="{{ $inputId }}" @endif
-                class="block text-sm font-semibold text-slate-700">
+                class="block text-justify text-sm font-semibold text-slate-700">
                 {{ $displayLabel }}
                 @if ($isRequired)
                     <span class="text-red-600">*</span>
@@ -144,7 +144,7 @@
             </label>
 
             @if (!empty($field['deskripsi']))
-                <p class="mt-1 text-sm text-slate-600">
+                <p class="mt-1 text-justify text-sm text-slate-600">
                     {{ $field['deskripsi'] }}
                 </p>
             @endif

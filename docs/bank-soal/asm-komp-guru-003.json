@@ -157,7 +157,7 @@
                             },
                             {
                                 "label": "C",
-                                "value": "Menyepakati aturan bersama kelompok, memantau pemerataan partisipasi, dan merevisi cara diskusi berdasarkan refleksi anggota.",
+                                "value": "Menyepakati aturan bersama kelompok, mengamati pemerataan partisipasi, dan merevisi cara diskusi berdasarkan refleksi anggota.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -229,7 +229,7 @@
                             },
                             {
                                 "label": "B",
-                                "value": "Menyusun dukungan individual bersama Rani dan pihak terkait, memantau perkembangannya, dan meninjau strategi secara berkala.",
+                                "value": "Menyusun dukungan individual bersama Rani dan pihak terkait, meninjau perkembangannya, dan mengevaluasi strategi secara berkala.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -447,7 +447,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam pembelajaran IPA, guru lebih banyak menjelaskan materi di depan kelas selama hampir seluruh jam pelajaran. Sebagian besar peserta didik hanya mendengarkan dan mencatat tanpa kesempatan untuk mengeksplorasi ide atau pengalaman mereka.",
+                        "deskripsi": "Pada pembelajaran IPA, guru lebih banyak menjelaskan materi di depan kelas selama hampir seluruh jam pelajaran. Sebagian besar peserta didik hanya mendengarkan dan mencatat tanpa kesempatan untuk mengeksplorasi ide atau pengalaman mereka.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -503,7 +503,7 @@
                             },
                             {
                                 "label": "D",
-                                "value": "Membangun rutinitas partisipasi dengan beragam cara merespons, memantau keterlibatan tiap peserta didik, dan menyempurnakannya.",
+                                "value": "Membangun rutinitas partisipasi dengan beragam cara merespons, mengamati keterlibatan tiap peserta didik, dan menyempurnakannya.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -690,7 +690,7 @@
                             },
                             {
                                 "label": "D",
-                                "value": "Membangun kesepakatan aman bersama kelas, memantau pengalaman peserta didik, dan memperbaiki cara pemberian tanggapan.",
+                                "value": "Membangun kesepakatan aman bersama kelas, mencermati pengalaman peserta didik, dan memperbaiki cara pemberian tanggapan.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -788,7 +788,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam kegiatan kelompok, beberapa peserta didik sering mengabaikan pendapat temannya yang dianggap kurang mampu. Akibatnya, peserta didik tersebut menjadi semakin pasif dan kurang percaya diri.",
+                        "deskripsi": "Pada kegiatan kelompok, beberapa peserta didik sering mengabaikan pendapat temannya yang dianggap kurang mampu. Akibatnya, peserta didik tersebut menjadi semakin pasif dan kurang percaya diri.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -829,7 +829,7 @@
                         "opsi_field": [
                             {
                                 "label": "A",
-                                "value": "Menyusun dukungan transisi bersama peserta didik dan wali kelas, memantau rasa aman, dan meninjau kemajuan sosialnya.",
+                                "value": "Menyusun dukungan transisi bersama peserta didik dan wali kelas, mengamati rasa aman, dan meninjau kemajuan sosialnya.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -1052,7 +1052,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam refleksi pembelajaran, guru menemukan bahwa sebagian besar peserta didik mengalami kesulitan memahami materi lanjutan karena penguasaan konsep prasyarat belum terbentuk dengan baik.",
+                        "deskripsi": "Pada refleksi pembelajaran, guru menemukan bahwa sebagian besar peserta didik mengalami kesulitan memahami materi lanjutan karena penguasaan konsep prasyarat belum terbentuk dengan baik.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -1239,7 +1239,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam pembelajaran IPA tentang pencemaran lingkungan, guru menggunakan contoh-contoh yang terdapat dalam buku teks dari daerah lain. Padahal, di sekitar sekolah terdapat sungai yang mengalami permasalahan sampah dan sering menjadi perhatian masyarakat setempat.",
+                        "deskripsi": "Pada pembelajaran IPA tentang pencemaran lingkungan, guru menggunakan contoh-contoh yang terdapat dalam buku teks dari daerah lain. Padahal, di sekitar sekolah terdapat sungai yang mengalami permasalahan sampah dan sering menjadi perhatian masyarakat setempat.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -1580,7 +1580,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam pembelajaran sejarah, guru menyediakan artikel, video dokumenter, dan arsip digital. Namun, peserta didik lebih banyak mengakses sumber yang mudah dipahami tanpa membandingkan informasi dari berbagai sumber.",
+                        "deskripsi": "Pada pembelajaran sejarah, guru menyediakan artikel, video dokumenter, dan arsip digital. Namun, peserta didik lebih banyak mengakses sumber yang mudah dipahami tanpa membandingkan informasi dari berbagai sumber.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -2072,7 +2072,7 @@
                         "opsi_field": [
                             {
                                 "label": "A",
-                                "value": "Merancang pembelajaran campuran yang aksesibel, menyediakan pilihan bukti belajar, dan memantau kesetaraan hasilnya.",
+                                "value": "Merancang pembelajaran campuran yang aksesibel, menyediakan pilihan bukti belajar, dan menilai kesetaraan hasilnya.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -2559,7 +2559,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam pelaksanaan asesmen, seluruh peserta didik diberikan tugas yang sama dengan waktu yang sama. Namun, terdapat beberapa peserta didik yang membutuhkan cara berbeda untuk menunjukkan pemahamannya terhadap materi yang dipelajari.",
+                        "deskripsi": "Pada pelaksanaan asesmen, seluruh peserta didik diberikan tugas yang sama dengan waktu yang sama. Namun, terdapat beberapa peserta didik yang membutuhkan cara berbeda untuk menunjukkan pemahamannya terhadap materi yang dipelajari.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -3351,7 +3351,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam pertemuan dengan orang tua, guru hanya menyampaikan nilai hasil belajar peserta didik tanpa memberikan penjelasan mengenai kekuatan, tantangan, dan langkah pengembangan yang dapat dilakukan selanjutnya.",
+                        "deskripsi": "Pada pertemuan dengan orang tua, guru hanya menyampaikan nilai hasil belajar peserta didik tanpa memberikan penjelasan mengenai kekuatan, tantangan, dan langkah pengembangan yang dapat dilakukan selanjutnya.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -3692,7 +3692,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam sebuah diskusi profesi, beberapa guru memiliki pandangan yang berbeda mengenai makna keberhasilan dalam menjalankan tugas sebagai pendidik. Sebagian berfokus pada capaian akademik peserta didik, sementara yang lain menekankan pembentukan karakter dan nilai kehidupan.",
+                        "deskripsi": "Pada sebuah diskusi profesi, beberapa guru memiliki pandangan yang berbeda mengenai makna keberhasilan dalam menjalankan tugas sebagai pendidik. Sebagian berfokus pada capaian akademik peserta didik, sementara yang lain menekankan pembentukan karakter dan nilai kehidupan.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -4220,7 +4220,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam proses penilaian, guru menemukan bahwa salah satu peserta didik merupakan kerabat dekatnya. Guru menyadari bahwa kondisi tersebut berpotensi memengaruhi objektivitas dalam memberikan penilaian.",
+                        "deskripsi": "Pada proses penilaian, guru menemukan bahwa salah satu peserta didik merupakan kerabat dekatnya. Guru menyadari bahwa kondisi tersebut berpotensi memengaruhi objektivitas dalam memberikan penilaian.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -5173,7 +5173,7 @@
                             },
                             {
                                 "label": "C",
-                                "value": "Membangun dukungan terkoordinasi secara rahasia dengan persetujuan yang sesuai, memantau kesejahteraan Nisa, dan meninjau langkah bantuan.",
+                                "value": "Membangun dukungan terkoordinasi secara rahasia dengan persetujuan yang sesuai, mengamati kesejahteraan Nisa, dan meninjau langkah bantuan.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -5199,7 +5199,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam beberapa minggu terakhir, guru mengamati bahwa seorang peserta didik bernama Nisa yang sebelumnya aktif bertanya dan berdiskusi mulai menunjukkan perubahan perilaku. Nisa menjadi pendiam, jarang berpartisipasi dalam pembelajaran, dan sering terlihat murung saat berada di kelas. Ketika ditanya oleh teman-temannya, Nisa hanya menjawab singkat dan menghindari percakapan. Kondisi ini mulai memengaruhi keterlibatannya dalam kegiatan belajar.",
+                        "deskripsi": "Selama beberapa minggu terakhir, guru mengamati bahwa seorang peserta didik bernama Nisa yang sebelumnya aktif bertanya dan berdiskusi mulai menunjukkan perubahan perilaku. Nisa menjadi pendiam, jarang berpartisipasi dalam pembelajaran, dan sering terlihat murung saat berada di kelas. Ketika ditanya oleh teman-temannya, Nisa hanya menjawab singkat dan menghindari percakapan. Kondisi ini mulai memengaruhi keterlibatannya dalam kegiatan belajar.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -5276,7 +5276,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam kegiatan diskusi kelompok, guru menemukan bahwa beberapa peserta didik kurang berani mengemukakan pendapat karena khawatir dianggap salah oleh teman-temannya. Akibatnya, hanya sebagian kecil peserta didik yang aktif berkontribusi dalam pembelajaran.",
+                        "deskripsi": "Pada kegiatan diskusi kelompok, guru menemukan bahwa beberapa peserta didik kurang berani mengemukakan pendapat karena khawatir dianggap salah oleh teman-temannya. Akibatnya, hanya sebagian kecil peserta didik yang aktif berkontribusi dalam pembelajaran.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -5437,7 +5437,7 @@
                             },
                             {
                                 "label": "C",
-                                "value": "Merancang aturan partisipasi adil bersama kelas, memantau distribusi kesempatan, dan memperbaikinya berdasarkan hasil refleksi.",
+                                "value": "Merancang aturan partisipasi adil bersama kelas, meninjau distribusi kesempatan, dan memperbaikinya berdasarkan hasil refleksi.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -5463,7 +5463,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam sebuah pembelajaran, guru sering menunjuk peserta didik tertentu untuk menjawab pertanyaan karena dianggap lebih mampu dibandingkan teman-temannya. Akibatnya, beberapa peserta didik lain merasa kurang mendapatkan kesempatan untuk berpartisipasi dalam pembelajaran.",
+                        "deskripsi": "Pada sebuah pembelajaran, guru sering menunjuk peserta didik tertentu untuk menjawab pertanyaan karena dianggap lebih mampu dibandingkan teman-temannya. Akibatnya, beberapa peserta didik lain merasa kurang mendapatkan kesempatan untuk berpartisipasi dalam pembelajaran.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -5540,7 +5540,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:27.000000Z",
                         "updated_at": "2026-10-11T18:05:27.000000Z",
-                        "deskripsi": "Dalam kegiatan presentasi proyek, beberapa peserta didik menyampaikan bahwa mereka tidak memiliki kesempatan yang sama untuk memilih tema proyek yang sesuai dengan minat dan kemampuannya.",
+                        "deskripsi": "Pada kegiatan presentasi proyek, beberapa peserta didik menyampaikan bahwa mereka tidak memiliki kesempatan yang sama untuk memilih tema proyek yang sesuai dengan minat dan kemampuannya.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -5783,7 +5783,7 @@
                             },
                             {
                                 "label": "D",
-                                "value": "Mengikuti mekanisme penanganan yang berpusat pada keselamatan korban, memantau pemulihan, dan mencegah pengulangan kasus.",
+                                "value": "Mengikuti mekanisme penanganan yang berpusat pada keselamatan korban, meninjau pemulihan, dan mencegah pengulangan kasus.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -6068,7 +6068,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam rapat evaluasi pembelajaran, guru menemukan bahwa informasi mengenai perkembangan peserta didik sering kali tidak tersampaikan secara utuh antara guru kelas, guru mata pelajaran, dan guru BK. Akibatnya, tindak lanjut pembelajaran yang dilakukan menjadi kurang optimal.",
+                        "deskripsi": "Pada rapat evaluasi pembelajaran, guru menemukan bahwa informasi mengenai perkembangan peserta didik sering kali tidak tersampaikan secara utuh antara guru kelas, guru mata pelajaran, dan guru BK. Akibatnya, tindak lanjut pembelajaran yang dilakukan menjadi kurang optimal.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -6239,7 +6239,7 @@
                             },
                             {
                                 "label": "E",
-                                "value": "Memetakan tugas yang tumpang tindih dan kesenjangan kapasitas, lalu menyesuaikan pembagian dan koordinasi.",
+                                "value": "Memetakan tugas yang berulang dan kesenjangan kapasitas, lalu menyesuaikan pembagian dan koordinasi.",
                                 "level_kompetensi": 4
                             }
                         ],
@@ -6255,7 +6255,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Tim guru di sebuah sekolah sedang menyusun proyek lintas mata pelajaran. Namun, pembagian tugas yang kurang jelas menyebabkan beberapa pekerjaan dilakukan secara tumpang tindih, sementara tugas lain justru tidak terlaksana.",
+                        "deskripsi": "Tim guru di sebuah sekolah sedang menyusun proyek lintas mata pelajaran. Namun, pembagian tugas yang kurang jelas menyebabkan beberapa pekerjaan dilakukan secara berulang, sementara tugas lain justru tidak terlaksana.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -6332,7 +6332,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam pelaksanaan program sekolah, beberapa guru merasa beban kerja tidak terbagi secara proporsional. Kondisi ini mulai memengaruhi motivasi dan kualitas kerja sama tim dalam mendukung kegiatan pembelajaran.",
+                        "deskripsi": "Pada pelaksanaan program sekolah, beberapa guru merasa beban kerja tidak terbagi secara proporsional. Kondisi ini mulai memengaruhi motivasi dan kualitas kerja sama tim dalam mendukung kegiatan pembelajaran.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -6596,7 +6596,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam komunitas belajar guru, berbagai ide perbaikan pembelajaran telah dihasilkan. Namun, sebagian besar ide tersebut belum diwujudkan menjadi tindakan nyata karena belum ada pihak yang mengoordinasikan tindak lanjutnya.",
+                        "deskripsi": "Pada komunitas belajar guru, berbagai ide perbaikan pembelajaran telah dihasilkan. Namun, sebagian besar ide tersebut belum diwujudkan menjadi tindakan nyata karena belum ada pihak yang mengoordinasikan tindak lanjutnya.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -7047,7 +7047,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam pembelajaran tentang kewirausahaan, guru menyadari bahwa materi yang diberikan masih didominasi contoh-contoh dari buku teks. Padahal, banyak orang tua peserta didik dan anggota masyarakat sekitar yang memiliki pengalaman usaha yang relevan dan dapat menjadi sumber belajar yang autentik.",
+                        "deskripsi": "Pada pembelajaran tentang kewirausahaan, guru menyadari bahwa materi yang diberikan masih didominasi contoh-contoh dari buku teks. Padahal, banyak orang tua peserta didik dan anggota masyarakat sekitar yang memiliki pengalaman usaha yang relevan dan dapat menjadi sumber belajar yang autentik.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -7311,7 +7311,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam forum komunitas belajar guru tingkat kabupaten, berbagai sekolah melaporkan permasalahan yang sama, yaitu rendahnya kemampuan peserta didik dalam menyusun argumen dan mengemukakan pendapat secara kritis. Forum tersebut mengundang guru untuk berkontribusi mencari solusi yang dapat diterapkan di berbagai satuan pendidikan.",
+                        "deskripsi": "Pada forum komunitas belajar guru tingkat kabupaten, berbagai sekolah melaporkan permasalahan yang sama, yaitu rendahnya kemampuan peserta didik dalam menyusun argumen dan mengemukakan pendapat secara kritis. Forum tersebut mengundang guru untuk berkontribusi mencari solusi yang dapat diterapkan di berbagai satuan pendidikan.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -7388,7 +7388,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Sebuah organisasi profesi guru sedang merancang program peningkatan literasi. Dalam proses perencanaan, muncul berbagai usulan kegiatan dengan pendekatan yang berbeda-beda. Organisasi membutuhkan masukan yang didasarkan pada kebutuhan nyata peserta didik dan pengalaman praktik di sekolah.",
+                        "deskripsi": "Sebuah organisasi profesi guru sedang merancang program peningkatan literasi. Pada proses perencanaan, muncul berbagai usulan kegiatan dengan pendekatan yang berbeda-beda. Organisasi membutuhkan masukan yang didasarkan pada kebutuhan nyata peserta didik dan pengalaman praktik di sekolah.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -7652,7 +7652,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam forum berbagi praktik baik, guru menemukan bahwa suatu strategi pembelajaran yang berhasil diterapkan di satu sekolah belum tentu memberikan hasil yang sama ketika diterapkan di sekolah lain dengan karakteristik peserta didik yang berbeda.",
+                        "deskripsi": "Pada forum berbagi praktik baik, guru menemukan bahwa suatu strategi pembelajaran yang berhasil diterapkan di satu sekolah belum tentu memberikan hasil yang sama ketika diterapkan di sekolah lain dengan karakteristik peserta didik yang berbeda.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -7916,7 +7916,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam refleksi pembelajaran matematika, guru menemukan bahwa peserta didik mampu menghafal rumus, tetapi kesulitan menjelaskan alasan di balik penggunaan rumus tersebut dalam pemecahan masalah.",
+                        "deskripsi": "Pada refleksi pembelajaran matematika, guru menemukan bahwa peserta didik mampu menghafal rumus, tetapi kesulitan menjelaskan alasan di balik penggunaan rumus tersebut dalam pemecahan masalah.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -8180,7 +8180,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam rapat MGMP, beberapa guru menggunakan materi tambahan yang berbeda-beda untuk mencapai tujuan pembelajaran yang sama. Setiap materi memiliki kelebihan dan keterbatasan masing-masing.",
+                        "deskripsi": "Pada rapat MGMP, beberapa guru menggunakan materi tambahan yang berbeda-beda untuk mencapai tujuan pembelajaran yang sama. Setiap materi memiliki kelebihan dan keterbatasan masing-masing.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -8444,7 +8444,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam evaluasi pembelajaran, guru menemukan bahwa peserta didik memahami bagian-bagian materi secara terpisah, tetapi mengalami kesulitan ketika diminta menghubungkan berbagai konsep untuk memecahkan masalah.",
+                        "deskripsi": "Pada evaluasi pembelajaran, guru menemukan bahwa peserta didik memahami bagian-bagian materi secara terpisah, tetapi mengalami kesulitan ketika diminta menghubungkan berbagai konsep untuk memecahkan masalah.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -8708,7 +8708,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam satu jenjang kelas, guru menemukan bahwa kemampuan berpikir, pengendalian diri, dan kemandirian belajar peserta didik berkembang dengan kecepatan yang berbeda-beda. Kondisi tersebut menyebabkan sebagian peserta didik merasa tugas terlalu mudah, sementara yang lain merasa terlalu sulit.",
+                        "deskripsi": "Pada satu jenjang kelas, guru menemukan bahwa kemampuan berpikir, pengendalian diri, dan kemandirian belajar peserta didik berkembang dengan kecepatan yang berbeda-beda. Kondisi tersebut menyebabkan sebagian peserta didik merasa tugas terlalu mudah, sementara yang lain merasa terlalu sulit.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -8895,7 +8895,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam satu kelas terdapat peserta didik yang berasal dari latar belakang sosial, budaya, agama, dan kondisi ekonomi yang beragam. Guru menemukan bahwa beberapa contoh dan sumber belajar yang digunakan kurang relevan dengan pengalaman hidup sebagian peserta didik sehingga keterlibatan mereka dalam pembelajaran menjadi rendah.",
+                        "deskripsi": "Pada satu kelas terdapat peserta didik yang berasal dari latar belakang sosial, budaya, agama, dan kondisi ekonomi yang beragam. Guru menemukan bahwa beberapa contoh dan sumber belajar yang digunakan kurang relevan dengan pengalaman hidup sebagian peserta didik sehingga keterlibatan mereka dalam pembelajaran menjadi rendah.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -9397,7 +9397,7 @@
                             },
                             {
                                 "label": "C",
-                                "value": "Merancang komunikasi aksesibel bersama peserta didik dan pihak terkait, memantau partisipasi, dan memperbaiki akomodasi.",
+                                "value": "Merancang komunikasi aksesibel bersama peserta didik dan pihak terkait, mengamati partisipasi, dan memperbaiki akomodasi.",
                                 "level_kompetensi": 5
                             },
                             {
@@ -9423,7 +9423,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam kelas inklusif, seorang peserta didik dengan hambatan pendengaran mengalami kesulitan mengikuti diskusi kelompok karena sebagian besar komunikasi berlangsung secara lisan dan cepat. Akibatnya, peserta didik tersebut lebih banyak menjadi pengamat daripada terlibat aktif dalam proses pembelajaran.",
+                        "deskripsi": "Pada kelas inklusif, seorang peserta didik dengan hambatan pendengaran mengalami kesulitan mengikuti diskusi kelompok karena sebagian besar komunikasi berlangsung secara lisan dan cepat. Akibatnya, peserta didik tersebut lebih banyak menjadi pengamat daripada terlibat aktif dalam proses pembelajaran.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -9687,7 +9687,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam satu kelas, guru menghadapi peserta didik dengan kemampuan akademik, minat, motivasi, dan kesiapan belajar yang sangat beragam. Ketika guru menggunakan satu jenis tugas dan satu cara belajar yang sama, sebagian peserta didik terlihat tidak tertantang, sementara yang lain kesulitan menyelesaikannya.",
+                        "deskripsi": "Pada satu kelas, guru menghadapi peserta didik dengan kemampuan akademik, minat, motivasi, dan kesiapan belajar yang sangat beragam. Ketika guru menggunakan satu jenis tugas dan satu cara belajar yang sama, sebagian peserta didik terlihat tidak tertantang, sementara yang lain kesulitan menyelesaikannya.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -10028,7 +10028,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam forum refleksi sekolah, beberapa guru menyampaikan bahwa capaian pembelajaran telah selesai diajarkan, tetapi peserta didik masih menunjukkan kesulitan dalam menerapkan pengetahuan untuk memecahkan masalah nyata. Kepala sekolah meminta guru mengevaluasi cara penggunaan kurikulum dalam pembelajaran.",
+                        "deskripsi": "Pada forum refleksi sekolah, beberapa guru menyampaikan bahwa capaian pembelajaran telah selesai diajarkan, tetapi peserta didik masih menunjukkan kesulitan dalam menerapkan pengetahuan untuk memecahkan masalah nyata. Kepala sekolah meminta guru mengevaluasi cara penggunaan kurikulum dalam pembelajaran.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
@@ -10479,7 +10479,7 @@
                         "is_active": true,
                         "created_at": "2026-10-11T18:05:28.000000Z",
                         "updated_at": "2026-10-11T18:05:28.000000Z",
-                        "deskripsi": "Dalam pembelajaran IPAS, guru menyampaikan materi melalui ceramah selama sebagian besar waktu belajar. Hasil observasi menunjukkan bahwa hanya beberapa peserta didik yang aktif bertanya, sementara sebagian besar lainnya cenderung pasif dan menunggu arahan. Guru ingin meningkatkan keterlibatan peserta didik agar lebih aktif membangun pemahamannya sendiri.",
+                        "deskripsi": "Pada pembelajaran IPAS, guru menyampaikan materi melalui ceramah selama sebagian besar waktu belajar. Hasil observasi menunjukkan bahwa hanya beberapa peserta didik yang aktif bertanya, sementara sebagian besar lainnya cenderung pasif dan menunggu arahan. Guru ingin meningkatkan keterlibatan peserta didik agar lebih aktif membangun pemahamannya sendiri.",
                         "scoring_config": {
                             "method": "choice_option_score",
                             "weight": 1,
