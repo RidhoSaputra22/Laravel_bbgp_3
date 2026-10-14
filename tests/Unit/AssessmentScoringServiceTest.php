@@ -382,12 +382,12 @@ class AssessmentScoringServiceTest extends TestCase
 
         $summary = $this->makeService()->buildSummary($attempt);
 
-        $this->assertSame('3.00', data_get($summary, 'forms.0.formatted_score'));
+        $this->assertSame('2.50', data_get($summary, 'forms.0.formatted_score'));
         $this->assertSame(4.0, data_get($summary, 'forms.0.items.0.score'));
-        $this->assertSame(2.0, data_get($summary, 'forms.0.items.1.score'));
-        $this->assertSame('6 - X', data_get($summary, 'forms.0.items.1.auto_metadata.formula'));
+        $this->assertSame(1.0, data_get($summary, 'forms.0.items.1.score'));
+        $this->assertSame('5 - X', data_get($summary, 'forms.0.items.1.auto_metadata.formula'));
         $this->assertSame('50.00', data_get($summary, 'overall.formatted_index_score'));
-        $this->assertSame('Sedang', data_get($summary, 'overall.likert_category.label'));
+        $this->assertSame('Rendah', data_get($summary, 'overall.likert_category.label'));
     }
 
     private function makeService(): AssessmentScoringService

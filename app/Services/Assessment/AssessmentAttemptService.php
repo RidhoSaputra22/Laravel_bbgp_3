@@ -1155,11 +1155,9 @@ class AssessmentAttemptService
             }
 
             if (in_array($fieldType, ['radio', LikertScale::FIELD_TYPE], true)) {
-                $optionSource = $field['opsi_field'] ?? [];
-
-                if ($fieldType === LikertScale::FIELD_TYPE && (! is_array($optionSource) || $optionSource === [])) {
-                    $optionSource = LikertScale::defaultOptions();
-                }
+                $optionSource = $fieldType === LikertScale::FIELD_TYPE
+                    ? LikertScale::defaultOptions()
+                    : ($field['opsi_field'] ?? []);
 
                 $matchedOption = collect(ChoiceOptionNormalizer::normalizeMany($optionSource))
                     ->first(function (array $option) use ($textValue) {

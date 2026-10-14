@@ -10,23 +10,18 @@ final class LikertScale
 
     public const SCALE_MIN = 1;
 
-    public const SCALE_MAX = 5;
+    public const SCALE_MAX = 4;
 
     public static function defaultOptions(): array
     {
         return [
             [
                 'label' => 'Sangat Setuju',
-                'value' => '5',
-                'score' => 5,
-            ],
-            [
-                'label' => 'Setuju',
                 'value' => '4',
                 'score' => 4,
             ],
             [
-                'label' => 'Cukup Setuju',
+                'label' => 'Setuju',
                 'value' => '3',
                 'score' => 3,
             ],
@@ -41,6 +36,11 @@ final class LikertScale
                 'score' => 1,
             ],
         ];
+    }
+
+    public static function reverseFormula(): string
+    {
+        return (self::SCALE_MAX + self::SCALE_MIN).' - X';
     }
 
     public static function correctedScore(float|int|string|null $rawScore, bool $isNegativeStatement = false): ?float
@@ -74,29 +74,24 @@ final class LikertScale
         $score = round((float) $mean, 2);
 
         return match (true) {
-            $score <= 1.80 => [
+            $score <= 1.75 => [
                 'label' => 'Sangat rendah',
-                'index_range' => '0-20',
+                'index_range' => '0-25',
                 'recommendation' => 'Prioritas utama pengembangan',
             ],
-            $score <= 2.60 => [
+            $score <= 2.50 => [
                 'label' => 'Rendah',
-                'index_range' => '>20-40',
+                'index_range' => '>25-50',
                 'recommendation' => 'Prioritas tinggi pengembangan',
             ],
-            $score <= 3.40 => [
-                'label' => 'Sedang',
-                'index_range' => '>40-60',
-                'recommendation' => 'Memerlukan penguatan terarah',
-            ],
-            $score <= 4.20 => [
+            $score <= 3.25 => [
                 'label' => 'Tinggi',
-                'index_range' => '>60-80',
+                'index_range' => '>50-75',
                 'recommendation' => 'Dipertahankan dan dikembangkan',
             ],
             default => [
                 'label' => 'Sangat tinggi',
-                'index_range' => '>80-100',
+                'index_range' => '>75-100',
                 'recommendation' => 'Pengayaan dan berbagi praktik baik',
             ],
         };

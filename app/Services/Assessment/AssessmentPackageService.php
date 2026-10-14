@@ -194,9 +194,11 @@ class AssessmentPackageService
                         }
 
                         $currentForm->fields()->create(
-                            $this->filterAttributes($attributes, \App\Models\AssessmentFormField::class, [
-                                'id', 'assessment_form_id', 'created_at', 'updated_at',
-                            ])
+                            $this->normalizeLikertFieldAttributes(
+                                $this->filterAttributes($attributes, \App\Models\AssessmentFormField::class, [
+                                    'id', 'assessment_form_id', 'created_at', 'updated_at',
+                                ])
+                            )
                         );
                     },
                     function (array $attributes) use (&$assessment, &$assignmentIds): void {
@@ -360,11 +362,31 @@ class AssessmentPackageService
                     $field->attributesToArray(),
                     array_flip(self::FIELD_KEYS)
                 );
-                echo $this->encodePretty($attributes, $depth + 2);
+                echo $this->encodePretty($this->normalizeLikertFieldAttributes($attributes), $depth + 2);
             });
 
         echo $firstField ? ']' : "\n".$this->indent($depth + 1).']';
         echo "\n".$this->indent($depth).'}';
+    }
+
+    /** @param array<string,mixed> $attributes */
+    private function normalizeLikertFieldAttributes(array $attributes): array
+    {
+        if (($attributes['tipe_field'] ?? null) !== LikertScale::FIELD_TYPE) {
+            return $attributes;
+        }
+
+        $attributes['opsi_field'] = LikertScale::defaultOptions();
+        $validation = is_array($attributes['validasi'] ?? null) ? $attributes['validasi'] : [];
+        $validation['in'] = collect(LikertScale::defaultOptions())->pluck('value')->all();
+        $attributes['validasi'] = $validation;
+
+        $scoringConfig = is_array($attributes['scoring_config'] ?? null) ? $attributes['scoring_config'] : [];
+        $scoringConfig['scale_min'] = LikertScale::SCALE_MIN;
+        $scoringConfig['scale_max'] = LikertScale::SCALE_MAX;
+        $attributes['scoring_config'] = $scoringConfig;
+
+        return $attributes;
     }
 
     /** @return array<string,mixed> */

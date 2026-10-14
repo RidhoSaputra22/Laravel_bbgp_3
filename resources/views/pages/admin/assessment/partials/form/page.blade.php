@@ -66,7 +66,7 @@
         'choice_option_average' => 'Rata-rata opsi terpilih',
         'choice_option_sum' => 'Jumlahkan skor opsi',
         'choice_option_max' => 'Ambil skor opsi tertinggi',
-        'likert_scale' => 'Skala Likert 1-5',
+        'likert_scale' => 'Skala Likert 1-4',
         'numeric_threshold' => 'Nilai berdasarkan target angka',
         'numeric_range' => 'Nilai berdasarkan rentang ideal',
         'semantic_similarity' => 'Analisis isi jawaban',
@@ -1166,6 +1166,9 @@
             const multipleChoiceFieldType = 'radio';
             const likertFieldType = @js(\App\Support\Assessment\LikertScale::FIELD_TYPE);
             const defaultLikertOptions = @json(\App\Support\Assessment\LikertScale::defaultOptions());
+            const likertScaleMin = @js(\App\Support\Assessment\LikertScale::SCALE_MIN);
+            const likertScaleMax = @js(\App\Support\Assessment\LikertScale::SCALE_MAX);
+            const likertReverseFormula = @js(\App\Support\Assessment\LikertScale::reverseFormula());
             const repeaterFieldType = 'repeater';
             const fileFieldType = 'file';
             const selectOtherOptionValue = @js(\App\Support\Assessment\ChoiceFieldOtherOption::VALUE);
@@ -1731,8 +1734,8 @@
                     weight: config?.weight ?? '',
                     is_negative_statement: normalizeChecked(config?.is_negative_statement),
                     score_if_answered: config?.score_if_answered ?? '',
-                    scale_min: config?.scale_min ?? (fieldType === likertFieldType ? '1' : ''),
-                    scale_max: config?.scale_max ?? (fieldType === likertFieldType ? '5' : ''),
+                    scale_min: fieldType === likertFieldType ? String(likertScaleMin) : (config?.scale_min ?? ''),
+                    scale_max: fieldType === likertFieldType ? String(likertScaleMax) : (config?.scale_max ?? ''),
                     reference_answer: String(config?.reference_answer || '').trim(),
                     keyword_groups_text: String(config?.keyword_groups_text || '').trim(),
                     synonym_map_text: String(config?.synonym_map_text || '').trim(),
@@ -2121,7 +2124,7 @@
                 }
 
                 if (fieldType === likertFieldType && method === 'likert_scale') {
-                    return 'Pilihan skala tetap 1 sampai 5. Jika pertanyaan negatif aktif, skor akan dibalik saat pengolahan dengan rumus 6 - X.';
+                    return `Pilihan skala tetap ${likertScaleMin} sampai ${likertScaleMax}. Jika pertanyaan negatif aktif, skor akan dibalik saat pengolahan dengan rumus ${likertReverseFormula}.`;
                 }
 
                 if (fieldType === repeaterFieldType) {
@@ -2145,7 +2148,8 @@
 
             const buildScoringSummaryHtml = ($fieldCard, fieldType, method) => {
                 const scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]').val()?.trim() || '1';
-                const scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() || '5';
+                const scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]').val()?.trim() ||
+                    (fieldType === likertFieldType ? String(likertScaleMax) : '5');
                 const minWords = $fieldCard.find('input[name$="[scoring][min_words]"]').val()?.trim() ||
                     resolveDefaultMinWords(fieldType);
                 const confidence = $fieldCard.find('input[name$="[scoring][confidence_threshold]"]').val()
@@ -2167,9 +2171,9 @@
                 if (fieldType === likertFieldType && method === 'likert_scale') {
                     const isNegativeStatement = $fieldCard.find('.field-likert-negative-statement').is(
                         ':checked');
-                    summaryPills.push(isNegativeStatement ? 'Pernyataan negatif: skor 6 - X' :
+                    summaryPills.push(isNegativeStatement ? `Pernyataan negatif: skor ${likertReverseFormula}` :
                         'Pernyataan positif');
-                    summaryPills.push('Indeks: (rata-rata - 1) / 4 x 100');
+                    summaryPills.push(`Indeks: (rata-rata - ${likertScaleMin}) / ${likertScaleMax - likertScaleMin} x 100`);
                 }
 
                 if (fieldType === 'number' && method !== 'presence') {
@@ -3493,7 +3497,7 @@
 
                                     <div class="scoring-likert-wrapper d-none mb-3">
                                         <div class="alert alert-light border mb-3">
-                                            Skor dasar Likert: Sangat Setuju 5, Setuju 4, Cukup Setuju 3, Tidak Setuju 2, Sangat Tidak Setuju 1.
+                                            Skor dasar Likert: Sangat Setuju 4, Setuju 3, Tidak Setuju 2, Sangat Tidak Setuju 1.
                                         </div>
                                         <div class="custom-control custom-switch">
                                             <input type="checkbox" class="custom-control-input field-likert-negative-statement"
@@ -3507,7 +3511,7 @@
                                         </div>
                                         ${buildInvalidFeedback(scoringNegativeStatementName)}
                                         <small class="text-muted d-block mt-2">
-                                            Jika aktif, skor akhir dibalik dengan rumus <code>6 - X</code>. Contoh: Setuju bernilai 2 dan Sangat Tidak Setuju bernilai 5.
+                                            Jika aktif, skor akhir dibalik dengan rumus <code>5 - X</code>. Contoh: Setuju bernilai 2 dan Sangat Tidak Setuju bernilai 4.
                                             Pada instrumen refleksi, butir negatif biasanya berada pada urutan ke-3 dan ke-6 dalam setiap kelompok tujuh butir.
                                         </small>
                                     </div>
@@ -4549,13 +4553,8 @@
                 const $scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]');
                 const $scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]');
 
-                if (!$scaleMin.val()) {
-                    $scaleMin.val('1');
-                }
-
-                if (!$scaleMax.val()) {
-                    $scaleMax.val('5');
-                }
+                $scaleMin.val(String(likertScaleMin));
+                $scaleMax.val(String(likertScaleMax));
             };
 
             const toggleScoringWrapper = ($fieldCard) => {
@@ -4584,13 +4583,8 @@
                     const $scaleMin = $fieldCard.find('input[name$="[scoring][scale_min]"]');
                     const $scaleMax = $fieldCard.find('input[name$="[scoring][scale_max]"]');
 
-                    if (!$scaleMin.val()) {
-                        $scaleMin.val('1');
-                    }
-
-                    if (!$scaleMax.val()) {
-                        $scaleMax.val('5');
-                    }
+                    $scaleMin.val(String(likertScaleMin));
+                    $scaleMax.val(String(likertScaleMax));
                 }
 
                 $fieldCard.find('.scoring-config-body').toggleClass('d-none', !scoringEnabled);

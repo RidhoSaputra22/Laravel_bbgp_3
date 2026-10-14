@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-14T20:57:33.591377Z",
+    "exported_at": "2026-10-14T23:31:07.980550Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -36,15 +36,15 @@
     },
     "forms": [
       {
-        "id": 1200,
+        "id": 1434,
         "assessment_id": 11,
         "judul_form": "A. Identitas Kegiatan",
         "kode_form": "FORM-IDENTITAS-KEGIATAN",
         "deskripsi": "Data identitas peserta dan informasi kegiatan Hari Belajar Guru yang diikuti.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-13T18:39:52.000000Z",
-        "updated_at": "2026-10-13T18:39:52.000000Z",
+        "created_at": "2026-10-14T20:59:00.000000Z",
+        "updated_at": "2026-10-14T20:59:00.000000Z",
         "kompetensi": "",
         "indikator_kode": "",
         "indikator_label": "",
@@ -52,8 +52,8 @@
         "scoring_config": null,
         "fields": [
           {
-            "id": 5378,
-            "assessment_form_id": 1200,
+            "id": 6479,
+            "assessment_form_id": 1434,
             "label": "1. Kabupaten/Kota",
             "nama_field": "kabupaten_kota",
             "tipe_field": "select",
@@ -169,8 +169,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -179,8 +179,8 @@
             }
           },
           {
-            "id": 5379,
-            "assessment_form_id": 1200,
+            "id": 6480,
+            "assessment_form_id": 1434,
             "label": "2. Nama Narasumber",
             "nama_field": "nama_narasumber",
             "tipe_field": "select",
@@ -702,8 +702,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -712,8 +712,8 @@
             }
           },
           {
-            "id": 5380,
-            "assessment_form_id": 1200,
+            "id": 6481,
+            "assessment_form_id": 1434,
             "label": "3. Nama Sekolah",
             "nama_field": "nama_sekolah",
             "tipe_field": "text",
@@ -732,8 +732,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -745,8 +745,8 @@
             }
           },
           {
-            "id": 5381,
-            "assessment_form_id": 1200,
+            "id": 6482,
+            "assessment_form_id": 1434,
             "label": "4. Materi/Topik",
             "nama_field": "materi_topik",
             "tipe_field": "text",
@@ -765,8 +765,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -779,8 +779,8 @@
             }
           },
           {
-            "id": 5382,
-            "assessment_form_id": 1200,
+            "id": 6483,
+            "assessment_form_id": 1434,
             "label": "5. Tanggal Pelaksanaan",
             "nama_field": "tanggal_pelaksanaan",
             "tipe_field": "date",
@@ -799,8 +799,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "presence",
@@ -809,8 +809,8 @@
             }
           },
           {
-            "id": 5383,
-            "assessment_form_id": 1200,
+            "id": 6484,
+            "assessment_form_id": 1434,
             "label": "6. Tempat Pelaksanaan",
             "nama_field": "tempat_pelaksanaan",
             "tipe_field": "text",
@@ -829,8 +829,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -844,15 +844,15 @@
         ]
       },
       {
-        "id": 1201,
+        "id": 1435,
         "assessment_id": 11,
         "judul_form": "B. Evaluasi Narasumber",
         "kode_form": "FORM-EVALUASI-NARASUMBER",
         "deskripsi": "Berikan penilaian pada setiap pernyataan menggunakan skala angka 1 sampai 4. Saran/masukan dapat diisi pada bagian akhir.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-13T18:39:52.000000Z",
-        "updated_at": "2026-10-13T18:39:52.000000Z",
+        "created_at": "2026-10-14T20:59:00.000000Z",
+        "updated_at": "2026-10-14T20:59:00.000000Z",
         "kompetensi": "",
         "indikator_kode": "B",
         "indikator_label": "Evaluasi narasumber",
@@ -864,8 +864,8 @@
         },
         "fields": [
           {
-            "id": 5384,
-            "assessment_form_id": 1201,
+            "id": 6485,
+            "assessment_form_id": 1435,
             "label": "Materi yang disampaikan sesuai dengan topik pelatihan",
             "nama_field": "materi_yang_disampaikan_sesuai_dengan_topik_pelatihan",
             "tipe_field": "radio",
@@ -909,8 +909,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Kesesuaian materi",
             "scoring_config": {
               "method": "choice_option_score",
@@ -924,8 +924,8 @@
             }
           },
           {
-            "id": 5385,
-            "assessment_form_id": 1201,
+            "id": 6486,
+            "assessment_form_id": 1435,
             "label": "Narasumber menguasai materi yang disampaikan dengan baik",
             "nama_field": "narasumber_menguasai_materi_yang_disampaikan_dengan_baik",
             "tipe_field": "radio",
@@ -969,8 +969,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Penguasaan materi",
             "scoring_config": {
               "method": "choice_option_score",
@@ -984,8 +984,8 @@
             }
           },
           {
-            "id": 5386,
-            "assessment_form_id": 1201,
+            "id": 6487,
+            "assessment_form_id": 1435,
             "label": "Narasumber mampu menjelaskan konsep secara sistematis",
             "nama_field": "narasumber_mampu_menjelaskan_konsep_secara_sistematis",
             "tipe_field": "radio",
@@ -1029,8 +1029,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Sistematika Penyajian",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1044,8 +1044,8 @@
             }
           },
           {
-            "id": 5387,
-            "assessment_form_id": 1201,
+            "id": 6488,
+            "assessment_form_id": 1435,
             "label": "Narasumber memiliki wawasan luas terkait topik yang dibahas",
             "nama_field": "narasumber_memiliki_wawasan_luas_terkait_topik_yang_dibahas",
             "tipe_field": "radio",
@@ -1089,8 +1089,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Kedalaman dan keluasan wawasan",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1104,8 +1104,8 @@
             }
           },
           {
-            "id": 5388,
-            "assessment_form_id": 1201,
+            "id": 6489,
+            "assessment_form_id": 1435,
             "label": "Narasumber mampu menjelaskan menggunakan bahasa yang lugas dan mudah dipahami",
             "nama_field": "narasumber_mampu_menjelaskan_menggunakan_bahasa_yang_lugas_dan_mudah_dipahami",
             "tipe_field": "radio",
@@ -1149,8 +1149,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Kejelasan Materi",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1164,8 +1164,8 @@
             }
           },
           {
-            "id": 5389,
-            "assessment_form_id": 1201,
+            "id": 6490,
+            "assessment_form_id": 1435,
             "label": "Narasumber mampu menyampaikan materi dengan menarik",
             "nama_field": "narasumber_mampu_menyampaikan_materi_dengan_menarik",
             "tipe_field": "radio",
@@ -1209,8 +1209,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Teknik Penyampaian",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1224,8 +1224,8 @@
             }
           },
           {
-            "id": 5390,
-            "assessment_form_id": 1201,
+            "id": 6491,
+            "assessment_form_id": 1435,
             "label": "Narasumber menggunakan media/alat bantu pembelajaran secara efektif",
             "nama_field": "narasumber_menggunakan_media_alat_bantu_pembelajaran_secara_efektif",
             "tipe_field": "radio",
@@ -1269,8 +1269,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Penggunaan media/alat bantu",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1284,8 +1284,8 @@
             }
           },
           {
-            "id": 5391,
-            "assessment_form_id": 1201,
+            "id": 6492,
+            "assessment_form_id": 1435,
             "label": "Narasumber mampu menjawab pertanyaan peserta dengan baik",
             "nama_field": "narasumber_mampu_menjawab_pertanyaan_peserta_dengan_baik",
             "tipe_field": "radio",
@@ -1329,8 +1329,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Kemampuan menjawab",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1344,8 +1344,8 @@
             }
           },
           {
-            "id": 5392,
-            "assessment_form_id": 1201,
+            "id": 6493,
+            "assessment_form_id": 1435,
             "label": "Narasumber menunjukkan sikap sopan dan profesional selama pelatihan berlangsung",
             "nama_field": "narasumber_menunjukkan_sikap_sopan_dan_profesional_selama_pelatihan_berlangsung",
             "tipe_field": "radio",
@@ -1389,8 +1389,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Sikap/Pelayanan",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1404,8 +1404,8 @@
             }
           },
           {
-            "id": 5393,
-            "assessment_form_id": 1201,
+            "id": 6494,
+            "assessment_form_id": 1435,
             "label": "Narasumber menggugah Kesadaran, menghadirkan Kebermaknaan, dan Menggembirakan",
             "nama_field": "narasumber_menggugah_kesadaran_menghadirkan_kebermaknaan_dan_menggembirakan",
             "tipe_field": "radio",
@@ -1449,8 +1449,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Pembelajaran Mendalam",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1464,8 +1464,8 @@
             }
           },
           {
-            "id": 5394,
-            "assessment_form_id": 1201,
+            "id": 6495,
+            "assessment_form_id": 1435,
             "label": "Narasumber layak diundang kembali pada kegiatan serupa di masa mendatang",
             "nama_field": "narasumber_layak_diundang_kembali_pada_kegiatan_serupa_di_masa_mendatang",
             "tipe_field": "radio",
@@ -1509,8 +1509,8 @@
             "urutan": 11,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "Kelayakan",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1524,8 +1524,8 @@
             }
           },
           {
-            "id": 5395,
-            "assessment_form_id": 1201,
+            "id": 6496,
+            "assessment_form_id": 1435,
             "label": "Saran'Masukan/Harapan:",
             "nama_field": "saranmasukan_harapan",
             "tipe_field": "text",
@@ -1544,8 +1544,8 @@
             "urutan": 12,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-13T18:39:52.000000Z",
-            "updated_at": "2026-10-13T18:39:52.000000Z",
+            "created_at": "2026-10-14T20:59:00.000000Z",
+            "updated_at": "2026-10-14T20:59:00.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",

@@ -113,7 +113,7 @@ Bobot default instrumen ini dalam gabungan penilaian adalah 20%.
 | Kehadiran jawaban/dokumen | Nilai diberikan jika bukti tersedia |
 | Pilihan tunggal | Menggunakan skor pilihan yang dipilih |
 | Pilihan jamak | Menggunakan rata-rata, jumlah, nilai tertinggi, atau terendah sesuai rubrik |
-| Skala Likert | Nilai 1–5; pernyataan negatif dibalik dengan rumus `6 - X` |
+| Skala Likert | Nilai 1–4; pernyataan negatif dibalik dengan rumus `5 - X` |
 | Capaian angka | Dibandingkan dengan target atau rentang ideal |
 | Catatan naratif | Dinilai dari kesesuaian isi, kata kunci, struktur, dan kecukupan uraian |
 | Tabel bukti | Dinilai dari jumlah data, kelengkapan kolom, kekayaan uraian, dan kata kunci |

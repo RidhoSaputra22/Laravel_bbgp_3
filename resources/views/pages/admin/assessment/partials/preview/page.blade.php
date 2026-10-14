@@ -180,7 +180,7 @@
                                         $normalizedOptions = $dependencyEnabled
                                             ? []
                                             : ($field->tipe_field === \App\Support\Assessment\LikertScale::FIELD_TYPE
-                                            ? $normalizeChoiceOptions($field->opsi_field ?: \App\Support\Assessment\LikertScale::defaultOptions())
+                                            ? \App\Support\Assessment\LikertScale::defaultOptions()
                                             : (in_array($field->tipe_field, ['select', 'radio', 'checkbox'], true)
                                                 ? $normalizeChoiceOptions($field->opsi_field)
                                                 : []));

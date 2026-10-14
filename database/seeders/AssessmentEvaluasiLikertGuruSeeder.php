@@ -380,7 +380,7 @@ DATA;
                 'judul' => 'Angket Kompetensi Guru - Skala Likert',
                 'slug' => Str::slug('Angket Kompetensi Guru Skala Likert'),
                 'deskripsi' => 'Instrumen pemetaan kompetensi guru BBGTK Sulawesi Selatan berbasis skala Likert untuk kompetensi pedagogik, kepribadian, sosial, dan profesional.',
-                'petunjuk' => 'Pilihlah jawaban yang sesuai dengan kondisi atau pemahaman Anda saat ini secara jujur. Skala Likert: 1 = Sangat Tidak Setuju/Mampu/Menguasai; 2 = Tidak Setuju/Mampu/Menguasai; 3 = Cukup Setuju/Mampu/Menguasai; 4 = Setuju/Mampu/Menguasai; 5 = Sangat Setuju/Mampu/Menguasai.',
+                'petunjuk' => 'Pilihlah jawaban yang sesuai dengan kondisi atau pemahaman Anda saat ini secara jujur. Skala Likert: 1 = Sangat Tidak Setuju/Mampu/Menguasai; 2 = Tidak Setuju/Mampu/Menguasai; 3 = Setuju/Mampu/Menguasai; 4 = Sangat Setuju/Mampu/Menguasai.',
                 'instrument_type' => AssessmentInstrumentType::SKALA_LIKERT->value,
                 'target_ketenagaan' => AssessmentKetenagaanType::TENAGA_PENDIDIK->value,
                 'scoring_config' => $this->assessmentScoringConfig($forms),
@@ -421,12 +421,12 @@ DATA;
                     ),
                     'tipe_field' => LikertScale::FIELD_TYPE,
                     'placeholder' => null,
-                    'bantuan' => 'Skala Likert: 1 = Sangat Tidak Setuju/Mampu/Menguasai; 2 = Tidak Setuju/Mampu/Menguasai; 3 = Cukup Setuju/Mampu/Menguasai; 4 = Setuju/Mampu/Menguasai; 5 = Sangat Setuju/Mampu/Menguasai.',
+                    'bantuan' => 'Skala Likert: 1 = Sangat Tidak Setuju/Mampu/Menguasai; 2 = Tidak Setuju/Mampu/Menguasai; 3 = Setuju/Mampu/Menguasai; 4 = Sangat Setuju/Mampu/Menguasai.',
                     'opsi_field' => $this->likertOptions(),
                     'nilai_default' => null,
                     'validasi' => [
                         'required' => true,
-                        'in' => ['1', '2', '3', '4', '5'],
+                        'in' => ['1', '2', '3', '4'],
                     ],
                     'scoring_config' => $this->fieldScoringConfig($formData, $item),
                     'urutan' => $item['position'],
@@ -550,7 +550,7 @@ DATA;
                 'source' => 'Instrumen Pemetaan Kompetensi Guru BBGTK Sulawesi Selatan',
                 'method' => LikertScale::SCORING_METHOD,
                 'positive_formula' => 'X',
-                'negative_formula' => '6 - X',
+                'negative_formula' => '5 - X',
                 'aggregation' => 'Skor form, indikator, dan kompetensi dihitung dari rata-rata skor Likert terkoreksi.',
                 'competencies' => $this->competencySummary($forms),
                 'interpretation' => [
@@ -619,7 +619,7 @@ DATA;
                 'sub_indicator_code' => $formData['subindikator_kode'],
                 'sub_indicator' => $formData['subindikator_label'],
                 'scoring_note' => $isNegative
-                    ? 'Butir negatif: skor dibalik dengan rumus 6 - X.'
+                    ? 'Butir negatif: skor dibalik dengan rumus 5 - X.'
                     : 'Butir positif: skor sama dengan jawaban.',
             ],
         ];
@@ -628,7 +628,6 @@ DATA;
     private function likertOptions(): array
     {
         return [
-            ['label' => '5', 'value' => '5', 'score' => 5],
             ['label' => '4', 'value' => '4', 'score' => 4],
             ['label' => '3', 'value' => '3', 'score' => 3],
             ['label' => '2', 'value' => '2', 'score' => 2],

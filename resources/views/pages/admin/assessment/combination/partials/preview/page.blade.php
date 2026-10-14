@@ -164,11 +164,7 @@
 
                                                             @case('likert')
                                                                 @php
-                                                                    $likertOptions = \App\Support\Assessment\ChoiceOptionNormalizer::normalizeMany(
-                                                                        is_array($field['opsi_field'] ?? null) && ($field['opsi_field'] ?? []) !== []
-                                                                            ? $field['opsi_field']
-                                                                            : \App\Support\Assessment\LikertScale::defaultOptions(),
-                                                                    );
+                                                                    $likertOptions = \App\Support\Assessment\LikertScale::defaultOptions();
                                                                 @endphp
                                                                 <div class="row">
                                                                     @forelse ($likertOptions as $option)

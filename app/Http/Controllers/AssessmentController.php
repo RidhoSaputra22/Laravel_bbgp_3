@@ -622,6 +622,25 @@ class AssessmentController extends Controller
                 foreach (($form['fields'] ?? []) as $fieldIndex => $field) {
                     $namaField = trim((string) ($field['nama_field'] ?? ''));
 
+                    if (($field['tipe_field'] ?? '') === LikertScale::FIELD_TYPE) {
+                        $scaleMin = data_get($field, 'scoring.scale_min');
+                        $scaleMax = data_get($field, 'scoring.scale_max');
+
+                        if (filled($scaleMin) && (float) $scaleMin !== (float) LikertScale::SCALE_MIN) {
+                            $validator->errors()->add(
+                                "forms.$formIndex.fields.$fieldIndex.scoring.scale_min",
+                                'Skala Likert harus dimulai dari 1.'
+                            );
+                        }
+
+                        if (filled($scaleMax) && (float) $scaleMax !== (float) LikertScale::SCALE_MAX) {
+                            $validator->errors()->add(
+                                "forms.$formIndex.fields.$fieldIndex.scoring.scale_max",
+                                'Skala Likert hanya sampai 4.'
+                            );
+                        }
+                    }
+
                     if ($namaField === '') {
                         $namaField = (int) ($field['id'] ?? 0) > 0
                             ? $this->generateFieldNameFromLabel($field['label'] ?? '')
@@ -1530,8 +1549,8 @@ class AssessmentController extends Controller
                 ? (bool) $rawConfig['enabled']
                 : true;
             $config['method'] = LikertScale::SCORING_METHOD;
-            $config['scale_min'] = $config['scale_min'] ?? LikertScale::SCALE_MIN;
-            $config['scale_max'] = $config['scale_max'] ?? LikertScale::SCALE_MAX;
+            $config['scale_min'] = LikertScale::SCALE_MIN;
+            $config['scale_max'] = LikertScale::SCALE_MAX;
         }
 
         if (in_array($fieldType, ['radio', 'select', 'checkbox'], true) && empty($config['method'])) {
@@ -1891,8 +1910,12 @@ class AssessmentController extends Controller
                             'weight' => data_get($field->scoring_config, 'weight'),
                             'is_negative_statement' => (bool) data_get($field->scoring_config, 'is_negative_statement', false),
                             'score_if_answered' => data_get($field->scoring_config, 'score_if_answered'),
-                            'scale_min' => data_get($field->scoring_config, 'scale_min'),
-                            'scale_max' => data_get($field->scoring_config, 'scale_max'),
+                            'scale_min' => $field->tipe_field === LikertScale::FIELD_TYPE
+                                ? LikertScale::SCALE_MIN
+                                : data_get($field->scoring_config, 'scale_min'),
+                            'scale_max' => $field->tipe_field === LikertScale::FIELD_TYPE
+                                ? LikertScale::SCALE_MAX
+                                : data_get($field->scoring_config, 'scale_max'),
                             'reference_answer' => data_get($field->scoring_config, 'reference_answer'),
                             'keyword_groups_text' => $this->formatKeywordGroupsText(data_get($field->scoring_config, 'keyword_groups_text') ?: data_get($field->scoring_config, 'keyword_groups')),
                             'synonym_map_text' => $this->resolveSynonymMapTextForBuilder($field->scoring_config ?? []),

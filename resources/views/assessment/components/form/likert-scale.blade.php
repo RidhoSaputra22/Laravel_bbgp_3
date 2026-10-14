@@ -16,9 +16,7 @@
         ->values();
     $selectedValue = $selectedValues->first();
     $idPrefix = $idPrefix ?: trim((string) preg_replace('/[^A-Za-z0-9_-]+/', '-', $name), '-');
-    $sourceOptions = is_array($options ?? null) && ($options ?? []) !== []
-        ? $options
-        : \App\Support\Assessment\LikertScale::defaultOptions();
+    $sourceOptions = \App\Support\Assessment\LikertScale::defaultOptions();
     $normalizedOptions = collect(\App\Support\Assessment\ChoiceOptionNormalizer::normalizeMany($sourceOptions))
         ->map(function ($option, $index) {
             $value = trim((string) ($option['value'] ?? ''));
@@ -59,7 +57,7 @@
         @endif
     </div>
 
-    <div class="grid gap-2 sm:grid-cols-5">
+    <div class="grid gap-2 sm:grid-cols-4">
         @foreach ($normalizedOptions as $option)
             @php
                 $inputId = $idPrefix . '-' . $option['index'];

@@ -8,11 +8,9 @@ class AssessmentAnswerViewHelper
 {
     public static function resolveOptionMap(array $field): array
     {
-        $rawOptions = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
-
-        if (($field['tipe_field'] ?? null) === LikertScale::FIELD_TYPE && $rawOptions === []) {
-            $rawOptions = LikertScale::defaultOptions();
-        }
+        $rawOptions = ($field['tipe_field'] ?? null) === LikertScale::FIELD_TYPE
+            ? LikertScale::defaultOptions()
+            : (is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : []);
 
         $options = ChoiceFieldOtherOption::appendOption(
             $field,

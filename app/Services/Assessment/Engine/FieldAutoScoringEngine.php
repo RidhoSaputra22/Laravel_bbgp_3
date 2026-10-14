@@ -154,11 +154,7 @@ class FieldAutoScoringEngine
             return $this->emptyResult($config, 'Jawaban skala Likert belum tersedia.');
         }
 
-        $normalizedOptions = ChoiceOptionNormalizer::normalizeMany(
-            is_array($field['opsi_field'] ?? null) && ($field['opsi_field'] ?? []) !== []
-                ? $field['opsi_field']
-                : LikertScale::defaultOptions()
-        );
+        $normalizedOptions = LikertScale::defaultOptions();
         $selectedOption = collect($normalizedOptions)
             ->first(fn (array $option) => in_array($selectedValue, $option['aliases'] ?? [], true));
         $rawScore = data_get($answer->answer_payload ?? [], 'score');
@@ -185,8 +181,8 @@ class FieldAutoScoringEngine
             $correctedScore,
             0.99,
             $isNegativeStatement
-                ? 'Skor Likert dibalik dengan rumus 6 - X karena pertanyaan ditandai negatif.'
-                : 'Skor Likert dihitung dari jawaban peserta pada skala 1 sampai 5.',
+                ? 'Skor Likert dibalik dengan rumus '.LikertScale::reverseFormula().' karena pertanyaan ditandai negatif.'
+                : 'Skor Likert dihitung dari jawaban peserta pada skala 1 sampai 4.',
             [
                 'method' => LikertScale::SCORING_METHOD,
                 'selected_value' => $selectedValue,
@@ -194,7 +190,7 @@ class FieldAutoScoringEngine
                 'raw_score' => is_numeric($rawScore) ? (float) $rawScore : null,
                 'corrected_score' => (float) $correctedScore,
                 'is_negative_statement' => $isNegativeStatement,
-                'formula' => $isNegativeStatement ? '6 - X' : 'X',
+                'formula' => $isNegativeStatement ? LikertScale::reverseFormula() : 'X',
             ],
             false,
             'auto_likert_scale'

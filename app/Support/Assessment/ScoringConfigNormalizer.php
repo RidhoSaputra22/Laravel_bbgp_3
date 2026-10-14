@@ -46,8 +46,21 @@ class ScoringConfigNormalizer
         ];
         $config = is_array($field['scoring_config'] ?? null) ? $field['scoring_config'] : [];
         $advancedRules = $this->parseAdvancedRules($config['advanced_rules_text'] ?? $config['advanced_rules'] ?? null);
-        $scaleMin = $this->toFloat($config['scale_min'] ?? data_get($advancedRules, 'scale.min') ?? 1, 1);
-        $scaleMax = $this->toFloat($config['scale_max'] ?? data_get($advancedRules, 'scale.max') ?? 5, 5);
+        $defaultScaleMin = $fieldType === LikertScale::FIELD_TYPE ? LikertScale::SCALE_MIN : 1;
+        $defaultScaleMax = $fieldType === LikertScale::FIELD_TYPE ? LikertScale::SCALE_MAX : 5;
+        $scaleMin = $this->toFloat(
+            $config['scale_min'] ?? data_get($advancedRules, 'scale.min') ?? $defaultScaleMin,
+            $defaultScaleMin
+        );
+        $scaleMax = $this->toFloat(
+            $config['scale_max'] ?? data_get($advancedRules, 'scale.max') ?? $defaultScaleMax,
+            $defaultScaleMax
+        );
+
+        if ($fieldType === LikertScale::FIELD_TYPE) {
+            $scaleMin = (float) LikertScale::SCALE_MIN;
+            $scaleMax = (float) LikertScale::SCALE_MAX;
+        }
 
         return [
             'enabled' => (bool) ($config['enabled'] ?? $config['auto_score_enabled'] ?? ($form['is_scoreable'] ?? true)),

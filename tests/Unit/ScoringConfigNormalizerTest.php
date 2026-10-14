@@ -8,6 +8,13 @@ use Tests\TestCase;
 
 class ScoringConfigNormalizerTest extends TestCase
 {
+    public function test_likert_scale_has_four_fixed_options(): void
+    {
+        $this->assertSame(4, LikertScale::SCALE_MAX);
+        $this->assertSame(['4', '3', '2', '1'], collect(LikertScale::defaultOptions())->pluck('value')->all());
+        $this->assertSame('5 - X', LikertScale::reverseFormula());
+    }
+
     public function test_it_parses_comma_separated_keywords_as_distinct_groups(): void
     {
         $normalizer = new ScoringConfigNormalizer;
@@ -52,12 +59,13 @@ class ScoringConfigNormalizerTest extends TestCase
             'scoring_config' => [
                 'enabled' => true,
                 'is_negative_statement' => true,
+                'scale_max' => 5,
             ],
         ]);
 
         $this->assertSame(LikertScale::SCORING_METHOD, $config['method']);
         $this->assertTrue($config['is_negative_statement']);
         $this->assertSame(1.0, $config['scale']['min']);
-        $this->assertSame(5.0, $config['scale']['max']);
+        $this->assertSame(4.0, $config['scale']['max']);
     }
 }

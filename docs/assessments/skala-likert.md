@@ -4,13 +4,12 @@
 
 Skala Likert digunakan untuk mengukur persepsi, sikap, kebiasaan, atau refleksi peserta terhadap pernyataan yang berkaitan dengan kompetensi. Setiap jawaban diberi nilai, kemudian dikoreksi apabila pernyataannya bersifat negatif.
 
-## Skala jawaban 1–5
+## Skala jawaban 1–4
 
 | Jawaban | Skor |
 |---|---:|
-| Sangat Setuju | 5 |
-| Setuju | 4 |
-| Cukup Setuju | 3 |
+| Sangat Setuju | 4 |
+| Setuju | 3 |
 | Tidak Setuju | 2 |
 | Sangat Tidak Setuju | 1 |
 
@@ -29,10 +28,10 @@ Skor terkoreksi = X
 Skor dibalik agar jawaban yang menunjukkan kompetensi lebih baik tetap memperoleh nilai lebih tinggi.
 
 ```text
-Skor terkoreksi = 6 - X
+Skor terkoreksi = 5 - X
 ```
 
-Contoh: jawaban 4 pada pernyataan negatif menghasilkan skor 2.
+Contoh: jawaban 3 pada pernyataan negatif menghasilkan skor 2.
 
 ## Struktur instrumen guru
 
@@ -54,8 +53,8 @@ Contoh: jawaban 4 pada pernyataan negatif menghasilkan skor 2.
 
 ## Tahapan perhitungan
 
-1. Jawaban setiap butir dikonversi menjadi skor 1–5.
-2. Skor pernyataan negatif dibalik dengan rumus `6 - X`.
+1. Jawaban setiap butir dikonversi menjadi skor 1–4.
+2. Skor pernyataan negatif dibalik dengan rumus `5 - X`.
 3. Skor form dihitung dari rata-rata skor terkoreksi seluruh butir yang dinilai.
 4. Skor indikator dihitung dari gabungan form dengan mempertimbangkan jumlah butir setiap form.
 5. Skor kompetensi dihitung dari rata-rata seluruh indikator dalam kompetensi tersebut.
@@ -68,29 +67,27 @@ Skor form = jumlah skor Likert terkoreksi / jumlah butir yang dinilai
 
 ## Indeks 0–100
 
-Rata-rata skala 1–5 dikonversi menjadi indeks:
+Rata-rata skala 1–4 dikonversi menjadi indeks:
 
 ```text
-Indeks = ((rata-rata - 1) / 4) × 100
+Indeks = ((rata-rata - 1) / 3) × 100
 ```
 
 | Rata-rata | Indeks |
 |---:|---:|
 | 1 | 0 |
-| 2 | 25 |
-| 3 | 50 |
-| 4 | 75 |
-| 5 | 100 |
+| 2 | 33,33 |
+| 3 | 66,67 |
+| 4 | 100 |
 
 ## Kategori hasil Likert
 
 | Rata-rata | Kategori | Arah tindak lanjut |
 |---:|---|---|
-| `≤ 1,80` | Sangat rendah | Prioritas utama pengembangan |
-| `> 1,80–2,60` | Rendah | Prioritas tinggi pengembangan |
-| `> 2,60–3,40` | Sedang | Memerlukan penguatan terarah |
-| `> 3,40–4,20` | Tinggi | Dipertahankan dan dikembangkan |
-| `> 4,20` | Sangat tinggi | Pengayaan dan berbagi praktik baik |
+| `≤ 1,75` | Sangat rendah | Prioritas utama pengembangan |
+| `> 1,75–2,50` | Rendah | Prioritas tinggi pengembangan |
+| `> 2,50–3,25` | Tinggi | Dipertahankan dan dikembangkan |
+| `> 3,25` | Sangat tinggi | Pengayaan dan berbagi praktik baik |
 
 ## Level kompetensi
 
@@ -99,8 +96,7 @@ Indeks = ((rata-rata - 1) / 4) × 100
 | `1,00–1,79` | Paham |
 | `1,80–2,59` | Dasar |
 | `2,60–3,39` | Menengah |
-| `3,40–4,19` | Mumpuni |
-| `4,20–5,00` | Ahli |
+| `3,40–4,00` | Mumpuni |
 
 Kategori Likert dan level kompetensi memiliki batas yang sedikit berbeda. Contoh: skor tepat 3,40 masuk kategori Likert **Sedang**, tetapi level kompetensinya **Mumpuni**.
 
@@ -115,7 +111,7 @@ Evaluasi Pelaksanaan Hari Belajar Guru menggunakan pilihan berikut:
 | 3 | Baik |
 | 4 | Sangat Baik |
 
-Skor evaluasi dihitung dari rata-rata seluruh butir penilaian. Bagian identitas dan saran tidak masuk perhitungan. Karena indeks umum menggunakan rentang 1–5, rata-rata maksimum 4 pada instrumen ini setara dengan indeks 75.
+Skor evaluasi dihitung dari rata-rata seluruh butir penilaian. Bagian identitas dan saran tidak masuk perhitungan.
 
 ## Jawaban kosong
 
@@ -125,5 +121,5 @@ Skor evaluasi dihitung dari rata-rata seluruh butir penilaian. Bagian identitas 
 
 ## Hasil akhir
 
-Hasil penilaian menampilkan rata-rata form, indikator, kompetensi, indeks 0–100, kategori Likert, level kompetensi, dan persentase kompetensi `(skor / 5) × 100%`.
+Hasil penilaian menampilkan rata-rata form, indikator, kompetensi, indeks 0–100, kategori Likert, level kompetensi, dan persentase kompetensi.
 

@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-14T20:57:33.390177Z",
+    "exported_at": "2026-10-14T23:31:07.790974Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -33,15 +33,15 @@
     "scoring_config": null,
     "forms": [
       {
-        "id": 1411,
+        "id": 1645,
         "assessment_id": 8,
         "judul_form": "Identitas Validator",
         "kode_form": "FORM-VALIDATOR",
         "deskripsi": "Data identitas ahli atau validator yang melakukan penilaian.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-13T18:40:36.000000Z",
-        "updated_at": "2026-10-13T18:40:36.000000Z",
+        "created_at": "2026-10-14T20:59:27.000000Z",
+        "updated_at": "2026-10-14T20:59:27.000000Z",
         "kompetensi": "",
         "indikator_kode": "",
         "indikator_label": "",
@@ -49,8 +49,8 @@
         "scoring_config": null,
         "fields": [
           {
-            "id": 6402,
-            "assessment_form_id": 1411,
+            "id": 7503,
+            "assessment_form_id": 1645,
             "label": "Nama Validator",
             "nama_field": "f_mube0dv7",
             "tipe_field": "text",
@@ -69,8 +69,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan nama lengkap validator.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -82,8 +82,8 @@
             }
           },
           {
-            "id": 6403,
-            "assessment_form_id": 1411,
+            "id": 7504,
+            "assessment_form_id": 1645,
             "label": "Jabatan/Profesi",
             "nama_field": "f_pfwdplsb",
             "tipe_field": "text",
@@ -102,8 +102,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan jabatan atau profesi validator.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -115,8 +115,8 @@
             }
           },
           {
-            "id": 6404,
-            "assessment_form_id": 1411,
+            "id": 7505,
+            "assessment_form_id": 1645,
             "label": "Instansi",
             "nama_field": "f_l1dmom7y",
             "tipe_field": "text",
@@ -135,8 +135,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan nama instansi asal validator.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -148,8 +148,8 @@
             }
           },
           {
-            "id": 6405,
-            "assessment_form_id": 1411,
+            "id": 7506,
+            "assessment_form_id": 1645,
             "label": "Bidang Keahlian",
             "nama_field": "f_7540odmw",
             "tipe_field": "text",
@@ -168,8 +168,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan bidang keahlian validator.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -181,8 +181,8 @@
             }
           },
           {
-            "id": 6406,
-            "assessment_form_id": 1411,
+            "id": 7507,
+            "assessment_form_id": 1645,
             "label": "Tanggal Validasi",
             "nama_field": "f_wutkdivi",
             "tipe_field": "date",
@@ -201,8 +201,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Pilih tanggal pelaksanaan validasi.",
             "scoring_config": {
               "method": "presence",
@@ -213,15 +213,15 @@
         ]
       },
       {
-        "id": 1412,
+        "id": 1646,
         "assessment_id": 8,
         "judul_form": "Aspek Desain Instrumen",
         "kode_form": "FORM-VALIDASI-DESAIN",
         "deskripsi": "Penilaian terhadap tampilan, format, sistematika, petunjuk, layout, skala, identitas, dan kemudahan pelaksanaan asesmen.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-13T18:40:36.000000Z",
-        "updated_at": "2026-10-13T18:40:36.000000Z",
+        "created_at": "2026-10-14T20:59:27.000000Z",
+        "updated_at": "2026-10-14T20:59:27.000000Z",
         "kompetensi": "pedagogik",
         "indikator_kode": "VA-DESAIN",
         "indikator_label": "Kelayakan desain instrumen",
@@ -232,8 +232,8 @@
         },
         "fields": [
           {
-            "id": 6407,
-            "assessment_form_id": 1412,
+            "id": 7508,
+            "assessment_form_id": 1646,
             "label": "Tampilan instrumen rapi dan sistematis",
             "nama_field": "f_13tfuchg",
             "tipe_field": "radio",
@@ -283,8 +283,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -297,8 +297,8 @@
             }
           },
           {
-            "id": 6408,
-            "assessment_form_id": 1412,
+            "id": 7509,
+            "assessment_form_id": 1646,
             "label": "Format instrumen mudah dipahami",
             "nama_field": "f_i6p3ouba",
             "tipe_field": "radio",
@@ -348,8 +348,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -362,8 +362,8 @@
             }
           },
           {
-            "id": 6409,
-            "assessment_form_id": 1412,
+            "id": 7510,
+            "assessment_form_id": 1646,
             "label": "Sistematika penyajian instrumen logis",
             "nama_field": "f_l2y9vrbz",
             "tipe_field": "radio",
@@ -413,8 +413,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -427,8 +427,8 @@
             }
           },
           {
-            "id": 6410,
-            "assessment_form_id": 1412,
+            "id": 7511,
+            "assessment_form_id": 1646,
             "label": "Petunjuk pengisian jelas dan mudah dipahami",
             "nama_field": "f_5tqefhrc",
             "tipe_field": "radio",
@@ -478,8 +478,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -492,8 +492,8 @@
             }
           },
           {
-            "id": 6411,
-            "assessment_form_id": 1412,
+            "id": 7512,
+            "assessment_form_id": 1646,
             "label": "Urutan indikator disusun secara sistematis",
             "nama_field": "f_teejm9wb",
             "tipe_field": "radio",
@@ -543,8 +543,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -557,8 +557,8 @@
             }
           },
           {
-            "id": 6412,
-            "assessment_form_id": 1412,
+            "id": 7513,
+            "assessment_form_id": 1646,
             "label": "Layout memudahkan responden mengisi instrumen",
             "nama_field": "f_e3njtmtt",
             "tipe_field": "radio",
@@ -608,8 +608,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -622,8 +622,8 @@
             }
           },
           {
-            "id": 6413,
-            "assessment_form_id": 1412,
+            "id": 7514,
+            "assessment_form_id": 1646,
             "label": "Skala penilaian disajikan secara konsisten",
             "nama_field": "f_1wnvspgb",
             "tipe_field": "radio",
@@ -673,8 +673,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -687,8 +687,8 @@
             }
           },
           {
-            "id": 6414,
-            "assessment_form_id": 1412,
+            "id": 7515,
+            "assessment_form_id": 1646,
             "label": "Instrumen memiliki identitas yang lengkap",
             "nama_field": "f_3spm47er",
             "tipe_field": "radio",
@@ -738,8 +738,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -752,8 +752,8 @@
             }
           },
           {
-            "id": 6415,
-            "assessment_form_id": 1412,
+            "id": 7516,
+            "assessment_form_id": 1646,
             "label": "Kode atau penomoran butir tersusun secara sistematis",
             "nama_field": "f_f7g788ye",
             "tipe_field": "radio",
@@ -803,8 +803,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -817,8 +817,8 @@
             }
           },
           {
-            "id": 6416,
-            "assessment_form_id": 1412,
+            "id": 7517,
+            "assessment_form_id": 1646,
             "label": "Desain instrumen mendukung kemudahan pelaksanaan asesmen",
             "nama_field": "f_rv0s6jdb",
             "tipe_field": "radio",
@@ -868,8 +868,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -884,15 +884,15 @@
         ]
       },
       {
-        "id": 1413,
+        "id": 1647,
         "assessment_id": 8,
         "judul_form": "Aspek Konten/Substansi",
         "kode_form": "FORM-VALIDASI-KONTEN",
         "deskripsi": "Penilaian terhadap kesesuaian tujuan, keterwakilan indikator, ketepatan pengukuran kompetensi, relevansi isi, kebebasan bias, dan dukungan pengambilan keputusan.",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-13T18:40:36.000000Z",
-        "updated_at": "2026-10-13T18:40:36.000000Z",
+        "created_at": "2026-10-14T20:59:27.000000Z",
+        "updated_at": "2026-10-14T20:59:27.000000Z",
         "kompetensi": "pedagogik",
         "indikator_kode": "VA-KONTEN",
         "indikator_label": "Kelayakan konten atau substansi",
@@ -903,8 +903,8 @@
         },
         "fields": [
           {
-            "id": 6417,
-            "assessment_form_id": 1413,
+            "id": 7518,
+            "assessment_form_id": 1647,
             "label": "Instrumen sesuai dengan tujuan pemetaan kompetensi guru",
             "nama_field": "f_xb9g5odd",
             "tipe_field": "radio",
@@ -954,8 +954,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -968,8 +968,8 @@
             }
           },
           {
-            "id": 6418,
-            "assessment_form_id": 1413,
+            "id": 7519,
+            "assessment_form_id": 1647,
             "label": "Butir mengacu pada model kompetensi guru yang berlaku",
             "nama_field": "f_mfhg4i5e",
             "tipe_field": "radio",
@@ -1019,8 +1019,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1033,8 +1033,8 @@
             }
           },
           {
-            "id": 6419,
-            "assessment_form_id": 1413,
+            "id": 7520,
+            "assessment_form_id": 1647,
             "label": "Setiap indikator telah terwakili oleh butir instrumen",
             "nama_field": "f_xfz09dp1",
             "tipe_field": "radio",
@@ -1084,8 +1084,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1098,8 +1098,8 @@
             }
           },
           {
-            "id": 6420,
-            "assessment_form_id": 1413,
+            "id": 7521,
+            "assessment_form_id": 1647,
             "label": "Butir mampu mengukur kompetensi yang dimaksud",
             "nama_field": "f_vjdy03yb",
             "tipe_field": "radio",
@@ -1149,8 +1149,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1163,8 +1163,8 @@
             }
           },
           {
-            "id": 6421,
-            "assessment_form_id": 1413,
+            "id": 7522,
+            "assessment_form_id": 1647,
             "label": "Isi instrumen relevan dengan tugas profesional guru",
             "nama_field": "f_d4ron9lx",
             "tipe_field": "radio",
@@ -1214,8 +1214,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1228,8 +1228,8 @@
             }
           },
           {
-            "id": 6422,
-            "assessment_form_id": 1413,
+            "id": 7523,
+            "assessment_form_id": 1647,
             "label": "Tidak terdapat indikator yang tumpang tindih",
             "nama_field": "f_v8hq4oyz",
             "tipe_field": "radio",
@@ -1279,8 +1279,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1293,8 +1293,8 @@
             }
           },
           {
-            "id": 6423,
-            "assessment_form_id": 1413,
+            "id": 7524,
+            "assessment_form_id": 1647,
             "label": "Setiap butir memiliki fokus yang jelas",
             "nama_field": "f_jpz9lxjr",
             "tipe_field": "radio",
@@ -1344,8 +1344,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1358,8 +1358,8 @@
             }
           },
           {
-            "id": 6424,
-            "assessment_form_id": 1413,
+            "id": 7525,
+            "assessment_form_id": 1647,
             "label": "Butir bebas dari bias gender, budaya, maupun wilayah",
             "nama_field": "f_dktwty9i",
             "tipe_field": "radio",
@@ -1409,8 +1409,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1423,8 +1423,8 @@
             }
           },
           {
-            "id": 6425,
-            "assessment_form_id": 1413,
+            "id": 7526,
+            "assessment_form_id": 1647,
             "label": "Instrumen mampu membedakan tingkat kompetensi guru",
             "nama_field": "f_1uqaws51",
             "tipe_field": "radio",
@@ -1474,8 +1474,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1488,8 +1488,8 @@
             }
           },
           {
-            "id": 6426,
-            "assessment_form_id": 1413,
+            "id": 7527,
+            "assessment_form_id": 1647,
             "label": "Kedalaman materi sesuai dengan tujuan pemetaan",
             "nama_field": "f_tscdovpn",
             "tipe_field": "radio",
@@ -1539,8 +1539,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1553,8 +1553,8 @@
             }
           },
           {
-            "id": 6427,
-            "assessment_form_id": 1413,
+            "id": 7528,
+            "assessment_form_id": 1647,
             "label": "Indikator mencerminkan kompetensi profesional",
             "nama_field": "f_e8m6ijei",
             "tipe_field": "radio",
@@ -1604,8 +1604,8 @@
             "urutan": 11,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1618,8 +1618,8 @@
             }
           },
           {
-            "id": 6428,
-            "assessment_form_id": 1413,
+            "id": 7529,
+            "assessment_form_id": 1647,
             "label": "Indikator mencerminkan kompetensi pedagogik",
             "nama_field": "f_zfz53f0c",
             "tipe_field": "radio",
@@ -1669,8 +1669,8 @@
             "urutan": 12,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1683,8 +1683,8 @@
             }
           },
           {
-            "id": 6429,
-            "assessment_form_id": 1413,
+            "id": 7530,
+            "assessment_form_id": 1647,
             "label": "Indikator mencerminkan kompetensi sosial",
             "nama_field": "f_dan7ihro",
             "tipe_field": "radio",
@@ -1734,8 +1734,8 @@
             "urutan": 13,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1748,8 +1748,8 @@
             }
           },
           {
-            "id": 6430,
-            "assessment_form_id": 1413,
+            "id": 7531,
+            "assessment_form_id": 1647,
             "label": "Indikator mencerminkan kompetensi kepribadian",
             "nama_field": "f_hqx3z8f1",
             "tipe_field": "radio",
@@ -1799,8 +1799,8 @@
             "urutan": 14,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1813,8 +1813,8 @@
             }
           },
           {
-            "id": 6431,
-            "assessment_form_id": 1413,
+            "id": 7532,
+            "assessment_form_id": 1647,
             "label": "Instrumen mendukung pengambilan keputusan pengembangan kompetensi",
             "nama_field": "f_5ua36grd",
             "tipe_field": "radio",
@@ -1864,8 +1864,8 @@
             "urutan": 15,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1880,15 +1880,15 @@
         ]
       },
       {
-        "id": 1414,
+        "id": 1648,
         "assessment_id": 8,
         "judul_form": "Aspek Kebahasaan",
         "kode_form": "FORM-VALIDASI-BAHASA",
         "deskripsi": "Penilaian terhadap ketepatan kaidah bahasa, kejelasan kalimat, pilihan kata, konsistensi istilah, ejaan, tanda baca, dan sifat komunikatif redaksi.",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-13T18:40:36.000000Z",
-        "updated_at": "2026-10-13T18:40:36.000000Z",
+        "created_at": "2026-10-14T20:59:27.000000Z",
+        "updated_at": "2026-10-14T20:59:27.000000Z",
         "kompetensi": "pedagogik",
         "indikator_kode": "VA-BAHASA",
         "indikator_label": "Kelayakan kebahasaan",
@@ -1899,8 +1899,8 @@
         },
         "fields": [
           {
-            "id": 6432,
-            "assessment_form_id": 1414,
+            "id": 7533,
+            "assessment_form_id": 1648,
             "label": "Bahasa menggunakan kaidah Bahasa Indonesia yang baik dan benar",
             "nama_field": "f_dh7fe7x7",
             "tipe_field": "radio",
@@ -1950,8 +1950,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1964,8 +1964,8 @@
             }
           },
           {
-            "id": 6433,
-            "assessment_form_id": 1414,
+            "id": 7534,
+            "assessment_form_id": 1648,
             "label": "Kalimat mudah dipahami responden",
             "nama_field": "f_eri5goi6",
             "tipe_field": "radio",
@@ -2015,8 +2015,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2029,8 +2029,8 @@
             }
           },
           {
-            "id": 6434,
-            "assessment_form_id": 1414,
+            "id": 7535,
+            "assessment_form_id": 1648,
             "label": "Pilihan kata tepat",
             "nama_field": "f_06mxht15",
             "tipe_field": "radio",
@@ -2080,8 +2080,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2094,8 +2094,8 @@
             }
           },
           {
-            "id": 6435,
-            "assessment_form_id": 1414,
+            "id": 7536,
+            "assessment_form_id": 1648,
             "label": "Tidak menimbulkan makna ganda",
             "nama_field": "f_59qj2nm9",
             "tipe_field": "radio",
@@ -2145,8 +2145,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2159,8 +2159,8 @@
             }
           },
           {
-            "id": 6436,
-            "assessment_form_id": 1414,
+            "id": 7537,
+            "assessment_form_id": 1648,
             "label": "Kalimat efektif dan tidak berbelit",
             "nama_field": "f_8wlo7870",
             "tipe_field": "radio",
@@ -2210,8 +2210,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2224,8 +2224,8 @@
             }
           },
           {
-            "id": 6437,
-            "assessment_form_id": 1414,
+            "id": 7538,
+            "assessment_form_id": 1648,
             "label": "Istilah yang digunakan konsisten",
             "nama_field": "f_rsl11phy",
             "tipe_field": "radio",
@@ -2275,8 +2275,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2289,8 +2289,8 @@
             }
           },
           {
-            "id": 6438,
-            "assessment_form_id": 1414,
+            "id": 7539,
+            "assessment_form_id": 1648,
             "label": "Bahasa sesuai dengan karakteristik guru sebagai responden",
             "nama_field": "f_6q28svts",
             "tipe_field": "radio",
@@ -2340,8 +2340,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2354,8 +2354,8 @@
             }
           },
           {
-            "id": 6439,
-            "assessment_form_id": 1414,
+            "id": 7540,
+            "assessment_form_id": 1648,
             "label": "Tidak terdapat kesalahan ejaan maupun tanda baca",
             "nama_field": "f_uoqw9nsv",
             "tipe_field": "radio",
@@ -2405,8 +2405,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2419,8 +2419,8 @@
             }
           },
           {
-            "id": 6440,
-            "assessment_form_id": 1414,
+            "id": 7541,
+            "assessment_form_id": 1648,
             "label": "Redaksi setiap butir komunikatif",
             "nama_field": "f_7ixe7fh4",
             "tipe_field": "radio",
@@ -2470,8 +2470,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2484,8 +2484,8 @@
             }
           },
           {
-            "id": 6441,
-            "assessment_form_id": 1414,
+            "id": 7542,
+            "assessment_form_id": 1648,
             "label": "Bahasa tidak mengarahkan jawaban responden",
             "nama_field": "f_x82c2ia2",
             "tipe_field": "radio",
@@ -2535,8 +2535,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Berikan skor kesesuaian untuk indikator ini.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2551,15 +2551,15 @@
         ]
       },
       {
-        "id": 1415,
+        "id": 1649,
         "assessment_id": 8,
         "judul_form": "Saran, Masukan, dan Rekomendasi Validator",
         "kode_form": "FORM-SARAN-VALIDATOR",
         "deskripsi": "Catatan perbaikan dan rekomendasi akhir dari validator.",
         "urutan": 5,
         "is_active": true,
-        "created_at": "2026-10-13T18:40:36.000000Z",
-        "updated_at": "2026-10-13T18:40:36.000000Z",
+        "created_at": "2026-10-14T20:59:27.000000Z",
+        "updated_at": "2026-10-14T20:59:27.000000Z",
         "kompetensi": "",
         "indikator_kode": "",
         "indikator_label": "",
@@ -2567,8 +2567,8 @@
         "scoring_config": null,
         "fields": [
           {
-            "id": 6442,
-            "assessment_form_id": 1415,
+            "id": 7543,
+            "assessment_form_id": 1649,
             "label": "Saran dan Masukan Aspek Desain",
             "nama_field": "f_ii8sdp5z",
             "tipe_field": "textarea",
@@ -2587,8 +2587,8 @@
             "urutan": 1,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan saran atau masukan terkait aspek desain instrumen.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -2600,8 +2600,8 @@
             }
           },
           {
-            "id": 6443,
-            "assessment_form_id": 1415,
+            "id": 7544,
+            "assessment_form_id": 1649,
             "label": "Saran dan Masukan Aspek Konten/Substansi",
             "nama_field": "f_8lwq7bqc",
             "tipe_field": "textarea",
@@ -2620,8 +2620,8 @@
             "urutan": 2,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan saran atau masukan terkait aspek konten atau substansi.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -2633,8 +2633,8 @@
             }
           },
           {
-            "id": 6444,
-            "assessment_form_id": 1415,
+            "id": 7545,
+            "assessment_form_id": 1649,
             "label": "Saran dan Masukan Aspek Kebahasaan",
             "nama_field": "f_qi4cl9fq",
             "tipe_field": "textarea",
@@ -2653,8 +2653,8 @@
             "urutan": 3,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan saran atau masukan terkait aspek kebahasaan.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -2666,8 +2666,8 @@
             }
           },
           {
-            "id": 6445,
-            "assessment_form_id": 1415,
+            "id": 7546,
+            "assessment_form_id": 1649,
             "label": "Rekomendasi Umum",
             "nama_field": "f_tgb3wix0",
             "tipe_field": "radio",
@@ -2711,8 +2711,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Pilih rekomendasi akhir berdasarkan hasil validasi.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2721,8 +2721,8 @@
             }
           },
           {
-            "id": 6446,
-            "assessment_form_id": 1415,
+            "id": 7547,
+            "assessment_form_id": 1649,
             "label": "Nama Validator pada Pengesahan",
             "nama_field": "f_gorgyu49",
             "tipe_field": "text",
@@ -2741,8 +2741,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Tuliskan kembali nama validator untuk bagian pengesahan.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -2754,8 +2754,8 @@
             }
           },
           {
-            "id": 6447,
-            "assessment_form_id": 1415,
+            "id": 7548,
+            "assessment_form_id": 1649,
             "label": "Tanda Tangan Validator",
             "nama_field": "f_nu7dnnvg",
             "tipe_field": "file",
@@ -2778,8 +2778,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Unggah tanda tangan validator.",
             "scoring_config": {
               "method": "presence",
@@ -2788,8 +2788,8 @@
             }
           },
           {
-            "id": 6448,
-            "assessment_form_id": 1415,
+            "id": 7549,
+            "assessment_form_id": 1649,
             "label": "Tanggal Pengesahan",
             "nama_field": "f_9dsqt8yt",
             "tipe_field": "date",
@@ -2808,8 +2808,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-13T18:40:36.000000Z",
-            "updated_at": "2026-10-14T20:41:25.000000Z",
+            "created_at": "2026-10-14T20:59:27.000000Z",
+            "updated_at": "2026-10-14T20:59:27.000000Z",
             "deskripsi": "Pilih tanggal pengesahan hasil validasi.",
             "scoring_config": {
               "method": "presence",

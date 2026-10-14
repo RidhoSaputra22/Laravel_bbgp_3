@@ -196,7 +196,7 @@ hasil akhirnya disimpan ke `opsi_field`, `dependency_config`, atau
 | `date` | Tanggal | Tanggal | Input tanggal dengan format tanggal browser. |
 | `select` | Daftar Pilihan | Satu opsi | Pilihan tunggal dari opsi manual, master database, atau mapping dependency. |
 | `radio` | Pilihan Ganda | Satu opsi | Pilihan tunggal dengan kode, isi jawaban, skor, dan level kompetensi per opsi. |
-| `likert` | Skala Likert | Satu nilai 1–5 | Pernyataan sikap/persepsi dengan opsi Likert tetap. |
+| `likert` | Skala Likert | Satu nilai 1–4 | Pernyataan sikap/persepsi dengan opsi Likert tetap. |
 | `checkbox` | Kotak Centang | Satu atau beberapa opsi | Memungkinkan peserta memilih beberapa opsi sekaligus. |
 | `file` | Unggah File | File atau link | Mengumpulkan bukti dokumen langsung atau URL bukti. |
 | `repeater` | Tabel Berulang | Array baris dan kolom | Mengumpulkan banyak data berstruktur, misalnya riwayat pelatihan atau pengalaman. |
@@ -262,14 +262,13 @@ Opsi Likert dibuat otomatis dan tidak perlu diinput manual:
 
 | Label | Value | Score |
 |---|---:|---:|
-| Sangat Setuju | `5` | 5 |
-| Setuju | `4` | 4 |
-| Cukup Setuju | `3` | 3 |
+| Sangat Setuju | `4` | 4 |
+| Setuju | `3` | 3 |
 | Tidak Setuju | `2` | 2 |
 | Sangat Tidak Setuju | `1` | 1 |
 
 Pada scoring, field Likert menggunakan method `likert_scale`. Jika
-**Pernyataan negatif** diaktifkan, skor dikoreksi dengan rumus `6 - X`.
+**Pernyataan negatif** diaktifkan, skor dikoreksi dengan rumus `5 - X`.
 
 ### 5.4 Field `file` / Unggah File
 
@@ -465,7 +464,7 @@ Pengaturan ini berada pada `fields[*][scoring]` dan disimpan sebagai
 | Bobot Nilai Pertanyaan | `scoring[weight]` | Bobot relatif pertanyaan. Jika kosong, pertanyaan menggunakan bobot normal/default. |
 | Konteks Penilaian | `scoring[profile]` | Profil scoring yang digunakan engine. |
 | Kode Rubrik / Indikator | `scoring[rubric_code]` | Referensi kode rubrik atau indikator tambahan. |
-| Skala Minimum/Maksimum | `scoring[scale_min]`, `scoring[scale_max]` | Rentang skor; default umum 1–5 dan wajib 1–5 untuk Likert. |
+| Skala Minimum/Maksimum | `scoring[scale_min]`, `scoring[scale_max]` | Rentang skor; default umum 1–5 dan wajib 1–4 untuk Likert. |
 | Aturan Lanjutan | `scoring[advanced_rules_text]` | JSON aturan tambahan untuk kebutuhan lanjutan. |
 
 ### 8.2 Metode scoring berdasarkan tipe field
@@ -484,7 +483,7 @@ Pengaturan ini berada pada `fields[*][scoring]` dan disimpan sebagai
 
 | Parameter | Nama data | Digunakan untuk | Definisi |
 |---|---|---|---|
-| Pernyataan negatif | `scoring[is_negative_statement]` | `likert` | Membalik skor dengan rumus `6 - X`. |
+| Pernyataan negatif | `scoring[is_negative_statement]` | `likert` | Membalik skor dengan rumus `5 - X`. |
 | Nilai saat jawaban ada | `scoring[score_if_answered]` | `presence` | Nilai ketika jawaban/bukti tersedia. |
 | Pedoman penilaian | `scoring[reference_answer]` | `text`, `textarea`, `repeater` | Ciri jawaban atau bukti yang diharapkan. |
 | Kata kunci penting | `scoring[keyword_groups_text]` | `keyword_coverage` | Kata kunci yang dipisahkan dengan koma. |
@@ -635,9 +634,8 @@ contoh; ID sebenarnya dibuat database.
       "placeholder": null,
       "bantuan": null,
       "opsi_field": [
-        {"label": "Sangat Setuju", "value": "5", "score": 5},
-        {"label": "Setuju", "value": "4", "score": 4},
-        {"label": "Cukup Setuju", "value": "3", "score": 3},
+        {"label": "Sangat Setuju", "value": "4", "score": 4},
+        {"label": "Setuju", "value": "3", "score": 3},
         {"label": "Tidak Setuju", "value": "2", "score": 2},
         {"label": "Sangat Tidak Setuju", "value": "1", "score": 1}
       ],
@@ -654,7 +652,7 @@ contoh; ID sebenarnya dibuat database.
         "enabled": true,
         "method": "likert_scale",
         "scale_min": 1,
-        "scale_max": 5,
+        "scale_max": 4,
         "is_negative_statement": false
       },
       "urutan": 3,
