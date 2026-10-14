@@ -504,6 +504,7 @@ class AssessmentPackageService
         ?string $assessmentCode = null
     ): void {
         $path = "included.assignment_configs.$index";
+        $minimumSessionValue = ($data['session_enabled'] ?? true) ? 1 : 0;
         $this->rejectUnknownKeys($data, self::ASSIGNMENT_KEYS, $path, $addError);
         $this->validateWithRules($data, [
             'kode_penugasan' => ['required', 'string', 'max:100'],
@@ -518,8 +519,8 @@ class AssessmentPackageService
             'tanggal_mulai' => ['nullable', 'date'],
             'jam_mulai' => ['nullable', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
             'tanggal_selesai' => ['nullable', 'date'],
-            'kapasitas_per_sesi' => ['nullable', 'integer', 'min:1'],
-            'durasi_sesi_jam' => ['nullable', 'integer', 'min:1'],
+            'kapasitas_per_sesi' => ['nullable', 'integer', 'min:'.$minimumSessionValue],
+            'durasi_sesi_jam' => ['nullable', 'integer', 'min:'.$minimumSessionValue],
             'security_config' => ['nullable', 'array'],
             'assessments' => ['required', 'array', 'min:1'],
             'sessions' => ['nullable', 'array'],

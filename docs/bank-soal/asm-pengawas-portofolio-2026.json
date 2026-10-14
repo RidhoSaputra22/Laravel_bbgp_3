@@ -1,1 +1,1286 @@
-{"meta":{"schema":"database-assessment-v1","version":1,"export_type":"assessment-package","exported_at":"2026-10-13T14:48:03.613050Z","application":"Laravel","streaming":true,"runtime_data_excluded":["assessment_assignment_targets","assessment_attempts","assessment_attempt_answers","assessment_attempt_security_events"]},"data":{"id":12,"kode_assessment":"ASM-PENGAWAS-PORTOFOLIO-2026","judul":"Portofolio Pengawas","slug":"portofolio-pengawas","deskripsi":"Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri pengawas.","petunjuk":"Isi data sesuai jabatan Pengawas dan kondisi sebenarnya! Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB!  Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator! Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional!","status":"publish","is_active":true,"created_at":"2026-10-04T21:25:51.000000Z","updated_at":"2026-10-11T17:44:05.000000Z","instrument_type":"portofolio","kategori":"assessment","target_ketenagaan":"tenaga_kependidikan","target_jabatan":["Pengawas"],"scoring_config":{"weight":0.3,"profile":"portofolio","verification_gap_threshold":1.5,"empty_response_threshold_percent":10},"forms":[{"id":963,"assessment_id":12,"judul_form":"Identitas Responden","kode_form":"FORM-PENGAWAS-IDENTITAS","deskripsi":"Data identitas dasar responden pada instrumen portofolio pengawas.","urutan":1,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","kompetensi":"","indikator_kode":"","indikator_label":"","is_scoreable":false,"scoring_config":null,"fields":[{"id":4326,"assessment_form_id":963,"label":"Nama Lengkap","nama_field":"nama_lengkap","tipe_field":"text","placeholder":"Nama lengkap sesuai identitas resmi.","bantuan":"Isi nama lengkap!","opsi_field":null,"nilai_default":null,"autofill_source":"nama_lengkap","lookup_source":null,"dependency_config":null,"validasi":{"required":true,"tipe_field":"text","allow_other_input":false},"urutan":1,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Nama Lengkap","scoring_config":{"method":"semantic_similarity","enabled":false,"min_words":8,"numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"nama lengkap\",\n    \"nama\",\n    \"lengkap\"\n  ]\n}","keyword_groups_text":"nama lengkap, nama, lengkap"}},{"id":4327,"assessment_form_id":963,"label":"Foto Diri Memegang Surat Tugas Asesmen","nama_field":"foto_diri_memegang_surat_tugas_asesmen","tipe_field":"file","placeholder":"","bantuan":"Unggah 1 foto diri sambil memegang surat tugas asesmen! Format JPG/JPEG/PNG; ukuran maksimal 5 MB!","opsi_field":{"accept":".jpg,.jpeg,.png","max_files":1,"input_mode":"file","max_size_kb":5120},"nilai_default":null,"autofill_source":null,"lookup_source":null,"dependency_config":null,"validasi":{"required":true,"tipe_field":"file","allow_other_input":false},"urutan":2,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Foto diri sambil memegang surat tugas asesmen.","scoring_config":{"method":"presence","enabled":false,"numeric_direction":"greater_is_better"}},{"id":4328,"assessment_form_id":963,"label":"NIP/NUPTK","nama_field":"nip_nuptk","tipe_field":"text","placeholder":"NIP atau NUPTK.","bantuan":"Isi NIP/NUPTK yang tersedia!","opsi_field":null,"nilai_default":null,"autofill_source":"nip_nuptk","lookup_source":null,"dependency_config":null,"validasi":{"required":true,"tipe_field":"text","allow_other_input":false},"urutan":3,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"NIP/NUPTK","scoring_config":{"method":"semantic_similarity","enabled":false,"min_words":8,"numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"nuptk\",\n    \"tersedia\"\n  ]\n}","keyword_groups_text":"nuptk, tersedia"}},{"id":4329,"assessment_form_id":963,"label":"Pangkat / Golongan","nama_field":"pangkat_golongan","tipe_field":"select","placeholder":"Pilih pangkat/golongan.","bantuan":"Pilih pangkat/golongan dari master! Gunakan opsi Lainnya jika belum tersedia!","opsi_field":[{"label":"I","value":"I"},{"label":"I/a","value":"I/a"},{"label":"I/b","value":"I/b"},{"label":"I/c","value":"I/c"},{"label":"I/d","value":"I/d"},{"label":"II","value":"II"},{"label":"II/a","value":"II/a"},{"label":"II/b","value":"II/b"},{"label":"II/c","value":"II/c"},{"label":"II/d","value":"II/d"},{"label":"III","value":"III"},{"label":"III/a","value":"III/a"},{"label":"III/b","value":"III/b"},{"label":"III/c","value":"III/c"},{"label":"III/d","value":"III/d"},{"label":"IV","value":"IV"},{"label":"IV/a","value":"IV/a"},{"label":"IV/b","value":"IV/b"},{"label":"IV/c","value":"IV/c"},{"label":"IV/d","value":"IV/d"},{"label":"IX","value":"IX"},{"label":"Tidak ada","value":"Tidak ada"},{"label":"V","value":"V"},{"label":"VI","value":"VI"},{"label":"VII","value":"VII"},{"label":"VIII","value":"VIII"},{"label":"X","value":"X"},{"label":"XI","value":"XI"},{"label":"XII","value":"XII"},{"label":"XIII","value":"XIII"},{"label":"XIV","value":"XIV"},{"label":"XV","value":"XV"},{"label":"XVI","value":"XVI"},{"label":"XVII","value":"XVII"}],"nilai_default":null,"autofill_source":"golongan","lookup_source":"master_golongan","dependency_config":null,"validasi":{"required":true,"tipe_field":"select","allow_other_input":true},"urutan":4,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Pangkat / Golongan","scoring_config":{"method":"choice_option_score","enabled":false,"numeric_direction":"greater_is_better"}},{"id":4330,"assessment_form_id":963,"label":"Jabatan","nama_field":"jabatan_guru_kepala_sekolah_pengawas","tipe_field":"select","placeholder":"Pilih jabatan","bantuan":"Paket ini disusun untuk Pengawas. Pilih jabatan sesuai penugasan asesmen Anda!","opsi_field":[{"label":"Guru","value":"Guru"},{"label":"Kepala Sekolah","value":"Kepala Sekolah"},{"label":"Pengawas","value":"Pengawas"}],"nilai_default":"Pengawas","autofill_source":"jabatan","lookup_source":"master_jabatan_kependidikan","dependency_config":null,"validasi":{"required":true,"tipe_field":"select","allow_other_input":false},"urutan":5,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Pilih jabatan utama yang sedang dijalankan!","scoring_config":{"method":"choice_option_score","enabled":false,"numeric_direction":"greater_is_better"}},{"id":4331,"assessment_form_id":963,"label":"Instansi","nama_field":"instansi","tipe_field":"text","placeholder":"Nama instansi.","bantuan":"Isi instansi tempat bertugas!","opsi_field":null,"nilai_default":null,"autofill_source":"satuan_pendidikan","lookup_source":null,"dependency_config":null,"validasi":{"required":true,"tipe_field":"text","allow_other_input":false},"urutan":6,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Instansi","scoring_config":{"method":"semantic_similarity","enabled":false,"min_words":8,"synonym_map_text":"instansi: lembaga, institusi","numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"instansi tempat\",\n    \"tempat bertugas\",\n    \"instansi\",\n    \"tempat\",\n    \"bertugas\"\n  ]\n}","keyword_groups_text":"instansi tempat, tempat bertugas, instansi, tempat, bertugas"}},{"id":4332,"assessment_form_id":963,"label":"Kabupaten/Kota","nama_field":"kabupaten_kota","tipe_field":"select","placeholder":"Kabupaten/kota.","bantuan":"Isi lokasi instansi!","opsi_field":[{"label":"Kabupaten Bantaeng","value":"Kabupaten Bantaeng"},{"label":"Kabupaten Barru","value":"Kabupaten Barru"},{"label":"Kabupaten Bone","value":"Kabupaten Bone"},{"label":"Kabupaten Bulukumba","value":"Kabupaten Bulukumba"},{"label":"Kabupaten Enrekang","value":"Kabupaten Enrekang"},{"label":"Kabupaten Gowa","value":"Kabupaten Gowa"},{"label":"Kabupaten Jeneponto","value":"Kabupaten Jeneponto"},{"label":"Kabupaten Kepulauan Selayar","value":"Kabupaten Kepulauan Selayar"},{"label":"Kabupaten Luwu","value":"Kabupaten Luwu"},{"label":"Kabupaten Luwu Timur","value":"Kabupaten Luwu Timur"},{"label":"Kabupaten Luwu Utara","value":"Kabupaten Luwu Utara"},{"label":"Kabupaten Maros","value":"Kabupaten Maros"},{"label":"Kabupaten Pangkep","value":"Kabupaten Pangkep"},{"label":"Kabupaten Pinrang","value":"Kabupaten Pinrang"},{"label":"Kabupaten Sidrap","value":"Kabupaten Sidrap"},{"label":"Kabupaten Sinjai","value":"Kabupaten Sinjai"},{"label":"Kabupaten Soppeng","value":"Kabupaten Soppeng"},{"label":"Kabupaten Takalar","value":"Kabupaten Takalar"},{"label":"Kabupaten Tana Toraja","value":"Kabupaten Tana Toraja"},{"label":"Kabupaten Toraja Utara","value":"Kabupaten Toraja Utara"},{"label":"Kabupaten Wajo","value":"Kabupaten Wajo"},{"label":"Kota Makassar","value":"Kota Makassar"},{"label":"Kota Palopo","value":"Kota Palopo"},{"label":"Kota Parepare","value":"Kota Parepare"}],"nilai_default":null,"autofill_source":"kabupaten","lookup_source":"master_kabupaten","dependency_config":null,"validasi":{"required":true,"tipe_field":"select","allow_other_input":false},"urutan":7,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Kabupaten/Kota","scoring_config":{"method":"choice_option_score","enabled":false,"min_words":8,"synonym_map_text":"instansi: lembaga, institusi","numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"kabupaten kota\",\n    \"lokasi instansi\",\n    \"kabupaten\",\n    \"kota\",\n    \"lokasi\"\n  ]\n}","keyword_groups_text":"kabupaten kota, lokasi instansi, kabupaten, kota, lokasi, instansi"}},{"id":4333,"assessment_form_id":963,"label":"Lama Bertugas sebagai Pengawas (Tahun)","nama_field":"lama_bertugas_sebagai_pengawas_tahun","tipe_field":"number","placeholder":"Contoh: 6","bantuan":"Isi total lama bertugas sebagai pengawas dalam tahun!","opsi_field":null,"nilai_default":null,"autofill_source":"satuan_pendidikan","lookup_source":null,"dependency_config":null,"validasi":{"min":0,"required":true,"tipe_field":"number","allow_other_input":false},"urutan":8,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Masukkan total lama bertugas sebagai pengawas dalam tahun!","scoring_config":{"method":"numeric_threshold","enabled":false,"numeric_direction":"greater_is_better"}}]},{"id":964,"assessment_id":12,"judul_form":"Riwayat Pendidikan Formal","kode_form":"FORM-PENGAWAS-PENDIDIKAN","deskripsi":"Riwayat pendidikan formal pengawas dengan jenjang S1, S2, atau S3.","urutan":2,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","kompetensi":"profesional","indikator_kode":"P-2","indikator_label":"Kualifikasi akademik","is_scoreable":true,"scoring_config":{"weight":100,"profile":"portofolio","advanced_rules_text":"{\n  \"rubric_code\": \"P-2\",\n  \"scoring_note\": \"Menilai relevansi pendidikan formal dan program studi dengan kebutuhan jabatan.\",\n  \"accepted_evidence\": [\n    \"ijazah\",\n    \"transkrip\",\n    \"bukti studi lanjut\"\n  ]\n}"},"fields":[{"id":4334,"assessment_form_id":964,"label":"Riwayat Pendidikan Formal","nama_field":"riwayat_pendidikan_formal","tipe_field":"repeater","placeholder":"","bantuan":"Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3!","opsi_field":{"columns":[{"label":"Jenjang","nama_field":"jenjang","opsi_field":["S1","S2","S3"],"tipe_field":"select","is_required":true,"placeholder":""},{"label":"Gelar","nama_field":"gelar","opsi_field":[],"tipe_field":"text","is_required":false,"placeholder":"Contoh: M.Pd."},{"label":"Program Studi","nama_field":"program_studi","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Nama program studi."},{"label":"Lembaga","nama_field":"lembaga","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Nama lembaga pendidikan."},{"label":"Tahun Perolehan","nama_field":"tahun_perolehan","opsi_field":[],"tipe_field":"number","is_required":true,"placeholder":"2020"}],"max_rows":3,"min_rows":1},"nilai_default":null,"autofill_source":null,"lookup_source":null,"dependency_config":null,"validasi":{"required":true,"tipe_field":"repeater","allow_other_input":false},"urutan":1,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3!","scoring_config":{"method":"repeater_completeness","weight":100,"enabled":true,"profile":"portofolio","min_words":12,"scale_max":5,"scale_min":1,"numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"tambahkan satu\",\n    \"satu baris\",\n    \"setiap jenjang\",\n    \"jenjang pendidikan\",\n    \"baris\"\n  ],\n  \"target_rows\": 1\n}","keyword_groups_text":"tambahkan satu, satu baris, setiap jenjang, jenjang pendidikan, baris, jenjang"}}]},{"id":965,"assessment_id":12,"judul_form":"Pengalaman Pelatihan yang Relevan dengan Profesi (5 Tahun Terakhir)","kode_form":"FORM-PENGAWAS-PELATIHAN","deskripsi":"Pengalaman pelatihan relevan dengan profesi dalam lima tahun terakhir.","urutan":3,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","kompetensi":"profesional","indikator_kode":"P-3","indikator_label":"Pengalaman pelatihan relevan","is_scoreable":true,"scoring_config":{"weight":100,"profile":"portofolio","advanced_rules_text":"{\n    \"rubric_code\": \"P-3\"\n}"},"fields":[{"id":4335,"assessment_form_id":965,"label":"Pengalaman Pelatihan","nama_field":"pengalaman_pelatihan","tipe_field":"repeater","placeholder":"","bantuan":"Tambahkan satu baris untuk setiap pelatihan!","opsi_field":{"columns":[{"label":"Nama Pelatihan","nama_field":"nama_pelatihan","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Nama pelatihan."},{"label":"Penyelenggara","nama_field":"penyelenggara","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Nama penyelenggara."},{"label":"Tahun","nama_field":"tahun","opsi_field":[],"tipe_field":"number","is_required":true,"placeholder":"2026"},{"label":"Durasi (JP)","nama_field":"durasi_jp","opsi_field":[],"tipe_field":"number","is_required":true,"placeholder":"32"}],"max_rows":20,"min_rows":0},"nilai_default":null,"autofill_source":null,"lookup_source":null,"dependency_config":null,"validasi":{"required":false,"tipe_field":"repeater","allow_other_input":false},"urutan":1,"is_required":false,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Cantumkan pelatihan yang relevan dalam lima tahun terakhir!","scoring_config":{"method":"repeater_completeness","weight":100,"enabled":true,"profile":"portofolio","min_words":12,"scale_max":5,"scale_min":1,"synonym_map_text":"pelatihan: diklat, bimtek, workshop","numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"cantumkan pelatihan\",\n    \"lima tahun\",\n    \"tahun terakhir\",\n    \"terakhir tambahkan\",\n    \"cantumkan\"\n  ],\n  \"target_rows\": 1\n}","keyword_groups_text":"cantumkan pelatihan, lima tahun, tahun terakhir, terakhir tambahkan, cantumkan, pelatihan"}}]},{"id":966,"assessment_id":12,"judul_form":"Riwayat Pengalaman sebagai Pengawas","kode_form":"FORM-PENGAWAS-PENGALAMAN-KERJA","deskripsi":"Riwayat pengalaman responden dalam menjalankan tugas pengawasan.","urutan":4,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","kompetensi":"profesional","indikator_kode":"P-4","indikator_label":"Pengalaman kerja","is_scoreable":true,"scoring_config":{"weight":100,"profile":"portofolio","advanced_rules_text":"{\n    \"rubric_code\": \"P-4\"\n}"},"fields":[{"id":4336,"assessment_form_id":966,"label":"Riwayat Pengalaman sebagai Pengawas","nama_field":"pengalaman_kerja","tipe_field":"repeater","placeholder":"","bantuan":"Tambahkan pengalaman penugasan sebagai pengawas!","opsi_field":{"columns":[{"label":"Jabatan / Tugas Pengawasan","nama_field":"pengalaman","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Contoh: Pengawas Sekolah"},{"label":"Instansi / Wilayah Binaan","nama_field":"lembaga","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Nama lembaga."},{"label":"Periode Bertugas","nama_field":"tahun","opsi_field":[],"tipe_field":"text","is_required":true,"placeholder":"Contoh: 2020–2026."}],"max_rows":20,"min_rows":0},"nilai_default":null,"autofill_source":null,"lookup_source":null,"dependency_config":null,"validasi":{"required":false,"tipe_field":"repeater","allow_other_input":false},"urutan":1,"is_required":false,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Cantumkan pengalaman bertugas sebagai pengawas!","scoring_config":{"method":"repeater_completeness","weight":100,"enabled":true,"profile":"portofolio","min_words":12,"scale_max":5,"scale_min":1,"numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"cantumkan pengalaman\",\n    \"pengalaman kerja\",\n    \"relevan tambahkan\",\n    \"tambahkan satu\",\n    \"cantumkan\"\n  ],\n  \"target_rows\": 1\n}","keyword_groups_text":"cantumkan pengalaman, pengalaman kerja, relevan tambahkan, tambahkan satu, cantumkan, pengalaman"}}]},{"id":967,"assessment_id":12,"judul_form":"Karya/Inovasi/Prestasi/Diseminasi","kode_form":"FORM-PENGAWAS-KONTRIBUSI","deskripsi":"Kontribusi profesional pengawas berupa karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi.","urutan":5,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","kompetensi":"profesional","indikator_kode":"P-5","indikator_label":"Prestasi dan penghargaan","is_scoreable":true,"scoring_config":{"weight":100,"profile":"portofolio","advanced_rules_text":"{\n    \"rubric_code\": \"P-5\"\n}"},"fields":[{"id":4337,"assessment_form_id":967,"label":"Karya/Artikel/HAKI/Inovasi/Praktik Baik/Prestasi/Diseminasi","nama_field":"karya_artikel_haki_inovasi_praktik_baik_prestasi_diseminasi","tipe_field":"repeater","placeholder":"","bantuan":"Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki!","opsi_field":{"columns":[{"label":"Jenis Kontribusi","nama_field":"jenis_kontribusi","opsi_field":["Karya","Artikel","HAKI","Inovasi","Praktik Baik","Prestasi","Penghargaan","Diseminasi"],"tipe_field":"select","is_required":false,"placeholder":"Pilih jika memiliki kontribusi"},{"label":"Judul / Nama Kontribusi","nama_field":"judul_kontribusi","opsi_field":[],"tipe_field":"text","is_required":false,"placeholder":"Judul karya, artikel, inovasi, praktik baik, atau kegiatan"},{"label":"Deskripsi Singkat","nama_field":"deskripsi_singkat","opsi_field":[],"tipe_field":"textarea","is_required":false,"placeholder":"Jelaskan kontribusi dan hasilnya secara singkat"},{"label":"Tahun","nama_field":"tahun","opsi_field":[],"tipe_field":"number","is_required":false,"placeholder":"2026"},{"label":"Nomor Pendaftaran / Sertifikat HAKI (jika ada)","nama_field":"nomor_haki","opsi_field":[],"tipe_field":"text","is_required":false,"placeholder":"Isi nomor HAKI jika jenis kontribusinya HAKI"},{"label":"DOI / ISBN / ISSN (jika ada)","nama_field":"identitas_publikasi","opsi_field":[],"tipe_field":"text","is_required":false,"placeholder":"Isi identitas publikasi jika tersedia"},{"label":"Tautan Bukti / Publikasi","nama_field":"tautan_bukti_publikasi","opsi_field":[],"tipe_field":"url","is_required":false,"placeholder":"Tautan dokumen, artikel, atau bukti kontribusi"}],"max_rows":100,"min_rows":0},"nilai_default":null,"autofill_source":null,"lookup_source":null,"dependency_config":null,"validasi":{"required":false,"tipe_field":"repeater","allow_other_input":false},"urutan":1,"is_required":false,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada!","scoring_config":{"method":"repeater_completeness","weight":100,"enabled":true,"profile":"portofolio","min_words":12,"scale_max":5,"scale_min":1,"numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"cantumkan prestasi\",\n    \"penghargaan beserta\",\n    \"beserta deskripsi\",\n    \"deskripsi singkat\",\n    \"cantumkan\"\n  ],\n  \"target_rows\": 1\n}","keyword_groups_text":"cantumkan prestasi, penghargaan beserta, beserta deskripsi, deskripsi singkat, cantumkan, prestasi"}}]},{"id":968,"assessment_id":12,"judul_form":"Refleksi Diri","kode_form":"FORM-PENGAWAS-REFLEKSI","deskripsi":"Refleksi diri responden sebagai pengawas.","urutan":6,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","kompetensi":"kepribadian","indikator_kode":"P-7","indikator_label":"Refleksi diri","is_scoreable":true,"scoring_config":{"weight":100,"profile":"portofolio","advanced_rules_text":"{\n    \"rubric_code\": \"P-7\"\n}"},"fields":[{"id":4338,"assessment_form_id":968,"label":"Kekuatan dan Area Pengembangan sebagai Pengawas","nama_field":"kekuatan_dan_area_pengembangan_anda","tipe_field":"textarea","placeholder":"Tuliskan refleksi diri secara jujur dan lengkap.","bantuan":"","opsi_field":null,"nilai_default":null,"autofill_source":null,"lookup_source":null,"dependency_config":null,"validasi":{"required":true,"min_length":50,"tipe_field":"textarea","allow_other_input":false},"urutan":1,"is_required":true,"is_active":true,"created_at":"2026-10-11T18:05:15.000000Z","updated_at":"2026-10-11T18:05:15.000000Z","deskripsi":"","scoring_config":{"method":"semantic_similarity","weight":100,"enabled":true,"profile":"portofolio","min_words":18,"scale_max":5,"scale_min":1,"numeric_direction":"greater_is_better","advanced_rules_text":"{\n  \"signal_keywords\": [\n    \"tuliskan kekuatan\",\n    \"area pengembangan\",\n    \"pengembangan anda\",\n    \"calon aktif\",\n    \"tuliskan\"\n  ]\n}","keyword_groups_text":"tuliskan kekuatan, area pengembangan, pengembangan anda, calon aktif, tuliskan, kekuatan"}}]}]},"included":{"assignment_configs":[{"kode_penugasan":"TGS-ASM-20261005-045742-Z5ER","judul_penugasan":"Assessment Pengawas Sekolah SIMBBGTK","is_active":true,"session_enabled":true,"target_ketenagaan":"tenaga_kependidikan","target_jabatan":["Pengawas"],"target_kabupaten":["Kabupaten Bantaeng","Kabupaten Barru","Kabupaten Bone","Kabupaten Bulukumba","Kabupaten Enrekang","Kabupaten Gowa","Kabupaten Jeneponto","Kabupaten Kepulauan Selayar","Kabupaten Luwu","Kabupaten Luwu Timur","Kabupaten Luwu Utara","Kabupaten Maros","Kabupaten Pangkep","Kabupaten Pinrang","Kabupaten Sidrap","Kabupaten Sinjai","Kabupaten Soppeng","Kabupaten Takalar","Kabupaten Tana Toraja","Kabupaten Toraja Utara","Kabupaten Wajo","Kota Makassar","Kota Palopo","Kota Parepare"],"target_satuan_pendidikan":["Kabupaten Bantaeng|||Dinas Pendidikan","Kabupaten Bantaeng|||SD Negeri","Kabupaten Barru|||Dinas Pendidikan","Kabupaten Barru|||SD Negeri","Kabupaten Barru|||SD Swasta","Kabupaten Barru|||TK Swasta","Kabupaten Bone|||Dinas Pendidikan","Kabupaten Bone|||SD Negeri","Kabupaten Bulukumba|||Dinas Pendidikan","Kabupaten Bulukumba|||Lainnya","Kabupaten Bulukumba|||SD Negeri","Kabupaten Enrekang|||Dinas Pendidikan","Kabupaten Enrekang|||SD Negeri","Kabupaten Enrekang|||SPS","Kabupaten Gowa|||Dinas Pendidikan","Kabupaten Gowa|||Lainnya","Kabupaten Jeneponto|||Dinas Pendidikan","Kabupaten Jeneponto|||SD Negeri","Kabupaten Jeneponto|||SMA Negeri","Kabupaten Jeneponto|||SMP Negeri","Kabupaten Jeneponto|||SPS","Kabupaten Jeneponto|||TK Negeri","Kabupaten Jeneponto|||TK Swasta","Kabupaten Kepulauan Selayar|||Dinas Pendidikan","Kabupaten Kepulauan Selayar|||SD Negeri","Kabupaten Kepulauan Selayar|||SMP Negeri","Kabupaten Kepulauan Selayar|||TK Negeri","Kabupaten Kepulauan Selayar|||TK Swasta","Kabupaten Luwu|||Dinas Pendidikan","Kabupaten Luwu|||SD Negeri","Kabupaten Luwu|||SMP Negeri","Kabupaten Luwu|||TK Negeri","Kabupaten Luwu Timur|||Dinas Pendidikan","Kabupaten Luwu Utara|||Dinas Pendidikan","Kabupaten Luwu Utara|||Lainnya","Kabupaten Luwu Utara|||SD Negeri","Kabupaten Luwu Utara|||SMP Negeri","Kabupaten Luwu Utara|||SPS","Kabupaten Luwu Utara|||TK Negeri","Kabupaten Maros|||Dinas Pendidikan","Kabupaten Maros|||SD Negeri","Kabupaten Maros|||SMP Negeri","Kabupaten Maros|||SMP Swasta","Kabupaten Pangkep|||Dinas Pendidikan","Kabupaten Pangkep|||PKBM","Kabupaten Pangkep|||SD Negeri","Kabupaten Pangkep|||SMP Negeri","Kabupaten Pinrang|||Dinas Pendidikan","Kabupaten Pinrang|||SD Swasta","Kabupaten Pinrang|||SMP Negeri","Kabupaten Pinrang|||SMP Swasta","Kabupaten Sidrap|||Dinas Pendidikan","Kabupaten Sidrap|||Lainnya","Kabupaten Sidrap|||SD Negeri","Kabupaten Sidrap|||SMK Negeri","Kabupaten Sidrap|||SMP Negeri","Kabupaten Sidrap|||TK Negeri","Kabupaten Sinjai|||Dinas Pendidikan","Kabupaten Sinjai|||SD Negeri","Kabupaten Sinjai|||SMP Negeri","Kabupaten Sinjai|||TK Negeri","Kabupaten Soppeng|||Dinas Pendidikan","Kabupaten Soppeng|||Lainnya","Kabupaten Soppeng|||SD Negeri","Kabupaten Soppeng|||SMA Negeri","Kabupaten Soppeng|||SMP Negeri","Kabupaten Soppeng|||TK Swasta","Kabupaten Takalar|||Dinas Pendidikan","Kabupaten Takalar|||SMP Negeri","Kabupaten Tana Toraja|||Dinas Pendidikan","Kabupaten Tana Toraja|||SD Negeri","Kabupaten Tana Toraja|||SMP Negeri","Kabupaten Toraja Utara|||Dinas Pendidikan","Kabupaten Wajo|||Dinas Pendidikan","Kabupaten Wajo|||SD Negeri","Kabupaten Wajo|||SMP Negeri","Kabupaten Wajo|||SMP Swasta","Kabupaten Wajo|||SPS","Kabupaten Wajo|||TK Negeri","Kota Makassar|||Dinas Pendidikan","Kota Makassar|||SD Negeri","Kota Makassar|||SMA Negeri","Kota Makassar|||SMP Negeri","Kota Palopo|||Dinas Pendidikan","Kota Parepare|||Dinas Pendidikan"],"deskripsi":null,"tanggal_mulai":null,"tanggal_selesai":null,"status_distribusi":"selesai","kapasitas_per_sesi":41,"durasi_sesi_jam":3,"security_config":{"enabled":true,"require_fullscreen":true,"max_serious_violations":3,"temporary_lock_seconds":2,"fullscreen_grace_seconds":10},"jam_mulai":null,"assessments":[{"kode_assessment":"ASM-PENGAWAS-PORTOFOLIO-2026","urutan":1,"stage_config":{"enabled":true,"security":{"enabled":false,"require_fullscreen":false,"max_serious_violations":3,"temporary_lock_seconds":2,"fullscreen_grace_seconds":10},"entry_mode":"direct","allow_draft":true,"finalize_mode":"manual","admin_gate_enabled":false,"time_limit_minutes":null,"lock_until_previous_stages_completed":false}}],"sessions":[{"nomor_sesi":1,"label_sesi":"Sesi 1","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":2,"label_sesi":"Sesi 2","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":3,"label_sesi":"Sesi 3","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":4,"label_sesi":"Sesi 4","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":5,"label_sesi":"Sesi 5","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":6,"label_sesi":"Sesi 6","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":7,"label_sesi":"Sesi 7","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":8,"label_sesi":"Sesi 8","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null},{"nomor_sesi":9,"label_sesi":"Sesi 9","kapasitas_peserta":41,"durasi_sesi_jam":3,"waktu_mulai":null,"waktu_selesai":null}]}]}}
+{
+    "meta": {
+        "schema": "database-assessment-v1",
+        "version": 1,
+        "export_type": "assessment-package",
+        "exported_at": "2026-10-13T14:48:03.613050Z",
+        "application": "Laravel",
+        "streaming": true,
+        "runtime_data_excluded": [
+            "assessment_assignment_targets",
+            "assessment_attempts",
+            "assessment_attempt_answers",
+            "assessment_attempt_security_events"
+        ]
+    },
+    "data": {
+        "id": 12,
+        "kode_assessment": "ASM-PENGAWAS-PORTOFOLIO-2026",
+        "judul": "Portofolio Pengawas",
+        "slug": "portofolio-pengawas",
+        "deskripsi": "Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri pengawas.",
+        "petunjuk": "Isi data sesuai jabatan Pengawas dan kondisi sebenarnya! Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB!  Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator! Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional!",
+        "status": "publish",
+        "is_active": true,
+        "created_at": "2026-10-04T21:25:51.000000Z",
+        "updated_at": "2026-10-11T17:44:05.000000Z",
+        "instrument_type": "portofolio",
+        "kategori": "assessment",
+        "target_ketenagaan": "tenaga_kependidikan",
+        "target_jabatan": [
+            "Pengawas"
+        ],
+        "scoring_config": {
+            "weight": 0.3,
+            "profile": "portofolio",
+            "verification_gap_threshold": 1.5,
+            "empty_response_threshold_percent": 10
+        },
+        "forms": [
+            {
+                "id": 963,
+                "assessment_id": 12,
+                "judul_form": "Identitas Responden",
+                "kode_form": "FORM-PENGAWAS-IDENTITAS",
+                "deskripsi": "Data identitas dasar responden pada instrumen portofolio pengawas.",
+                "urutan": 1,
+                "is_active": true,
+                "created_at": "2026-10-11T18:05:15.000000Z",
+                "updated_at": "2026-10-11T18:05:15.000000Z",
+                "kompetensi": "",
+                "indikator_kode": "",
+                "indikator_label": "",
+                "is_scoreable": false,
+                "scoring_config": null,
+                "fields": [
+                    {
+                        "id": 4326,
+                        "assessment_form_id": 963,
+                        "label": "Nama Lengkap",
+                        "nama_field": "nama_lengkap",
+                        "tipe_field": "text",
+                        "placeholder": "Nama lengkap sesuai identitas resmi.",
+                        "bantuan": "Isi nama lengkap!",
+                        "opsi_field": null,
+                        "nilai_default": null,
+                        "autofill_source": "nama_lengkap",
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "text",
+                            "allow_other_input": false
+                        },
+                        "urutan": 1,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Nama Lengkap",
+                        "scoring_config": {
+                            "method": "semantic_similarity",
+                            "enabled": false,
+                            "min_words": 8,
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"nama lengkap\",\n    \"nama\",\n    \"lengkap\"\n  ]\n}",
+                            "keyword_groups_text": "nama lengkap, nama, lengkap"
+                        }
+                    },
+                    {
+                        "id": 4327,
+                        "assessment_form_id": 963,
+                        "label": "Foto Diri Memegang Surat Tugas Asesmen",
+                        "nama_field": "foto_diri_memegang_surat_tugas_asesmen",
+                        "tipe_field": "file",
+                        "placeholder": "",
+                        "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen! Format JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+                        "opsi_field": {
+                            "accept": ".jpg,.jpeg,.png",
+                            "max_files": 1,
+                            "input_mode": "file",
+                            "max_size_kb": 5120
+                        },
+                        "nilai_default": null,
+                        "autofill_source": null,
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "file",
+                            "allow_other_input": false
+                        },
+                        "urutan": 2,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Foto diri sambil memegang surat tugas asesmen.",
+                        "scoring_config": {
+                            "method": "presence",
+                            "enabled": false,
+                            "numeric_direction": "greater_is_better"
+                        }
+                    },
+                    {
+                        "id": 4328,
+                        "assessment_form_id": 963,
+                        "label": "NIP/NUPTK",
+                        "nama_field": "nip_nuptk",
+                        "tipe_field": "text",
+                        "placeholder": "NIP atau NUPTK.",
+                        "bantuan": "Isi NIP/NUPTK yang tersedia!",
+                        "opsi_field": null,
+                        "nilai_default": null,
+                        "autofill_source": "nip_nuptk",
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "text",
+                            "allow_other_input": false
+                        },
+                        "urutan": 3,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "NIP/NUPTK",
+                        "scoring_config": {
+                            "method": "semantic_similarity",
+                            "enabled": false,
+                            "min_words": 8,
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"nuptk\",\n    \"tersedia\"\n  ]\n}",
+                            "keyword_groups_text": "nuptk, tersedia"
+                        }
+                    },
+                    {
+                        "id": 4329,
+                        "assessment_form_id": 963,
+                        "label": "Pangkat / Golongan",
+                        "nama_field": "pangkat_golongan",
+                        "tipe_field": "select",
+                        "placeholder": "Pilih pangkat/golongan.",
+                        "bantuan": "Pilih pangkat/golongan dari master! Gunakan opsi Lainnya jika belum tersedia!",
+                        "opsi_field": [
+                            {
+                                "label": "I",
+                                "value": "I"
+                            },
+                            {
+                                "label": "I/a",
+                                "value": "I/a"
+                            },
+                            {
+                                "label": "I/b",
+                                "value": "I/b"
+                            },
+                            {
+                                "label": "I/c",
+                                "value": "I/c"
+                            },
+                            {
+                                "label": "I/d",
+                                "value": "I/d"
+                            },
+                            {
+                                "label": "II",
+                                "value": "II"
+                            },
+                            {
+                                "label": "II/a",
+                                "value": "II/a"
+                            },
+                            {
+                                "label": "II/b",
+                                "value": "II/b"
+                            },
+                            {
+                                "label": "II/c",
+                                "value": "II/c"
+                            },
+                            {
+                                "label": "II/d",
+                                "value": "II/d"
+                            },
+                            {
+                                "label": "III",
+                                "value": "III"
+                            },
+                            {
+                                "label": "III/a",
+                                "value": "III/a"
+                            },
+                            {
+                                "label": "III/b",
+                                "value": "III/b"
+                            },
+                            {
+                                "label": "III/c",
+                                "value": "III/c"
+                            },
+                            {
+                                "label": "III/d",
+                                "value": "III/d"
+                            },
+                            {
+                                "label": "IV",
+                                "value": "IV"
+                            },
+                            {
+                                "label": "IV/a",
+                                "value": "IV/a"
+                            },
+                            {
+                                "label": "IV/b",
+                                "value": "IV/b"
+                            },
+                            {
+                                "label": "IV/c",
+                                "value": "IV/c"
+                            },
+                            {
+                                "label": "IV/d",
+                                "value": "IV/d"
+                            },
+                            {
+                                "label": "IX",
+                                "value": "IX"
+                            },
+                            {
+                                "label": "Tidak ada",
+                                "value": "Tidak ada"
+                            },
+                            {
+                                "label": "V",
+                                "value": "V"
+                            },
+                            {
+                                "label": "VI",
+                                "value": "VI"
+                            },
+                            {
+                                "label": "VII",
+                                "value": "VII"
+                            },
+                            {
+                                "label": "VIII",
+                                "value": "VIII"
+                            },
+                            {
+                                "label": "X",
+                                "value": "X"
+                            },
+                            {
+                                "label": "XI",
+                                "value": "XI"
+                            },
+                            {
+                                "label": "XII",
+                                "value": "XII"
+                            },
+                            {
+                                "label": "XIII",
+                                "value": "XIII"
+                            },
+                            {
+                                "label": "XIV",
+                                "value": "XIV"
+                            },
+                            {
+                                "label": "XV",
+                                "value": "XV"
+                            },
+                            {
+                                "label": "XVI",
+                                "value": "XVI"
+                            },
+                            {
+                                "label": "XVII",
+                                "value": "XVII"
+                            }
+                        ],
+                        "nilai_default": null,
+                        "autofill_source": "golongan",
+                        "lookup_source": "master_golongan",
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "select",
+                            "allow_other_input": true
+                        },
+                        "urutan": 4,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Pangkat / Golongan",
+                        "scoring_config": {
+                            "method": "choice_option_score",
+                            "enabled": false,
+                            "numeric_direction": "greater_is_better"
+                        }
+                    },
+                    {
+                        "id": 4330,
+                        "assessment_form_id": 963,
+                        "label": "Jabatan",
+                        "nama_field": "jabatan_guru_kepala_sekolah_pengawas",
+                        "tipe_field": "select",
+                        "placeholder": "Pilih jabatan",
+                        "bantuan": "Paket ini disusun untuk Pengawas. Pilih jabatan sesuai penugasan asesmen Anda!",
+                        "opsi_field": [
+                            {
+                                "label": "Guru",
+                                "value": "Guru"
+                            },
+                            {
+                                "label": "Kepala Sekolah",
+                                "value": "Kepala Sekolah"
+                            },
+                            {
+                                "label": "Pengawas",
+                                "value": "Pengawas"
+                            }
+                        ],
+                        "nilai_default": "Pengawas",
+                        "autofill_source": "jabatan",
+                        "lookup_source": "master_jabatan_kependidikan",
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "select",
+                            "allow_other_input": false
+                        },
+                        "urutan": 5,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Pilih jabatan utama yang sedang dijalankan!",
+                        "scoring_config": {
+                            "method": "choice_option_score",
+                            "enabled": false,
+                            "numeric_direction": "greater_is_better"
+                        }
+                    },
+                    {
+                        "id": 4331,
+                        "assessment_form_id": 963,
+                        "label": "Instansi",
+                        "nama_field": "instansi",
+                        "tipe_field": "text",
+                        "placeholder": "Nama instansi.",
+                        "bantuan": "Isi instansi tempat bertugas!",
+                        "opsi_field": null,
+                        "nilai_default": null,
+                        "autofill_source": "satuan_pendidikan",
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "text",
+                            "allow_other_input": false
+                        },
+                        "urutan": 6,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Instansi",
+                        "scoring_config": {
+                            "method": "semantic_similarity",
+                            "enabled": false,
+                            "min_words": 8,
+                            "synonym_map_text": "instansi: lembaga, institusi",
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"instansi tempat\",\n    \"tempat bertugas\",\n    \"instansi\",\n    \"tempat\",\n    \"bertugas\"\n  ]\n}",
+                            "keyword_groups_text": "instansi tempat, tempat bertugas, instansi, tempat, bertugas"
+                        }
+                    },
+                    {
+                        "id": 4332,
+                        "assessment_form_id": 963,
+                        "label": "Kabupaten/Kota",
+                        "nama_field": "kabupaten_kota",
+                        "tipe_field": "select",
+                        "placeholder": "Kabupaten/kota.",
+                        "bantuan": "Isi lokasi instansi!",
+                        "opsi_field": [
+                            {
+                                "label": "Kabupaten Bantaeng",
+                                "value": "Kabupaten Bantaeng"
+                            },
+                            {
+                                "label": "Kabupaten Barru",
+                                "value": "Kabupaten Barru"
+                            },
+                            {
+                                "label": "Kabupaten Bone",
+                                "value": "Kabupaten Bone"
+                            },
+                            {
+                                "label": "Kabupaten Bulukumba",
+                                "value": "Kabupaten Bulukumba"
+                            },
+                            {
+                                "label": "Kabupaten Enrekang",
+                                "value": "Kabupaten Enrekang"
+                            },
+                            {
+                                "label": "Kabupaten Gowa",
+                                "value": "Kabupaten Gowa"
+                            },
+                            {
+                                "label": "Kabupaten Jeneponto",
+                                "value": "Kabupaten Jeneponto"
+                            },
+                            {
+                                "label": "Kabupaten Kepulauan Selayar",
+                                "value": "Kabupaten Kepulauan Selayar"
+                            },
+                            {
+                                "label": "Kabupaten Luwu",
+                                "value": "Kabupaten Luwu"
+                            },
+                            {
+                                "label": "Kabupaten Luwu Timur",
+                                "value": "Kabupaten Luwu Timur"
+                            },
+                            {
+                                "label": "Kabupaten Luwu Utara",
+                                "value": "Kabupaten Luwu Utara"
+                            },
+                            {
+                                "label": "Kabupaten Maros",
+                                "value": "Kabupaten Maros"
+                            },
+                            {
+                                "label": "Kabupaten Pangkep",
+                                "value": "Kabupaten Pangkep"
+                            },
+                            {
+                                "label": "Kabupaten Pinrang",
+                                "value": "Kabupaten Pinrang"
+                            },
+                            {
+                                "label": "Kabupaten Sidrap",
+                                "value": "Kabupaten Sidrap"
+                            },
+                            {
+                                "label": "Kabupaten Sinjai",
+                                "value": "Kabupaten Sinjai"
+                            },
+                            {
+                                "label": "Kabupaten Soppeng",
+                                "value": "Kabupaten Soppeng"
+                            },
+                            {
+                                "label": "Kabupaten Takalar",
+                                "value": "Kabupaten Takalar"
+                            },
+                            {
+                                "label": "Kabupaten Tana Toraja",
+                                "value": "Kabupaten Tana Toraja"
+                            },
+                            {
+                                "label": "Kabupaten Toraja Utara",
+                                "value": "Kabupaten Toraja Utara"
+                            },
+                            {
+                                "label": "Kabupaten Wajo",
+                                "value": "Kabupaten Wajo"
+                            },
+                            {
+                                "label": "Kota Makassar",
+                                "value": "Kota Makassar"
+                            },
+                            {
+                                "label": "Kota Palopo",
+                                "value": "Kota Palopo"
+                            },
+                            {
+                                "label": "Kota Parepare",
+                                "value": "Kota Parepare"
+                            }
+                        ],
+                        "nilai_default": null,
+                        "autofill_source": "kabupaten",
+                        "lookup_source": "master_kabupaten",
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "select",
+                            "allow_other_input": false
+                        },
+                        "urutan": 7,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Kabupaten/Kota",
+                        "scoring_config": {
+                            "method": "choice_option_score",
+                            "enabled": false,
+                            "min_words": 8,
+                            "synonym_map_text": "instansi: lembaga, institusi",
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"kabupaten kota\",\n    \"lokasi instansi\",\n    \"kabupaten\",\n    \"kota\",\n    \"lokasi\"\n  ]\n}",
+                            "keyword_groups_text": "kabupaten kota, lokasi instansi, kabupaten, kota, lokasi, instansi"
+                        }
+                    },
+                    {
+                        "id": 4333,
+                        "assessment_form_id": 963,
+                        "label": "Lama Bertugas sebagai Pengawas (Tahun)",
+                        "nama_field": "lama_bertugas_sebagai_pengawas_tahun",
+                        "tipe_field": "number",
+                        "placeholder": "Contoh: 6",
+                        "bantuan": "Isi total lama bertugas sebagai pengawas dalam tahun!",
+                        "opsi_field": null,
+                        "nilai_default": null,
+                        "autofill_source": "satuan_pendidikan",
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "min": 0,
+                            "required": true,
+                            "tipe_field": "number",
+                            "allow_other_input": false
+                        },
+                        "urutan": 8,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Masukkan total lama bertugas sebagai pengawas dalam tahun!",
+                        "scoring_config": {
+                            "method": "numeric_threshold",
+                            "enabled": false,
+                            "numeric_direction": "greater_is_better"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 964,
+                "assessment_id": 12,
+                "judul_form": "Riwayat Pendidikan Formal",
+                "kode_form": "FORM-PENGAWAS-PENDIDIKAN",
+                "deskripsi": "Riwayat pendidikan formal pengawas dengan jenjang S1, S2, atau S3.",
+                "urutan": 2,
+                "is_active": true,
+                "created_at": "2026-10-11T18:05:15.000000Z",
+                "updated_at": "2026-10-11T18:05:15.000000Z",
+                "kompetensi": "profesional",
+                "indikator_kode": "P-2",
+                "indikator_label": "Kualifikasi akademik",
+                "is_scoreable": true,
+                "scoring_config": {
+                    "weight": 100,
+                    "profile": "portofolio",
+                    "advanced_rules_text": "{\n  \"rubric_code\": \"P-2\",\n  \"scoring_note\": \"Menilai relevansi pendidikan formal dan program studi dengan kebutuhan jabatan.\",\n  \"accepted_evidence\": [\n    \"ijazah\",\n    \"transkrip\",\n    \"bukti studi lanjut\"\n  ]\n}"
+                },
+                "fields": [
+                    {
+                        "id": 4334,
+                        "assessment_form_id": 964,
+                        "label": "Riwayat Pendidikan Formal",
+                        "nama_field": "riwayat_pendidikan_formal",
+                        "tipe_field": "repeater",
+                        "placeholder": "",
+                        "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3!",
+                        "opsi_field": {
+                            "columns": [
+                                {
+                                    "label": "Jenjang",
+                                    "nama_field": "jenjang",
+                                    "opsi_field": [
+                                        "S1",
+                                        "S2",
+                                        "S3"
+                                    ],
+                                    "tipe_field": "select",
+                                    "is_required": true,
+                                    "placeholder": ""
+                                },
+                                {
+                                    "label": "Gelar",
+                                    "nama_field": "gelar",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": false,
+                                    "placeholder": "Contoh: M.Pd."
+                                },
+                                {
+                                    "label": "Program Studi",
+                                    "nama_field": "program_studi",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Nama program studi."
+                                },
+                                {
+                                    "label": "Lembaga",
+                                    "nama_field": "lembaga",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Nama lembaga pendidikan."
+                                },
+                                {
+                                    "label": "Tahun Perolehan",
+                                    "nama_field": "tahun_perolehan",
+                                    "opsi_field": [],
+                                    "tipe_field": "number",
+                                    "is_required": true,
+                                    "placeholder": "2020"
+                                }
+                            ],
+                            "max_rows": 3,
+                            "min_rows": 1
+                        },
+                        "nilai_default": null,
+                        "autofill_source": null,
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "tipe_field": "repeater",
+                            "allow_other_input": false
+                        },
+                        "urutan": 1,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3!",
+                        "scoring_config": {
+                            "method": "repeater_completeness",
+                            "weight": 100,
+                            "enabled": true,
+                            "profile": "portofolio",
+                            "min_words": 12,
+                            "scale_max": 5,
+                            "scale_min": 1,
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"tambahkan satu\",\n    \"satu baris\",\n    \"setiap jenjang\",\n    \"jenjang pendidikan\",\n    \"baris\"\n  ],\n  \"target_rows\": 1\n}",
+                            "keyword_groups_text": "tambahkan satu, satu baris, setiap jenjang, jenjang pendidikan, baris, jenjang"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 965,
+                "assessment_id": 12,
+                "judul_form": "Pengalaman Pelatihan yang Relevan dengan Profesi (5 Tahun Terakhir)",
+                "kode_form": "FORM-PENGAWAS-PELATIHAN",
+                "deskripsi": "Pengalaman pelatihan relevan dengan profesi dalam lima tahun terakhir.",
+                "urutan": 3,
+                "is_active": true,
+                "created_at": "2026-10-11T18:05:15.000000Z",
+                "updated_at": "2026-10-11T18:05:15.000000Z",
+                "kompetensi": "profesional",
+                "indikator_kode": "P-3",
+                "indikator_label": "Pengalaman pelatihan relevan",
+                "is_scoreable": true,
+                "scoring_config": {
+                    "weight": 100,
+                    "profile": "portofolio",
+                    "advanced_rules_text": "{\n    \"rubric_code\": \"P-3\"\n}"
+                },
+                "fields": [
+                    {
+                        "id": 4335,
+                        "assessment_form_id": 965,
+                        "label": "Pengalaman Pelatihan",
+                        "nama_field": "pengalaman_pelatihan",
+                        "tipe_field": "repeater",
+                        "placeholder": "",
+                        "bantuan": "Tambahkan satu baris untuk setiap pelatihan!",
+                        "opsi_field": {
+                            "columns": [
+                                {
+                                    "label": "Nama Pelatihan",
+                                    "nama_field": "nama_pelatihan",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Nama pelatihan."
+                                },
+                                {
+                                    "label": "Penyelenggara",
+                                    "nama_field": "penyelenggara",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Nama penyelenggara."
+                                },
+                                {
+                                    "label": "Tahun",
+                                    "nama_field": "tahun",
+                                    "opsi_field": [],
+                                    "tipe_field": "number",
+                                    "is_required": true,
+                                    "placeholder": "2026"
+                                },
+                                {
+                                    "label": "Durasi (JP)",
+                                    "nama_field": "durasi_jp",
+                                    "opsi_field": [],
+                                    "tipe_field": "number",
+                                    "is_required": true,
+                                    "placeholder": "32"
+                                }
+                            ],
+                            "max_rows": 20,
+                            "min_rows": 0
+                        },
+                        "nilai_default": null,
+                        "autofill_source": null,
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": false,
+                            "tipe_field": "repeater",
+                            "allow_other_input": false
+                        },
+                        "urutan": 1,
+                        "is_required": false,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Cantumkan pelatihan yang relevan dalam lima tahun terakhir!",
+                        "scoring_config": {
+                            "method": "repeater_completeness",
+                            "weight": 100,
+                            "enabled": true,
+                            "profile": "portofolio",
+                            "min_words": 12,
+                            "scale_max": 5,
+                            "scale_min": 1,
+                            "synonym_map_text": "pelatihan: diklat, bimtek, workshop",
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"cantumkan pelatihan\",\n    \"lima tahun\",\n    \"tahun terakhir\",\n    \"terakhir tambahkan\",\n    \"cantumkan\"\n  ],\n  \"target_rows\": 1\n}",
+                            "keyword_groups_text": "cantumkan pelatihan, lima tahun, tahun terakhir, terakhir tambahkan, cantumkan, pelatihan"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 966,
+                "assessment_id": 12,
+                "judul_form": "Riwayat Pengalaman sebagai Pengawas",
+                "kode_form": "FORM-PENGAWAS-PENGALAMAN-KERJA",
+                "deskripsi": "Riwayat pengalaman responden dalam menjalankan tugas pengawasan.",
+                "urutan": 4,
+                "is_active": true,
+                "created_at": "2026-10-11T18:05:15.000000Z",
+                "updated_at": "2026-10-11T18:05:15.000000Z",
+                "kompetensi": "profesional",
+                "indikator_kode": "P-4",
+                "indikator_label": "Pengalaman kerja",
+                "is_scoreable": true,
+                "scoring_config": {
+                    "weight": 100,
+                    "profile": "portofolio",
+                    "advanced_rules_text": "{\n    \"rubric_code\": \"P-4\"\n}"
+                },
+                "fields": [
+                    {
+                        "id": 4336,
+                        "assessment_form_id": 966,
+                        "label": "Riwayat Pengalaman sebagai Pengawas",
+                        "nama_field": "pengalaman_kerja",
+                        "tipe_field": "repeater",
+                        "placeholder": "",
+                        "bantuan": "Tambahkan pengalaman penugasan sebagai pengawas!",
+                        "opsi_field": {
+                            "columns": [
+                                {
+                                    "label": "Jabatan / Tugas Pengawasan",
+                                    "nama_field": "pengalaman",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Contoh: Pengawas Sekolah"
+                                },
+                                {
+                                    "label": "Instansi / Wilayah Binaan",
+                                    "nama_field": "lembaga",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Nama lembaga."
+                                },
+                                {
+                                    "label": "Periode Bertugas",
+                                    "nama_field": "tahun",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": true,
+                                    "placeholder": "Contoh: 2020–2026."
+                                }
+                            ],
+                            "max_rows": 20,
+                            "min_rows": 0
+                        },
+                        "nilai_default": null,
+                        "autofill_source": null,
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": false,
+                            "tipe_field": "repeater",
+                            "allow_other_input": false
+                        },
+                        "urutan": 1,
+                        "is_required": false,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Cantumkan pengalaman bertugas sebagai pengawas!",
+                        "scoring_config": {
+                            "method": "repeater_completeness",
+                            "weight": 100,
+                            "enabled": true,
+                            "profile": "portofolio",
+                            "min_words": 12,
+                            "scale_max": 5,
+                            "scale_min": 1,
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"cantumkan pengalaman\",\n    \"pengalaman kerja\",\n    \"relevan tambahkan\",\n    \"tambahkan satu\",\n    \"cantumkan\"\n  ],\n  \"target_rows\": 1\n}",
+                            "keyword_groups_text": "cantumkan pengalaman, pengalaman kerja, relevan tambahkan, tambahkan satu, cantumkan, pengalaman"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 967,
+                "assessment_id": 12,
+                "judul_form": "Karya/Inovasi/Prestasi/Diseminasi",
+                "kode_form": "FORM-PENGAWAS-KONTRIBUSI",
+                "deskripsi": "Kontribusi profesional pengawas berupa karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi.",
+                "urutan": 5,
+                "is_active": true,
+                "created_at": "2026-10-11T18:05:15.000000Z",
+                "updated_at": "2026-10-11T18:05:15.000000Z",
+                "kompetensi": "profesional",
+                "indikator_kode": "P-5",
+                "indikator_label": "Prestasi dan penghargaan",
+                "is_scoreable": true,
+                "scoring_config": {
+                    "weight": 100,
+                    "profile": "portofolio",
+                    "advanced_rules_text": "{\n    \"rubric_code\": \"P-5\"\n}"
+                },
+                "fields": [
+                    {
+                        "id": 4337,
+                        "assessment_form_id": 967,
+                        "label": "Karya/Artikel/HAKI/Inovasi/Praktik Baik/Prestasi/Diseminasi",
+                        "nama_field": "karya_artikel_haki_inovasi_praktik_baik_prestasi_diseminasi",
+                        "tipe_field": "repeater",
+                        "placeholder": "",
+                        "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki!",
+                        "opsi_field": {
+                            "columns": [
+                                {
+                                    "label": "Jenis Kontribusi",
+                                    "nama_field": "jenis_kontribusi",
+                                    "opsi_field": [
+                                        "Karya",
+                                        "Artikel",
+                                        "HAKI",
+                                        "Inovasi",
+                                        "Praktik Baik",
+                                        "Prestasi",
+                                        "Penghargaan",
+                                        "Diseminasi"
+                                    ],
+                                    "tipe_field": "select",
+                                    "is_required": false,
+                                    "placeholder": "Pilih jika memiliki kontribusi"
+                                },
+                                {
+                                    "label": "Judul / Nama Kontribusi",
+                                    "nama_field": "judul_kontribusi",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": false,
+                                    "placeholder": "Judul karya, artikel, inovasi, praktik baik, atau kegiatan"
+                                },
+                                {
+                                    "label": "Deskripsi Singkat",
+                                    "nama_field": "deskripsi_singkat",
+                                    "opsi_field": [],
+                                    "tipe_field": "textarea",
+                                    "is_required": false,
+                                    "placeholder": "Jelaskan kontribusi dan hasilnya secara singkat"
+                                },
+                                {
+                                    "label": "Tahun",
+                                    "nama_field": "tahun",
+                                    "opsi_field": [],
+                                    "tipe_field": "number",
+                                    "is_required": false,
+                                    "placeholder": "2026"
+                                },
+                                {
+                                    "label": "Nomor Pendaftaran / Sertifikat HAKI (jika ada)",
+                                    "nama_field": "nomor_haki",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": false,
+                                    "placeholder": "Isi nomor HAKI jika jenis kontribusinya HAKI"
+                                },
+                                {
+                                    "label": "DOI / ISBN / ISSN (jika ada)",
+                                    "nama_field": "identitas_publikasi",
+                                    "opsi_field": [],
+                                    "tipe_field": "text",
+                                    "is_required": false,
+                                    "placeholder": "Isi identitas publikasi jika tersedia"
+                                },
+                                {
+                                    "label": "Tautan Bukti / Publikasi",
+                                    "nama_field": "tautan_bukti_publikasi",
+                                    "opsi_field": [],
+                                    "tipe_field": "url",
+                                    "is_required": false,
+                                    "placeholder": "Tautan dokumen, artikel, atau bukti kontribusi"
+                                }
+                            ],
+                            "max_rows": 100,
+                            "min_rows": 0
+                        },
+                        "nilai_default": null,
+                        "autofill_source": null,
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": false,
+                            "tipe_field": "repeater",
+                            "allow_other_input": false
+                        },
+                        "urutan": 1,
+                        "is_required": false,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada!",
+                        "scoring_config": {
+                            "method": "repeater_completeness",
+                            "weight": 100,
+                            "enabled": true,
+                            "profile": "portofolio",
+                            "min_words": 12,
+                            "scale_max": 5,
+                            "scale_min": 1,
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"cantumkan prestasi\",\n    \"penghargaan beserta\",\n    \"beserta deskripsi\",\n    \"deskripsi singkat\",\n    \"cantumkan\"\n  ],\n  \"target_rows\": 1\n}",
+                            "keyword_groups_text": "cantumkan prestasi, penghargaan beserta, beserta deskripsi, deskripsi singkat, cantumkan, prestasi"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 968,
+                "assessment_id": 12,
+                "judul_form": "Refleksi Diri",
+                "kode_form": "FORM-PENGAWAS-REFLEKSI",
+                "deskripsi": "Refleksi diri responden sebagai pengawas.",
+                "urutan": 6,
+                "is_active": true,
+                "created_at": "2026-10-11T18:05:15.000000Z",
+                "updated_at": "2026-10-11T18:05:15.000000Z",
+                "kompetensi": "kepribadian",
+                "indikator_kode": "P-7",
+                "indikator_label": "Refleksi diri",
+                "is_scoreable": true,
+                "scoring_config": {
+                    "weight": 100,
+                    "profile": "portofolio",
+                    "advanced_rules_text": "{\n    \"rubric_code\": \"P-7\"\n}"
+                },
+                "fields": [
+                    {
+                        "id": 4338,
+                        "assessment_form_id": 968,
+                        "label": "Kekuatan dan Area Pengembangan sebagai Pengawas",
+                        "nama_field": "kekuatan_dan_area_pengembangan_anda",
+                        "tipe_field": "textarea",
+                        "placeholder": "Tuliskan refleksi diri secara jujur dan lengkap.",
+                        "bantuan": "",
+                        "opsi_field": null,
+                        "nilai_default": null,
+                        "autofill_source": null,
+                        "lookup_source": null,
+                        "dependency_config": null,
+                        "validasi": {
+                            "required": true,
+                            "min_length": 50,
+                            "tipe_field": "textarea",
+                            "allow_other_input": false
+                        },
+                        "urutan": 1,
+                        "is_required": true,
+                        "is_active": true,
+                        "created_at": "2026-10-11T18:05:15.000000Z",
+                        "updated_at": "2026-10-11T18:05:15.000000Z",
+                        "deskripsi": "",
+                        "scoring_config": {
+                            "method": "semantic_similarity",
+                            "weight": 100,
+                            "enabled": true,
+                            "profile": "portofolio",
+                            "min_words": 18,
+                            "scale_max": 5,
+                            "scale_min": 1,
+                            "numeric_direction": "greater_is_better",
+                            "advanced_rules_text": "{\n  \"signal_keywords\": [\n    \"tuliskan kekuatan\",\n    \"area pengembangan\",\n    \"pengembangan anda\",\n    \"calon aktif\",\n    \"tuliskan\"\n  ]\n}",
+                            "keyword_groups_text": "tuliskan kekuatan, area pengembangan, pengembangan anda, calon aktif, tuliskan, kekuatan"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    "included": {
+        "assignment_configs": [
+            {
+                "kode_penugasan": "TGS-ASM-20261005-045742-Z5ER",
+                "judul_penugasan": "Assessment Pengawas Sekolah SIMBBGTK",
+                "is_active": true,
+                "session_enabled": true,
+                "target_ketenagaan": "tenaga_kependidikan",
+                "target_jabatan": [
+                    "Pengawas"
+                ],
+                "target_kabupaten": [
+                    "Kabupaten Bantaeng",
+                    "Kabupaten Barru",
+                    "Kabupaten Bone",
+                    "Kabupaten Bulukumba",
+                    "Kabupaten Enrekang",
+                    "Kabupaten Gowa",
+                    "Kabupaten Jeneponto",
+                    "Kabupaten Kepulauan Selayar",
+                    "Kabupaten Luwu",
+                    "Kabupaten Luwu Timur",
+                    "Kabupaten Luwu Utara",
+                    "Kabupaten Maros",
+                    "Kabupaten Pangkep",
+                    "Kabupaten Pinrang",
+                    "Kabupaten Sidrap",
+                    "Kabupaten Sinjai",
+                    "Kabupaten Soppeng",
+                    "Kabupaten Takalar",
+                    "Kabupaten Tana Toraja",
+                    "Kabupaten Toraja Utara",
+                    "Kabupaten Wajo",
+                    "Kota Makassar",
+                    "Kota Palopo",
+                    "Kota Parepare"
+                ],
+                "target_satuan_pendidikan": [
+                    "Kabupaten Bantaeng|||Dinas Pendidikan",
+                    "Kabupaten Bantaeng|||SD Negeri",
+                    "Kabupaten Barru|||Dinas Pendidikan",
+                    "Kabupaten Barru|||SD Negeri",
+                    "Kabupaten Barru|||SD Swasta",
+                    "Kabupaten Barru|||TK Swasta",
+                    "Kabupaten Bone|||Dinas Pendidikan",
+                    "Kabupaten Bone|||SD Negeri",
+                    "Kabupaten Bulukumba|||Dinas Pendidikan",
+                    "Kabupaten Bulukumba|||Lainnya",
+                    "Kabupaten Bulukumba|||SD Negeri",
+                    "Kabupaten Enrekang|||Dinas Pendidikan",
+                    "Kabupaten Enrekang|||SD Negeri",
+                    "Kabupaten Enrekang|||SPS",
+                    "Kabupaten Gowa|||Dinas Pendidikan",
+                    "Kabupaten Gowa|||Lainnya",
+                    "Kabupaten Jeneponto|||Dinas Pendidikan",
+                    "Kabupaten Jeneponto|||SD Negeri",
+                    "Kabupaten Jeneponto|||SMA Negeri",
+                    "Kabupaten Jeneponto|||SMP Negeri",
+                    "Kabupaten Jeneponto|||SPS",
+                    "Kabupaten Jeneponto|||TK Negeri",
+                    "Kabupaten Jeneponto|||TK Swasta",
+                    "Kabupaten Kepulauan Selayar|||Dinas Pendidikan",
+                    "Kabupaten Kepulauan Selayar|||SD Negeri",
+                    "Kabupaten Kepulauan Selayar|||SMP Negeri",
+                    "Kabupaten Kepulauan Selayar|||TK Negeri",
+                    "Kabupaten Kepulauan Selayar|||TK Swasta",
+                    "Kabupaten Luwu|||Dinas Pendidikan",
+                    "Kabupaten Luwu|||SD Negeri",
+                    "Kabupaten Luwu|||SMP Negeri",
+                    "Kabupaten Luwu|||TK Negeri",
+                    "Kabupaten Luwu Timur|||Dinas Pendidikan",
+                    "Kabupaten Luwu Utara|||Dinas Pendidikan",
+                    "Kabupaten Luwu Utara|||Lainnya",
+                    "Kabupaten Luwu Utara|||SD Negeri",
+                    "Kabupaten Luwu Utara|||SMP Negeri",
+                    "Kabupaten Luwu Utara|||SPS",
+                    "Kabupaten Luwu Utara|||TK Negeri",
+                    "Kabupaten Maros|||Dinas Pendidikan",
+                    "Kabupaten Maros|||SD Negeri",
+                    "Kabupaten Maros|||SMP Negeri",
+                    "Kabupaten Maros|||SMP Swasta",
+                    "Kabupaten Pangkep|||Dinas Pendidikan",
+                    "Kabupaten Pangkep|||PKBM",
+                    "Kabupaten Pangkep|||SD Negeri",
+                    "Kabupaten Pangkep|||SMP Negeri",
+                    "Kabupaten Pinrang|||Dinas Pendidikan",
+                    "Kabupaten Pinrang|||SD Swasta",
+                    "Kabupaten Pinrang|||SMP Negeri",
+                    "Kabupaten Pinrang|||SMP Swasta",
+                    "Kabupaten Sidrap|||Dinas Pendidikan",
+                    "Kabupaten Sidrap|||Lainnya",
+                    "Kabupaten Sidrap|||SD Negeri",
+                    "Kabupaten Sidrap|||SMK Negeri",
+                    "Kabupaten Sidrap|||SMP Negeri",
+                    "Kabupaten Sidrap|||TK Negeri",
+                    "Kabupaten Sinjai|||Dinas Pendidikan",
+                    "Kabupaten Sinjai|||SD Negeri",
+                    "Kabupaten Sinjai|||SMP Negeri",
+                    "Kabupaten Sinjai|||TK Negeri",
+                    "Kabupaten Soppeng|||Dinas Pendidikan",
+                    "Kabupaten Soppeng|||Lainnya",
+                    "Kabupaten Soppeng|||SD Negeri",
+                    "Kabupaten Soppeng|||SMA Negeri",
+                    "Kabupaten Soppeng|||SMP Negeri",
+                    "Kabupaten Soppeng|||TK Swasta",
+                    "Kabupaten Takalar|||Dinas Pendidikan",
+                    "Kabupaten Takalar|||SMP Negeri",
+                    "Kabupaten Tana Toraja|||Dinas Pendidikan",
+                    "Kabupaten Tana Toraja|||SD Negeri",
+                    "Kabupaten Tana Toraja|||SMP Negeri",
+                    "Kabupaten Toraja Utara|||Dinas Pendidikan",
+                    "Kabupaten Wajo|||Dinas Pendidikan",
+                    "Kabupaten Wajo|||SD Negeri",
+                    "Kabupaten Wajo|||SMP Negeri",
+                    "Kabupaten Wajo|||SMP Swasta",
+                    "Kabupaten Wajo|||SPS",
+                    "Kabupaten Wajo|||TK Negeri",
+                    "Kota Makassar|||Dinas Pendidikan",
+                    "Kota Makassar|||SD Negeri",
+                    "Kota Makassar|||SMA Negeri",
+                    "Kota Makassar|||SMP Negeri",
+                    "Kota Palopo|||Dinas Pendidikan",
+                    "Kota Parepare|||Dinas Pendidikan"
+                ],
+                "deskripsi": null,
+                "tanggal_mulai": null,
+                "tanggal_selesai": null,
+                "status_distribusi": "selesai",
+                "kapasitas_per_sesi": 41,
+                "durasi_sesi_jam": 3,
+                "security_config": {
+                    "enabled": true,
+                    "require_fullscreen": true,
+                    "max_serious_violations": 3,
+                    "temporary_lock_seconds": 2,
+                    "fullscreen_grace_seconds": 10
+                },
+                "jam_mulai": null,
+                "assessments": [
+                    {
+                        "kode_assessment": "ASM-PENGAWAS-PORTOFOLIO-2026",
+                        "urutan": 1,
+                        "stage_config": {
+                            "enabled": true,
+                            "security": {
+                                "enabled": false,
+                                "require_fullscreen": false,
+                                "max_serious_violations": 3,
+                                "temporary_lock_seconds": 2,
+                                "fullscreen_grace_seconds": 10
+                            },
+                            "entry_mode": "direct",
+                            "allow_draft": true,
+                            "finalize_mode": "manual",
+                            "admin_gate_enabled": false,
+                            "time_limit_minutes": null,
+                            "lock_until_previous_stages_completed": false
+                        }
+                    }
+                ],
+                "sessions": [
+                    {
+                        "nomor_sesi": 1,
+                        "label_sesi": "Sesi 1",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 2,
+                        "label_sesi": "Sesi 2",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 3,
+                        "label_sesi": "Sesi 3",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 4,
+                        "label_sesi": "Sesi 4",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 5,
+                        "label_sesi": "Sesi 5",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 6,
+                        "label_sesi": "Sesi 6",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 7,
+                        "label_sesi": "Sesi 7",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 8,
+                        "label_sesi": "Sesi 8",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    },
+                    {
+                        "nomor_sesi": 9,
+                        "label_sesi": "Sesi 9",
+                        "kapasitas_peserta": 41,
+                        "durasi_sesi_jam": 3,
+                        "waktu_mulai": null,
+                        "waktu_selesai": null
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -30,6 +30,10 @@ class ImportAssessmentBankSoalCommandTest extends TestCase
 
             $this->assertDatabaseHas('assessments', ['kode_assessment' => 'ASM-IMPORT-ONE']);
             $this->assertDatabaseHas('assessments', ['kode_assessment' => 'ASM-IMPORT-TWO']);
+            $this->assertDatabaseHas('assessment_assignments', [
+                'kode_penugasan' => 'PREVIEW-ASM-IMPORT-ONE',
+                'durasi_sesi_jam' => 0,
+            ]);
             $this->assertSame(2, Assessment::query()->whereIn('kode_assessment', [
                 'ASM-IMPORT-ONE', 'ASM-IMPORT-TWO',
             ])->count());
@@ -77,7 +81,19 @@ class ImportAssessmentBankSoalCommandTest extends TestCase
                 ]],
             ],
             'included' => [
-                'assignment_configs' => [],
+                'assignment_configs' => [[
+                    'kode_penugasan' => 'PREVIEW-'.$code,
+                    'judul_penugasan' => 'Preview '.$code,
+                    'is_active' => true,
+                    'session_enabled' => false,
+                    'kapasitas_per_sesi' => 0,
+                    'durasi_sesi_jam' => 0,
+                    'assessments' => [[
+                        'kode_assessment' => $code,
+                        'urutan' => 1,
+                    ]],
+                    'sessions' => [],
+                ]],
             ],
         ];
     }

@@ -56,7 +56,19 @@ class AssessmentPackageServiceTest extends TestCase
                     ],
                 ],
             ],
-            'included' => ['assignment_configs' => []],
+            'included' => ['assignment_configs' => [[
+                'kode_penugasan' => 'PREVIEW-ASM-VALID',
+                'judul_penugasan' => 'Preview tanpa sesi',
+                'is_active' => true,
+                'session_enabled' => false,
+                'kapasitas_per_sesi' => 0,
+                'durasi_sesi_jam' => 0,
+                'assessments' => [[
+                    'kode_assessment' => 'ASM-VALID',
+                    'urutan' => 1,
+                ]],
+                'sessions' => [],
+            ]]],
         ], JSON_UNESCAPED_UNICODE));
 
         $result = app(AssessmentPackageService::class)->validateFile($path);
@@ -131,6 +143,8 @@ class AssessmentPackageServiceTest extends TestCase
                     'judul_penugasan' => 'Invalid assignment',
                     'is_active' => true,
                     'session_enabled' => true,
+                    'kapasitas_per_sesi' => 0,
+                    'durasi_sesi_jam' => 0,
                     'assessments' => [[
                         'kode_assessment' => 'ASM-LAIN',
                         'urutan' => 1,
@@ -157,5 +171,7 @@ class AssessmentPackageServiceTest extends TestCase
         $this->assertStringContainsString('unexpected', $errors);
         $this->assertStringContainsString('Stage harus merujuk', $errors);
         $this->assertStringContainsString('Nomor sesi tidak boleh berulang', $errors);
+        $this->assertStringContainsString('kapasitas per sesi minimal bernilai 1', $errors);
+        $this->assertStringContainsString('durasi sesi jam minimal bernilai 1', $errors);
     }
 }
