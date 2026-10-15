@@ -19,7 +19,7 @@
     "judul": "Portofolio Kepala Sekolah",
     "slug": "portofolio-kepala-sekolah",
     "deskripsi": "Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri kepala sekolah.",
-    "petunjuk": "Isi data sesuai jabatan Kepala Sekolah dan kondisi sebenarnya! Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB! Unggah SK Kepala Sekolah dalam format PDF/JPG/JPEG/PNG, maksimal 5 MB per berkas! Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator! Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional!",
+    "petunjuk": "Isi data sesuai jabatan Kepala Sekolah dan kondisi sebenarnya. Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB. Unggah SK Kepala Sekolah dalam format PDF/JPG/JPEG/PNG, maksimal 5 MB per berkas. Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator. Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional.",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-06-29T13:56:48.000000Z",
@@ -60,7 +60,7 @@
             "nama_field": "f_2zyclnxu",
             "tipe_field": "text",
             "placeholder": "Masukkan nama lengkap",
-            "bantuan": "Gunakan nama sesuai data administrasi!",
+            "bantuan": "Gunakan nama sesuai data administrasi.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "nama_lengkap",
@@ -76,7 +76,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Tuliskan nama lengkap sesuai identitas resmi!",
+            "deskripsi": "Tuliskan nama lengkap sesuai identitas resmi.",
             "scoring_config": {
               "method": "semantic_similarity",
               "enabled": false,
@@ -93,7 +93,7 @@
             "nama_field": "f_v4udsnvd",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen! Format JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen. Format JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
               "max_files": 1,
               "input_mode": "file",
@@ -128,7 +128,7 @@
             "nama_field": "f_fbz896j1",
             "tipe_field": "text",
             "placeholder": "Masukkan NIP atau NUPTK",
-            "bantuan": "Isi salah satu nomor identitas kepegawaian yang tersedia!",
+            "bantuan": "Isi salah satu nomor identitas kepegawaian yang tersedia.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "nip_nuptk",
@@ -144,7 +144,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Masukkan Nomor Induk Pegawai atau Nomor Unik Pendidik dan Tenaga Kependidikan!",
+            "deskripsi": "Masukkan Nomor Induk Pegawai atau Nomor Unik Pendidik dan Tenaga Kependidikan.",
             "scoring_config": {
               "method": "semantic_similarity",
               "enabled": false,
@@ -157,11 +157,11 @@
           {
             "id": 7986,
             "assessment_form_id": 1772,
-            "label": "Pangkat / Golongan",
+            "label": "Pangkat/Golongan",
             "nama_field": "f_vid1m33n",
             "tipe_field": "select",
-            "placeholder": "Contoh: Pembina / IV-a",
-            "bantuan": "Isi sesuai data kepegawaian terbaru!",
+            "placeholder": "Contoh: Pembina/IV-a",
+            "bantuan": "Isi sesuai data kepegawaian terbaru.",
             "opsi_field": [
               {
                 "label": "I",
@@ -314,7 +314,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Pilih pangkat atau golongan terakhir, jika ada!",
+            "deskripsi": "Pilih pangkat atau golongan terakhir, jika ada.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -331,7 +331,7 @@
             "nama_field": "f_y9g3dd72",
             "tipe_field": "select",
             "placeholder": "Pilih jabatan",
-            "bantuan": "Paket ini disusun untuk Kepala Sekolah. Pilih jabatan sesuai penugasan asesmen Anda!",
+            "bantuan": "Paket ini disusun untuk Kepala Sekolah. Pilih jabatan sesuai penugasan asesmen Anda.",
             "opsi_field": [
               {
                 "label": "Kepala Sekolah",
@@ -376,7 +376,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Pilih jabatan utama yang sedang dijalankan!",
+            "deskripsi": "Pilih jabatan utama yang sedang dijalankan.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -390,7 +390,7 @@
             "nama_field": "f_tfdblmq4",
             "tipe_field": "select",
             "placeholder": "Contoh: SMP Negeri 1 Makassar",
-            "bantuan": "Isi nama sekolah atau instansi saat ini!",
+            "bantuan": "Isi nama sekolah atau instansi saat ini.",
             "opsi_field": [
               {
                 "label": "Dinas Pendidikan",
@@ -479,7 +479,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Pilih nama satuan pendidikan tempat bertugas!",
+            "deskripsi": "Pilih nama satuan pendidikan tempat bertugas.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -495,8 +495,8 @@
             "label": "Kabupaten/Kota",
             "nama_field": "f_a355m26q",
             "tipe_field": "select",
-            "placeholder": "Contoh: Kota Makassar",
-            "bantuan": "Gunakan nama wilayah secara lengkap!",
+            "placeholder": "Pilih kabupaten/kota",
+            "bantuan": "Pilih kabupaten/kota yang sesuai.",
             "opsi_field": [
               {
                 "label": "Kabupaten Bantaeng",
@@ -609,7 +609,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Pilih kabupaten atau kota lokasi satuan pendidikan!",
+            "deskripsi": "Pilih kabupaten atau kota lokasi satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -626,7 +626,7 @@
             "nama_field": "f_ivscxlj6",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai kepala sekolah! Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai kepala sekolah. Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
               "max_files": 1,
               "input_mode": "file",
@@ -683,7 +683,7 @@
             "nama_field": "f_g7ad8ost",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3!",
+            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3.",
             "opsi_field": {
               "columns": [
                 {
@@ -756,7 +756,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3!",
+            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -802,7 +802,7 @@
             "nama_field": "f_41kowpo4",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap pelatihan yang relevan!",
+            "bantuan": "Tambahkan satu baris untuk setiap pelatihan yang relevan.",
             "opsi_field": {
               "columns": [
                 {
@@ -863,7 +863,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Cantumkan pelatihan, workshop, bimtek, seminar, atau program pengembangan profesi dalam lima tahun terakhir!",
+            "deskripsi": "Cantumkan pelatihan, workshop, bimtek, seminar, atau program pengembangan profesi dalam lima tahun terakhir.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -909,7 +909,7 @@
             "nama_field": "f_c74w2mss",
             "tipe_field": "number",
             "placeholder": "Contoh: 4",
-            "bantuan": "Isi total lama menjabat sebagai kepala sekolah dalam tahun!",
+            "bantuan": "Isi total lama menjabat sebagai kepala sekolah dalam tahun.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "satuan_pendidikan",
@@ -926,7 +926,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Masukkan total lama menjabat sebagai kepala sekolah dalam tahun!",
+            "deskripsi": "Masukkan total lama menjabat sebagai kepala sekolah dalam tahun.",
             "scoring_config": {
               "method": "numeric_threshold",
               "weight": 100,
@@ -968,7 +968,7 @@
             "nama_field": "f_xqllzaqq",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki!",
+            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki.",
             "opsi_field": {
               "columns": [
                 {
@@ -989,7 +989,7 @@
                   "placeholder": "Pilih jika memiliki kontribusi"
                 },
                 {
-                  "label": "Judul / Nama Kontribusi",
+                  "label": "Judul/Nama Kontribusi",
                   "nama_field": "judul_kontribusi",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -1013,7 +1013,7 @@
                   "placeholder": "2026"
                 },
                 {
-                  "label": "Nomor Pendaftaran / Sertifikat HAKI (jika ada)",
+                  "label": "Nomor Pendaftaran/Sertifikat HAKI (jika ada)",
                   "nama_field": "nomor_haki",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -1021,7 +1021,7 @@
                   "placeholder": "Isi nomor HAKI jika jenis kontribusinya HAKI"
                 },
                 {
-                  "label": "DOI / ISBN / ISSN (jika ada)",
+                  "label": "DOI/ISBN/ISSN (jika ada)",
                   "nama_field": "identitas_publikasi",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -1029,7 +1029,7 @@
                   "placeholder": "Isi identitas publikasi jika tersedia"
                 },
                 {
-                  "label": "Tautan Bukti / Publikasi",
+                  "label": "Tautan Bukti/Publikasi",
                   "nama_field": "tautan_bukti_publikasi",
                   "opsi_field": [],
                   "tipe_field": "url",
@@ -1054,7 +1054,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:08.000000Z",
             "updated_at": "2026-10-14T23:32:08.000000Z",
-            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada!",
+            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -1141,7 +1141,7 @@
     "assignment_configs": [
       {
         "kode_penugasan": "TGS-ASM-20260915-013855-SUFS",
-        "judul_penugasan": "Assessment Kepala Sekolah SIMBBGTK",
+        "judul_penugasan": "Asesmen Kepala Sekolah SIMBBGTK",
         "is_active": true,
         "session_enabled": true,
         "target_ketenagaan": "tenaga_kependidikan",

@@ -19,7 +19,7 @@
     "judul": "Portofolio Guru",
     "slug": "portofolio-guru",
     "deskripsi": "Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri guru.",
-    "petunjuk": "Isi data sesuai jabatan Guru dan kondisi sebenarnya! Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB! Unggah SK Guru dalam format PDF/JPG/JPEG/PNG, maksimal 5 MB per berkas! Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator! Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional!",
+    "petunjuk": "Isi data sesuai jabatan Guru dan kondisi sebenarnya. Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB. Unggah SK Guru dalam format PDF/JPG/JPEG/PNG, maksimal 5 MB per berkas. Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator. Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional.",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-06-29T07:41:15.000000Z",
@@ -60,7 +60,7 @@
             "nama_field": "f_racpu67i",
             "tipe_field": "text",
             "placeholder": "Masukkan nama lengkap",
-            "bantuan": "Gunakan nama sesuai data administrasi!",
+            "bantuan": "Gunakan nama sesuai data administrasi.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "nama_lengkap",
@@ -76,7 +76,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Tuliskan nama lengkap sesuai identitas resmi!",
+            "deskripsi": "Tuliskan nama lengkap sesuai identitas resmi.",
             "scoring_config": {
               "method": "semantic_similarity",
               "enabled": false,
@@ -93,7 +93,7 @@
             "nama_field": "f_g8n62psw",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen! Format JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen. Format JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
               "max_files": 1,
               "input_mode": "file",
@@ -128,7 +128,7 @@
             "nama_field": "f_xn1v0rwn",
             "tipe_field": "text",
             "placeholder": "Masukkan NIP atau NUPTK",
-            "bantuan": "Isi salah satu nomor identitas kepegawaian yang tersedia!",
+            "bantuan": "Isi salah satu nomor identitas kepegawaian yang tersedia.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "nip_nuptk",
@@ -144,7 +144,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Masukkan Nomor Induk Pegawai atau Nomor Unik Pendidik dan Tenaga Kependidikan!",
+            "deskripsi": "Masukkan Nomor Induk Pegawai atau Nomor Unik Pendidik dan Tenaga Kependidikan.",
             "scoring_config": {
               "method": "semantic_similarity",
               "enabled": false,
@@ -157,11 +157,11 @@
           {
             "id": 8599,
             "assessment_form_id": 1882,
-            "label": "Pangkat / Golongan",
+            "label": "Pangkat/Golongan",
             "nama_field": "f_4n93wqcz",
             "tipe_field": "select",
-            "placeholder": "Contoh: Pembina Utama Muda / IV-c",
-            "bantuan": "Isi sesuai data kepegawaian terbaru!",
+            "placeholder": "Contoh: Pembina Utama Muda/IV-c",
+            "bantuan": "Isi sesuai data kepegawaian terbaru.",
             "opsi_field": [
               {
                 "label": "I",
@@ -314,7 +314,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Pilih pangkat atau golongan terakhir, jika ada!",
+            "deskripsi": "Pilih pangkat atau golongan terakhir, jika ada.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -331,7 +331,7 @@
             "nama_field": "f_3hq0pos7",
             "tipe_field": "select",
             "placeholder": "Pilih jabatan",
-            "bantuan": "Paket ini disusun untuk Guru. Pilih jabatan sesuai penugasan asesmen Anda!",
+            "bantuan": "Paket ini disusun untuk Guru. Pilih jabatan sesuai penugasan asesmen Anda.",
             "opsi_field": [
               {
                 "label": "Dosen",
@@ -380,7 +380,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Pilih jabatan utama yang sedang dijalankan!",
+            "deskripsi": "Pilih jabatan utama yang sedang dijalankan.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -394,7 +394,7 @@
             "nama_field": "f_yhk2d3i0",
             "tipe_field": "select",
             "placeholder": "Contoh: SMP Negeri 1 Jambi",
-            "bantuan": "Isi nama sekolah atau instansi saat ini!",
+            "bantuan": "Isi nama sekolah atau instansi saat ini.",
             "opsi_field": [
               {
                 "label": "Dinas Pendidikan",
@@ -483,7 +483,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Pilih nama satuan pendidikan tempat bertugas!",
+            "deskripsi": "Pilih nama satuan pendidikan tempat bertugas.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -499,8 +499,8 @@
             "label": "Kabupaten/Kota",
             "nama_field": "f_33dullal",
             "tipe_field": "select",
-            "placeholder": "Contoh: Kota Jambi",
-            "bantuan": "Gunakan nama wilayah secara lengkap!",
+            "placeholder": "Pilih kabupaten/kota",
+            "bantuan": "Pilih kabupaten/kota yang sesuai.",
             "opsi_field": [
               {
                 "label": "Kabupaten Bantaeng",
@@ -613,7 +613,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Pilih kabupaten atau kota lokasi satuan pendidikan!",
+            "deskripsi": "Pilih kabupaten atau kota lokasi satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -630,7 +630,7 @@
             "nama_field": "f_gcdysqxn",
             "tipe_field": "number",
             "placeholder": "Contoh: 8",
-            "bantuan": "Isi total lama bertugas sebagai guru dalam tahun!",
+            "bantuan": "Isi total lama bertugas sebagai guru dalam tahun.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": null,
@@ -646,7 +646,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Masukkan total lama bertugas sebagai guru dalam tahun!",
+            "deskripsi": "Masukkan total lama bertugas sebagai guru dalam tahun.",
             "scoring_config": {
               "method": "numeric_threshold",
               "enabled": false,
@@ -660,7 +660,7 @@
             "nama_field": "f_nqz4n8fe",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai guru! Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai guru. Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
               "max_files": 1,
               "input_mode": "file",
@@ -718,7 +718,7 @@
             "nama_field": "f_2hwlsza6",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3!",
+            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3.",
             "opsi_field": {
               "columns": [
                 {
@@ -791,7 +791,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3!",
+            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -838,7 +838,7 @@
             "nama_field": "f_t4053a2a",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap pelatihan!",
+            "bantuan": "Tambahkan satu baris untuk setiap pelatihan.",
             "opsi_field": {
               "columns": [
                 {
@@ -899,7 +899,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Cantumkan pelatihan, workshop, bimtek, seminar, atau program pengembangan profesi dalam lima tahun terakhir!",
+            "deskripsi": "Cantumkan pelatihan, workshop, bimtek, seminar, atau program pengembangan profesi dalam lima tahun terakhir.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -945,7 +945,7 @@
             "nama_field": "f_ixpr7wv2",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap pengalaman mengajar!",
+            "bantuan": "Tambahkan satu baris untuk setiap pengalaman mengajar.",
             "opsi_field": {
               "columns": [
                 {
@@ -998,7 +998,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Cantumkan pengalaman mengajar sebagai guru!",
+            "deskripsi": "Cantumkan pengalaman mengajar sebagai guru.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -1045,7 +1045,7 @@
             "nama_field": "f_3jmvqwrr",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki!",
+            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki.",
             "opsi_field": {
               "columns": [
                 {
@@ -1066,7 +1066,7 @@
                   "placeholder": "Pilih jika memiliki kontribusi"
                 },
                 {
-                  "label": "Judul / Nama Kontribusi",
+                  "label": "Judul/Nama Kontribusi",
                   "nama_field": "judul_kontribusi",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -1090,7 +1090,7 @@
                   "placeholder": "2026"
                 },
                 {
-                  "label": "Nomor Pendaftaran / Sertifikat HAKI (jika ada)",
+                  "label": "Nomor Pendaftaran/Sertifikat HAKI (jika ada)",
                   "nama_field": "nomor_haki",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -1098,7 +1098,7 @@
                   "placeholder": "Isi nomor HAKI jika jenis kontribusinya HAKI"
                 },
                 {
-                  "label": "DOI / ISBN / ISSN (jika ada)",
+                  "label": "DOI/ISBN/ISSN (jika ada)",
                   "nama_field": "identitas_publikasi",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -1106,7 +1106,7 @@
                   "placeholder": "Isi identitas publikasi jika tersedia"
                 },
                 {
-                  "label": "Tautan Bukti / Publikasi",
+                  "label": "Tautan Bukti/Publikasi",
                   "nama_field": "tautan_bukti_publikasi",
                   "opsi_field": [],
                   "tipe_field": "url",
@@ -1131,7 +1131,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:21.000000Z",
             "updated_at": "2026-10-14T23:32:21.000000Z",
-            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada!",
+            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -1219,7 +1219,7 @@
     "assignment_configs": [
       {
         "kode_penugasan": "TGS-ASM-20260915-013815-H70M",
-        "judul_penugasan": "Assessment Guru SIMBBGTK",
+        "judul_penugasan": "Asesmen Guru SIMBBGTK",
         "is_active": true,
         "session_enabled": true,
         "target_ketenagaan": "tenaga_pendidik",

@@ -42,7 +42,7 @@
         "assessment_id": 15,
         "judul_form": "1.1.1 Makna, tujuan, dan pandangan hidup berdasarkan prinsip moral dan keyakinan terhadap Tuhan Yang Maha Esa dalam menjalankan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-111",
-        "deskripsi": "Kompetensi Kepribadian — Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik..",
+        "deskripsi": "Kompetensi Kepribadian — Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik.",
         "urutan": 1,
         "is_active": true,
         "created_at": "2026-10-14T23:32:15.000000Z",
@@ -64,7 +64,7 @@
             "nama_field": "f_uvc55bct",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -126,7 +126,7 @@
             "nama_field": "f_dnbyz7li",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -188,7 +188,7 @@
             "nama_field": "f_k6i4ufjc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -250,7 +250,7 @@
             "nama_field": "f_et6hsh7b",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -313,7 +313,7 @@
             "nama_field": "f_09ggzxmg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -375,7 +375,7 @@
             "nama_field": "f_zrxzvtbb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -437,7 +437,7 @@
             "nama_field": "f_83ykn182",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -500,7 +500,7 @@
         "assessment_id": 15,
         "judul_form": "1.1.2 Pengelolaan emosi dalam menjalankan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-112",
-        "deskripsi": "Kompetensi Kepribadian — Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik..",
+        "deskripsi": "Kompetensi Kepribadian — Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik.",
         "urutan": 2,
         "is_active": true,
         "created_at": "2026-10-14T23:32:15.000000Z",
@@ -522,7 +522,7 @@
             "nama_field": "f_9u7cns7e",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -584,7 +584,7 @@
             "nama_field": "f_x2f47yh9",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -646,7 +646,7 @@
             "nama_field": "f_4qmyzqib",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -708,7 +708,7 @@
             "nama_field": "f_nvxmzi6a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -771,7 +771,7 @@
             "nama_field": "f_deb1jkp2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -833,7 +833,7 @@
             "nama_field": "f_7r6w8uam",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -895,7 +895,7 @@
             "nama_field": "f_okzwuxmm",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -958,7 +958,7 @@
         "assessment_id": 15,
         "judul_form": "1.1.3 Penerapan kode etik dalam menjalankan tugas dan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-113",
-        "deskripsi": "Kompetensi Kepribadian — Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik..",
+        "deskripsi": "Kompetensi Kepribadian — Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik.",
         "urutan": 3,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -980,7 +980,7 @@
             "nama_field": "f_hd9k817i",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1042,7 +1042,7 @@
             "nama_field": "f_f7kxbznt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1104,7 +1104,7 @@
             "nama_field": "f_to3nnp0a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1166,7 +1166,7 @@
             "nama_field": "f_nwzm7cre",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1229,7 +1229,7 @@
             "nama_field": "f_wpzmnwe8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1291,7 +1291,7 @@
             "nama_field": "f_w0mlqcxk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1353,7 +1353,7 @@
             "nama_field": "f_vj519t1l",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1416,7 +1416,7 @@
         "assessment_id": 15,
         "judul_form": "1.2.1 Refleksi untuk perencanaan pengembangan diri dalam peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-121",
-        "deskripsi": "Kompetensi Kepribadian — Pengembangan diri melalui kebiasaan refleksi..",
+        "deskripsi": "Kompetensi Kepribadian — Pengembangan diri melalui kebiasaan refleksi.",
         "urutan": 4,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -1438,7 +1438,7 @@
             "nama_field": "f_lltuuuye",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1500,7 +1500,7 @@
             "nama_field": "f_3uwufujq",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1562,7 +1562,7 @@
             "nama_field": "f_leby9nm5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1624,7 +1624,7 @@
             "nama_field": "f_gljrwmvs",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1687,7 +1687,7 @@
             "nama_field": "f_m81l9xax",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1749,7 +1749,7 @@
             "nama_field": "f_6xnxh3de",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1811,7 +1811,7 @@
             "nama_field": "f_3icnv4q9",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1874,7 +1874,7 @@
         "assessment_id": 15,
         "judul_form": "1.2.2 Cara adaptif melakukan pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-122",
-        "deskripsi": "Kompetensi Kepribadian — Pengembangan diri melalui kebiasaan refleksi..",
+        "deskripsi": "Kompetensi Kepribadian — Pengembangan diri melalui kebiasaan refleksi.",
         "urutan": 5,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -1896,7 +1896,7 @@
             "nama_field": "f_q0kv9v32",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1958,7 +1958,7 @@
             "nama_field": "f_smmet3ta",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2020,7 +2020,7 @@
             "nama_field": "f_mtdn41m5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2082,7 +2082,7 @@
             "nama_field": "f_xnl0p8z2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2145,7 +2145,7 @@
             "nama_field": "f_gwux3uvs",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2207,7 +2207,7 @@
             "nama_field": "f_m3mj2yd6",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2269,7 +2269,7 @@
             "nama_field": "f_m7gaqup4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2332,7 +2332,7 @@
         "assessment_id": 15,
         "judul_form": "1.2.3 Penerapan hasil pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-123",
-        "deskripsi": "Kompetensi Kepribadian — Pengembangan diri melalui kebiasaan refleksi..",
+        "deskripsi": "Kompetensi Kepribadian — Pengembangan diri melalui kebiasaan refleksi.",
         "urutan": 6,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -2354,7 +2354,7 @@
             "nama_field": "f_qdr81eq8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2416,7 +2416,7 @@
             "nama_field": "f_g6n7xj9j",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2478,7 +2478,7 @@
             "nama_field": "f_1a8hxv0z",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2540,7 +2540,7 @@
             "nama_field": "f_vpr9rfwz",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2603,7 +2603,7 @@
             "nama_field": "f_mh0q0jqy",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2665,7 +2665,7 @@
             "nama_field": "f_bcsmzdrt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2727,7 +2727,7 @@
             "nama_field": "f_g4fh8yup",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2790,7 +2790,7 @@
         "assessment_id": 15,
         "judul_form": "1.3.1 Empati terhadap peserta didik dalam pengambilan keputusan pendampingan kepada kepala sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-131",
-        "deskripsi": "Kompetensi Kepribadian — Orientasi berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Kepribadian — Orientasi berpusat pada peserta didik.",
         "urutan": 7,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -2812,7 +2812,7 @@
             "nama_field": "f_i8ivtl5t",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2874,7 +2874,7 @@
             "nama_field": "f_pvgosisr",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2936,7 +2936,7 @@
             "nama_field": "f_g809u5v4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2998,7 +2998,7 @@
             "nama_field": "f_2ol1jani",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3061,7 +3061,7 @@
             "nama_field": "f_stdhi5o3",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3123,7 +3123,7 @@
             "nama_field": "f_bud88c3i",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3185,7 +3185,7 @@
             "nama_field": "f_p2frt5a5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3248,7 +3248,7 @@
         "assessment_id": 15,
         "judul_form": "1.3.2 Respek terhadap hak peserta didik dalam pendampingan kepada kepala sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-132",
-        "deskripsi": "Kompetensi Kepribadian — Orientasi berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Kepribadian — Orientasi berpusat pada peserta didik.",
         "urutan": 8,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -3270,7 +3270,7 @@
             "nama_field": "f_y9samfgt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3332,7 +3332,7 @@
             "nama_field": "f_pvd8sitw",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3394,7 +3394,7 @@
             "nama_field": "f_06gbpmdh",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3456,7 +3456,7 @@
             "nama_field": "f_fa9xybio",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3519,7 +3519,7 @@
             "nama_field": "f_0jw1vkso",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3581,7 +3581,7 @@
             "nama_field": "f_npxxxp9n",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3643,7 +3643,7 @@
             "nama_field": "f_lqa986y4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3706,7 +3706,7 @@
         "assessment_id": 15,
         "judul_form": "1.3.3 Kepedulian terhadap keselamatan dan keamanan peserta didik sebagai individu dan kelompok dalam menjalankan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-133",
-        "deskripsi": "Kompetensi Kepribadian — Orientasi berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Kepribadian — Orientasi berpusat pada peserta didik.",
         "urutan": 9,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -3728,7 +3728,7 @@
             "nama_field": "f_fje5kr56",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3790,7 +3790,7 @@
             "nama_field": "f_lbctde6n",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3852,7 +3852,7 @@
             "nama_field": "f_1672mzvu",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3914,7 +3914,7 @@
             "nama_field": "f_xl9y9u9b",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3977,7 +3977,7 @@
             "nama_field": "f_sij6qhfx",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4039,7 +4039,7 @@
             "nama_field": "f_2ej7hxzb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4101,7 +4101,7 @@
             "nama_field": "f_0q7riec3",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4164,7 +4164,7 @@
         "assessment_id": 15,
         "judul_form": "2.1.1 Komunikasi efektif dengan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-211",
-        "deskripsi": "Kompetensi Sosial — Kolaborasi untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Sosial — Kolaborasi untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 10,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -4186,7 +4186,7 @@
             "nama_field": "f_f9j7l6ln",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4248,7 +4248,7 @@
             "nama_field": "f_mix2nfyg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4310,7 +4310,7 @@
             "nama_field": "f_rmqr0jid",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4372,7 +4372,7 @@
             "nama_field": "f_05y6f0c3",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4435,7 +4435,7 @@
             "nama_field": "f_lbtal5kd",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4497,7 +4497,7 @@
             "nama_field": "f_ndxc090y",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4559,7 +4559,7 @@
             "nama_field": "f_ldz34etv",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4622,7 +4622,7 @@
         "assessment_id": 15,
         "judul_form": "2.1.2 Kerja sama dengan seluruh kepala sekolah dampingan dan rekan sejawat untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-212",
-        "deskripsi": "Kompetensi Sosial — Kolaborasi untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Sosial — Kolaborasi untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 11,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -4644,7 +4644,7 @@
             "nama_field": "f_8gllwbgj",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4706,7 +4706,7 @@
             "nama_field": "f_j1ycczx7",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4768,7 +4768,7 @@
             "nama_field": "f_go2ttwg8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4830,7 +4830,7 @@
             "nama_field": "f_083buba4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4893,7 +4893,7 @@
             "nama_field": "f_jt8fflao",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4955,7 +4955,7 @@
             "nama_field": "f_72tvm28f",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5017,7 +5017,7 @@
             "nama_field": "f_1y0hxnma",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5080,7 +5080,7 @@
         "assessment_id": 15,
         "judul_form": "2.2.1 Pelibatan pemangku kepentingan dalam pendampingan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-221",
-        "deskripsi": "Kompetensi Sosial — Keterlibatan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Sosial — Keterlibatan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 12,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -5102,7 +5102,7 @@
             "nama_field": "f_ss99qlfv",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5164,7 +5164,7 @@
             "nama_field": "f_5zlqtq2p",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5226,7 +5226,7 @@
             "nama_field": "f_8y1h00qy",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5288,7 +5288,7 @@
             "nama_field": "f_96v0fyxz",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5351,7 +5351,7 @@
             "nama_field": "f_4w0aw3e8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5413,7 +5413,7 @@
             "nama_field": "f_4hvbxrty",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5475,7 +5475,7 @@
             "nama_field": "f_852mfndj",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5538,7 +5538,7 @@
         "assessment_id": 15,
         "judul_form": "2.2.2 Berkoordinasi secara berkala dengan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-222",
-        "deskripsi": "Kompetensi Sosial — Keterlibatan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Sosial — Keterlibatan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 13,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -5560,7 +5560,7 @@
             "nama_field": "f_h4jewnz7",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5622,7 +5622,7 @@
             "nama_field": "f_g5p0hwjp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5684,7 +5684,7 @@
             "nama_field": "f_wg53xabo",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5746,7 +5746,7 @@
             "nama_field": "f_yvsteox4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5809,7 +5809,7 @@
             "nama_field": "f_ermbua30",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5871,7 +5871,7 @@
             "nama_field": "f_uxz545rf",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5933,7 +5933,7 @@
             "nama_field": "f_oaik3uz6",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5996,7 +5996,7 @@
         "assessment_id": 15,
         "judul_form": "2.3.1 Berpartisipasi aktif dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-231",
-        "deskripsi": "Kompetensi Sosial — Keterlibatan dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Sosial — Keterlibatan dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 14,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -6018,7 +6018,7 @@
             "nama_field": "f_2ky2wdv2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6080,7 +6080,7 @@
             "nama_field": "f_yyjbtjn4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6142,7 +6142,7 @@
             "nama_field": "f_stm9ekv1",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6204,7 +6204,7 @@
             "nama_field": "f_8s5k5xuf",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6267,7 +6267,7 @@
             "nama_field": "f_fryxuo7h",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6329,7 +6329,7 @@
             "nama_field": "f_rbyxvt5i",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6391,7 +6391,7 @@
             "nama_field": "f_wah41xlv",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6454,7 +6454,7 @@
         "assessment_id": 15,
         "judul_form": "2.3.2 Berbagi praktik baik dan karya pendampingan kepada kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-232",
-        "deskripsi": "Kompetensi Sosial — Keterlibatan dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Sosial — Keterlibatan dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 15,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -6476,7 +6476,7 @@
             "nama_field": "f_lff74pkk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6538,7 +6538,7 @@
             "nama_field": "f_gw0r240z",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6600,7 +6600,7 @@
             "nama_field": "f_ssesmju8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6662,7 +6662,7 @@
             "nama_field": "f_0a85jswn",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6725,7 +6725,7 @@
             "nama_field": "f_a3c4key9",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6787,7 +6787,7 @@
             "nama_field": "f_zixlzn05",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6849,7 +6849,7 @@
             "nama_field": "f_8otfxltt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6912,7 +6912,7 @@
         "assessment_id": 15,
         "judul_form": "3.1.1 Pendampingan kepada kepala sekolah dalam mengidentifikasi kebutuhan pengembangan diri kepala sekolah.",
         "kode_form": "FORM-PENGAWAS-ANGKET-311",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 16,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -6934,7 +6934,7 @@
             "nama_field": "f_biblbwq6",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6996,7 +6996,7 @@
             "nama_field": "f_qoaqs9v0",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7058,7 +7058,7 @@
             "nama_field": "f_objvdz19",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7120,7 +7120,7 @@
             "nama_field": "f_f4ttmq57",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7183,7 +7183,7 @@
             "nama_field": "f_o27k7ffo",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7245,7 +7245,7 @@
             "nama_field": "f_xydfzklg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7307,7 +7307,7 @@
             "nama_field": "f_yxjpsjsf",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7370,7 +7370,7 @@
         "assessment_id": 15,
         "judul_form": "3.1.2 Pendampingan kepada kepala sekolah untuk menyusun rencana pengembangan diri.",
         "kode_form": "FORM-PENGAWAS-ANGKET-312",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 17,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -7392,7 +7392,7 @@
             "nama_field": "f_ghq4tj3b",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7454,7 +7454,7 @@
             "nama_field": "f_2q0ygx55",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7516,7 +7516,7 @@
             "nama_field": "f_o4fola54",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7578,7 +7578,7 @@
             "nama_field": "f_2nkdjje9",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7641,7 +7641,7 @@
             "nama_field": "f_sfwkdozb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7703,7 +7703,7 @@
             "nama_field": "f_2lfcsiqs",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7765,7 +7765,7 @@
             "nama_field": "f_f8a8s2ca",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7828,7 +7828,7 @@
         "assessment_id": 15,
         "judul_form": "3.1.3 Pendampingan kepada kepala sekolah dalam melaksanakan pengembangan diri sesuai dengan rencana pengembangan diri.",
         "kode_form": "FORM-PENGAWAS-ANGKET-313",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "urutan": 18,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -7850,7 +7850,7 @@
             "nama_field": "f_cxvax45f",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7912,7 +7912,7 @@
             "nama_field": "f_7mcuwae9",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7974,7 +7974,7 @@
             "nama_field": "f_orbw8kr1",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8036,7 +8036,7 @@
             "nama_field": "f_wy1wzqmw",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8099,7 +8099,7 @@
             "nama_field": "f_2j4w3i8l",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8161,7 +8161,7 @@
             "nama_field": "f_6lw7q5zj",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8223,7 +8223,7 @@
             "nama_field": "f_gjfi96fm",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8286,7 +8286,7 @@
         "assessment_id": 15,
         "judul_form": "3.2.1 Pemetaan komitmen perubahan kepala sekolah dampingan, strategi, dan metode pendampingan pada perencanaan pendampingan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-321",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "urutan": 19,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -8308,7 +8308,7 @@
             "nama_field": "f_fylojqbo",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8370,7 +8370,7 @@
             "nama_field": "f_oqyu5w81",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8432,7 +8432,7 @@
             "nama_field": "f_mfnafw4n",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8494,7 +8494,7 @@
             "nama_field": "f_mm8pw3iz",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8557,7 +8557,7 @@
             "nama_field": "f_gzb4byba",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8619,7 +8619,7 @@
             "nama_field": "f_ouf6ui48",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8681,7 +8681,7 @@
             "nama_field": "f_jmizpktb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8744,7 +8744,7 @@
         "assessment_id": 15,
         "judul_form": "3.2.2 Pendampingan kepada kepala sekolah dalam perencanaan program pengembangan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-322",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "urutan": 20,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -8766,7 +8766,7 @@
             "nama_field": "f_5m1w7rit",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8828,7 +8828,7 @@
             "nama_field": "f_vmfsjlav",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8890,7 +8890,7 @@
             "nama_field": "f_jjthx155",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8952,7 +8952,7 @@
             "nama_field": "f_yb0nxlzo",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9015,7 +9015,7 @@
             "nama_field": "f_1yx12mdb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9077,7 +9077,7 @@
             "nama_field": "f_czxz3z74",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9139,7 +9139,7 @@
             "nama_field": "f_3xexb9ky",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9202,7 +9202,7 @@
         "assessment_id": 15,
         "judul_form": "3.2.3 Pendampingan kepada kepala sekolah dalam pelaksanaan program pengembangan satuan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-323",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pengembangan satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "urutan": 21,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -9224,7 +9224,7 @@
             "nama_field": "f_eublaipp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9286,7 +9286,7 @@
             "nama_field": "f_ej0tm8d7",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9348,7 +9348,7 @@
             "nama_field": "f_r3suym31",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9410,7 +9410,7 @@
             "nama_field": "f_uwuxount",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9473,7 +9473,7 @@
             "nama_field": "f_svvoq5jz",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9535,7 +9535,7 @@
             "nama_field": "f_wywcr0n8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9597,7 +9597,7 @@
             "nama_field": "f_oiz1rb58",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9660,7 +9660,7 @@
         "assessment_id": 15,
         "judul_form": "3.3.1 Pendampingan kepada kepala sekolah dalam mengkaji kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-331",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam mengelola implementasi kebijakan pendidikan pada satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam mengelola implementasi kebijakan pendidikan pada satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "urutan": 22,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -9682,7 +9682,7 @@
             "nama_field": "f_qyy8vyzv",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9744,7 +9744,7 @@
             "nama_field": "f_olhjx0br",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9806,7 +9806,7 @@
             "nama_field": "f_7alxkswk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9868,7 +9868,7 @@
             "nama_field": "f_78gwppen",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9931,7 +9931,7 @@
             "nama_field": "f_xfm1dh42",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9993,7 +9993,7 @@
             "nama_field": "f_535elswc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10055,7 +10055,7 @@
             "nama_field": "f_yrh475su",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10118,7 +10118,7 @@
         "assessment_id": 15,
         "judul_form": "3.3.2 Pendampingan kepada kepala sekolah dalam implementasi kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-ANGKET-332",
-        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam mengelola implementasi kebijakan pendidikan pada satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik..",
+        "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam mengelola implementasi kebijakan pendidikan pada satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "urutan": 23,
         "is_active": true,
         "created_at": "2026-10-14T23:32:16.000000Z",
@@ -10140,7 +10140,7 @@
             "nama_field": "f_o4gxuse7",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10202,7 +10202,7 @@
             "nama_field": "f_5b9lpnzc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10264,7 +10264,7 @@
             "nama_field": "f_is4bsuq0",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10326,7 +10326,7 @@
             "nama_field": "f_izbc8vsn",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10389,7 +10389,7 @@
             "nama_field": "f_n2hoi0ln",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10451,7 +10451,7 @@
             "nama_field": "f_fa3oouw4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10513,7 +10513,7 @@
             "nama_field": "f_8f57exjt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10577,7 +10577,7 @@
     "assignment_configs": [
       {
         "kode_penugasan": "TGS-ASM-20261005-045742-Z5ER",
-        "judul_penugasan": "Assessment Pengawas Sekolah SIMBBGTK",
+        "judul_penugasan": "Asesmen Pengawas Sekolah SIMBBGTK",
         "is_active": true,
         "session_enabled": true,
         "target_ketenagaan": "tenaga_kependidikan",

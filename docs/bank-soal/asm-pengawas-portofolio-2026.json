@@ -19,7 +19,7 @@
     "judul": "Portofolio Pengawas",
     "slug": "portofolio-pengawas",
     "deskripsi": "Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri pengawas.",
-    "petunjuk": "Isi data sesuai jabatan Pengawas dan kondisi sebenarnya! Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB!  Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator! Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional!",
+    "petunjuk": "Isi data sesuai jabatan Pengawas dan kondisi sebenarnya. Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB. Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator. Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional.",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-10-04T21:25:51.000000Z",
@@ -60,7 +60,7 @@
             "nama_field": "f_r0me4yd5",
             "tipe_field": "text",
             "placeholder": "Nama lengkap sesuai identitas resmi.",
-            "bantuan": "Isi nama lengkap!",
+            "bantuan": "Isi nama lengkap.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "nama_lengkap",
@@ -93,7 +93,7 @@
             "nama_field": "f_rx5bofhk",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen! Format JPG/JPEG/PNG; ukuran maksimal 5 MB!",
+            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen. Format JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
               "max_files": 1,
               "input_mode": "file",
@@ -128,7 +128,7 @@
             "nama_field": "f_jm6b37p6",
             "tipe_field": "text",
             "placeholder": "NIP atau NUPTK.",
-            "bantuan": "Isi NIP/NUPTK yang tersedia!",
+            "bantuan": "Isi NIP/NUPTK yang tersedia.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "nip_nuptk",
@@ -157,11 +157,11 @@
           {
             "id": 8566,
             "assessment_form_id": 1871,
-            "label": "Pangkat / Golongan",
+            "label": "Pangkat/Golongan",
             "nama_field": "f_640ltxmm",
             "tipe_field": "select",
             "placeholder": "Pilih pangkat/golongan.",
-            "bantuan": "Pilih pangkat/golongan dari master! Gunakan opsi Lainnya jika belum tersedia!",
+            "bantuan": "Pilih pangkat/golongan dari master. Gunakan opsi Lainnya jika belum tersedia.",
             "opsi_field": [
               {
                 "label": "I",
@@ -314,7 +314,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Pangkat / Golongan",
+            "deskripsi": "Pangkat/Golongan",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -328,7 +328,7 @@
             "nama_field": "f_n74m0wrq",
             "tipe_field": "select",
             "placeholder": "Pilih jabatan",
-            "bantuan": "Paket ini disusun untuk Pengawas. Pilih jabatan sesuai penugasan asesmen Anda!",
+            "bantuan": "Paket ini disusun untuk Pengawas. Pilih jabatan sesuai penugasan asesmen Anda.",
             "opsi_field": [
               {
                 "label": "Kepala Sekolah",
@@ -373,7 +373,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Pilih jabatan utama yang sedang dijalankan!",
+            "deskripsi": "Pilih jabatan utama yang sedang dijalankan.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -387,7 +387,7 @@
             "nama_field": "f_gr4mvr37",
             "tipe_field": "text",
             "placeholder": "Nama instansi.",
-            "bantuan": "Isi instansi tempat bertugas!",
+            "bantuan": "Isi instansi tempat bertugas.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "satuan_pendidikan",
@@ -420,8 +420,8 @@
             "label": "Kabupaten/Kota",
             "nama_field": "f_w5g8ogse",
             "tipe_field": "select",
-            "placeholder": "Kabupaten/kota.",
-            "bantuan": "Isi lokasi instansi!",
+            "placeholder": "Pilih kabupaten/kota",
+            "bantuan": "Pilih kabupaten/kota lokasi instansi.",
             "opsi_field": [
               {
                 "label": "Kabupaten Bantaeng",
@@ -534,7 +534,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Kabupaten/Kota",
+            "deskripsi": "Pilih kabupaten/kota lokasi instansi.",
             "scoring_config": {
               "method": "choice_option_score",
               "enabled": false,
@@ -552,7 +552,7 @@
             "nama_field": "f_3qqm27oz",
             "tipe_field": "number",
             "placeholder": "Contoh: 6",
-            "bantuan": "Isi total lama bertugas sebagai pengawas dalam tahun!",
+            "bantuan": "Isi total lama bertugas sebagai pengawas dalam tahun.",
             "opsi_field": null,
             "nilai_default": null,
             "autofill_source": "satuan_pendidikan",
@@ -569,7 +569,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Masukkan total lama bertugas sebagai pengawas dalam tahun!",
+            "deskripsi": "Masukkan total lama bertugas sebagai pengawas dalam tahun.",
             "scoring_config": {
               "method": "numeric_threshold",
               "enabled": false,
@@ -605,7 +605,7 @@
             "nama_field": "f_244z6squ",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3!",
+            "bantuan": "Tambahkan satu baris untuk setiap jenjang pendidikan S1, S2, atau S3.",
             "opsi_field": {
               "columns": [
                 {
@@ -670,7 +670,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3!",
+            "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -714,7 +714,7 @@
             "nama_field": "f_z7pghfh9",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan satu baris untuk setiap pelatihan!",
+            "bantuan": "Tambahkan satu baris untuk setiap pelatihan.",
             "opsi_field": {
               "columns": [
                 {
@@ -767,7 +767,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Cantumkan pelatihan yang relevan dalam lima tahun terakhir!",
+            "deskripsi": "Cantumkan pelatihan yang relevan dalam lima tahun terakhir.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -811,11 +811,11 @@
             "nama_field": "f_l27gqzmg",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Tambahkan pengalaman penugasan sebagai pengawas!",
+            "bantuan": "Tambahkan pengalaman penugasan sebagai pengawas.",
             "opsi_field": {
               "columns": [
                 {
-                  "label": "Jabatan / Tugas Pengawasan",
+                  "label": "Jabatan/Tugas Pengawasan",
                   "nama_field": "pengalaman",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -823,7 +823,7 @@
                   "placeholder": "Contoh: Pengawas Sekolah"
                 },
                 {
-                  "label": "Instansi / Wilayah Binaan",
+                  "label": "Instansi/Wilayah Binaan",
                   "nama_field": "lembaga",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -856,7 +856,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Cantumkan pengalaman bertugas sebagai pengawas!",
+            "deskripsi": "Cantumkan pengalaman bertugas sebagai pengawas.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -899,7 +899,7 @@
             "nama_field": "f_1kvvdjsw",
             "tipe_field": "repeater",
             "placeholder": "",
-            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki!",
+            "bantuan": "Bagian ini opsional. Tambahkan satu baris untuk setiap kontribusi yang dimiliki.",
             "opsi_field": {
               "columns": [
                 {
@@ -920,7 +920,7 @@
                   "placeholder": "Pilih jika memiliki kontribusi"
                 },
                 {
-                  "label": "Judul / Nama Kontribusi",
+                  "label": "Judul/Nama Kontribusi",
                   "nama_field": "judul_kontribusi",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -944,7 +944,7 @@
                   "placeholder": "2026"
                 },
                 {
-                  "label": "Nomor Pendaftaran / Sertifikat HAKI (jika ada)",
+                  "label": "Nomor Pendaftaran/Sertifikat HAKI (jika ada)",
                   "nama_field": "nomor_haki",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -952,7 +952,7 @@
                   "placeholder": "Isi nomor HAKI jika jenis kontribusinya HAKI"
                 },
                 {
-                  "label": "DOI / ISBN / ISSN (jika ada)",
+                  "label": "DOI/ISBN/ISSN (jika ada)",
                   "nama_field": "identitas_publikasi",
                   "opsi_field": [],
                   "tipe_field": "text",
@@ -960,7 +960,7 @@
                   "placeholder": "Isi identitas publikasi jika tersedia"
                 },
                 {
-                  "label": "Tautan Bukti / Publikasi",
+                  "label": "Tautan Bukti/Publikasi",
                   "nama_field": "tautan_bukti_publikasi",
                   "opsi_field": [],
                   "tipe_field": "url",
@@ -985,7 +985,7 @@
             "is_active": true,
             "created_at": "2026-10-14T23:32:19.000000Z",
             "updated_at": "2026-10-14T23:32:19.000000Z",
-            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada!",
+            "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada.",
             "scoring_config": {
               "method": "repeater_completeness",
               "weight": 100,
@@ -1067,7 +1067,7 @@
     "assignment_configs": [
       {
         "kode_penugasan": "TGS-ASM-20261005-045742-Z5ER",
-        "judul_penugasan": "Assessment Pengawas Sekolah SIMBBGTK",
+        "judul_penugasan": "Asesmen Pengawas Sekolah SIMBBGTK",
         "is_active": true,
         "session_enabled": true,
         "target_ketenagaan": "tenaga_kependidikan",

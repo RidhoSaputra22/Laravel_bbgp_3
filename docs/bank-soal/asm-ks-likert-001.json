@@ -64,7 +64,7 @@
             "nama_field": "f_6rawrh9h",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -126,7 +126,7 @@
             "nama_field": "f_7csdhgn0",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -188,7 +188,7 @@
             "nama_field": "f_849r9m4c",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -251,7 +251,7 @@
             "nama_field": "f_qcrxh8kp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -313,7 +313,7 @@
             "nama_field": "f_jk6i928p",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -375,7 +375,7 @@
             "nama_field": "f_adlgge3e",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -438,7 +438,7 @@
             "nama_field": "f_n0np42dr",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -522,7 +522,7 @@
             "nama_field": "f_rcqne284",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -584,7 +584,7 @@
             "nama_field": "f_eh3kkozd",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -647,7 +647,7 @@
             "nama_field": "f_jcxlwy1y",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -709,7 +709,7 @@
             "nama_field": "f_fowfiu2u",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -771,7 +771,7 @@
             "nama_field": "f_cikfruyr",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -833,7 +833,7 @@
             "nama_field": "f_jg7aflto",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -896,7 +896,7 @@
             "nama_field": "f_m1dnpmke",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -980,7 +980,7 @@
             "nama_field": "f_hkp4sc2d",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1042,7 +1042,7 @@
             "nama_field": "f_17v7k1bv",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1104,7 +1104,7 @@
             "nama_field": "f_2rdk6ayk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1167,7 +1167,7 @@
             "nama_field": "f_i46zxova",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1229,7 +1229,7 @@
             "nama_field": "f_jxi3iljt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1291,7 +1291,7 @@
             "nama_field": "f_un9i2mzy",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1354,7 +1354,7 @@
             "nama_field": "f_o78pzoup",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1438,7 +1438,7 @@
             "nama_field": "f_bfahbq7q",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1500,7 +1500,7 @@
             "nama_field": "f_of5vpfte",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1562,7 +1562,7 @@
             "nama_field": "f_atuvnfeh",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1625,7 +1625,7 @@
             "nama_field": "f_lodmnpl8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1687,7 +1687,7 @@
             "nama_field": "f_rngb7wze",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1749,7 +1749,7 @@
             "nama_field": "f_rkqikzm6",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1812,7 +1812,7 @@
             "nama_field": "f_udnaqlf0",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1896,7 +1896,7 @@
             "nama_field": "f_qgu5ky5t",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -1958,7 +1958,7 @@
             "nama_field": "f_skbzp87e",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2021,7 +2021,7 @@
             "nama_field": "f_k1co7n8r",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2083,7 +2083,7 @@
             "nama_field": "f_6uk4uedk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2145,7 +2145,7 @@
             "nama_field": "f_n9d05dru",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2207,7 +2207,7 @@
             "nama_field": "f_ftfjqtc2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2270,7 +2270,7 @@
             "nama_field": "f_s4vgeldd",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2354,7 +2354,7 @@
             "nama_field": "f_zqrccw1f",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2416,7 +2416,7 @@
             "nama_field": "f_kdaalxvd",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2478,7 +2478,7 @@
             "nama_field": "f_hel9yche",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2541,7 +2541,7 @@
             "nama_field": "f_43ta9meg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2603,7 +2603,7 @@
             "nama_field": "f_movmt15z",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2665,7 +2665,7 @@
             "nama_field": "f_g0hmda59",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2728,7 +2728,7 @@
             "nama_field": "f_z5td3psp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2812,7 +2812,7 @@
             "nama_field": "f_iqiwds7a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2874,7 +2874,7 @@
             "nama_field": "f_j4sdhux2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2937,7 +2937,7 @@
             "nama_field": "f_wbju5iet",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -2999,7 +2999,7 @@
             "nama_field": "f_ofuu2esw",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3061,7 +3061,7 @@
             "nama_field": "f_g9lpurl7",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3123,7 +3123,7 @@
             "nama_field": "f_90iq4b5f",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3186,7 +3186,7 @@
             "nama_field": "f_o9oqbgob",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3270,7 +3270,7 @@
             "nama_field": "f_ngveskux",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3332,7 +3332,7 @@
             "nama_field": "f_vfhhhzej",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3394,7 +3394,7 @@
             "nama_field": "f_4yx7fjgn",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3457,7 +3457,7 @@
             "nama_field": "f_b562uwrb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3519,7 +3519,7 @@
             "nama_field": "f_jt0qba2b",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3581,7 +3581,7 @@
             "nama_field": "f_gx1lirse",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3644,7 +3644,7 @@
             "nama_field": "f_tt5d6v1y",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3728,7 +3728,7 @@
             "nama_field": "f_se9c229l",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3790,7 +3790,7 @@
             "nama_field": "f_yox6b28j",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3853,7 +3853,7 @@
             "nama_field": "f_g4uvdsac",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3915,7 +3915,7 @@
             "nama_field": "f_t4cbtaie",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -3977,7 +3977,7 @@
             "nama_field": "f_kg8vqg87",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4039,7 +4039,7 @@
             "nama_field": "f_8lgp881s",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4102,7 +4102,7 @@
             "nama_field": "f_5imfewhq",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4186,7 +4186,7 @@
             "nama_field": "f_48e2cwte",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4248,7 +4248,7 @@
             "nama_field": "f_8jffzqys",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4310,7 +4310,7 @@
             "nama_field": "f_cog2v0xx",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4373,7 +4373,7 @@
             "nama_field": "f_lapptkc2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4435,7 +4435,7 @@
             "nama_field": "f_rltlujmr",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4497,7 +4497,7 @@
             "nama_field": "f_g4axigza",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4560,7 +4560,7 @@
             "nama_field": "f_cd9hx7aq",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4644,7 +4644,7 @@
             "nama_field": "f_os4s6vcl",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4706,7 +4706,7 @@
             "nama_field": "f_d1krg7ax",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4769,7 +4769,7 @@
             "nama_field": "f_vhi8uezp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4831,7 +4831,7 @@
             "nama_field": "f_9imd3yn9",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4893,7 +4893,7 @@
             "nama_field": "f_8xlu3rqt",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -4955,7 +4955,7 @@
             "nama_field": "f_4oofe49q",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5018,7 +5018,7 @@
             "nama_field": "f_3elhwna5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5102,7 +5102,7 @@
             "nama_field": "f_q725cc1i",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5164,7 +5164,7 @@
             "nama_field": "f_anhvj12a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5226,7 +5226,7 @@
             "nama_field": "f_q7av2g3q",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5289,7 +5289,7 @@
             "nama_field": "f_n967nx3r",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5351,7 +5351,7 @@
             "nama_field": "f_xl9odob4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5413,7 +5413,7 @@
             "nama_field": "f_pbwz8wzq",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5476,7 +5476,7 @@
             "nama_field": "f_sq37fnqw",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5560,7 +5560,7 @@
             "nama_field": "f_g3vsp9p0",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5622,7 +5622,7 @@
             "nama_field": "f_zt2tjkt4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5685,7 +5685,7 @@
             "nama_field": "f_cyeo8zpy",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5747,7 +5747,7 @@
             "nama_field": "f_ao0ad2vp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5809,7 +5809,7 @@
             "nama_field": "f_rj4xceqe",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5871,7 +5871,7 @@
             "nama_field": "f_nxwsl915",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -5934,7 +5934,7 @@
             "nama_field": "f_973nc8fb",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6018,7 +6018,7 @@
             "nama_field": "f_jx67hg7i",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6080,7 +6080,7 @@
             "nama_field": "f_iv0eyq87",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6142,7 +6142,7 @@
             "nama_field": "f_zami7ofr",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6205,7 +6205,7 @@
             "nama_field": "f_wsbu7r3l",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6267,7 +6267,7 @@
             "nama_field": "f_28ptfd3a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6329,7 +6329,7 @@
             "nama_field": "f_n7xsdaq8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6392,7 +6392,7 @@
             "nama_field": "f_vojnz7ye",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6476,7 +6476,7 @@
             "nama_field": "f_xfmer81r",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6538,7 +6538,7 @@
             "nama_field": "f_ryxl6t9d",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6601,7 +6601,7 @@
             "nama_field": "f_gzpz1eka",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6663,7 +6663,7 @@
             "nama_field": "f_tk29ld2e",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6725,7 +6725,7 @@
             "nama_field": "f_8rsu47co",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6787,7 +6787,7 @@
             "nama_field": "f_63urt3lc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6850,7 +6850,7 @@
             "nama_field": "f_72ceq6zz",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6934,7 +6934,7 @@
             "nama_field": "f_wl2fubj5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -6996,7 +6996,7 @@
             "nama_field": "f_a0gx1an2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7058,7 +7058,7 @@
             "nama_field": "f_v3p43xic",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7121,7 +7121,7 @@
             "nama_field": "f_7uonzx5b",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7183,7 +7183,7 @@
             "nama_field": "f_aqswgs9j",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7245,7 +7245,7 @@
             "nama_field": "f_6tgf65pm",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7308,7 +7308,7 @@
             "nama_field": "f_8mu59tca",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7392,7 +7392,7 @@
             "nama_field": "f_ukmgyat2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7454,7 +7454,7 @@
             "nama_field": "f_nmamk51q",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7517,7 +7517,7 @@
             "nama_field": "f_lbzvickl",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7579,7 +7579,7 @@
             "nama_field": "f_8z0cjnyg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7641,7 +7641,7 @@
             "nama_field": "f_3eyi7fs8",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7703,7 +7703,7 @@
             "nama_field": "f_vgq03gj3",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7766,7 +7766,7 @@
             "nama_field": "f_0jojn5r0",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7850,7 +7850,7 @@
             "nama_field": "f_7s98ccbe",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7912,7 +7912,7 @@
             "nama_field": "f_sh0jzptd",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -7974,7 +7974,7 @@
             "nama_field": "f_n6u6mzbk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8037,7 +8037,7 @@
             "nama_field": "f_ke13morn",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8099,7 +8099,7 @@
             "nama_field": "f_xn8mou45",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8161,7 +8161,7 @@
             "nama_field": "f_357fmvyr",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8224,7 +8224,7 @@
             "nama_field": "f_dymxs5oz",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8308,7 +8308,7 @@
             "nama_field": "f_we90d6lc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8370,7 +8370,7 @@
             "nama_field": "f_nq054odv",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8433,7 +8433,7 @@
             "nama_field": "f_nhxgmtmc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8495,7 +8495,7 @@
             "nama_field": "f_9kruhrzx",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8557,7 +8557,7 @@
             "nama_field": "f_7y3rfvew",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8619,7 +8619,7 @@
             "nama_field": "f_fq2ie5e2",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8682,7 +8682,7 @@
             "nama_field": "f_stbgzz66",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8766,7 +8766,7 @@
             "nama_field": "f_qwbnkavk",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8828,7 +8828,7 @@
             "nama_field": "f_4ovqbh5w",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8890,7 +8890,7 @@
             "nama_field": "f_gnr9mp4m",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -8953,7 +8953,7 @@
             "nama_field": "f_4flue7ka",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9015,7 +9015,7 @@
             "nama_field": "f_z30eammj",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9077,7 +9077,7 @@
             "nama_field": "f_v7q6zvrp",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9140,7 +9140,7 @@
             "nama_field": "f_qq315b9v",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9224,7 +9224,7 @@
             "nama_field": "f_syw4fj15",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9286,7 +9286,7 @@
             "nama_field": "f_aqmlyzry",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9349,7 +9349,7 @@
             "nama_field": "f_xbxe700m",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9411,7 +9411,7 @@
             "nama_field": "f_cc6dns75",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9473,7 +9473,7 @@
             "nama_field": "f_zt8y1h7a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9535,7 +9535,7 @@
             "nama_field": "f_9kzgqgtm",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9598,7 +9598,7 @@
             "nama_field": "f_vu80shst",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9682,7 +9682,7 @@
             "nama_field": "f_upgdnwp7",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9744,7 +9744,7 @@
             "nama_field": "f_j8p65kow",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9806,7 +9806,7 @@
             "nama_field": "f_trnaz7lc",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9869,7 +9869,7 @@
             "nama_field": "f_dxw0xqzg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9931,7 +9931,7 @@
             "nama_field": "f_5zo8kair",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -9993,7 +9993,7 @@
             "nama_field": "f_jpr5hal4",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10056,7 +10056,7 @@
             "nama_field": "f_b599b5n5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10140,7 +10140,7 @@
             "nama_field": "f_elclfq9e",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10202,7 +10202,7 @@
             "nama_field": "f_52sav7p5",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10265,7 +10265,7 @@
             "nama_field": "f_9bc9g4hd",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10327,7 +10327,7 @@
             "nama_field": "f_zkxuym17",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10389,7 +10389,7 @@
             "nama_field": "f_livl97em",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10451,7 +10451,7 @@
             "nama_field": "f_3x1b1tgg",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10514,7 +10514,7 @@
             "nama_field": "f_1x5780kf",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10598,7 +10598,7 @@
             "nama_field": "f_3jy3o72w",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10660,7 +10660,7 @@
             "nama_field": "f_l14vxh0a",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10722,7 +10722,7 @@
             "nama_field": "f_kixbrx16",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10785,7 +10785,7 @@
             "nama_field": "f_xs6uqaef",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10847,7 +10847,7 @@
             "nama_field": "f_4wi48ebn",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10909,7 +10909,7 @@
             "nama_field": "f_53nytvbi",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -10972,7 +10972,7 @@
             "nama_field": "f_1wpp0b4w",
             "tipe_field": "likert",
             "placeholder": "",
-            "bantuan": "Skor: 1 = Sangat Tidak Setuju; 2 = Tidak Setuju; 3 = Setuju; 4 = Sangat Setuju.",
+            "bantuan": "",
             "opsi_field": [
               {
                 "label": "Sangat Setuju",
@@ -11035,7 +11035,7 @@
     "assignment_configs": [
       {
         "kode_penugasan": "TGS-ASM-20260915-013855-SUFS",
-        "judul_penugasan": "Assessment Kepala Sekolah SIMBBGTK",
+        "judul_penugasan": "Asesmen Kepala Sekolah SIMBBGTK",
         "is_active": true,
         "session_enabled": true,
         "target_ketenagaan": "tenaga_kependidikan",
