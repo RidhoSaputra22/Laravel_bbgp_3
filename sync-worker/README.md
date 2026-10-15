@@ -136,6 +136,17 @@ Gunakan lock lokal agar cron berikutnya tidak overlap:
 * * * * * cd /path/to/Laravel && flock -n storage/app/bbpg-sync-worker.lock bash bin/sync-worker --once >> storage/logs/bbpg-sync-worker.log 2>&1
 ```
 
+Untuk menjalankan drain manual tanpa bertabrakan dengan cron, gunakan lock file
+yang sama. Perintah berikut menunggu maksimal satu jam jika cron sedang berjalan:
+
+```bash
+/usr/bin/flock -w 3600 /path/to/Laravel/storage/app/bbpg-sync-worker.lock \
+  -c 'cd /path/to/Laravel && exec /usr/bin/bash bin/sync-worker --drain'
+```
+
+Jalankan dengan user yang sama dengan cron. Jangan gunakan `--reset` kecuali
+memang ingin melakukan rebuild dan menghapus isi collection terlebih dahulu.
+
 Log cron tersimpan di `storage/logs/bbpg-sync-worker.log`. Untuk melihatnya:
 
 ```bash

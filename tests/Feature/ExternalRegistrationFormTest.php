@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +25,8 @@ class ExternalRegistrationFormTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->withoutMiddleware(VerifyCsrfToken::class);
 
         config()->set('database.default', 'sqlite');
         config()->set('database.connections.sqlite.database', ':memory:');
@@ -237,6 +240,23 @@ class ExternalRegistrationFormTest extends TestCase
     }
 
     /**
+     * @dataProvider educationLevels
+     */
+    public function test_each_education_level_can_be_registered(string $pendidikan): void
+    {
+        $data = $this->completeFormData('Tenaga Pendidik');
+        $data['pendidikan'] = $pendidikan;
+
+        $this->post(route('user.daftar_guru'), $data)
+            ->assertRedirect(route('user.guru'));
+
+        $this->assertDatabaseHas('gurus', [
+            'no_ktp' => $data['no_ktp'],
+            'pendidikan' => $pendidikan,
+        ]);
+    }
+
+    /**
      * @dataProvider externalTypes
      */
     public function test_duplicate_ktp_returns_to_the_same_form_with_an_indonesian_error(string $jenis): void
@@ -262,6 +282,17 @@ class ExternalRegistrationFormTest extends TestCase
             'tenaga pendidik' => ['Tenaga Pendidik'],
             'tenaga kependidikan' => ['Tenaga Kependidikan'],
             'stakeholder' => ['Stakeholder'],
+        ];
+    }
+
+    public static function educationLevels(): array
+    {
+        return [
+            'SMA / SMK' => ['SMA / SMK'],
+            'D3' => ['D3'],
+            'S1' => ['S1'],
+            'S2' => ['S2'],
+            'S3' => ['S3'],
         ];
     }
 
@@ -391,7 +422,9 @@ class ExternalRegistrationFormTest extends TestCase
 
         DB::table('kepegawaians')->insert(['name' => 'ASN']);
         DB::table('satuan_pendidikans')->insert(['name' => 'SD']);
-        DB::table('pendidikans')->insert(['name' => 'S1']);
+        foreach (array_keys(self::educationLevels()) as $pendidikan) {
+            DB::table('pendidikans')->insert(['name' => $pendidikan]);
+        }
         DB::table('kabupatens')->insert(['name' => 'Kota Makassar']);
     }
 }

@@ -103,6 +103,7 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
             $table->id();
             $table->string('nama_lengkap');
             $table->string('email')->nullable();
+            $table->string('pendidikan')->nullable();
             $table->string('satuan_pendidikan')->nullable();
             $table->string('kabupaten')->nullable();
             $table->string('eksternal_jabatan')->nullable();
@@ -301,6 +302,104 @@ class AssessmentAssignmentServiceAddParticipantsTest extends TestCase
             'assessment_assignment_id' => $assignment->id,
             'guru_id' => $guru->id,
             'status' => 'ditugaskan',
+        ]);
+    }
+
+    public function test_registered_external_users_with_any_education_sync_only_to_matching_assignment_constraints(): void
+    {
+        $assignmentDefinitions = [
+            'Tenaga Pendidik' => [
+                'code' => 'TGS-EXT-EDU-TP',
+                'jabatan' => 'Guru',
+                'kabupaten' => 'Kota Makassar',
+                'satuan_pendidikan' => 'SD Negeri 1 Makassar',
+            ],
+            'Tenaga Kependidikan' => [
+                'code' => 'TGS-EXT-EDU-TK',
+                'jabatan' => 'Kepala Sekolah',
+                'kabupaten' => 'Kabupaten Gowa',
+                'satuan_pendidikan' => 'SMP Negeri 1 Gowa',
+            ],
+            'Stakeholder' => [
+                'code' => 'TGS-EXT-EDU-ST',
+                'jabatan' => 'Kepala Dinas',
+                'kabupaten' => 'Kota Parepare',
+                'satuan_pendidikan' => 'Dinas Pendidikan',
+            ],
+        ];
+        $assignments = [];
+
+        foreach ($assignmentDefinitions as $ketenagaan => $definition) {
+            $assignments[$ketenagaan] = AssessmentAssignment::query()->create([
+                'kode_penugasan' => $definition['code'],
+                'judul_penugasan' => 'Penugasan '.$ketenagaan,
+                'session_enabled' => false,
+                'target_ketenagaan' => match ($ketenagaan) {
+                    'Tenaga Pendidik' => 'tenaga_pendidik',
+                    'Tenaga Kependidikan' => 'tenaga_kependidikan',
+                    default => 'stakeholder',
+                },
+                'target_jabatan' => [$definition['jabatan']],
+                'target_kabupaten' => [$definition['kabupaten']],
+                'target_satuan_pendidikan' => [
+                    AssessmentSchoolTargetKey::encode(
+                        $definition['kabupaten'],
+                        $definition['satuan_pendidikan']
+                    ),
+                ],
+                'status_distribusi' => 'draft',
+            ]);
+        }
+
+        $educationLevels = ['SMA / SMK', 'D3', 'S1', 'S2', 'S3'];
+        $expectedAssignmentByGuru = [];
+
+        foreach ($assignmentDefinitions as $ketenagaan => $definition) {
+            foreach ($educationLevels as $education) {
+                $guru = Guru::withoutEvents(fn () => $this->createGuru([
+                    'nama_lengkap' => $ketenagaan.' '.$education,
+                    'email' => strtolower(str_replace([' ', '/'], '.', $ketenagaan.'-'.$education)).'@example.test',
+                    'pendidikan' => $education,
+                    'eksternal_jabatan' => $ketenagaan,
+                    'jenis_jabatan' => $definition['jabatan'],
+                    'kabupaten' => $definition['kabupaten'],
+                    'satuan_pendidikan' => $definition['satuan_pendidikan'],
+                ]));
+
+                (new SyncExternalGuruToAssessmentAssignmentsJob($guru->id))
+                    ->handle(app(AssessmentAssignmentService::class));
+
+                $expectedAssignmentByGuru[$guru->id] = $assignments[$ketenagaan]->id;
+            }
+        }
+
+        $outOfScopeGuru = Guru::withoutEvents(fn () => $this->createGuru([
+            'nama_lengkap' => 'Guru Jabatan Tidak Cocok',
+            'email' => 'guru.jabatan.tidak.cocok@example.test',
+            'pendidikan' => 'S1',
+            'jenis_jabatan' => 'Pengawas',
+        ]));
+        (new SyncExternalGuruToAssessmentAssignmentsJob($outOfScopeGuru->id))
+            ->handle(app(AssessmentAssignmentService::class));
+
+        $actualAssignmentByGuru = AssessmentAssignmentTarget::query()
+            ->pluck('assessment_assignment_id', 'guru_id')
+            ->map(fn ($assignmentId) => (int) $assignmentId)
+            ->all();
+
+        $this->assertSame($expectedAssignmentByGuru, $actualAssignmentByGuru);
+
+        foreach ($assignments as $assignment) {
+            $this->assertSame(
+                count($educationLevels),
+                AssessmentAssignmentTarget::query()
+                    ->where('assessment_assignment_id', $assignment->id)
+                    ->count()
+            );
+        }
+
+        $this->assertDatabaseMissing('assessment_assignment_targets', [
+            'guru_id' => $outOfScopeGuru->id,
         ]);
     }
 
