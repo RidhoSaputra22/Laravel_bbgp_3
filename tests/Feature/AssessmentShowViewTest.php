@@ -1032,4 +1032,37 @@ class AssessmentShowViewTest extends TestCase
         $this->assertMatchesRegularExpression('/value="E"[\s\S]*?<h1 class="font-semibold">\s*D\.\s*<\/h1>/', $html);
         $this->assertMatchesRegularExpression('/value="D"[\s\S]*?<h1 class="font-semibold">\s*E\.\s*<\/h1>/', $html);
     }
+
+    public function test_file_field_displays_upload_hint(): void
+    {
+        $response = $this
+            ->withViewErrors([])
+            ->view('assessment.show.partials.assessment-field', [
+                'field' => [
+                    'id' => 301,
+                    'nama_field' => 'foto_tugas',
+                    'label' => 'Foto Surat Tugas',
+                    'deskripsi' => 'Foto diri memegang surat tugas.',
+                    'bantuan' => 'Format JPG/JPEG/PNG; ukuran maksimal 5 MB.',
+                    'placeholder' => '',
+                    'tipe_field' => 'file',
+                    'opsi_field' => [
+                        'input_mode' => 'file',
+                        'accept' => ['image/jpeg', 'image/png'],
+                        'max_size_kb' => 5120,
+                    ],
+                    'is_required' => true,
+                    'dependency_config' => null,
+                ],
+                'answerLookup' => [],
+                'attempt' => new AssessmentAttempt(['structure_snapshot' => []]),
+                'dependencyAnswerValues' => [],
+                'assessmentIndex' => 0,
+                'displayQuestionNumber' => 2,
+                'displayQuestionPrefix' => '',
+            ]);
+
+        $response->assertSee('Format JPG/JPEG/PNG; ukuran maksimal 5 MB.');
+        $response->assertSee('accept="image/jpeg,image/png"', false);
+    }
 }

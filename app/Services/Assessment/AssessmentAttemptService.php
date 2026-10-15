@@ -954,7 +954,11 @@ class AssessmentAttemptService
                     'image/webp',
                 ];
 
-                if (! in_array((string) $uploadedFile->getMimeType(), $allowedMimeTypes, true)) {
+                $allowedFileTypes = ($fileConfig['accept'] ?? []) !== []
+                    ? $fileConfig['accept']
+                    : $allowedMimeTypes;
+
+                if (! $this->matchesAllowedFileTypes($uploadedFile, $allowedFileTypes)) {
                     $messages[$fieldKey] = "Tipe file untuk pertanyaan {$fieldLabel} tidak diizinkan.";
 
                     continue;
@@ -1643,6 +1647,11 @@ class AssessmentAttemptService
 
         return [
             'input_mode' => $inputMode,
+            'accept' => collect(Arr::wrap($config['accept'] ?? []))
+                ->map(fn ($value) => trim((string) $value))
+                ->filter()
+                ->values()
+                ->all(),
             'max_size_kb' => is_numeric($config['max_size_kb'] ?? null)
                 ? max((int) $config['max_size_kb'], 1)
                 : 5120,
@@ -1650,6 +1659,40 @@ class AssessmentAttemptService
                 ? max((int) $config['max_files'], 1)
                 : 1,
         ];
+    }
+
+    private function matchesAllowedFileTypes(UploadedFile $file, array $allowedTypes): bool
+    {
+        $mimeType = strtolower(trim((string) $file->getMimeType()));
+        $extension = strtolower(trim((string) $file->getClientOriginalExtension()));
+
+        foreach ($allowedTypes as $allowedType) {
+            $allowedType = strtolower(trim((string) $allowedType));
+
+            if ($allowedType === '') {
+                continue;
+            }
+
+            if (str_starts_with($allowedType, '.') && ltrim($allowedType, '.') === $extension) {
+                return true;
+            }
+
+            if (str_ends_with($allowedType, '/*')) {
+                $typePrefix = substr($allowedType, 0, -1);
+
+                if (str_starts_with($mimeType, $typePrefix)) {
+                    return true;
+                }
+
+                continue;
+            }
+
+            if ($allowedType === $mimeType) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isValidExternalUrl(string $value): bool

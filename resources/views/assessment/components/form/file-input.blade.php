@@ -9,6 +9,7 @@
     'mode' => 'file',
     'value' => null,
     'placeholder' => null,
+    'accept' => [],
     'allowedDomains' => [],
     'inputTitle' => null,
     'existingFileUrl' => null,
@@ -69,6 +70,11 @@
     $mode = in_array(trim((string) $mode), ['file', 'link'], true) ? trim((string) $mode) : 'file';
     $allowedDomains = collect($allowedDomains)
         ->map(fn ($domain) => trim((string) $domain))
+        ->filter()
+        ->values()
+        ->all();
+    $accept = collect($accept)
+        ->map(fn ($type) => trim((string) $type))
         ->filter()
         ->values()
         ->all();
@@ -352,6 +358,7 @@
             ])>
     @else
         <input {{ $attributes->except('class') }} id="{{ $id }}" type="file" name="{{ $name }}"
+            @if ($accept !== []) accept="{{ implode(',', $accept) }}" @endif
             @required($required)
             @change="handleFileChange($event)"
             @class([

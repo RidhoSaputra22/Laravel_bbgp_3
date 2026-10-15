@@ -74,6 +74,16 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
                             'options' => ['Ya', 'Tidak'],
                             'required' => true,
                             'scoring_config' => ['score' => 1],
+                        ], [
+                            'id' => 301,
+                            'label' => 'Bukti Foto',
+                            'type' => 'file',
+                            'options' => [
+                                'input_mode' => 'file',
+                                'accept' => ['image/jpeg', 'image/png'],
+                                'max_size_kb' => 5120,
+                            ],
+                            'required' => true,
                         ]],
                     ]],
                 ]],
@@ -100,6 +110,10 @@ class ValidatorAssignmentDocumentBuilderTest extends TestCase
         $this->assertArrayNotHasKey('is_scoreable', $sourceForm);
         $this->assertArrayNotHasKey('scoring_config', $sourceForm);
         $this->assertArrayNotHasKey('scoring_config', $sourceForm['fields'][0]);
+        $this->assertSame(
+            ['image/jpeg', 'image/png'],
+            $sourceForm['fields'][1]['options']['accept']
+        );
         $this->assertTrue($document['validator_form']['sections'][0]['fields'][0]['is_scored']);
         $this->assertArrayNotHasKey('result', $document);
         $this->assertArrayNotHasKey('responses', $document);

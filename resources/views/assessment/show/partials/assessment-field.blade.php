@@ -245,7 +245,8 @@
 
         @case('file')
             <x-assessment::form.file-input :id="$inputId" :label="null" :description="null" :name="$answerName"
-                :required="$isRequired" :error="$fieldError" :mode="$fileInputMode"
+                :required="$isRequired" :error="$fieldError" :mode="$fileInputMode" :hint="$field['bantuan'] ?? null"
+                :accept="$fileFieldConfig['accept'] ?? []"
                 :value="$fileInputMode === 'link' ? $oldFileLinkValue : null"
                 :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'"
                 :allowed-domains="$fileInputMode === 'link' ? $urlAllowedDomains : []"

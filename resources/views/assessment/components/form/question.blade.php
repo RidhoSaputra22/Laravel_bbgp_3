@@ -83,7 +83,7 @@
         @case('file')
             <x-assessment::form.file-input :label="$field['label']" :description="$field['deskripsi']" :hint="$field['bantuan']"
                 :name="$answerName" :required="(bool) $field['is_required']" :error="$error"
-                :mode="$fileInputMode" :value="$fileInputMode === 'link' ? $oldValue : null"
+                :mode="$fileInputMode" :accept="data_get($field, 'opsi_field.accept', [])" :value="$fileInputMode === 'link' ? $oldValue : null"
                 :placeholder="$field['placeholder'] ?: 'https://drive.google.com/file/d/.../view'"
                 :allowed-domains="$fileInputMode === 'link' ? $urlAllowedDomains : []"
                 :input-title="$fileInputMode === 'link' ? $urlInputTitle : null" />

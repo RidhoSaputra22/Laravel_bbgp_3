@@ -2764,6 +2764,7 @@
             "opsi_field": {
               "max_files": 1,
               "input_mode": "file",
+              "accept": ["image/jpeg", "image/png"],
               "max_size_kb": 5120
             },
             "nilai_default": null,
