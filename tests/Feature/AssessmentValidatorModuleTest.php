@@ -314,6 +314,30 @@ class AssessmentValidatorModuleTest extends TestCase
         );
     }
 
+    public function test_cli_can_refresh_validator_assignment_titles_from_current_source_assignments(): void
+    {
+        $validator = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '108');
+        [, $sourceAssignment] = $this->createAssessment();
+        [$form] = $this->createValidatorForm();
+        $assignment = app(ValidatorAssignmentService::class)->create([
+            'title' => 'QA Refresh CLI',
+            'validator_form_id' => $form->id,
+            'source_mode' => ValidatorAssignment::SOURCE_MODE_ALL_FORMS,
+            'assessment_assignment_ids' => [$sourceAssignment->id],
+            'validator_user_id' => $validator->id,
+        ], null);
+
+        $sourceAssignment->update(['judul_penugasan' => 'Asesmen Guru SIMBBGTK']);
+
+        $this->artisan('assessment:refresh-validator-snapshots', ['--force' => true])
+            ->assertExitCode(0);
+
+        $this->assertSame(
+            'Asesmen Guru SIMBBGTK',
+            data_get($assignment->fresh()->assessment_assignment_snapshots, '0.title')
+        );
+    }
+
     public function test_admin_panel_and_validator_workspace_have_separate_access_rules(): void
     {
         $eligible = $this->createUserWithGuru('stakeholder', 'Stakeholder', 'Validator', '777');
