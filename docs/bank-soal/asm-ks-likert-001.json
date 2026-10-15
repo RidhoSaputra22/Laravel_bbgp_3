@@ -19,7 +19,7 @@
     "judul": "Angket Kompetensi Kepala Sekolah",
     "slug": "angket-kompetensi-kepala-sekolah",
     "deskripsi": "Instrumen pemetaan kompetensi kepala sekolah BBGTK Sulawesi Selatan berbasis skala Likert untuk kompetensi kepribadian, sosial, dan profesional.",
-    "petunjuk": "Pilih satu tingkat persetujuan untuk setiap pernyataan berdasarkan praktik dan pemahaman Anda saat ini! Tidak ada jawaban benar atau salah.\r\nSkor jawaban:\r\n1 = Sangat Tidak Setuju\r\n2 = Tidak Setuju\r\n3 = Setuju\r\n4 = Sangat Setuju\r\nPernyataan negatif diberi skor balik dengan rumus 5 - skor jawaban agar skor yang lebih tinggi tetap menunjukkan kompetensi yang lebih kuat.\r\nAnalisis hasil: hitung rerata skor terkoreksi per subindikator! Setiap butir memiliki bobot yang sama.\r\nInterpretasi rerata:\r\n1,00–1,75 = Sangat rendah (prioritas pengembangan utama)\r\nLebih dari 1,75 sampai dengan 2,50 = Rendah (area pengembangan)\r\nLebih dari 2,50 sampai dengan 3,25 = Tinggi (kompetensi berkembang)\r\nLebih dari 3,25 sampai dengan 4,00 = Sangat tinggi (kekuatan untuk dipertahankan dan dibagikan).\r\nGunakan rentang rerata ini secara langsung tanpa mengonversi skor ke skala 100!",
+    "petunjuk": "Pilih tingkat persetujuan sesuai kondisi Anda.\n1 = Sangat Tidak Setuju\n2 = Tidak Setuju\n3 = Setuju\n4 = Sangat Setuju",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-08-07T21:11:33.000000Z",

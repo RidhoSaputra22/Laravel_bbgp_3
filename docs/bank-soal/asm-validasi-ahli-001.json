@@ -19,7 +19,7 @@
     "judul": "Instrumen Validasi Ahli Instrumen Pemetaan Kompetensi Guru",
     "slug": "instrumen-validasi-ahli-instrumen-pemetaan-kompetensi-guru",
     "deskripsi": "Instrumen validasi ahli untuk menilai kelayakan Instrumen Pemetaan Kompetensi Guru berdasarkan aspek desain instrumen, konten/substansi, dan kebahasaan.",
-    "petunjuk": "Bapak/Ibu Validator dimohon memberikan penilaian terhadap Instrumen Pemetaan Kompetensi Guru berdasarkan aspek desain instrumen, konten/substansi, dan kebahasaan. Berikan skor 1 sampai 5 sesuai dengan tingkat kesesuaian setiap indikator. Kriteria skor: 1 Sangat Tidak Sesuai, 2 Tidak Sesuai, 3 Cukup Sesuai, 4 Sesuai, dan 5 Sangat Sesuai.",
+    "petunjuk": "Nilai setiap indikator sesuai tingkat kesesuaiannya.\n1 = Sangat Tidak Sesuai\n2 = Tidak Sesuai\n3 = Cukup Sesuai\n4 = Sesuai\n5 = Sangat Sesuai.",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-07-11T00:30:06.000000Z",

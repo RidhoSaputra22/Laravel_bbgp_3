@@ -19,7 +19,7 @@
     "judul": "Portofolio Guru",
     "slug": "portofolio-guru",
     "deskripsi": "Instrumen portofolio untuk memetakan identitas, riwayat pendidikan, pengalaman, kontribusi profesional, serta refleksi diri guru.",
-    "petunjuk": "Isi data sesuai jabatan Guru dan kondisi sebenarnya. Unggah foto diri sambil memegang surat tugas asesmen dalam format JPG/JPEG/PNG, maksimal 5 MB. Unggah SK Guru dalam format PDF/JPG/JPEG/PNG, maksimal 5 MB per berkas. Untuk bukti lain, cantumkan tautan yang dapat dibuka oleh validator. Bagian karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, dan diseminasi bersifat opsional.",
+    "petunjuk": "Lengkapi data portofolio sesuai kondisi sebenarnya dan sertakan bukti pendukung jika tersedia.",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-06-29T07:41:15.000000Z",
