@@ -9,6 +9,7 @@
     'emptyMessage' => 'Data tidak tersedia.',
     'selectedTitle' => 'Data Terpilih',
     'ajaxUrl' => null,
+    'ajaxMethod' => 'GET',
     'ajaxParams' => [],
     'pageSize' => 10,
     'initialSelectedItems' => [],
@@ -323,6 +324,7 @@
                     const tableId = element.dataset.tableId;
                     const inputName = element.dataset.inputName;
                     const ajaxUrl = element.dataset.ajaxUrl || '';
+                    const ajaxMethod = (element.dataset.ajaxMethod || 'GET').toUpperCase();
                     const isRemote = ajaxUrl !== '';
                     const pageSize = Math.max(Number(element.dataset.pageSize || 10), 1);
                     let selectedTitle = element.dataset.selectedTitle || 'Data Terpilih';
@@ -687,12 +689,25 @@
                             params.set(key, String(value));
                         });
 
-                        window.fetch(ajaxUrl + '?' + params.toString(), {
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                },
-                                credentials: 'same-origin',
-                            })
+                        const requestOptions = {
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                        };
+                        const requestUrl = ajaxMethod === 'POST' ? ajaxUrl : ajaxUrl + '?' + params.toString();
+
+                        if (ajaxMethod === 'POST') {
+                            requestOptions.method = 'POST';
+                            requestOptions.headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8';
+                            requestOptions.headers['X-CSRF-TOKEN'] = document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '';
+                            requestOptions.body = params.toString();
+                        }
+
+                        window.fetch(requestUrl, requestOptions)
                             .then(function(response) {
                                 if (!response.ok) {
                                     throw new Error('HTTP ' + response.status);
@@ -888,6 +903,7 @@
     data-input-name="{{ $name }}"
     data-selected-title="{{ $selectedTitle }}"
     data-ajax-url="{{ $ajaxUrl ?? '' }}"
+    data-ajax-method="{{ strtoupper($ajaxMethod) }}"
     data-ajax-params='@json($normalizedAjaxParams)'
     data-page-size="{{ $pageSize }}"
     data-column-count="{{ count($headers) + 1 }}"

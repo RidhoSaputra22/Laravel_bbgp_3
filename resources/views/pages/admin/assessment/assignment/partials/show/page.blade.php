@@ -1490,6 +1490,7 @@
                         :initialSelectedItems="$participantAdditionPanel['selected_items'] ?? []"
                         :ajaxParams="$participantAdditionPanel['ajax_params'] ?? []"
                         ajax-url="{{ route('assessment.assignment.add-participants-options', $assignment->id) }}"
+                        ajax-method="POST"
                         page-size="10" search-placeholder="Cari nama peserta tambahan..."
                         empty-message="{{ $participantAdditionPanel['disabled_reason'] ?? 'Tidak ada peserta tambahan yang tersedia pada ketenagaan ini.' }}"
                         selected-title="Peserta Tambahan" />

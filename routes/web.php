@@ -439,7 +439,7 @@ Route::group(
                     Route::get('/create', 'AssessmentAssignmentController@create')->name('assessment.assignment.create');
                     Route::get('/edit/{id}', 'AssessmentAssignmentController@edit')->name('assessment.assignment.edit');
                     Route::get('/guru-options', 'AssessmentAssignmentController@guruOptions')->name('assessment.assignment.guru-options');
-                    Route::get('/show/{id}/add-participants-options', 'AssessmentAssignmentController@addParticipantOptions')
+                    Route::match(['get', 'post'], '/show/{id}/add-participants-options', 'AssessmentAssignmentController@addParticipantOptions')
                         ->name('assessment.assignment.add-participants-options');
                     Route::get('/show/{id}/monitoring-individuals', 'AssessmentAssignmentController@monitoringIndividuals')
                         ->name('assessment.assignment.monitoring-individuals');

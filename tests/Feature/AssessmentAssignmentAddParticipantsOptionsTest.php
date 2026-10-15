@@ -128,8 +128,10 @@ class AssessmentAssignmentAddParticipantsOptionsTest extends TestCase
             ->withSession([
                 'cek' => true,
                 'role' => 'admin',
+                '_token' => 'test-token',
             ])
-            ->getJson(route('assessment.assignment.add-participants-options', [
+            ->withHeader('X-CSRF-TOKEN', 'test-token')
+            ->postJson(route('assessment.assignment.add-participants-options', [
                 'id' => $assignment->id,
             ]));
 
