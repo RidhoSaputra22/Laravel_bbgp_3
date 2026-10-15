@@ -12,7 +12,8 @@ use Throwable;
 class ExportAssessmentBankSoal extends Command
 {
     protected $signature = 'assessment:export-bank-soal
-        {--path=docs/bank-soal : Folder tujuan file JSON}';
+        {--path=docs/bank-soal : Folder tujuan file JSON}
+        {--force : Lewati konfirmasi}';
 
     protected $description = 'Export semua bank soal assessment ke docs/bank-soal dan replace file yang sama';
 
@@ -20,6 +21,15 @@ class ExportAssessmentBankSoal extends Command
     {
         $directory = (string) $this->option('path');
         $directory = str_starts_with($directory, '/') ? $directory : base_path($directory);
+
+        if (! $this->option('force') && ! $this->confirm(
+            "Aksi ini akan mengambil semua soal dari database dan menyimpannya ke folder {$directory}. File JSON yang sama akan ditimpa. Lanjutkan?",
+            false
+        )) {
+            $this->warn('Export dibatalkan. Tidak ada file yang diubah.');
+
+            return self::SUCCESS;
+        }
 
         if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
             $this->error("Folder tujuan tidak dapat dibuat: {$directory}");

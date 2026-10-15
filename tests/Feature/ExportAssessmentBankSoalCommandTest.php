@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Assessment;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class ExportAssessmentBankSoalCommandTest extends TestCase
@@ -46,9 +45,14 @@ class ExportAssessmentBankSoalCommandTest extends TestCase
         file_put_contents($path, '{"old":true}');
 
         try {
-            $this->assertSame(0, Artisan::call('assessment:export-bank-soal', [
+            $this->artisan('assessment:export-bank-soal', [
                 '--path' => $directory,
-            ]));
+            ])
+                ->expectsConfirmation(
+                    "Aksi ini akan mengambil semua soal dari database dan menyimpannya ke folder {$directory}. File JSON yang sama akan ditimpa. Lanjutkan?",
+                    'yes'
+                )
+                ->assertExitCode(0);
             $json = (string) file_get_contents($path);
             $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 

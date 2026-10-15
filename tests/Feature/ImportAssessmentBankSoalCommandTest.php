@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\Assessment;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 class ImportAssessmentBankSoalCommandTest extends TestCase
@@ -24,9 +23,14 @@ class ImportAssessmentBankSoalCommandTest extends TestCase
                 );
             }
 
-            $this->assertSame(0, Artisan::call('assessment:import-bank-soal', [
+            $this->artisan('assessment:import-bank-soal', [
                 '--path' => $directory,
-            ]));
+            ])
+                ->expectsConfirmation(
+                    "Aksi ini akan mengambil soal dari folder {$directory} dan mengimpornya ke database. Lanjutkan?",
+                    'yes'
+                )
+                ->assertExitCode(0);
 
             $this->assertDatabaseHas('assessments', ['kode_assessment' => 'ASM-IMPORT-ONE']);
             $this->assertDatabaseHas('assessments', ['kode_assessment' => 'ASM-IMPORT-TWO']);

@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-14T23:31:07.997523Z",
+    "exported_at": "2026-10-15T13:16:28.092822Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -38,15 +38,15 @@
     },
     "forms": [
       {
-        "id": 1600,
+        "id": 1847,
         "assessment_id": 13,
         "judul_form": "1.1.1 Makna, tujuan, dan pandangan hidup berdasarkan prinsip moral dan keyakinan terhadap Tuhan Yang Maha Esa dalam menjalankan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-111",
         "deskripsi": "Kompetensi Kepribadian — Makna, tujuan, dan pandangan hidup berdasarkan prinsip moral dan keyakinan terhadap Tuhan Yang Maha Esa dalam menjalankan peran sebagai pengawas sekolah..",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.1.1",
         "indikator_label": "Makna, tujuan, dan pandangan hidup berdasarkan prinsip moral dan keyakinan terhadap Tuhan Yang Maha Esa dalam menjalankan peran sebagai pengawas sekolah.",
@@ -58,8 +58,8 @@
         },
         "fields": [
           {
-            "id": 7336,
-            "assessment_form_id": 1600,
+            "id": 8459,
+            "assessment_form_id": 1847,
             "label": "Soal 1. Bagaimana pengawas sebaiknya mewujudkan amanah moral dalam kegiatan supervisi?",
             "nama_field": "f_928bpefx",
             "tipe_field": "radio",
@@ -109,8 +109,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Seorang pengawas sekolah menjalankan tugas supervisi dengan berupaya memahami perannya sebagai bagian dari pengabdian profesional yang dilandasi nilai moral dan keyakinan terhadap Tuhan Yang Maha Esa.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -123,8 +123,8 @@
             }
           },
           {
-            "id": 7337,
-            "assessment_form_id": 1600,
+            "id": 8460,
+            "assessment_form_id": 1847,
             "label": "Soal 2. Tindakan apa yang paling tepat ketika pertimbangan moral dan kepentingan pihak tertentu bertentangan?",
             "nama_field": "f_kc8bnhk0",
             "tipe_field": "radio",
@@ -174,8 +174,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menghadapi dilema dalam pengambilan keputusan pembinaan guru, sehingga perlu mempertimbangkan nilai moral dan keyakinan dalam menentukan langkah yang tepat.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -188,8 +188,8 @@
             }
           },
           {
-            "id": 7338,
-            "assessment_form_id": 1600,
+            "id": 8461,
+            "assessment_form_id": 1847,
             "label": "Soal 3. Bagaimana hasil refleksi moral sebaiknya digunakan untuk memperbaiki supervisi berikutnya?",
             "nama_field": "f_d4bv4c84",
             "tipe_field": "radio",
@@ -239,8 +239,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap praktik kepengawasan yang telah dilaksanakan untuk memastikan kesesuaian antara tindakan dengan nilai moral dan keyakinan yang dianut.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -253,8 +253,8 @@
             }
           },
           {
-            "id": 7339,
-            "assessment_form_id": 1600,
+            "id": 8462,
+            "assessment_form_id": 1847,
             "label": "Soal 4. Strategi apa yang paling tepat untuk menularkan kepemimpinan berlandaskan nilai moral kepada rekan pengawas?",
             "nama_field": "f_hzjl1j5s",
             "tipe_field": "radio",
@@ -304,8 +304,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kematangan moral dan spiritual yang kuat dalam menjalankan tugas, dan menjadi rujukan dalam praktik kepengawasan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -320,15 +320,15 @@
         ]
       },
       {
-        "id": 1601,
+        "id": 1848,
         "assessment_id": 13,
         "judul_form": "1.1.2 Pengelolaan emosi dalam menjalankan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-112",
         "deskripsi": "Kompetensi Kepribadian — Pengelolaan emosi dalam menjalankan peran sebagai pengawas sekolah..",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.1.2",
         "indikator_label": "Pengelolaan emosi dalam menjalankan peran sebagai pengawas sekolah.",
@@ -340,8 +340,8 @@
         },
         "fields": [
           {
-            "id": 7340,
-            "assessment_form_id": 1601,
+            "id": 8463,
+            "assessment_form_id": 1848,
             "label": "Soal 5. Bagaimana pengawas sebaiknya merespons guru yang menolak masukan supervisi?",
             "nama_field": "f_ra4d7ex4",
             "tipe_field": "radio",
@@ -391,8 +391,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Seorang pengawas sekolah menghadapi situasi supervisi ketika guru menunjukkan resistensi terhadap masukan yang diberikan. Pengawas tetap berupaya menjaga sikap profesional dalam merespons kondisi tersebut.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -405,8 +405,8 @@
             }
           },
           {
-            "id": 7341,
-            "assessment_form_id": 1601,
+            "id": 8464,
+            "assessment_form_id": 1848,
             "label": "Soal 6. Pendekatan pengelolaan emosi apa yang paling tepat saat menghadapi karakter guru yang beragam?",
             "nama_field": "f_iniclxfn",
             "tipe_field": "radio",
@@ -456,8 +456,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Saat menjalankan tugas pembinaan, pengawas sekolah dihadapkan pada berbagai karakter guru yang memerlukan pendekatan emosional yang berbeda.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -470,8 +470,8 @@
             }
           },
           {
-            "id": 7342,
-            "assessment_form_id": 1601,
+            "id": 8465,
+            "assessment_form_id": 1848,
             "label": "Soal 7. Bagaimana pengawas sebaiknya menggunakan refleksi untuk meningkatkan pengelolaan emosinya?",
             "nama_field": "f_wzuozn1t",
             "tipe_field": "radio",
@@ -521,8 +521,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap pengalaman dalam mengelola emosi ketika menghadapi berbagai dinamika di sekolah binaan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -535,8 +535,8 @@
             }
           },
           {
-            "id": 7343,
-            "assessment_form_id": 1601,
+            "id": 8466,
+            "assessment_form_id": 1848,
             "label": "Soal 8. Bagaimana pengawas yang telah matang secara emosional dapat membantu rekan sejawat?",
             "nama_field": "f_1wllijh9",
             "tipe_field": "radio",
@@ -586,8 +586,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kematangan emosi yang tinggi dan menjadi rujukan dalam membina hubungan profesional di lingkungan kerja.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -602,15 +602,15 @@
         ]
       },
       {
-        "id": 1602,
+        "id": 1849,
         "assessment_id": 13,
         "judul_form": "1.1.3 Penerapan kode etik dalam menjalankan tugas dan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-113",
         "deskripsi": "Kompetensi Kepribadian — Penerapan kode etik dalam menjalankan tugas dan peran sebagai pengawas sekolah..",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.1.3",
         "indikator_label": "Penerapan kode etik dalam menjalankan tugas dan peran sebagai pengawas sekolah.",
@@ -622,8 +622,8 @@
         },
         "fields": [
           {
-            "id": 7344,
-            "assessment_form_id": 1602,
+            "id": 8467,
+            "assessment_form_id": 1849,
             "label": "Soal 9. Tindakan apa yang paling menunjukkan penerapan kode etik saat melaksanakan supervisi?",
             "nama_field": "f_sygga0h0",
             "tipe_field": "radio",
@@ -673,8 +673,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Seorang pengawas sekolah melaksanakan supervisi dengan berpedoman pada kode etik profesi, dan berupaya menjaga sikap profesional dalam setiap interaksi dengan warga sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -687,8 +687,8 @@
             }
           },
           {
-            "id": 7345,
-            "assessment_form_id": 1602,
+            "id": 8468,
+            "assessment_form_id": 1849,
             "label": "Soal 10. Bagaimana pengawas sebaiknya mengambil keputusan ketika menemukan persoalan yang berkaitan dengan kode etik?",
             "nama_field": "f_txs9x53x",
             "tipe_field": "radio",
@@ -738,8 +738,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Saat menjalankan tugas, pengawas sekolah menghadapi berbagai situasi yang menuntut keputusan profesional yang sesuai dengan kode etik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -752,8 +752,8 @@
             }
           },
           {
-            "id": 7346,
-            "assessment_form_id": 1602,
+            "id": 8469,
+            "assessment_form_id": 1849,
             "label": "Soal 11. Bagaimana refleksi penerapan kode etik dapat menghasilkan perbaikan praktik kepengawasan?",
             "nama_field": "f_tj9orbhp",
             "tipe_field": "radio",
@@ -803,8 +803,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap praktik penerapan kode etik dalam pelaksanaan tugas kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -817,8 +817,8 @@
             }
           },
           {
-            "id": 7347,
-            "assessment_form_id": 1602,
+            "id": 8470,
+            "assessment_form_id": 1849,
             "label": "Soal 12. Strategi apa yang paling tepat untuk memperkuat penerapan kode etik di komunitas pengawas?",
             "nama_field": "f_w2z64uwr",
             "tipe_field": "radio",
@@ -868,8 +868,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan konsistensi dalam menerapkan kode etik dan menjadi rujukan dalam praktik kepengawasan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -884,15 +884,15 @@
         ]
       },
       {
-        "id": 1603,
+        "id": 1850,
         "assessment_id": 13,
         "judul_form": "1.2.1 Refleksi untuk perencanaan pengembangan diri dalam peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-121",
         "deskripsi": "Kompetensi Kepribadian — Refleksi untuk perencanaan pengembangan diri dalam peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.2.1",
         "indikator_label": "Refleksi untuk perencanaan pengembangan diri dalam peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -904,8 +904,8 @@
         },
         "fields": [
           {
-            "id": 7348,
-            "assessment_form_id": 1603,
+            "id": 8471,
+            "assessment_form_id": 1850,
             "label": "Soal 13. Apa langkah paling tepat dalam merefleksikan hasil supervisi untuk menentukan kebutuhan pengembangan diri?",
             "nama_field": "f_vlwbduci",
             "tipe_field": "radio",
@@ -955,8 +955,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Seorang pengawas sekolah melakukan refleksi terhadap kegiatan supervisi yang telah dilaksanakan untuk memahami kekuatan dan area pengembangan dalam meningkatkan mutu layanan satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -969,8 +969,8 @@
             }
           },
           {
-            "id": 7349,
-            "assessment_form_id": 1603,
+            "id": 8472,
+            "assessment_form_id": 1850,
             "label": "Soal 14. Bagaimana refleksi berkala sebaiknya digunakan untuk menyusun rencana pengembangan diri?",
             "nama_field": "f_3qe4cunv",
             "tipe_field": "radio",
@@ -1020,8 +1020,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi secara berkala untuk merencanakan pengembangan diri dalam meningkatkan kualitas layanan pendidikan yang berpusat pada peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1034,8 +1034,8 @@
             }
           },
           {
-            "id": 7350,
-            "assessment_form_id": 1603,
+            "id": 8473,
+            "assessment_form_id": 1850,
             "label": "Soal 15. Tindakan reflektif apa yang paling membantu meningkatkan kualitas pembinaan sekolah?",
             "nama_field": "f_sn1ze9ou",
             "tipe_field": "radio",
@@ -1085,8 +1085,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi mendalam terhadap praktik kepengawasan dengan tujuan meningkatkan kualitas pembinaan dan layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1099,8 +1099,8 @@
             }
           },
           {
-            "id": 7351,
-            "assessment_form_id": 1603,
+            "id": 8474,
+            "assessment_form_id": 1850,
             "label": "Soal 16. Bagaimana pengawas dapat mengembangkan budaya refleksi yang berguna bagi sekolah binaan?",
             "nama_field": "f_y0y53kdr",
             "tipe_field": "radio",
@@ -1150,8 +1150,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah membudayakan refleksi sebagai bagian dari pengembangan diri dan peningkatan mutu layanan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1166,15 +1166,15 @@
         ]
       },
       {
-        "id": 1604,
+        "id": 1851,
         "assessment_id": 13,
         "judul_form": "1.2.2 Cara adaptif melakukan pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-122",
         "deskripsi": "Kompetensi Kepribadian — Cara adaptif melakukan pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 5,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.2.2",
         "indikator_label": "Cara adaptif melakukan pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -1186,8 +1186,8 @@
         },
         "fields": [
           {
-            "id": 7352,
-            "assessment_form_id": 1604,
+            "id": 8475,
+            "assessment_form_id": 1851,
             "label": "Soal 17. Bagaimana pengawas perlu menyesuaikan pengembangan diri saat terjadi perubahan kebijakan pembelajaran?",
             "nama_field": "f_s0n96tjj",
             "tipe_field": "radio",
@@ -1237,8 +1237,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Seorang pengawas sekolah menghadapi perubahan kebijakan pembelajaran yang menuntut penyesuaian dalam praktik kepengawasan agar tetap relevan dengan kebutuhan peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1251,8 +1251,8 @@
             }
           },
           {
-            "id": 7353,
-            "assessment_form_id": 1604,
+            "id": 8476,
+            "assessment_form_id": 1851,
             "label": "Soal 18. Pendekatan adaptif apa yang paling sesuai untuk mengembangkan kompetensi pengawas?",
             "nama_field": "f_3d14rqjj",
             "tipe_field": "radio",
@@ -1302,8 +1302,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah berupaya meningkatkan kompetensi dirinya dengan menyesuaikan pendekatan pembinaan sesuai dengan dinamika dan kebutuhan satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1316,8 +1316,8 @@
             }
           },
           {
-            "id": 7354,
-            "assessment_form_id": 1604,
+            "id": 8477,
+            "assessment_form_id": 1851,
             "label": "Soal 19. Bagaimana hasil evaluasi praktik kepengawasan sebaiknya dipakai untuk beradaptasi?",
             "nama_field": "f_mfcl38gr",
             "tipe_field": "radio",
@@ -1367,8 +1367,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan evaluasi terhadap praktik kepengawasan untuk menyesuaikan strategi pembinaan agar lebih efektif dalam meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1381,8 +1381,8 @@
             }
           },
           {
-            "id": 7355,
-            "assessment_form_id": 1604,
+            "id": 8478,
+            "assessment_form_id": 1851,
             "label": "Soal 20. Bagaimana pengawas dapat memperluas praktik pengembangan diri yang adaptif kepada rekan sejawat?",
             "nama_field": "f_1yhiwv93",
             "tipe_field": "radio",
@@ -1432,8 +1432,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan adaptif dalam pengembangan diri dan menjadi rujukan dalam meningkatkan mutu layanan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1448,15 +1448,15 @@
         ]
       },
       {
-        "id": 1605,
+        "id": 1852,
         "assessment_id": 13,
         "judul_form": "1.2.3 Penerapan hasil pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-123",
         "deskripsi": "Kompetensi Kepribadian — Penerapan hasil pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 6,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.2.3",
         "indikator_label": "Penerapan hasil pengembangan diri untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -1468,8 +1468,8 @@
         },
         "fields": [
           {
-            "id": 7356,
-            "assessment_form_id": 1605,
+            "id": 8479,
+            "assessment_form_id": 1852,
             "label": "Soal 21. Bagaimana hasil pengembangan diri sebaiknya diterapkan dalam tugas kepengawasan?",
             "nama_field": "f_2p6gs783",
             "tipe_field": "radio",
@@ -1519,8 +1519,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mengikuti berbagai kegiatan pengembangan diri dan mulai memanfaatkan hasil pembelajaran tersebut dalam pelaksanaan tugas kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1533,8 +1533,8 @@
             }
           },
           {
-            "id": 7357,
-            "assessment_form_id": 1605,
+            "id": 8480,
+            "assessment_form_id": 1852,
             "label": "Soal 22. Pendekatan apa yang paling tepat untuk menerapkan hasil pelatihan dan refleksi pengawas?",
             "nama_field": "f_ig7zldmk",
             "tipe_field": "radio",
@@ -1584,8 +1584,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah berupaya menerapkan hasil pelatihan dan refleksi dalam meningkatkan kualitas pembinaan kepada guru dan satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1598,8 +1598,8 @@
             }
           },
           {
-            "id": 7358,
-            "assessment_form_id": 1605,
+            "id": 8481,
+            "assessment_form_id": 1852,
             "label": "Soal 23. Bagaimana pengawas sebaiknya mengevaluasi dampak penerapan hasil pengembangan diri?",
             "nama_field": "f_rgfm5y33",
             "tipe_field": "radio",
@@ -1649,8 +1649,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan evaluasi terhadap dampak penerapan hasil pengembangan diri dalam praktik kepengawasan untuk meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1663,8 +1663,8 @@
             }
           },
           {
-            "id": 7359,
-            "assessment_form_id": 1605,
+            "id": 8482,
+            "assessment_form_id": 1852,
             "label": "Soal 24. Strategi apa yang paling tepat untuk memperluas manfaat hasil pengembangan diri pengawas?",
             "nama_field": "f_w7du8k9q",
             "tipe_field": "radio",
@@ -1714,8 +1714,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu menerapkan hasil pengembangan diri secara konsisten dan menjadi rujukan dalam peningkatan mutu layanan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1730,15 +1730,15 @@
         ]
       },
       {
-        "id": 1606,
+        "id": 1853,
         "assessment_id": 13,
         "judul_form": "1.3.1 Empati terhadap peserta didik dalam pengambilan keputusan pendampingan kepada kepala sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-131",
         "deskripsi": "Kompetensi Kepribadian — Empati terhadap peserta didik dalam pengambilan keputusan pendampingan kepada kepala sekolah..",
         "urutan": 7,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.3.1",
         "indikator_label": "Empati terhadap peserta didik dalam pengambilan keputusan pendampingan kepada kepala sekolah.",
@@ -1750,8 +1750,8 @@
         },
         "fields": [
           {
-            "id": 7360,
-            "assessment_form_id": 1606,
+            "id": 8483,
+            "assessment_form_id": 1853,
             "label": "Soal 25. Bagaimana pengawas perlu mempertimbangkan kondisi peserta didik ketika memberi saran kepada kepala sekolah?",
             "nama_field": "f_d5qplst7",
             "tipe_field": "radio",
@@ -1801,8 +1801,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah memberikan pendampingan kepada kepala sekolah dalam menangani permasalahan pembelajaran yang berdampak pada peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1815,8 +1815,8 @@
             }
           },
           {
-            "id": 7361,
-            "assessment_form_id": 1606,
+            "id": 8484,
+            "assessment_form_id": 1853,
             "label": "Soal 26. Pendekatan pengambilan keputusan apa yang paling menunjukkan empati kepada peserta didik?",
             "nama_field": "f_zhnsu8z6",
             "tipe_field": "radio",
@@ -1866,8 +1866,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pada proses pembinaan, pengawas sekolah dihadapkan pada berbagai keputusan strategis yang berdampak langsung terhadap pengalaman belajar peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1880,8 +1880,8 @@
             }
           },
           {
-            "id": 7362,
-            "assessment_form_id": 1606,
+            "id": 8485,
+            "assessment_form_id": 1853,
             "label": "Soal 27. Bagaimana pengawas sebaiknya merefleksikan dampak rekomendasinya terhadap peserta didik?",
             "nama_field": "f_973ozctl",
             "tipe_field": "radio",
@@ -1931,8 +1931,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap keputusan pendampingan yang telah diberikan kepada kepala sekolah, khususnya terkait dampaknya terhadap peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1945,8 +1945,8 @@
             }
           },
           {
-            "id": 7363,
-            "assessment_form_id": 1606,
+            "id": 8486,
+            "assessment_form_id": 1853,
             "label": "Soal 28. Strategi apa yang paling tepat untuk menjadikan empati kepada peserta didik sebagai dasar pendampingan?",
             "nama_field": "f_xlpgez9d",
             "tipe_field": "radio",
@@ -1996,8 +1996,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan empati yang tinggi terhadap peserta didik dan menjadi rujukan dalam pengambilan keputusan pendampingan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2012,15 +2012,15 @@
         ]
       },
       {
-        "id": 1607,
+        "id": 1854,
         "assessment_id": 13,
         "judul_form": "1.3.2 Respek terhadap hak peserta didik dalam pendampingan kepada kepala sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-132",
         "deskripsi": "Kompetensi Kepribadian — Respek terhadap hak peserta didik dalam pendampingan kepada kepala sekolah..",
         "urutan": 8,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.3.2",
         "indikator_label": "Respek terhadap hak peserta didik dalam pendampingan kepada kepala sekolah.",
@@ -2032,8 +2032,8 @@
         },
         "fields": [
           {
-            "id": 7364,
-            "assessment_form_id": 1607,
+            "id": 8487,
+            "assessment_form_id": 1854,
             "label": "Soal 29. Apa tindakan yang paling tepat untuk memastikan hak peserta didik dihormati dalam kebijakan sekolah?",
             "nama_field": "f_gjy9ufoi",
             "tipe_field": "radio",
@@ -2083,8 +2083,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah memberikan pendampingan kepada kepala sekolah dalam memastikan kebijakan sekolah menghargai hak-hak peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2097,8 +2097,8 @@
             }
           },
           {
-            "id": 7365,
-            "assessment_form_id": 1607,
+            "id": 8488,
+            "assessment_form_id": 1854,
             "label": "Soal 30. Bagaimana pengawas sebaiknya menilai alternatif kebijakan yang berdampak pada hak peserta didik?",
             "nama_field": "f_brvxrya0",
             "tipe_field": "radio",
@@ -2148,8 +2148,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pada proses pembinaan, pengawas sekolah mempertimbangkan berbagai kebijakan yang berdampak pada pemenuhan hak peserta didik di satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2162,8 +2162,8 @@
             }
           },
           {
-            "id": 7366,
-            "assessment_form_id": 1607,
+            "id": 8489,
+            "assessment_form_id": 1854,
             "label": "Soal 31. Apa bentuk refleksi yang paling berguna untuk mengevaluasi pemenuhan hak peserta didik?",
             "nama_field": "f_gd7c4dkp",
             "tipe_field": "radio",
@@ -2213,8 +2213,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap keputusan pendampingan yang telah diberikan, khususnya terkait pemenuhan hak peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2227,8 +2227,8 @@
             }
           },
           {
-            "id": 7367,
-            "assessment_form_id": 1607,
+            "id": 8490,
+            "assessment_form_id": 1854,
             "label": "Soal 32. Bagaimana pengawas dapat mendorong penghormatan hak peserta didik secara berkelanjutan di sekolah binaan?",
             "nama_field": "f_m0grpit3",
             "tipe_field": "radio",
@@ -2278,8 +2278,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan komitmen tinggi dalam menghormati hak peserta didik dan menjadi rujukan dalam praktik kepengawasan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2294,15 +2294,15 @@
         ]
       },
       {
-        "id": 1608,
+        "id": 1855,
         "assessment_id": 13,
         "judul_form": "1.3.3 Kepedulian terhadap keselamatan dan keamanan peserta didik sebagai individu dan kelompok dalam menjalankan peran sebagai pengawas sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-133",
         "deskripsi": "Kompetensi Kepribadian — Kepedulian terhadap keselamatan dan keamanan peserta didik sebagai individu dan kelompok dalam menjalankan peran sebagai pengawas sekolah..",
         "urutan": 9,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.3.3",
         "indikator_label": "Kepedulian terhadap keselamatan dan keamanan peserta didik sebagai individu dan kelompok dalam menjalankan peran sebagai pengawas sekolah.",
@@ -2314,8 +2314,8 @@
         },
         "fields": [
           {
-            "id": 7368,
-            "assessment_form_id": 1608,
+            "id": 8491,
+            "assessment_form_id": 1855,
             "label": "Soal 33. Apa langkah paling tepat untuk mendampingi sekolah dalam memastikan keselamatan peserta didik?",
             "nama_field": "f_1sz98r2t",
             "tipe_field": "radio",
@@ -2365,8 +2365,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah memberikan pendampingan kepada kepala sekolah dalam memastikan lingkungan belajar yang aman bagi peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2379,8 +2379,8 @@
             }
           },
           {
-            "id": 7369,
-            "assessment_form_id": 1608,
+            "id": 8492,
+            "assessment_form_id": 1855,
             "label": "Soal 34. Bagaimana pengawas sebaiknya menentukan prioritas pembinaan keamanan pada sekolah dengan kondisi berbeda?",
             "nama_field": "f_ta1qbk8t",
             "tipe_field": "radio",
@@ -2430,8 +2430,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menghadapi berbagai kondisi sekolah dengan tingkat keamanan yang berbeda dalam mendukung proses pembelajaran.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2444,8 +2444,8 @@
             }
           },
           {
-            "id": 7370,
-            "assessment_form_id": 1608,
+            "id": 8493,
+            "assessment_form_id": 1855,
             "label": "Soal 35. Bagaimana pengawas sebaiknya merefleksikan kebijakan keselamatan peserta didik?",
             "nama_field": "f_8sm271ql",
             "tipe_field": "radio",
@@ -2495,8 +2495,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap kebijakan dan praktik sekolah yang berkaitan dengan keselamatan peserta didik.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2509,8 +2509,8 @@
             }
           },
           {
-            "id": 7371,
-            "assessment_form_id": 1608,
+            "id": 8494,
+            "assessment_form_id": 1855,
             "label": "Soal 36. Strategi apa yang paling tepat untuk memperkuat sistem perlindungan keselamatan peserta didik di sekolah binaan?",
             "nama_field": "f_7xcoyu3d",
             "tipe_field": "radio",
@@ -2560,8 +2560,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kepedulian tinggi terhadap keselamatan peserta didik dan menjadi rujukan dalam pembinaan sekolah binaan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2576,15 +2576,15 @@
         ]
       },
       {
-        "id": 1609,
+        "id": 1856,
         "assessment_id": 13,
         "judul_form": "2.1.1 Komunikasi efektif dengan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-211",
         "deskripsi": "Kompetensi Sosial — Komunikasi efektif dengan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 10,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.1.1",
         "indikator_label": "Komunikasi efektif dengan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -2596,8 +2596,8 @@
         },
         "fields": [
           {
-            "id": 7372,
-            "assessment_form_id": 1609,
+            "id": 8495,
+            "assessment_form_id": 1856,
             "label": "Soal 37. Bagaimana pengawas sebaiknya membangun komunikasi yang mendukung perbaikan mutu sekolah?",
             "nama_field": "f_ev42e007",
             "tipe_field": "radio",
@@ -2647,8 +2647,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan komunikasi dengan kepala sekolah dalam memberikan pendampingan untuk meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2661,8 +2661,8 @@
             }
           },
           {
-            "id": 7373,
-            "assessment_form_id": 1609,
+            "id": 8496,
+            "assessment_form_id": 1856,
             "label": "Soal 38. Pendekatan komunikasi apa yang paling tepat ketika menyampaikan rekomendasi kepada kepala sekolah?",
             "nama_field": "f_tjy3agic",
             "tipe_field": "radio",
@@ -2712,8 +2712,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pada proses pembinaan, pengawas sekolah berinteraksi dengan kepala sekolah untuk menyampaikan rekomendasi yang berdampak pada peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2726,8 +2726,8 @@
             }
           },
           {
-            "id": 7374,
-            "assessment_form_id": 1609,
+            "id": 8497,
+            "assessment_form_id": 1856,
             "label": "Soal 39. Bagaimana pengawas sebaiknya mengevaluasi efektivitas komunikasi selama pendampingan?",
             "nama_field": "f_bda46clt",
             "tipe_field": "radio",
@@ -2777,8 +2777,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap komunikasi yang telah dilakukan dengan kepala sekolah dalam proses pendampingan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2791,8 +2791,8 @@
             }
           },
           {
-            "id": 7375,
-            "assessment_form_id": 1609,
+            "id": 8498,
+            "assessment_form_id": 1856,
             "label": "Soal 40. Bagaimana pengawas dapat memperkuat praktik komunikasi efektif di antara pengawas dan kepala sekolah?",
             "nama_field": "f_2amh47kn",
             "tipe_field": "radio",
@@ -2842,8 +2842,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan komunikasi yang efektif dan menjadi rujukan dalam membangun kolaborasi dengan kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2858,15 +2858,15 @@
         ]
       },
       {
-        "id": 1610,
+        "id": 1857,
         "assessment_id": 13,
         "judul_form": "2.1.2 Kerja sama dengan seluruh kepala sekolah dampingan dan rekan sejawat untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-212",
         "deskripsi": "Kompetensi Sosial — Kerja sama dengan seluruh kepala sekolah dampingan dan rekan sejawat untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 11,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.1.2",
         "indikator_label": "Kerja sama dengan seluruh kepala sekolah dampingan dan rekan sejawat untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -2878,8 +2878,8 @@
         },
         "fields": [
           {
-            "id": 7376,
-            "assessment_form_id": 1610,
+            "id": 8499,
+            "assessment_form_id": 1857,
             "label": "Soal 41. Bentuk kerja sama apa yang paling tepat untuk membantu sekolah binaan meningkatkan mutu layanan?",
             "nama_field": "f_hkf4ppva",
             "tipe_field": "radio",
@@ -2929,8 +2929,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menjalin kerja sama dengan kepala sekolah dampingan dan rekan sejawat dalam meningkatkan mutu layanan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -2943,8 +2943,8 @@
             }
           },
           {
-            "id": 7377,
-            "assessment_form_id": 1610,
+            "id": 8500,
+            "assessment_form_id": 1857,
             "label": "Soal 42. Bagaimana pengawas sebaiknya mengoordinasikan penyusunan program bersama kepala sekolah dan rekan sejawat?",
             "nama_field": "f_6so5ne6e",
             "tipe_field": "radio",
@@ -2994,8 +2994,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan koordinasi dengan kepala sekolah dampingan dan rekan sejawat untuk merancang program peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3008,8 +3008,8 @@
             }
           },
           {
-            "id": 7378,
-            "assessment_form_id": 1610,
+            "id": 8501,
+            "assessment_form_id": 1857,
             "label": "Soal 43. Bagaimana pengawas sebaiknya menilai efektivitas kerja sama dalam pendampingan sekolah?",
             "nama_field": "f_dzwoe9o5",
             "tipe_field": "radio",
@@ -3059,8 +3059,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap efektivitas kerja sama yang telah dilakukan dengan kepala sekolah dampingan dan rekan sejawat.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3073,8 +3073,8 @@
             }
           },
           {
-            "id": 7379,
-            "assessment_form_id": 1610,
+            "id": 8502,
+            "assessment_form_id": 1857,
             "label": "Soal 44. Strategi apa yang paling tepat untuk membangun kolaborasi berkelanjutan antarsekolah binaan?",
             "nama_field": "f_247u1fma",
             "tipe_field": "radio",
@@ -3124,8 +3124,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan kerja sama yang kuat dan menjadi rujukan dalam membangun kolaborasi antar satuan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3140,15 +3140,15 @@
         ]
       },
       {
-        "id": 1611,
+        "id": 1858,
         "assessment_id": 13,
         "judul_form": "2.2.1 Pelibatan pemangku kepentingan dalam pendampingan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-221",
         "deskripsi": "Kompetensi Sosial — Pelibatan pemangku kepentingan dalam pendampingan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 12,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.2.1",
         "indikator_label": "Pelibatan pemangku kepentingan dalam pendampingan kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -3160,8 +3160,8 @@
         },
         "fields": [
           {
-            "id": 7380,
-            "assessment_form_id": 1611,
+            "id": 8503,
+            "assessment_form_id": 1858,
             "label": "Soal 45. Bagaimana pengawas sebaiknya melibatkan pemangku kepentingan dalam peningkatan mutu sekolah?",
             "nama_field": "f_zm0lk9p8",
             "tipe_field": "radio",
@@ -3211,8 +3211,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam meningkatkan mutu layanan pendidikan dengan melibatkan berbagai pemangku kepentingan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3225,8 +3225,8 @@
             }
           },
           {
-            "id": 7381,
-            "assessment_form_id": 1611,
+            "id": 8504,
+            "assessment_form_id": 1858,
             "label": "Soal 46. Pendekatan apa yang paling tepat dalam membangun kemitraan dengan orang tua, masyarakat, dan instansi?",
             "nama_field": "f_6en79bn5",
             "tipe_field": "radio",
@@ -3276,8 +3276,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah berupaya melibatkan berbagai pihak, seperti orang tua, masyarakat, dan instansi terkait dalam mendukung peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3290,8 +3290,8 @@
             }
           },
           {
-            "id": 7382,
-            "assessment_form_id": 1611,
+            "id": 8505,
+            "assessment_form_id": 1858,
             "label": "Soal 47. Bagaimana pengawas sebaiknya mengevaluasi pelibatan pemangku kepentingan dalam pendampingan?",
             "nama_field": "f_8cuzfur2",
             "tipe_field": "radio",
@@ -3341,8 +3341,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap keterlibatan pemangku kepentingan dalam pendampingan kepala sekolah untuk meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3355,8 +3355,8 @@
             }
           },
           {
-            "id": 7383,
-            "assessment_form_id": 1611,
+            "id": 8506,
+            "assessment_form_id": 1858,
             "label": "Soal 48. Bagaimana pengawas dapat memperkuat kemitraan pendidikan yang berkelanjutan?",
             "nama_field": "f_7igl431n",
             "tipe_field": "radio",
@@ -3406,8 +3406,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu melibatkan pemangku kepentingan secara optimal dan menjadi rujukan dalam membangun kemitraan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3422,15 +3422,15 @@
         ]
       },
       {
-        "id": 1612,
+        "id": 1859,
         "assessment_id": 13,
         "judul_form": "2.2.2 Berkoordinasi secara berkala dengan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-222",
         "deskripsi": "Kompetensi Sosial — Berkoordinasi secara berkala dengan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 13,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.2.2",
         "indikator_label": "Berkoordinasi secara berkala dengan pemangku kepentingan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -3442,8 +3442,8 @@
         },
         "fields": [
           {
-            "id": 7384,
-            "assessment_form_id": 1612,
+            "id": 8507,
+            "assessment_form_id": 1859,
             "label": "Soal 49. Apa tindakan paling tepat untuk memulai koordinasi dengan pemangku kepentingan?",
             "nama_field": "f_usrjfymz",
             "tipe_field": "radio",
@@ -3493,8 +3493,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan koordinasi dengan pemangku kepentingan dalam mendukung peningkatan mutu layanan pendidikan di satuan pendidikan binaan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3507,8 +3507,8 @@
             }
           },
           {
-            "id": 7385,
-            "assessment_form_id": 1612,
+            "id": 8508,
+            "assessment_form_id": 1859,
             "label": "Soal 50. Bagaimana pengawas sebaiknya menjaga koordinasi secara berkala agar program sekolah berjalan?",
             "nama_field": "f_ykmp80n2",
             "tipe_field": "radio",
@@ -3558,8 +3558,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan koordinasi secara berkala dengan berbagai pemangku kepentingan untuk memastikan keberlanjutan program peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3572,8 +3572,8 @@
             }
           },
           {
-            "id": 7386,
-            "assessment_form_id": 1612,
+            "id": 8509,
+            "assessment_form_id": 1859,
             "label": "Soal 51. Bagaimana pengawas sebaiknya merefleksikan kualitas koordinasi dengan pemangku kepentingan?",
             "nama_field": "f_rja35pky",
             "tipe_field": "radio",
@@ -3623,8 +3623,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap efektivitas koordinasi yang telah dilakukan dengan pemangku kepentingan dalam mendukung peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3637,8 +3637,8 @@
             }
           },
           {
-            "id": 7387,
-            "assessment_form_id": 1612,
+            "id": 8510,
+            "assessment_form_id": 1859,
             "label": "Soal 52. Strategi apa yang paling tepat untuk menjamin kesinambungan koordinasi antarinstansi?",
             "nama_field": "f_ucwvu7q4",
             "tipe_field": "radio",
@@ -3688,8 +3688,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu membangun koordinasi yang efektif dan berkelanjutan dengan pemangku kepentingan dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3704,15 +3704,15 @@
         ]
       },
       {
-        "id": 1613,
+        "id": 1860,
         "assessment_id": 13,
         "judul_form": "2.3.1 Berpartisipasi aktif dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-231",
         "deskripsi": "Kompetensi Sosial — Berpartisipasi aktif dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 14,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.3.1",
         "indikator_label": "Berpartisipasi aktif dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -3724,8 +3724,8 @@
         },
         "fields": [
           {
-            "id": 7388,
-            "assessment_form_id": 1613,
+            "id": 8511,
+            "assessment_form_id": 1860,
             "label": "Soal 53. Bagaimana keterlibatan dalam organisasi profesi sebaiknya mendukung mutu sekolah binaan?",
             "nama_field": "f_repd43cr",
             "tipe_field": "radio",
@@ -3775,8 +3775,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah terlibat dalam kegiatan organisasi profesi dan jejaring pendidikan untuk mendukung peningkatan mutu layanan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3789,8 +3789,8 @@
             }
           },
           {
-            "id": 7389,
-            "assessment_form_id": 1613,
+            "id": 8512,
+            "assessment_form_id": 1860,
             "label": "Soal 54. Pendekatan partisipasi apa yang paling tepat ketika memilih kegiatan organisasi profesi?",
             "nama_field": "f_224mxq7b",
             "tipe_field": "radio",
@@ -3840,8 +3840,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah aktif mengikuti kegiatan organisasi profesi dan jejaring untuk meningkatkan kualitas pembinaan kepada satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3854,8 +3854,8 @@
             }
           },
           {
-            "id": 7390,
-            "assessment_form_id": 1613,
+            "id": 8513,
+            "assessment_form_id": 1860,
             "label": "Soal 55. Bagaimana pengawas sebaiknya merefleksikan manfaat keterlibatan dalam jejaring profesional?",
             "nama_field": "f_b694tjk0",
             "tipe_field": "radio",
@@ -3905,8 +3905,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap keterlibatannya dalam organisasi profesi dan jejaring dalam mendukung peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3919,8 +3919,8 @@
             }
           },
           {
-            "id": 7391,
-            "assessment_form_id": 1613,
+            "id": 8514,
+            "assessment_form_id": 1860,
             "label": "Soal 56. Bagaimana pengawas dapat mengambil peran penggerak dalam jejaring profesi?",
             "nama_field": "f_qwz0unij",
             "tipe_field": "radio",
@@ -3970,8 +3970,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan peran aktif dalam organisasi profesi dan jejaring dan menjadi rujukan dalam pengembangan praktik kepengawasan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -3986,15 +3986,15 @@
         ]
       },
       {
-        "id": 1614,
+        "id": 1861,
         "assessment_id": 13,
         "judul_form": "2.3.2 Berbagi praktik baik dan karya pendampingan kepada kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-232",
         "deskripsi": "Kompetensi Sosial — Berbagi praktik baik dan karya pendampingan kepada kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 15,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.3.2",
         "indikator_label": "Berbagi praktik baik dan karya pendampingan kepada kepala sekolah untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -4006,8 +4006,8 @@
         },
         "fields": [
           {
-            "id": 7392,
-            "assessment_form_id": 1614,
+            "id": 8515,
+            "assessment_form_id": 1861,
             "label": "Soal 57. Bagaimana pengalaman pendampingan sebaiknya dibagikan agar berguna bagi pengawas lain?",
             "nama_field": "f_01cbk0az",
             "tipe_field": "radio",
@@ -4057,8 +4057,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah membagikan pengalaman pendampingan kepada kepala sekolah dalam forum profesional untuk mendukung peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4071,8 +4071,8 @@
             }
           },
           {
-            "id": 7393,
-            "assessment_form_id": 1614,
+            "id": 8516,
+            "assessment_form_id": 1861,
             "label": "Soal 58. Pendekatan apa yang paling tepat untuk mendiseminasikan karya pendampingan melalui jejaring?",
             "nama_field": "f_mbscy3yt",
             "tipe_field": "radio",
@@ -4122,8 +4122,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah secara aktif berbagi praktik baik dan hasil karya pendampingan dalam kegiatan organisasi profesi dan jejaring pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4136,8 +4136,8 @@
             }
           },
           {
-            "id": 7394,
-            "assessment_form_id": 1614,
+            "id": 8517,
+            "assessment_form_id": 1861,
             "label": "Soal 59. Bagaimana pengawas sebaiknya mengevaluasi kegiatan berbagi praktik baik?",
             "nama_field": "f_t2g9m6yh",
             "tipe_field": "radio",
@@ -4187,8 +4187,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap kegiatan berbagi praktik baik yang telah dilakukan dalam mendukung peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4201,8 +4201,8 @@
             }
           },
           {
-            "id": 7395,
-            "assessment_form_id": 1614,
+            "id": 8518,
+            "assessment_form_id": 1861,
             "label": "Soal 60. Strategi apa yang paling tepat untuk membangun budaya berbagi praktik baik?",
             "nama_field": "f_4cu4qlap",
             "tipe_field": "radio",
@@ -4252,8 +4252,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan peran aktif dalam berbagi praktik baik dan menjadi rujukan dalam pengembangan mutu layanan pendidikan di wilayah binaannya.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4268,15 +4268,15 @@
         ]
       },
       {
-        "id": 1615,
+        "id": 1862,
         "assessment_id": 13,
         "judul_form": "3.1.1 Pendampingan kepada kepala sekolah dalam mengidentifikasi kebutuhan pengembangan diri kepala sekolah.",
         "kode_form": "FORM-PENGAWAS-PG-311",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam mengidentifikasi kebutuhan pengembangan diri kepala sekolah..",
         "urutan": 16,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.1.1",
         "indikator_label": "Pendampingan kepada kepala sekolah dalam mengidentifikasi kebutuhan pengembangan diri kepala sekolah.",
@@ -4288,8 +4288,8 @@
         },
         "fields": [
           {
-            "id": 7396,
-            "assessment_form_id": 1615,
+            "id": 8519,
+            "assessment_form_id": 1862,
             "label": "Soal 61. Bagaimana pengawas sebaiknya membantu kepala sekolah mengenali kebutuhan pengembangan dirinya?",
             "nama_field": "f_3ew6kyas",
             "tipe_field": "radio",
@@ -4339,8 +4339,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan pendampingan kepada kepala sekolah untuk mengidentifikasi kebutuhan pengembangan diri dalam meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4353,8 +4353,8 @@
             }
           },
           {
-            "id": 7397,
-            "assessment_form_id": 1615,
+            "id": 8520,
+            "assessment_form_id": 1862,
             "label": "Soal 62. Pendekatan identifikasi kebutuhan apa yang paling tepat berdasarkan hasil supervisi?",
             "nama_field": "f_we3746a9",
             "tipe_field": "radio",
@@ -4404,8 +4404,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan analisis terhadap kebutuhan pengembangan diri kepala sekolah berdasarkan hasil supervisi dan kondisi satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4418,8 +4418,8 @@
             }
           },
           {
-            "id": 7398,
-            "assessment_form_id": 1615,
+            "id": 8521,
+            "assessment_form_id": 1862,
             "label": "Soal 63. Bagaimana pengawas sebaiknya merefleksikan proses identifikasi kebutuhan pengembangan diri kepala sekolah?",
             "nama_field": "f_h7fmxuiy",
             "tipe_field": "radio",
@@ -4469,8 +4469,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap proses identifikasi kebutuhan pengembangan diri kepala sekolah dalam meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4483,8 +4483,8 @@
             }
           },
           {
-            "id": 7399,
-            "assessment_form_id": 1615,
+            "id": 8522,
+            "assessment_form_id": 1862,
             "label": "Soal 64. Bagaimana pengawas dapat meningkatkan mutu praktik identifikasi kebutuhan di sekolah binaan?",
             "nama_field": "f_t98e2nus",
             "tipe_field": "radio",
@@ -4534,8 +4534,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan dalam mengidentifikasi kebutuhan pengembangan diri kepala sekolah secara komprehensif dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4550,15 +4550,15 @@
         ]
       },
       {
-        "id": 1616,
+        "id": 1863,
         "assessment_id": 13,
         "judul_form": "3.1.2 Pendampingan kepada kepala sekolah untuk menyusun rencana pengembangan diri.",
         "kode_form": "FORM-PENGAWAS-PG-312",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah untuk menyusun rencana pengembangan diri..",
         "urutan": 17,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.1.2",
         "indikator_label": "Pendampingan kepada kepala sekolah untuk menyusun rencana pengembangan diri.",
@@ -4570,8 +4570,8 @@
         },
         "fields": [
           {
-            "id": 7400,
-            "assessment_form_id": 1616,
+            "id": 8523,
+            "assessment_form_id": 1863,
             "label": "Soal 65. Bagaimana pengawas sebaiknya mendampingi penyusunan rencana pengembangan diri kepala sekolah?",
             "nama_field": "f_pfhejarp",
             "tipe_field": "radio",
@@ -4621,8 +4621,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam menyusun rencana pengembangan diri berdasarkan hasil identifikasi kebutuhan untuk meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4635,8 +4635,8 @@
             }
           },
           {
-            "id": 7401,
-            "assessment_form_id": 1616,
+            "id": 8524,
+            "assessment_form_id": 1863,
             "label": "Soal 66. Pendekatan perencanaan apa yang paling sesuai dengan kebutuhan dan kondisi satuan pendidikan?",
             "nama_field": "f_ymytc9v1",
             "tipe_field": "radio",
@@ -4686,8 +4686,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah membantu kepala sekolah dalam menyusun rencana pengembangan diri yang sesuai dengan kebutuhan dan kondisi satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4700,8 +4700,8 @@
             }
           },
           {
-            "id": 7402,
-            "assessment_form_id": 1616,
+            "id": 8525,
+            "assessment_form_id": 1863,
             "label": "Soal 67. Bagaimana pengawas sebaiknya mengevaluasi rencana pengembangan diri yang disusun kepala sekolah?",
             "nama_field": "f_pwjysskt",
             "tipe_field": "radio",
@@ -4751,8 +4751,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap proses pendampingan dalam penyusunan rencana pengembangan diri kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4765,8 +4765,8 @@
             }
           },
           {
-            "id": 7403,
-            "assessment_form_id": 1616,
+            "id": 8526,
+            "assessment_form_id": 1863,
             "label": "Soal 68. Strategi apa yang paling tepat untuk memperkuat pendampingan perencanaan pengembangan diri?",
             "nama_field": "f_43az76sc",
             "tipe_field": "radio",
@@ -4816,8 +4816,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan dalam mendampingi kepala sekolah menyusun rencana pengembangan diri secara sistematis dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4832,15 +4832,15 @@
         ]
       },
       {
-        "id": 1617,
+        "id": 1864,
         "assessment_id": 13,
         "judul_form": "3.1.3 Pendampingan kepada kepala sekolah dalam melaksanakan pengembangan diri sesuai dengan rencana pengembangan diri.",
         "kode_form": "FORM-PENGAWAS-PG-313",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam melaksanakan pengembangan diri sesuai dengan rencana pengembangan diri..",
         "urutan": 18,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.1.3",
         "indikator_label": "Pendampingan kepada kepala sekolah dalam melaksanakan pengembangan diri sesuai dengan rencana pengembangan diri.",
@@ -4852,8 +4852,8 @@
         },
         "fields": [
           {
-            "id": 7404,
-            "assessment_form_id": 1617,
+            "id": 8527,
+            "assessment_form_id": 1864,
             "label": "Soal 69. Bagaimana pengawas sebaiknya membantu kepala sekolah melaksanakan rencana pengembangan diri?",
             "nama_field": "f_4u8gy5oh",
             "tipe_field": "radio",
@@ -4903,8 +4903,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam melaksanakan rencana pengembangan diri yang telah disusun untuk meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4917,8 +4917,8 @@
             }
           },
           {
-            "id": 7405,
-            "assessment_form_id": 1617,
+            "id": 8528,
+            "assessment_form_id": 1864,
             "label": "Soal 70. Pendekatan pendampingan apa yang paling tepat saat pelaksanaan pengembangan diri mengalami hambatan?",
             "nama_field": "f_7scuadbf",
             "tipe_field": "radio",
@@ -4968,8 +4968,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan pendampingan kepada kepala sekolah dalam melaksanakan pengembangan diri sesuai dengan rencana yang telah ditetapkan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -4982,8 +4982,8 @@
             }
           },
           {
-            "id": 7406,
-            "assessment_form_id": 1617,
+            "id": 8529,
+            "assessment_form_id": 1864,
             "label": "Soal 71. Bagaimana pengawas sebaiknya menilai dampak pelaksanaan pengembangan diri kepala sekolah?",
             "nama_field": "f_391naxq2",
             "tipe_field": "radio",
@@ -5033,8 +5033,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap pelaksanaan pengembangan diri kepala sekolah untuk memastikan dampaknya terhadap peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5047,8 +5047,8 @@
             }
           },
           {
-            "id": 7407,
-            "assessment_form_id": 1617,
+            "id": 8530,
+            "assessment_form_id": 1864,
             "label": "Soal 72. Strategi apa yang paling tepat untuk menjaga keberlanjutan pelaksanaan pengembangan diri kepala sekolah?",
             "nama_field": "f_k83mst6o",
             "tipe_field": "radio",
@@ -5098,8 +5098,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan dalam mendampingi pelaksanaan pengembangan diri kepala sekolah secara konsisten dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5114,15 +5114,15 @@
         ]
       },
       {
-        "id": 1618,
+        "id": 1865,
         "assessment_id": 13,
         "judul_form": "3.2.1 Pemetaaan komitmen perubahan kepala sekolah dampingan, strategi, dan metode pendampingan pada perencanaan pendampingan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-321",
         "deskripsi": "Kompetensi Profesional — Pemetaaan komitmen perubahan kepala sekolah dampingan, strategi, dan metode pendampingan pada perencanaan pendampingan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik..",
         "urutan": 19,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.2.1",
         "indikator_label": "Pemetaaan komitmen perubahan kepala sekolah dampingan, strategi, dan metode pendampingan pada perencanaan pendampingan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan pendidikan yang berpusat pada peserta didik.",
@@ -5134,8 +5134,8 @@
         },
         "fields": [
           {
-            "id": 7408,
-            "assessment_form_id": 1618,
+            "id": 8531,
+            "assessment_form_id": 1865,
             "label": "Soal 73. Bagaimana pengawas sebaiknya memetakan komitmen perubahan kepala sekolah dan profil sekolah?",
             "nama_field": "f_fjgn7kaz",
             "tipe_field": "radio",
@@ -5185,8 +5185,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan pemetaan terhadap komitmen perubahan kepala sekolah dampingan dan profil satuan pendidikan sebagai dasar dalam perencanaan pendampingan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5199,8 +5199,8 @@
             }
           },
           {
-            "id": 7409,
-            "assessment_form_id": 1618,
+            "id": 8532,
+            "assessment_form_id": 1865,
             "label": "Soal 74. Bagaimana hasil pemetaan sebaiknya digunakan untuk memilih metode pendampingan?",
             "nama_field": "f_2p89yp52",
             "tipe_field": "radio",
@@ -5250,8 +5250,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menyusun strategi pendampingan berdasarkan hasil pemetaan komitmen perubahan kepala sekolah dan profil satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5264,8 +5264,8 @@
             }
           },
           {
-            "id": 7410,
-            "assessment_form_id": 1618,
+            "id": 8533,
+            "assessment_form_id": 1865,
             "label": "Soal 75. Bagaimana pengawas sebaiknya mengevaluasi ketepatan strategi pendampingan berbasis profil sekolah?",
             "nama_field": "f_rec7xsr9",
             "tipe_field": "radio",
@@ -5315,8 +5315,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap efektivitas strategi dan metode pendampingan yang telah dirancang berdasarkan pemetaan profil satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5329,8 +5329,8 @@
             }
           },
           {
-            "id": 7411,
-            "assessment_form_id": 1618,
+            "id": 8534,
+            "assessment_form_id": 1865,
             "label": "Soal 76. Strategi apa yang paling tepat untuk memperluas pendampingan yang sesuai dengan profil tiap sekolah?",
             "nama_field": "f_2pw9qm77",
             "tipe_field": "radio",
@@ -5380,8 +5380,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu memetakan komitmen perubahan dan merancang strategi pendampingan berbasis profil satuan pendidikan secara komprehensif.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5396,15 +5396,15 @@
         ]
       },
       {
-        "id": 1619,
+        "id": 1866,
         "assessment_id": 13,
         "judul_form": "3.2.2 Pendampingan kepada kepala sekolah dalam perencanaan program pengembangan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-322",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam perencanaan program pengembangan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan yang berpusat pada peserta didik..",
         "urutan": 20,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.2.2",
         "indikator_label": "Pendampingan kepada kepala sekolah dalam perencanaan program pengembangan satuan pendidikan berbasis profil satuan pendidikan untuk peningkatan mutu layanan yang berpusat pada peserta didik.",
@@ -5416,8 +5416,8 @@
         },
         "fields": [
           {
-            "id": 7412,
-            "assessment_form_id": 1619,
+            "id": 8535,
+            "assessment_form_id": 1866,
             "label": "Soal 77. Bagaimana pengawas sebaiknya mendampingi perencanaan program pengembangan sekolah berbasis profil?",
             "nama_field": "f_cg1govev",
             "tipe_field": "radio",
@@ -5467,8 +5467,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam merencanakan program pengembangan satuan pendidikan berdasarkan profil satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5481,8 +5481,8 @@
             }
           },
           {
-            "id": 7413,
-            "assessment_form_id": 1619,
+            "id": 8536,
+            "assessment_form_id": 1866,
             "label": "Soal 78. Pendekatan perencanaan apa yang paling sesuai dengan kebutuhan nyata sekolah?",
             "nama_field": "f_reshcdhf",
             "tipe_field": "radio",
@@ -5532,8 +5532,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah membantu kepala sekolah dalam menyusun program pengembangan satuan pendidikan yang sesuai dengan kebutuhan dan kondisi sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5546,8 +5546,8 @@
             }
           },
           {
-            "id": 7414,
-            "assessment_form_id": 1619,
+            "id": 8537,
+            "assessment_form_id": 1866,
             "label": "Soal 79. Bagaimana pengawas sebaiknya merefleksikan kualitas rencana program pengembangan sekolah?",
             "nama_field": "f_8wbq00lp",
             "tipe_field": "radio",
@@ -5597,8 +5597,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap perencanaan program pengembangan satuan pendidikan yang telah disusun bersama kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5611,8 +5611,8 @@
             }
           },
           {
-            "id": 7415,
-            "assessment_form_id": 1619,
+            "id": 8538,
+            "assessment_form_id": 1866,
             "label": "Soal 80. Strategi apa yang paling tepat untuk meningkatkan mutu perencanaan di seluruh sekolah binaan?",
             "nama_field": "f_ndgia3fa",
             "tipe_field": "radio",
@@ -5662,8 +5662,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu mendampingi kepala sekolah dalam merencanakan program pengembangan satuan pendidikan secara komprehensif dan berkelanjutan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5678,15 +5678,15 @@
         ]
       },
       {
-        "id": 1620,
+        "id": 1867,
         "assessment_id": 13,
         "judul_form": "3.2.3 Pendampingan kepada kepala sekolah dalam pelaksanaan program pengembangan satuan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-323",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam pelaksanaan program pengembangan satuan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 21,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.2.3",
         "indikator_label": "Pendampingan kepada kepala sekolah dalam pelaksanaan program pengembangan satuan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -5698,8 +5698,8 @@
         },
         "fields": [
           {
-            "id": 7416,
-            "assessment_form_id": 1620,
+            "id": 8539,
+            "assessment_form_id": 1867,
             "label": "Soal 81. Bagaimana pengawas sebaiknya mendampingi pelaksanaan program pengembangan sekolah?",
             "nama_field": "f_3y06ljcp",
             "tipe_field": "radio",
@@ -5749,8 +5749,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam melaksanakan program pengembangan satuan pendidikan yang telah direncanakan untuk meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5763,8 +5763,8 @@
             }
           },
           {
-            "id": 7417,
-            "assessment_form_id": 1620,
+            "id": 8540,
+            "assessment_form_id": 1867,
             "label": "Soal 82. Pendekatan apa yang paling tepat ketika pelaksanaan program tidak sesuai kondisi sekolah?",
             "nama_field": "f_223f5imw",
             "tipe_field": "radio",
@@ -5814,8 +5814,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan pendampingan kepada kepala sekolah dalam melaksanakan program pengembangan satuan pendidikan sesuai dengan kondisi dan kebutuhan sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5828,8 +5828,8 @@
             }
           },
           {
-            "id": 7418,
-            "assessment_form_id": 1620,
+            "id": 8541,
+            "assessment_form_id": 1867,
             "label": "Soal 83. Bagaimana pengawas sebaiknya mengevaluasi pelaksanaan program pengembangan sekolah?",
             "nama_field": "f_ujhw4byk",
             "tipe_field": "radio",
@@ -5879,8 +5879,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap pelaksanaan program pengembangan satuan pendidikan yang telah dilakukan bersama kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5893,8 +5893,8 @@
             }
           },
           {
-            "id": 7419,
-            "assessment_form_id": 1620,
+            "id": 8542,
+            "assessment_form_id": 1867,
             "label": "Soal 84. Strategi apa yang paling tepat untuk memperkuat keberlanjutan program pengembangan sekolah?",
             "nama_field": "f_wvujbtay",
             "tipe_field": "radio",
@@ -5944,8 +5944,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan dalam mendampingi pelaksanaan program pengembangan satuan pendidikan secara konsisten dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -5960,15 +5960,15 @@
         ]
       },
       {
-        "id": 1621,
+        "id": 1868,
         "assessment_id": 13,
         "judul_form": "3.3.1 Pendampingan kepada kepala sekolah dalam mengkaji kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-331",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam mengkaji kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 22,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.3.1",
         "indikator_label": "Pendampingan kepada kepala sekolah dalam mengkaji kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -5980,8 +5980,8 @@
         },
         "fields": [
           {
-            "id": 7420,
-            "assessment_form_id": 1621,
+            "id": 8543,
+            "assessment_form_id": 1868,
             "label": "Soal 85. Bagaimana pengawas sebaiknya mendampingi kepala sekolah saat mengkaji kebijakan pendidikan?",
             "nama_field": "f_5wt2swxz",
             "tipe_field": "radio",
@@ -6031,8 +6031,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam mengkaji kebijakan pendidikan untuk mendukung peningkatan mutu layanan pendidikan di satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6045,8 +6045,8 @@
             }
           },
           {
-            "id": 7421,
-            "assessment_form_id": 1621,
+            "id": 8544,
+            "assessment_form_id": 1868,
             "label": "Soal 86. Pendekatan kajian kebijakan apa yang paling tepat untuk menyusun rekomendasi kepada kepala sekolah?",
             "nama_field": "f_9ron835u",
             "tipe_field": "radio",
@@ -6096,8 +6096,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah membantu kepala sekolah dalam memahami dan menganalisis kebijakan pendidikan yang relevan dengan pengembangan satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6110,8 +6110,8 @@
             }
           },
           {
-            "id": 7422,
-            "assessment_form_id": 1621,
+            "id": 8545,
+            "assessment_form_id": 1868,
             "label": "Soal 87. Bagaimana pengawas sebaiknya merefleksikan kualitas pendampingan dalam kajian kebijakan?",
             "nama_field": "f_50g9p9go",
             "tipe_field": "radio",
@@ -6161,8 +6161,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap proses pendampingan dalam mengkaji kebijakan pendidikan bersama kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6175,8 +6175,8 @@
             }
           },
           {
-            "id": 7423,
-            "assessment_form_id": 1621,
+            "id": 8546,
+            "assessment_form_id": 1868,
             "label": "Soal 88. Strategi apa yang paling tepat untuk mengembangkan kemampuan kajian kebijakan di sekolah binaan?",
             "nama_field": "f_e8h1ha3v",
             "tipe_field": "radio",
@@ -6226,8 +6226,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan dalam mendampingi kepala sekolah mengkaji kebijakan pendidikan secara komprehensif dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6242,15 +6242,15 @@
         ]
       },
       {
-        "id": 1622,
+        "id": 1869,
         "assessment_id": 13,
         "judul_form": "3.3.2 Pendampingan kepada kepala sekolah dalam implementasi kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
         "kode_form": "FORM-PENGAWAS-PG-332",
         "deskripsi": "Kompetensi Profesional — Pendampingan kepada kepala sekolah dalam implementasi kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik..",
         "urutan": 23,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.3.2",
         "indikator_label": "Pendampingan kepada kepala sekolah dalam implementasi kebijakan pendidikan untuk peningkatan mutu layanan satuan pendidikan yang berpusat pada peserta didik.",
@@ -6262,8 +6262,8 @@
         },
         "fields": [
           {
-            "id": 7424,
-            "assessment_form_id": 1622,
+            "id": 8547,
+            "assessment_form_id": 1869,
             "label": "Soal 89. Bagaimana pengawas sebaiknya mendampingi implementasi kebijakan pendidikan di sekolah?",
             "nama_field": "f_gpwkggk1",
             "tipe_field": "radio",
@@ -6313,8 +6313,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mendampingi kepala sekolah dalam mengimplementasikan kebijakan pendidikan untuk meningkatkan mutu layanan pendidikan di satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6327,8 +6327,8 @@
             }
           },
           {
-            "id": 7425,
-            "assessment_form_id": 1622,
+            "id": 8548,
+            "assessment_form_id": 1869,
             "label": "Soal 90. Pendekatan apa yang paling tepat untuk menerapkan kebijakan sesuai karakteristik sekolah?",
             "nama_field": "f_1ghqfebl",
             "tipe_field": "radio",
@@ -6378,8 +6378,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah membantu kepala sekolah dalam melaksanakan kebijakan pendidikan dengan mempertimbangkan kondisi dan karakteristik satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6392,8 +6392,8 @@
             }
           },
           {
-            "id": 7426,
-            "assessment_form_id": 1622,
+            "id": 8549,
+            "assessment_form_id": 1869,
             "label": "Soal 91. Bagaimana pengawas sebaiknya mengevaluasi implementasi kebijakan bersama kepala sekolah?",
             "nama_field": "f_1t7iiym0",
             "tipe_field": "radio",
@@ -6443,8 +6443,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap implementasi kebijakan pendidikan yang telah dilakukan bersama kepala sekolah dalam meningkatkan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6457,8 +6457,8 @@
             }
           },
           {
-            "id": 7427,
-            "assessment_form_id": 1622,
+            "id": 8550,
+            "assessment_form_id": 1869,
             "label": "Soal 92. Strategi apa yang paling tepat agar kebijakan pendidikan diterapkan secara berkelanjutan?",
             "nama_field": "f_ic47wyaq",
             "tipe_field": "radio",
@@ -6508,8 +6508,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah menunjukkan kemampuan dalam mendampingi implementasi kebijakan pendidikan secara komprehensif dan menjadi rujukan dalam praktik kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6524,15 +6524,15 @@
         ]
       },
       {
-        "id": 1623,
+        "id": 1870,
         "assessment_id": 13,
         "judul_form": "3.TI Pemanfaatan Teknologi dan Informasi",
         "kode_form": "FORM-PENGAWAS-PG-3TI",
         "deskripsi": "Kompetensi Profesional — Pemanfaatan Teknologi dan Informasi.",
         "urutan": 24,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:16.000000Z",
-        "updated_at": "2026-10-14T20:59:16.000000Z",
+        "created_at": "2026-10-14T23:32:17.000000Z",
+        "updated_at": "2026-10-14T23:32:17.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.TI",
         "indikator_label": "Pemanfaatan Teknologi dan Informasi",
@@ -6544,8 +6544,8 @@
         },
         "fields": [
           {
-            "id": 7428,
-            "assessment_form_id": 1623,
+            "id": 8551,
+            "assessment_form_id": 1870,
             "label": "Soal 93. Bagaimana pengawas sebaiknya mulai memanfaatkan teknologi untuk mendukung tugas kepengawasan?",
             "nama_field": "f_5l4cz722",
             "tipe_field": "radio",
@@ -6595,8 +6595,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah memanfaatkan teknologi informasi dalam mendukung pelaksanaan tugas kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6609,8 +6609,8 @@
             }
           },
           {
-            "id": 7429,
-            "assessment_form_id": 1623,
+            "id": 8552,
+            "assessment_form_id": 1870,
             "label": "Soal 94. Pendekatan pemanfaatan teknologi apa yang paling tepat dalam supervisi dan pendampingan?",
             "nama_field": "f_yj7ishoy",
             "tipe_field": "radio",
@@ -6660,8 +6660,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menggunakan teknologi informasi dalam kegiatan supervisi dan pendampingan kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6674,8 +6674,8 @@
             }
           },
           {
-            "id": 7430,
-            "assessment_form_id": 1623,
+            "id": 8553,
+            "assessment_form_id": 1870,
             "label": "Soal 95. Bagaimana pengawas sebaiknya mengevaluasi penggunaan teknologi dalam tugas kepengawasan?",
             "nama_field": "f_vyqm3sfh",
             "tipe_field": "radio",
@@ -6725,8 +6725,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah melakukan refleksi terhadap penggunaan teknologi dalam mendukung pelaksanaan tugas kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6739,8 +6739,8 @@
             }
           },
           {
-            "id": 7431,
-            "assessment_form_id": 1623,
+            "id": 8554,
+            "assessment_form_id": 1870,
             "label": "Soal 96. Strategi apa yang paling tepat untuk mengembangkan pemanfaatan teknologi kepengawasan secara berkelanjutan?",
             "nama_field": "f_fqojtpwp",
             "tipe_field": "radio",
@@ -6790,8 +6790,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu memanfaatkan teknologi informasi secara optimal dalam mendukung pelaksanaan tugas kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6804,8 +6804,8 @@
             }
           },
           {
-            "id": 7432,
-            "assessment_form_id": 1623,
+            "id": 8555,
+            "assessment_form_id": 1870,
             "label": "Soal 97. Bagaimana pengawas sebaiknya mengelola data hasil supervisi menggunakan platform digital?",
             "nama_field": "f_5l5ejhai",
             "tipe_field": "radio",
@@ -6855,8 +6855,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menggunakan platform digital untuk mengelola data hasil supervisi.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6869,8 +6869,8 @@
             }
           },
           {
-            "id": 7433,
-            "assessment_form_id": 1623,
+            "id": 8556,
+            "assessment_form_id": 1870,
             "label": "Soal 98. Pendekatan apa yang paling tepat saat menggunakan teknologi untuk menyusun laporan supervisi?",
             "nama_field": "f_xjc9tgoa",
             "tipe_field": "radio",
@@ -6920,8 +6920,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menggunakan teknologi dalam menyusun laporan hasil supervisi.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6934,8 +6934,8 @@
             }
           },
           {
-            "id": 7434,
-            "assessment_form_id": 1623,
+            "id": 8557,
+            "assessment_form_id": 1870,
             "label": "Soal 99. Bagaimana pengawas sebaiknya menguji inovasi teknologi untuk meningkatkan efektivitas kepengawasan?",
             "nama_field": "f_a684k0sw",
             "tipe_field": "radio",
@@ -6985,8 +6985,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mengembangkan inovasi dalam penggunaan teknologi untuk meningkatkan efektivitas kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -6999,8 +6999,8 @@
             }
           },
           {
-            "id": 7435,
-            "assessment_form_id": 1623,
+            "id": 8558,
+            "assessment_form_id": 1870,
             "label": "Soal 100. Strategi apa yang paling tepat untuk mendukung transformasi digital kepengawasan?",
             "nama_field": "f_erohgwp8",
             "tipe_field": "radio",
@@ -7050,8 +7050,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah memanfaatkan teknologi secara sistemik dalam mendukung transformasi digital pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -7064,8 +7064,8 @@
             }
           },
           {
-            "id": 7436,
-            "assessment_form_id": 1623,
+            "id": 8559,
+            "assessment_form_id": 1870,
             "label": "Soal 101. Bagaimana pengawas sebaiknya menggunakan media digital untuk berkomunikasi dengan kepala sekolah?",
             "nama_field": "f_4zvnb844",
             "tipe_field": "radio",
@@ -7115,8 +7115,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah menggunakan media digital dalam komunikasi dengan kepala sekolah.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -7129,8 +7129,8 @@
             }
           },
           {
-            "id": 7437,
-            "assessment_form_id": 1623,
+            "id": 8560,
+            "assessment_form_id": 1870,
             "label": "Soal 102. Bagaimana pengawas sebaiknya memanfaatkan teknologi untuk mendorong pengambilan keputusan berbasis data?",
             "nama_field": "f_me2j7wqd",
             "tipe_field": "radio",
@@ -7180,8 +7180,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah memanfaatkan teknologi untuk mendukung pembelajaran berbasis data.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -7194,8 +7194,8 @@
             }
           },
           {
-            "id": 7438,
-            "assessment_form_id": 1623,
+            "id": 8561,
+            "assessment_form_id": 1870,
             "label": "Soal 103. Bagaimana pengawas sebaiknya mengevaluasi dampak pemanfaatan teknologi pada mutu layanan?",
             "nama_field": "f_8ckteccn",
             "tipe_field": "radio",
@@ -7245,8 +7245,8 @@
             "urutan": 11,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah mengevaluasi pemanfaatan teknologi dalam peningkatan mutu layanan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -7259,8 +7259,8 @@
             }
           },
           {
-            "id": 7439,
-            "assessment_form_id": 1623,
+            "id": 8562,
+            "assessment_form_id": 1870,
             "label": "Soal 104. Strategi apa yang paling tepat untuk mengelola teknologi secara menyeluruh dalam kepengawasan?",
             "nama_field": "f_uz7d5ebe",
             "tipe_field": "radio",
@@ -7310,8 +7310,8 @@
             "urutan": 12,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:16.000000Z",
-            "updated_at": "2026-10-14T20:59:16.000000Z",
+            "created_at": "2026-10-14T23:32:17.000000Z",
+            "updated_at": "2026-10-14T23:32:17.000000Z",
             "deskripsi": "Pengawas sekolah telah mampu memanfaatkan teknologi secara komprehensif dalam seluruh aspek kepengawasan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -7572,8 +7572,8 @@
         "target_kabupaten": [],
         "target_satuan_pendidikan": [],
         "deskripsi": "Portal preview admin untuk mencoba pengerjaan assessment ini. Hasil skor pada halaman ini bersifat sementara dan tidak masuk monitoring peserta.",
-        "tanggal_mulai": "2026-10-08T17:00:00.000000Z",
-        "tanggal_selesai": "2026-10-08T17:00:00.000000Z",
+        "tanggal_mulai": "2026-10-07T17:00:00.000000Z",
+        "tanggal_selesai": "2026-10-07T17:00:00.000000Z",
         "status_distribusi": "draft",
         "kapasitas_per_sesi": 1,
         "durasi_sesi_jam": 0,

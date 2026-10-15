@@ -9,7 +9,8 @@ use Throwable;
 class ImportAssessmentBankSoal extends Command
 {
     protected $signature = 'assessment:import-bank-soal
-        {--path=docs/bank-soal : Folder sumber file JSON}';
+        {--path=docs/bank-soal : Folder sumber file JSON}
+        {--force : Lewati konfirmasi}';
 
     protected $description = 'Import semua file JSON bank soal ke database';
 
@@ -34,6 +35,15 @@ class ImportAssessmentBankSoal extends Command
 
                 return self::FAILURE;
             }
+        }
+
+        if (! $this->option('force') && ! $this->confirm(
+            "Aksi ini akan mengambil soal dari folder {$directory} dan mengimpornya ke database. Lanjutkan?",
+            false
+        )) {
+            $this->warn('Import dibatalkan. Tidak ada data yang diubah.');
+
+            return self::SUCCESS;
         }
 
         $imported = 0;

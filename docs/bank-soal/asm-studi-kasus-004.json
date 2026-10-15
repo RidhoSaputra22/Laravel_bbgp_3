@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-14T23:31:07.666614Z",
+    "exported_at": "2026-10-15T13:16:27.532511Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -38,15 +38,15 @@
     },
     "forms": [
       {
-        "id": 1641,
+        "id": 1888,
         "assessment_id": 4,
         "judul_form": "Studi Kasus 1 – Kompetensi Pedagogik",
         "kode_form": "FORM-SK-PEDAGOGIK",
         "deskripsi": "Selama beberapa pertemuan, seorang guru menggunakan ceramah hampir sepanjang waktu. Siswa cenderung pasif. Mereka hanya mencatat dan mendengarkan. Hasil asesmen formatif menunjukkan banyak murid dapat mengulang definisi, tetapi kesulitan menerapkan konsep pada situasi nyata. Guru menganggap cara tersebut efektif karena seluruh materi dapat disampaikan sesuai jadwal.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:23.000000Z",
-        "updated_at": "2026-10-14T20:59:23.000000Z",
+        "created_at": "2026-10-14T23:32:25.000000Z",
+        "updated_at": "2026-10-14T23:32:25.000000Z",
         "kompetensi": "pedagogik",
         "indikator_kode": "SK-PED",
         "indikator_label": "Diagnosis pembelajaran, perancangan strategi, dan evaluasi hasil belajar. Kisi-kisi Bloom: C4 menganalisis masalah dan sebab; C6 merancang strategi; C5 mengevaluasi keberhasilan.",
@@ -58,8 +58,8 @@
         },
         "fields": [
           {
-            "id": 7487,
-            "assessment_form_id": 1641,
+            "id": 8610,
+            "assessment_form_id": 1888,
             "label": "1. Analisislah masalah utama dalam pembelajaran dengan menghubungkan metode, keterlibatan murid, dan hasil asesmen!",
             "nama_field": "f_j6k9f7iu",
             "tipe_field": "textarea",
@@ -78,8 +78,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah masalah utama dalam pembelajaran dengan menghubungkan metode, keterlibatan murid, dan hasil asesmen!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -99,8 +99,8 @@
             }
           },
           {
-            "id": 7488,
-            "assessment_form_id": 1641,
+            "id": 8611,
+            "assessment_form_id": 1888,
             "label": "2. Analisislah penyebab kesulitan murid menerapkan konsep dan informasi tambahan yang perlu diperiksa!",
             "nama_field": "f_k8in08i9",
             "tipe_field": "textarea",
@@ -119,8 +119,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah penyebab kesulitan murid menerapkan konsep dan informasi tambahan yang perlu diperiksa!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -140,8 +140,8 @@
             }
           },
           {
-            "id": 7489,
-            "assessment_form_id": 1641,
+            "id": 8612,
+            "assessment_form_id": 1888,
             "label": "3. Rancanglah strategi pembelajaran berpusat pada murid untuk materi yang sedang diajarkan!",
             "nama_field": "f_gzleltk8",
             "tipe_field": "textarea",
@@ -160,8 +160,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Rancanglah strategi pembelajaran berpusat pada murid untuk materi yang sedang diajarkan!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -181,8 +181,8 @@
             }
           },
           {
-            "id": 7490,
-            "assessment_form_id": 1641,
+            "id": 8613,
+            "assessment_form_id": 1888,
             "label": "4. Tetapkan indikator untuk mengevaluasi keberhasilan strategi yang Anda rancang!",
             "nama_field": "f_sgz6kz7n",
             "tipe_field": "textarea",
@@ -201,8 +201,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Tetapkan indikator untuk mengevaluasi keberhasilan strategi yang Anda rancang!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -224,15 +224,15 @@
         ]
       },
       {
-        "id": 1642,
+        "id": 1889,
         "assessment_id": 4,
         "judul_form": "Studi Kasus 2 – Kompetensi Kepribadian",
         "kode_form": "FORM-SK-KEPRIBADIAN",
         "deskripsi": "Seorang guru memberikan kesempatan dan perhatian lebih kepada murid yang dekat dengannya. Ketika murid lain melakukan kekeliruan ringan, guru beberapa kali menegur dengan nada tinggi. Seorang wali murid menyampaikan keberatan, tetapi guru merasa tindakannya wajar dan belum meminta umpan balik atau meninjau kembali perilakunya.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:23.000000Z",
-        "updated_at": "2026-10-14T20:59:23.000000Z",
+        "created_at": "2026-10-14T23:32:25.000000Z",
+        "updated_at": "2026-10-14T23:32:25.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "SK-KEP",
         "indikator_label": "Keadilan, objektivitas, pengendalian emosi, dan refleksi diri guru. Kisi-kisi Bloom: C4 menganalisis perilaku dan dampak; C6 merancang perbaikan; C5 mengevaluasi penerapan etika.",
@@ -244,8 +244,8 @@
         },
         "fields": [
           {
-            "id": 7491,
-            "assessment_form_id": 1642,
+            "id": 8614,
+            "assessment_form_id": 1889,
             "label": "1. Identifikasilah aspek kepribadian dan perilaku profesional yang perlu diperbaiki berdasarkan kasus!",
             "nama_field": "f_0rkxt4mi",
             "tipe_field": "textarea",
@@ -264,8 +264,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Identifikasilah aspek kepribadian dan perilaku profesional yang perlu diperbaiki berdasarkan kasus!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -285,8 +285,8 @@
             }
           },
           {
-            "id": 7492,
-            "assessment_form_id": 1642,
+            "id": 8615,
+            "assessment_form_id": 1889,
             "label": "2. Analisislah dampak perilaku tersebut terhadap rasa aman, motivasi, kepercayaan, dan iklim kelas!",
             "nama_field": "f_0jhozn4h",
             "tipe_field": "textarea",
@@ -305,8 +305,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah dampak perilaku tersebut terhadap rasa aman, motivasi, kepercayaan, dan iklim kelas!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -326,8 +326,8 @@
             }
           },
           {
-            "id": 7493,
-            "assessment_form_id": 1642,
+            "id": 8616,
+            "assessment_form_id": 1889,
             "label": "3. Rancanglah langkah refleksi dan perbaikan perilaku yang dapat dilakukan guru!",
             "nama_field": "f_4adxtpid",
             "tipe_field": "textarea",
@@ -346,8 +346,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Rancanglah langkah refleksi dan perbaikan perilaku yang dapat dilakukan guru!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -367,8 +367,8 @@
             }
           },
           {
-            "id": 7494,
-            "assessment_form_id": 1642,
+            "id": 8617,
+            "assessment_form_id": 1889,
             "label": "4. Nilailah tindakan yang sesuai dengan kode etik ketika menghadapi kesalahan murid dan keberatan wali murid!",
             "nama_field": "f_1p5hu5jr",
             "tipe_field": "textarea",
@@ -387,8 +387,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Nilailah tindakan yang sesuai dengan kode etik ketika menghadapi kesalahan murid dan keberatan wali murid!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -410,15 +410,15 @@
         ]
       },
       {
-        "id": 1643,
+        "id": 1890,
         "assessment_id": 4,
         "judul_form": "Studi Kasus 3 – Kompetensi Sosial",
         "kode_form": "FORM-SK-SOSIAL",
         "deskripsi": "Di sebuah sekolah, guru jarang merencanakan pembelajaran bersama rekan sejawat. Komunikasi dengan orang tua umumnya dilakukan saat pembagian rapor atau ketika muncul masalah. Potensi lingkungan sekitar belum digunakan sebagai sumber belajar, sehingga pembelajaran kurang kontekstual dan dukungan belajar bagi murid belum berkesinambungan.",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:23.000000Z",
-        "updated_at": "2026-10-14T20:59:23.000000Z",
+        "created_at": "2026-10-14T23:32:25.000000Z",
+        "updated_at": "2026-10-14T23:32:25.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "SK-SOS",
         "indikator_label": "Kolaborasi sejawat, komunikasi keluarga, dan kemitraan masyarakat. Kisi-kisi Bloom: C4 menganalisis hambatan; C6 merancang kolaborasi; C5 mengevaluasi dampak.",
@@ -430,8 +430,8 @@
         },
         "fields": [
           {
-            "id": 7495,
-            "assessment_form_id": 1643,
+            "id": 8618,
+            "assessment_form_id": 1890,
             "label": "1. Analisislah masalah kompetensi sosial guru dan penyebab kolaborasi belum berjalan!",
             "nama_field": "f_r39y03is",
             "tipe_field": "textarea",
@@ -450,8 +450,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah masalah kompetensi sosial guru dan penyebab kolaborasi belum berjalan!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -471,8 +471,8 @@
             }
           },
           {
-            "id": 7496,
-            "assessment_form_id": 1643,
+            "id": 8619,
+            "assessment_form_id": 1890,
             "label": "2. Analisislah peran guru, orang tua, dan masyarakat dalam mendukung pembelajaran kontekstual serta kebutuhan murid!",
             "nama_field": "f_r8v1iyha",
             "tipe_field": "textarea",
@@ -491,8 +491,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah peran guru, orang tua, dan masyarakat dalam mendukung pembelajaran kontekstual serta kebutuhan murid!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -512,8 +512,8 @@
             }
           },
           {
-            "id": 7497,
-            "assessment_form_id": 1643,
+            "id": 8620,
+            "assessment_form_id": 1890,
             "label": "3. Rancanglah strategi kolaborasi guru dengan rekan sejawat, orang tua, dan masyarakat!",
             "nama_field": "f_gm20ttsz",
             "tipe_field": "textarea",
@@ -532,8 +532,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Rancanglah strategi kolaborasi guru dengan rekan sejawat, orang tua, dan masyarakat!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -553,8 +553,8 @@
             }
           },
           {
-            "id": 7498,
-            "assessment_form_id": 1643,
+            "id": 8621,
+            "assessment_form_id": 1890,
             "label": "4. Tetapkan dampak dan indikator untuk mengevaluasi strategi kolaborasi tersebut!",
             "nama_field": "f_hm8qym8q",
             "tipe_field": "textarea",
@@ -573,8 +573,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Tetapkan dampak dan indikator untuk mengevaluasi strategi kolaborasi tersebut!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -596,15 +596,15 @@
         ]
       },
       {
-        "id": 1644,
+        "id": 1891,
         "assessment_id": 4,
         "judul_form": "Studi Kasus 4 – Kompetensi Profesional",
         "kode_form": "FORM-SK-PROFESIONAL",
         "deskripsi": "Seorang guru mengikuti urutan buku teks tanpa mengembangkan contoh atau sumber belajar lain. Tujuan pembelajaran dan asesmen belum selalu diturunkan dari capaian pembelajaran, dan materi jarang dikaitkan dengan pengalaman murid. Hasil tugas menunjukkan sebagian murid dapat mengulang isi buku, tetapi kesulitan menjelaskan penggunaan konsep dalam situasi sehari-hari.",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-14T20:59:23.000000Z",
-        "updated_at": "2026-10-14T20:59:23.000000Z",
+        "created_at": "2026-10-14T23:32:25.000000Z",
+        "updated_at": "2026-10-14T23:32:25.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "SK-PRO",
         "indikator_label": "Penguasaan materi, keselarasan kurikulum, kontekstualisasi, dan asesmen. Kisi-kisi Bloom: C4 menganalisis kesenjangan; C6 merancang pembelajaran; C5 mengevaluasi keselarasan.",
@@ -616,8 +616,8 @@
         },
         "fields": [
           {
-            "id": 7499,
-            "assessment_form_id": 1644,
+            "id": 8622,
+            "assessment_form_id": 1891,
             "label": "1. Analisislah kelemahan kompetensi profesional yang tampak dan bukti yang mendukung penilaian Anda!",
             "nama_field": "f_mvy4t3dz",
             "tipe_field": "textarea",
@@ -636,8 +636,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah kelemahan kompetensi profesional yang tampak dan bukti yang mendukung penilaian Anda!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -657,8 +657,8 @@
             }
           },
           {
-            "id": 7500,
-            "assessment_form_id": 1644,
+            "id": 8623,
+            "assessment_form_id": 1891,
             "label": "2. Analisislah hubungan antara capaian pembelajaran, tujuan, aktivitas, materi, dan asesmen dalam kasus!",
             "nama_field": "f_26mrxgty",
             "tipe_field": "textarea",
@@ -677,8 +677,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Analisislah hubungan antara capaian pembelajaran, tujuan, aktivitas, materi, dan asesmen dalam kasus!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -698,8 +698,8 @@
             }
           },
           {
-            "id": 7501,
-            "assessment_form_id": 1644,
+            "id": 8624,
+            "assessment_form_id": 1891,
             "label": "3. Rancanglah pembelajaran yang mengaitkan materi dengan konteks kehidupan murid!",
             "nama_field": "f_d6i5ff4a",
             "tipe_field": "textarea",
@@ -718,8 +718,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Rancanglah pembelajaran yang mengaitkan materi dengan konteks kehidupan murid!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -739,8 +739,8 @@
             }
           },
           {
-            "id": 7502,
-            "assessment_form_id": 1644,
+            "id": 8625,
+            "assessment_form_id": 1891,
             "label": "4. Nilailah keselarasan rancangan tersebut dengan kebutuhan murid dan capaian pembelajaran!",
             "nama_field": "f_tfje82uj",
             "tipe_field": "textarea",
@@ -759,8 +759,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T20:59:23.000000Z",
-            "updated_at": "2026-10-14T20:59:23.000000Z",
+            "created_at": "2026-10-14T23:32:25.000000Z",
+            "updated_at": "2026-10-14T23:32:25.000000Z",
             "deskripsi": "Nilailah keselarasan rancangan tersebut dengan kebutuhan murid dan capaian pembelajaran!",
             "scoring_config": {
               "method": "semantic_similarity",
