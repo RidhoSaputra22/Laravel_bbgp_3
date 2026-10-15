@@ -72,6 +72,26 @@ import autofillConfig from './forms.json';
         return Array.isArray(value) ? value : [value];
     }
 
+    function resolveValue(field) {
+        if (field.randomDigits === undefined) {
+            return field.value;
+        }
+
+        var range = typeof field.randomDigits === 'object'
+            ? field.randomDigits
+            : { min: field.randomDigits, max: field.randomDigits };
+        var min = Math.max(1, Math.floor(Number(range.min)));
+        var max = Math.max(min, Math.floor(Number(range.max)));
+        var length = min + Math.floor(Math.random() * (max - min + 1));
+        var value = String(Math.floor(Math.random() * 9) + 1);
+
+        while (value.length < length) {
+            value += String(Math.floor(Math.random() * 10));
+        }
+
+        return value;
+    }
+
     function sameValue(option, value) {
         return String(option.value) === String(value) ||
             String(option.textContent).trim() === String(value).trim();
@@ -152,6 +172,7 @@ import autofillConfig from './forms.json';
 
     async function fillElement(element, field, stats) {
         var type = (element.type || '').toLowerCase();
+        var value = resolveValue(field);
 
         if (type === 'file') {
             stats.skipped += 1;
@@ -160,12 +181,12 @@ import autofillConfig from './forms.json';
         }
 
         if (element.tagName.toLowerCase() === 'select') {
-            if (field.waitForOption && !(await waitForOptions(element, field.value, OPTION_TIMEOUT))) {
+            if (field.waitForOption && !(await waitForOptions(element, value, OPTION_TIMEOUT))) {
                 stats.timeout += 1;
                 return;
             }
 
-            if (!setSelectValue(element, field.value)) {
+            if (!setSelectValue(element, value)) {
                 stats.missing += 1;
                 return;
             }
@@ -176,7 +197,7 @@ import autofillConfig from './forms.json';
         }
 
         if (type === 'checkbox' || type === 'radio') {
-            if (!setCheckedValue(element, field.value)) {
+            if (!setCheckedValue(element, value)) {
                 stats.missing += 1;
                 return;
             }
@@ -187,9 +208,9 @@ import autofillConfig from './forms.json';
         }
 
         if ('value' in element) {
-            element.value = field.value === null || field.value === undefined
+            element.value = value === null || value === undefined
                 ? ''
-                : String(field.value);
+                : String(value);
             dispatchEvents(element, field);
             stats.filled += 1;
             return;

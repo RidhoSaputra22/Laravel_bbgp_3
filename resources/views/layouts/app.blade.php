@@ -88,7 +88,7 @@
     <!-- JS Libraies -->
     @stack('scripts')
 
-    @if (app()->isLocal())
+    @if (auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'], true))
         <script src="{{ asset('dev/form-autofill.js') }}"></script>
     @endif
 

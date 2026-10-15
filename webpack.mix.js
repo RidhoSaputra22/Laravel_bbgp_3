@@ -45,6 +45,4 @@ plugins.forEach((plugin) => {
     mix.copy("./node_modules/" + plugin, "public/library/" + plugin);
 });
 
-if (!mix.inProduction()) {
-    mix.js('resources/js/dev/form-autofill/index.js', 'public/dev/form-autofill.js');
-}
+mix.js('resources/js/dev/form-autofill/index.js', 'public/dev/form-autofill.js');
