@@ -12,7 +12,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Schema;
-use RuntimeException;
 use Throwable;
 
 class ResetAssessmentCombinationGenerationJob implements ShouldQueue
@@ -37,27 +36,7 @@ class ResetAssessmentCombinationGenerationJob implements ShouldQueue
         }
 
         $generation = AssessmentCombinationGeneration::query()->findOrFail($this->generationId);
-        $expectedCount = max((int) $generation->total_kombinasi, 1);
-        $combinations = $generation->combinations()->get();
-
-        if ($combinations->count() !== $expectedCount) {
-            throw new RuntimeException(
-                'Jumlah kombinasi yang tersimpan tidak sama dengan jumlah kombinasi yang diminta.'
-            );
-        }
-
-        $generationService->regenerateGenerationCombinations($generation);
-        $assignmentService->resetAssignmentsForCombinationGeneration($generation, $generation);
-
-        $generation->forceFill([
-            'status' => 'selesai',
-            'processed_at' => now(),
-            ...(
-                Schema::hasColumn('assessment_combination_generations', 'reset_source_generation_id')
-                    ? ['reset_source_generation_id' => null]
-                    : []
-            ),
-        ])->save();
+        $generationService->processInPlaceReset($generation, $assignmentService);
     }
 
     public function failed(Throwable $exception): void

@@ -193,10 +193,11 @@ class AssessmentAssignmentService
     public function updateAssignment(
         AssessmentAssignment $assignment,
         array $payload,
-        ?int $assignedBy = null
+        ?int $assignedBy = null,
+        bool $forceSynchronous = false
     ): array {
         $context = $this->prepareAssignmentContext($payload);
-        $shouldBatch = count($context['guru_ids']) > self::BATCH_THRESHOLD;
+        $shouldBatch = ! $forceSynchronous && count($context['guru_ids']) > self::BATCH_THRESHOLD;
         $cleanupSummary = $this->collectAssignmentCleanupSummary($assignment->id);
 
         $assignmentData = DB::transaction(function () use (
@@ -456,7 +457,9 @@ class AssessmentAssignmentService
 
     public function resetAssignmentsForCombinationGeneration(
         AssessmentCombinationGeneration $sourceGeneration,
-        AssessmentCombinationGeneration $replacementGeneration
+        AssessmentCombinationGeneration $replacementGeneration,
+        bool $forceSynchronous = false,
+        ?callable $onAssignmentProcessed = null
     ): array {
         $sourceCombinationIds = $sourceGeneration->combinations
             ->pluck('id')
@@ -491,6 +494,7 @@ class AssessmentAssignmentService
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
+        $assignmentTotal = count($assignmentIds);
         $summary = [
             'source_combination_count' => count($sourceCombinationIds),
             'replacement_combination_count' => count($replacementCombinationIds),
@@ -502,23 +506,33 @@ class AssessmentAssignmentService
             'deleted_file_count' => 0,
         ];
 
+        $processedCount = 0;
+
         foreach ($assignmentIds as $assignmentId) {
             $assignment = AssessmentAssignment::query()->find($assignmentId);
 
             if (
-                ! $assignment
-                || ! $this->assignmentUsesCombinationIds($assignment->id, $sourceCombinationIds)
+                $assignment
+                && $this->assignmentUsesCombinationIds($assignment->id, $sourceCombinationIds)
             ) {
-                continue;
+                $result = $this->resetAssignmentToCombinationIds(
+                    $assignment,
+                    $replacementCombinationIds,
+                    $forceSynchronous
+                );
+
+                $summary['reset_assignment_count']++;
+                $summary['reset_target_count'] += (int) ($result['reset_target_count'] ?? 0);
+                $summary['deleted_attempt_count'] += (int) ($result['deleted_attempt_count'] ?? 0);
+                $summary['deleted_answer_count'] += (int) ($result['deleted_answer_count'] ?? 0);
+                $summary['deleted_file_count'] += (int) ($result['deleted_file_count'] ?? 0);
             }
 
-            $result = $this->resetAssignmentToCombinationIds($assignment, $replacementCombinationIds);
+            $processedCount++;
 
-            $summary['reset_assignment_count']++;
-            $summary['reset_target_count'] += (int) ($result['reset_target_count'] ?? 0);
-            $summary['deleted_attempt_count'] += (int) ($result['deleted_attempt_count'] ?? 0);
-            $summary['deleted_answer_count'] += (int) ($result['deleted_answer_count'] ?? 0);
-            $summary['deleted_file_count'] += (int) ($result['deleted_file_count'] ?? 0);
+            if ($onAssignmentProcessed) {
+                $onAssignmentProcessed($processedCount, $assignmentTotal);
+            }
         }
 
         return $summary;
@@ -526,7 +540,8 @@ class AssessmentAssignmentService
 
     private function resetAssignmentToCombinationIds(
         AssessmentAssignment $assignment,
-        array $combinationIds
+        array $combinationIds,
+        bool $forceSynchronous = false
     ): array {
         $assignment->load('assessments');
         $stageConfigs = $assignment->assessments
@@ -556,7 +571,12 @@ class AssessmentAssignmentService
             'stage_configs' => $stageConfigs,
         ];
 
-        return $this->updateAssignment($assignment, $payload, $assignment->assigned_by);
+        return $this->updateAssignment(
+            $assignment,
+            $payload,
+            $assignment->assigned_by,
+            $forceSynchronous
+        );
     }
 
     private function assignmentUsesCombinationIds(int $assignmentId, array $combinationIds): bool
@@ -1317,17 +1337,19 @@ class AssessmentAssignmentService
             return [];
         }
 
-        DB::table('assessment_assignment_targets')->upsert(
-            $targetRows,
-            ['assessment_assignment_id', 'guru_id'],
-            [
-                'assessment_assignment_session_id',
-                'assessment_combination_id',
-                'status',
-                'assigned_at',
-                'updated_at',
-            ]
-        );
+        foreach (array_chunk($targetRows, self::CHUNK_SIZE) as $targetChunk) {
+            DB::table('assessment_assignment_targets')->upsert(
+                $targetChunk,
+                ['assessment_assignment_id', 'guru_id'],
+                [
+                    'assessment_assignment_session_id',
+                    'assessment_combination_id',
+                    'status',
+                    'assigned_at',
+                    'updated_at',
+                ]
+            );
+        }
 
         $targetIds = collect($targetRows)
             ->groupBy(fn (array $row) => (int) ($row['assessment_assignment_id'] ?? 0))

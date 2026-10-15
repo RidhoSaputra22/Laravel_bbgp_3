@@ -8,6 +8,7 @@ use App\Jobs\ResetAssessmentCombinationGenerationJob;
 use App\Models\Assessment;
 use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
+use App\Services\AssessmentAssignmentService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 
 class AssessmentCombinationGenerationService
@@ -135,6 +137,55 @@ class AssessmentCombinationGenerationService
         $this->assertInPlaceResetCanRun($generation, $payload);
     }
 
+    public function processInPlaceReset(
+        AssessmentCombinationGeneration $generation,
+        AssessmentAssignmentService $assignmentService,
+        ?callable $onCombinationProcessed = null,
+        ?callable $onAssignmentProcessed = null,
+        bool $synchronousAssignments = false
+    ): void {
+        try {
+            $expectedCount = max((int) $generation->total_kombinasi, 1);
+            $combinations = $generation->combinations()->get();
+
+            if ($combinations->count() !== $expectedCount) {
+                throw new RuntimeException(
+                    'Jumlah kombinasi yang tersimpan tidak sama dengan jumlah kombinasi yang diminta.'
+                );
+            }
+
+            $this->regenerateGenerationCombinations($generation, $onCombinationProcessed);
+            $assignmentService->resetAssignmentsForCombinationGeneration(
+                $generation,
+                $generation,
+                $synchronousAssignments,
+                $onAssignmentProcessed
+            );
+
+            $generation->forceFill([
+                'status' => 'selesai',
+                'processed_at' => now(),
+                ...(
+                    Schema::hasColumn('assessment_combination_generations', 'reset_source_generation_id')
+                        ? ['reset_source_generation_id' => null]
+                        : []
+                ),
+            ])->save();
+        } catch (Throwable $exception) {
+            $generation->forceFill([
+                'status' => 'gagal',
+                'processed_at' => null,
+                ...(
+                    Schema::hasColumn('assessment_combination_generations', 'reset_source_generation_id')
+                        ? ['reset_source_generation_id' => $generation->id]
+                        : []
+                ),
+            ])->save();
+
+            throw $exception;
+        }
+    }
+
     public function dispatchInPlaceReset(
         AssessmentCombinationGeneration $generation
     ): AssessmentCombinationGeneration {
@@ -168,10 +219,13 @@ class AssessmentCombinationGenerationService
     }
 
     public function regenerateGenerationCombinations(
-        AssessmentCombinationGeneration $generation
+        AssessmentCombinationGeneration $generation,
+        ?callable $onCombinationProcessed = null
     ): void {
         $payload = $this->buildPayloadFromGeneration($generation);
         $generatedBy = $generation->generated_by ? (int) $generation->generated_by : null;
+        $total = $generation->combinations()->count();
+        $processed = 0;
 
         foreach ($generation->combinations()->get() as $combination) {
             $this->combinationService->regenerateCombination(
@@ -179,6 +233,12 @@ class AssessmentCombinationGenerationService
                 $payload,
                 $generatedBy
             );
+
+            $processed++;
+
+            if ($onCombinationProcessed) {
+                $onCombinationProcessed($processed, $total);
+            }
         }
     }
 

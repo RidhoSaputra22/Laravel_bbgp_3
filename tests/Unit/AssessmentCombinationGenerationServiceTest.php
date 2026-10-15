@@ -7,6 +7,7 @@ use App\Models\AssessmentCombination;
 use App\Models\AssessmentCombinationGeneration;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormField;
+use App\Services\AssessmentAssignmentService;
 use App\Services\Assessment\AssessmentCombinationGenerationService;
 use App\Services\Assessment\AssessmentCombinationService;
 use Illuminate\Database\Schema\Blueprint;
@@ -285,6 +286,26 @@ class AssessmentCombinationGenerationServiceTest extends TestCase
         $this->assertSame(1, AssessmentCombinationGeneration::query()->count());
         $this->assertSame(1, AssessmentCombination::query()->count());
         $this->assertSame($combination->id, AssessmentCombination::query()->first()->id);
+
+        $assignmentService = \Mockery::mock(AssessmentAssignmentService::class);
+        $assignmentService
+            ->shouldReceive('resetAssignmentsForCombinationGeneration')
+            ->once()
+            ->with($prepared, $prepared, false, null)
+            ->andReturn([]);
+        $progress = [];
+
+        $generationService->processInPlaceReset(
+            $prepared,
+            $assignmentService,
+            function (int $processed, int $total) use (&$progress): void {
+                $progress[] = [$processed, $total];
+            }
+        );
+
+        $this->assertSame([[1, 1]], $progress);
+        $this->assertSame('selesai', $prepared->fresh()->status);
+        $this->assertNull($prepared->fresh()->reset_source_generation_id);
     }
 
     public function test_it_retries_only_missing_generation_sequences(): void

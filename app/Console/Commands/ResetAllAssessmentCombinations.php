@@ -28,6 +28,7 @@ class ResetAllAssessmentCombinations extends Command
 
         $pendingResetCount = AssessmentCombinationGeneration::query()
             ->whereNotNull('reset_source_generation_id')
+            ->where('status', '!=', 'gagal')
             ->count();
 
         if ($pendingResetCount > 0) {
@@ -96,11 +97,43 @@ class ResetAllAssessmentCombinations extends Command
         $assignmentCount = 0;
 
         try {
-            foreach ($generations as $generation) {
+            $this->info(
+                'Menjalankan reset '.$generations->count().
+                ' proses generate langsung tanpa job queue.'
+            );
+
+            foreach ($generations as $generationIndex => $generation) {
                 $generationService->cancelGenerationProcessing($generation);
-                $assignmentCount += $assignmentService->countAssignmentsForCombinationGeneration($generation);
+                $assignmentCountForGeneration = $assignmentService
+                    ->countAssignmentsForCombinationGeneration($generation);
+                $assignmentCount += $assignmentCountForGeneration;
                 $generation = $generationService->prepareInPlaceReset($generation);
-                $generationService->dispatchInPlaceReset($generation);
+                $combinationCount = $generation->combinations()->count();
+                $workCount = $combinationCount + $assignmentCountForGeneration;
+
+                $this->line(sprintf(
+                    '[%d/%d] %s - %d kombinasi, %d penugasan',
+                    $generationIndex + 1,
+                    $generations->count(),
+                    $generation->kode_generate ?: 'Generation #'.$generation->id,
+                    $combinationCount,
+                    $assignmentCountForGeneration
+                ));
+
+                $progressBar = $this->output->createProgressBar($workCount);
+                $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%%');
+                $progressBar->start();
+
+                $generationService->processInPlaceReset(
+                    $generation,
+                    $assignmentService,
+                    fn (int $processed, int $total) => $progressBar->advance(),
+                    fn (int $processed, int $total) => $progressBar->advance(),
+                    true
+                );
+
+                $progressBar->finish();
+                $this->newLine();
             }
         } catch (Throwable $exception) {
             report($exception);
@@ -112,12 +145,12 @@ class ResetAllAssessmentCombinations extends Command
 
         $this->info(
             'Reset semua kombinasi untuk '.$generations->count().
-            ' proses generate berhasil dikirim ke antrean.'
+            ' proses generate berhasil diproses langsung.'
         );
         $this->line('Row kombinasi lama dipakai kembali sehingga jumlah kombinasi tidak bertambah.');
 
         if ($assignmentCount > 0) {
-            $this->line($assignmentCount.' penugasan menunggu proses reset.');
+            $this->line($assignmentCount.' penugasan berhasil direset.');
         }
 
         return self::SUCCESS;
