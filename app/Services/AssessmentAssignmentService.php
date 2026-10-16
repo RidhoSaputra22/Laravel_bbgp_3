@@ -332,23 +332,29 @@ class AssessmentAssignmentService
 
             $existingGuruIds = AssessmentAssignmentTarget::query()
                 ->where('assessment_assignment_id', $lockedAssignment->id)
-                ->whereIn('guru_id', $requestedGuruIds)
                 ->pluck('guru_id')
                 ->map(fn ($guruId) => (int) $guruId)
                 ->all();
 
-            if ($existingGuruIds !== []) {
+            if (
+                array_intersect($requestedGuruIds, $existingGuruIds) !== []
+                || $this->hasGuruIdentityOverlap($requestedGuruIds, $existingGuruIds)
+            ) {
                 throw ValidationException::withMessages([
                     'guru_ids' => 'Sebagian peserta sudah ada di penugasan ini. Hanya peserta yang belum ditugaskan yang bisa ditambahkan.',
                 ]);
             }
 
+            $requestedGuruIds = $this->deduplicateGuruIdsByIdentity($requestedGuruIds);
+
             $orderedGuruIds = $this->buildAssignableParticipantQueryForAssignment($lockedAssignment)
                 ->whereIn('id', $requestedGuruIds)
                 ->orderBy('nama_lengkap')
+                ->orderBy('id')
                 ->pluck('id')
                 ->map(fn ($guruId) => (int) $guruId)
                 ->all();
+            $orderedGuruIds = $this->deduplicateGuruIdsByIdentity($orderedGuruIds);
 
             $sessionAllocation = $this->allocateAdditionalSessionSlots(
                 $lockedAssignment,
@@ -365,7 +371,7 @@ class AssessmentAssignmentService
                 $combinationLookup
             );
 
-            $this->storeTargetRows($targetRows);
+            $storedTargetIds = $this->storeTargetRows($targetRows);
 
             $lockedAssignment->forceFill([
                 'total_target' => (int) $lockedAssignment->targets()
@@ -380,7 +386,7 @@ class AssessmentAssignmentService
 
             return [
                 'assignment' => $lockedAssignment->fresh(['assessments', 'creator', 'sessions', 'combination'])->loadCount('targets'),
-                'added_count' => count($targetRows),
+                'added_count' => count($storedTargetIds),
                 'created_session_count' => $sessionAllocation['created_session_count'],
             ];
         });
@@ -990,7 +996,9 @@ class AssessmentAssignmentService
                 $selectedJabatan
             ),
             'stage_configs' => $this->resolveStageConfigs($assessmentIds, $payload['stage_configs'] ?? []),
-            'guru_ids' => $this->resolveGuruIds($payload, $targetKetenagaan),
+            'guru_ids' => $this->deduplicateGuruIdsByIdentity(
+                $this->resolveGuruIds($payload, $targetKetenagaan)
+            ),
             'session_duration_hours' => (int) ($payload['durasi_sesi_jam'] ?? self::DEFAULT_SESSION_DURATION_HOURS),
             'start_time' => $startTime,
             'first_session_start_at' => $sessionEnabled
@@ -1333,6 +1341,8 @@ class AssessmentAssignmentService
 
     private function storeTargetRows(array $targetRows): array
     {
+        $targetRows = $this->deduplicateTargetRowsByIdentity($targetRows);
+
         if ($targetRows === []) {
             return [];
         }
@@ -1666,6 +1676,113 @@ class AssessmentAssignmentService
         return array_values(array_unique(array_map('intval', $guruIds)));
     }
 
+    private function deduplicateGuruIdsByIdentity(array $guruIds): array
+    {
+        $guruIds = $this->normalizeGuruIds($guruIds);
+
+        if ($guruIds === [] || ! Schema::hasColumn('gurus', 'no_ktp')) {
+            return $guruIds;
+        }
+
+        $identityByGuruId = $this->guruIdentityLookup($guruIds);
+        $seen = [];
+
+        return collect($guruIds)
+            ->filter(function (int $guruId) use ($identityByGuruId, &$seen): bool {
+                $identity = $this->normalizeGuruIdentity($identityByGuruId[$guruId] ?? null);
+
+                if ($identity === '') {
+                    return true;
+                }
+
+                if (isset($seen[$identity])) {
+                    return false;
+                }
+
+                $seen[$identity] = true;
+
+                return true;
+            })
+            ->values()
+            ->all();
+    }
+
+    private function deduplicateTargetRowsByIdentity(array $targetRows): array
+    {
+        if ($targetRows === [] || ! Schema::hasColumn('gurus', 'no_ktp')) {
+            return $targetRows;
+        }
+
+        $identityByGuruId = $this->guruIdentityLookup(
+            collect($targetRows)
+                ->pluck('guru_id')
+                ->filter(fn ($guruId) => filled($guruId))
+                ->map(fn ($guruId) => (int) $guruId)
+                ->unique()
+                ->values()
+                ->all()
+        );
+        $seen = [];
+
+        return collect($targetRows)
+            ->filter(function (array $row) use ($identityByGuruId, &$seen): bool {
+                $assignmentId = (int) ($row['assessment_assignment_id'] ?? 0);
+                $guruId = (int) ($row['guru_id'] ?? 0);
+                $identity = $this->normalizeGuruIdentity($identityByGuruId[$guruId] ?? null);
+                $participantKey = $identity !== '' ? 'nik:'.$identity : 'guru:'.$guruId;
+                $key = $assignmentId.'|'.$participantKey;
+
+                if (isset($seen[$key])) {
+                    return false;
+                }
+
+                $seen[$key] = true;
+
+                return true;
+            })
+            ->values()
+            ->all();
+    }
+
+    private function hasGuruIdentityOverlap(array $firstGuruIds, array $secondGuruIds): bool
+    {
+        if (! Schema::hasColumn('gurus', 'no_ktp')) {
+            return false;
+        }
+
+        $identities = $this->guruIdentityLookup(array_merge($firstGuruIds, $secondGuruIds));
+        $first = collect($firstGuruIds)
+            ->map(fn ($guruId) => $this->normalizeGuruIdentity($identities[(int) $guruId] ?? null))
+            ->filter()
+            ->unique();
+        $second = collect($secondGuruIds)
+            ->map(fn ($guruId) => $this->normalizeGuruIdentity($identities[(int) $guruId] ?? null))
+            ->filter()
+            ->unique();
+
+        return $first->intersect($second)->isNotEmpty();
+    }
+
+    private function guruIdentityLookup(array $guruIds): array
+    {
+        $guruIds = $this->normalizeGuruIds($guruIds);
+
+        if ($guruIds === [] || ! Schema::hasColumn('gurus', 'no_ktp')) {
+            return [];
+        }
+
+        return Guru::query()
+            ->whereIn('id', $guruIds)
+            ->pluck('no_ktp', 'id')
+            ->mapWithKeys(fn ($identity, $guruId) => [(int) $guruId => $identity])
+            ->all();
+    }
+
+    private function normalizeGuruIdentity(mixed $identity): string
+    {
+        return (string) preg_replace('/\s+/', '', trim((string) $identity));
+    }
+
     private function normalizeTargetJabatanSelections(mixed $targetJabatan): array
     {
         $selections = collect(is_array($targetJabatan) ? $targetJabatan : [$targetJabatan])
@@ -1727,6 +1844,7 @@ class AssessmentAssignmentService
 
             return $query
                 ->orderBy('nama_lengkap')
+                ->orderBy('id')
                 ->pluck('id')
                 ->map(fn ($guruId) => (int) $guruId)
                 ->all();
