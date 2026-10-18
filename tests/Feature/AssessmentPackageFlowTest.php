@@ -138,6 +138,43 @@ class AssessmentPackageFlowTest extends TestCase
         });
     }
 
+    public function test_export_drops_disabled_dependency_metadata(): void
+    {
+        $assessment = Assessment::query()->create([
+            'kode_assessment' => 'ASM-EXPORT-DISABLED-DEPENDENCY',
+            'judul' => 'Assessment dependency nonaktif',
+            'slug' => 'assessment-dependency-nonaktif',
+            'instrument_type' => 'monitoring_observasi_eviden',
+            'kategori' => Assessment::CATEGORY_STANDARD,
+            'status' => 'draft',
+            'is_active' => true,
+        ]);
+        $form = $assessment->forms()->create([
+            'judul_form' => 'Form dependency nonaktif',
+            'kode_form' => 'FORM-DEPENDENCY-NONAKTIF',
+            'urutan' => 1,
+            'is_scoreable' => false,
+            'is_active' => true,
+        ]);
+        $form->fields()->create([
+            'label' => 'Pilihan',
+            'nama_field' => 'pilihan',
+            'tipe_field' => 'select',
+            'dependency_config' => [
+                'enabled' => false,
+                'parent_field' => 'kategori',
+                'options_by_parent' => ['A' => [['label' => 'Anak A', 'value' => 'Anak A']]],
+            ],
+            'urutan' => 1,
+            'is_required' => false,
+            'is_active' => true,
+        ]);
+
+        $payload = $this->exportPayload($assessment);
+
+        $this->assertNull($payload['data']['forms'][0]['fields'][0]['dependency_config']);
+    }
+
     public function test_admin_imports_multiple_files_in_a_sequential_chain(): void
     {
         $first = $this->createCompleteAssessment('ASM-IMPORT-FIRST');

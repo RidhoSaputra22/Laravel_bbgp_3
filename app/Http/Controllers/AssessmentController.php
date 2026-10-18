@@ -1238,7 +1238,11 @@ class AssessmentController extends Controller
     private function parseDependencyConfig(mixed $rawConfig): ?array
     {
         if (is_array($rawConfig)) {
-            return $this->dependentOptionResolver->normalizeConfig($rawConfig);
+            $config = $this->dependentOptionResolver->normalizeConfig($rawConfig);
+
+            return $config !== null && $config['enabled']
+                ? $config
+                : null;
         }
 
         $rawConfig = trim((string) $rawConfig);
@@ -1249,8 +1253,14 @@ class AssessmentController extends Controller
 
         $decoded = json_decode($rawConfig, true);
 
-        return json_last_error() === JSON_ERROR_NONE
-            ? $this->dependentOptionResolver->normalizeConfig($decoded)
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return null;
+        }
+
+        $config = $this->dependentOptionResolver->normalizeConfig($decoded);
+
+        return $config !== null && $config['enabled']
+            ? $config
             : null;
     }
 

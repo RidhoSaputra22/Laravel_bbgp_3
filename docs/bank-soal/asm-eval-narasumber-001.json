@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-18T14:39:53.518053Z",
+    "exported_at": "2026-10-18T20:30:29.975148Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -16,14 +16,14 @@
   "data": {
     "id": 138,
     "kode_assessment": "ASM-EVAL-NARASUMBER-001",
-    "judul": "Evaluasi Pelaksanaan Hari Belajar Guru",
-    "slug": "evaluasi-pelaksanaan-hari-belajar-guru-2",
+    "judul": "Evaluasi Narasumber",
+    "slug": "evaluasi-narasumber",
     "deskripsi": "Instrumen untuk mengevaluasi pelaksanaan kegiatan pelatihan dan kinerja narasumber berdasarkan Kuesioner Evaluasi Pelaksanaan Kegiatan.",
     "petunjuk": "Lengkapi identitas kegiatan. Beri penilaian pada setiap pernyataan dengan skala 1–4.",
     "status": "publish",
     "is_active": true,
     "created_at": "2026-10-18T14:10:01.000000Z",
-    "updated_at": "2026-10-18T14:39:25.000000Z",
+    "updated_at": "2026-10-18T20:25:22.000000Z",
     "instrument_type": "skala_likert",
     "kategori": "evaluasi_pelaksanaan",
     "target_ketenagaan": null,
@@ -54,7 +54,7 @@
           {
             "id": 15357,
             "assessment_form_id": 3254,
-            "label": "1. Nama Narasumber",
+            "label": "Nama Narasumber",
             "nama_field": "f_0j9rgk3i",
             "tipe_field": "select",
             "placeholder": "Pilih narasumber",
@@ -92,510 +92,7 @@
             "nilai_default": null,
             "autofill_source": null,
             "lookup_source": null,
-            "dependency_config": {
-              "enabled": false,
-              "parent_field": "f_7lxejz1n",
-              "empty_behavior": "disabled",
-              "options_by_parent": {
-                "Kota Palopo": [
-                  {
-                    "label": "Nursaidahwaty",
-                    "score": null,
-                    "value": "Nursaidahwaty",
-                    "aliases": [
-                      "Nursaidahwaty"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Dr. Faliha",
-                    "score": null,
-                    "value": "Dr. Faliha",
-                    "aliases": [
-                      "Dr. Faliha"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kota Makassar": [
-                  {
-                    "label": "Dr. Alphian Sahruddin, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Dr. Alphian Sahruddin, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Dr. Alphian Sahruddin, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kota Parepare": [
-                  {
-                    "label": "Asmuddin, S.T.P., M.A.P.",
-                    "score": null,
-                    "value": "Asmuddin, S.T.P., M.A.P.",
-                    "aliases": [
-                      "Asmuddin, S.T.P., M.A.P."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Syahriani Jarimollah",
-                    "score": null,
-                    "value": "Syahriani Jarimollah",
-                    "aliases": [
-                      "Syahriani Jarimollah"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Bone": [
-                  {
-                    "label": "Ady Wijaya, S.Kom., M.Kom.",
-                    "score": null,
-                    "value": "Ady Wijaya, S.Kom., M.Kom.",
-                    "aliases": [
-                      "Ady Wijaya, S.Kom., M.Kom."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Suryaningsih, M.Pd.",
-                    "score": null,
-                    "value": "Suryaningsih, M.Pd.",
-                    "aliases": [
-                      "Suryaningsih, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Gowa": [
-                  {
-                    "label": "Dr. Irlidya, M.Pd.",
-                    "score": null,
-                    "value": "Dr. Irlidya, M.Pd.",
-                    "aliases": [
-                      "Dr. Irlidya, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Hasanuddin Haris, M.Pd.",
-                    "score": null,
-                    "value": "Hasanuddin Haris, M.Pd.",
-                    "aliases": [
-                      "Hasanuddin Haris, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Wajo": [
-                  {
-                    "label": "Hernawati Syam, S.Psi., M.A.",
-                    "score": null,
-                    "value": "Hernawati Syam, S.Psi., M.A.",
-                    "aliases": [
-                      "Hernawati Syam, S.Psi., M.A."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Firna Sari",
-                    "score": null,
-                    "value": "Firna Sari",
-                    "aliases": [
-                      "Firna Sari"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Barru": [
-                  {
-                    "label": "Ismail, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Ismail, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Ismail, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Dr. Jabaruddin, M.Pd.",
-                    "score": null,
-                    "value": "Dr. Jabaruddin, M.Pd.",
-                    "aliases": [
-                      "Dr. Jabaruddin, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Maros": [
-                  {
-                    "label": "Sitti Hajrah, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Sitti Hajrah, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Sitti Hajrah, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Dr. Mardiana Suyuti, S.Si., M.Pd.",
-                    "score": null,
-                    "value": "Dr. Mardiana Suyuti, S.Si., M.Pd.",
-                    "aliases": [
-                      "Dr. Mardiana Suyuti, S.Si., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Sidrap": [
-                  {
-                    "label": "Hernawati Syam, S.Psi., M.A.",
-                    "score": null,
-                    "value": "Hernawati Syam, S.Psi., M.A.",
-                    "aliases": [
-                      "Hernawati Syam, S.Psi., M.A."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Dr. Sitti Fatimah Ahmad, S.Kom., M.Pd.",
-                    "score": null,
-                    "value": "Dr. Sitti Fatimah Ahmad, S.Kom., M.Pd.",
-                    "aliases": [
-                      "Dr. Sitti Fatimah Ahmad, S.Kom., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Sinjai": [
-                  {
-                    "label": "Ady Wijaya, S.Kom., M.Pd.",
-                    "score": null,
-                    "value": "Ady Wijaya, S.Kom., M.Pd.",
-                    "aliases": [
-                      "Ady Wijaya, S.Kom., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Asrianingsih, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Asrianingsih, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Asrianingsih, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Pangkep": [
-                  {
-                    "label": "Sukimin Suhlian, S.Kom., M.Pd.",
-                    "score": null,
-                    "value": "Sukimin Suhlian, S.Kom., M.Pd.",
-                    "aliases": [
-                      "Sukimin Suhlian, S.Kom., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Herman Hariadi",
-                    "score": null,
-                    "value": "Herman Hariadi",
-                    "aliases": [
-                      "Herman Hariadi"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Pinrang": [
-                  {
-                    "label": "Ninik Wijiningsih, M.Pd.",
-                    "score": null,
-                    "value": "Ninik Wijiningsih, M.Pd.",
-                    "aliases": [
-                      "Ninik Wijiningsih, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Nuraini Amir, S.Pd.",
-                    "score": null,
-                    "value": "Nuraini Amir, S.Pd.",
-                    "aliases": [
-                      "Nuraini Amir, S.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Soppeng": [
-                  {
-                    "label": "Dr. Alphian Sahruddin, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Dr. Alphian Sahruddin, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Dr. Alphian Sahruddin, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Haeruddin, S.Pd., Gr., M.Pd.",
-                    "score": null,
-                    "value": "Haeruddin, S.Pd., Gr., M.Pd.",
-                    "aliases": [
-                      "Haeruddin, S.Pd., Gr., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Takalar": [
-                  {
-                    "label": "Sri Rahayu, PM. S.Pd.Gr.",
-                    "score": null,
-                    "value": "Sri Rahayu, PM. S.Pd.Gr.",
-                    "aliases": [
-                      "Sri Rahayu, PM. S.Pd.Gr."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Dr. Abdul Aziz, M.Pd.",
-                    "score": null,
-                    "value": "Dr. Abdul Aziz, M.Pd.",
-                    "aliases": [
-                      "Dr. Abdul Aziz, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Bantaeng": [
-                  {
-                    "label": "Dr. Abdul Waqif",
-                    "score": null,
-                    "value": "Dr. Abdul Waqif",
-                    "aliases": [
-                      "Dr. Abdul Waqif"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Bahtiar, M.Pd.",
-                    "score": null,
-                    "value": "Bahtiar, M.Pd.",
-                    "aliases": [
-                      "Bahtiar, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Enrekang": [
-                  {
-                    "label": "Mi’radiyah",
-                    "score": null,
-                    "value": "Mi’radiyah",
-                    "aliases": [
-                      "Mi’radiyah"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Hairuddin, S.Pd., Gr., M.Pd.",
-                    "score": null,
-                    "value": "Hairuddin, S.Pd., Gr., M.Pd.",
-                    "aliases": [
-                      "Hairuddin, S.Pd., Gr., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Bulukumba": [
-                  {
-                    "label": "Nursaidahwaty, S.Kom., M.Kom.",
-                    "score": null,
-                    "value": "Nursaidahwaty, S.Kom., M.Kom.",
-                    "aliases": [
-                      "Nursaidahwaty, S.Kom., M.Kom."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Dr. Iskandar, MM.",
-                    "score": null,
-                    "value": "Dr. Iskandar, MM.",
-                    "aliases": [
-                      "Dr. Iskandar, MM."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Jeneponto": [
-                  {
-                    "label": "Dr. Herawati, M.Pd.",
-                    "score": null,
-                    "value": "Dr. Herawati, M.Pd.",
-                    "aliases": [
-                      "Dr. Herawati, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Syahruddin, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Syahruddin, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Syahruddin, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Luwu Timur": [
-                  {
-                    "label": "Nuraini Amir, S.Pd.",
-                    "score": null,
-                    "value": "Nuraini Amir, S.Pd.",
-                    "aliases": [
-                      "Nuraini Amir, S.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Ninik Wijiningsih, M.Pd.",
-                    "score": null,
-                    "value": "Ninik Wijiningsih, M.Pd.",
-                    "aliases": [
-                      "Ninik Wijiningsih, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Luwu Utara": [
-                  {
-                    "label": "Sukimin Suhlian, M.Pd.",
-                    "score": null,
-                    "value": "Sukimin Suhlian, M.Pd.",
-                    "aliases": [
-                      "Sukimin Suhlian, M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Suparmin, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Suparmin, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Suparmin, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Tana Toraja": [
-                  {
-                    "label": "Herawati, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Herawati, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Herawati, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Mustafa, S.ST.Par., M.Pd.",
-                    "score": null,
-                    "value": "Mustafa, S.ST.Par., M.Pd.",
-                    "aliases": [
-                      "Mustafa, S.ST.Par., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Toraja Utara": [
-                  {
-                    "label": "Marwah, S.Pd., M.Pd.",
-                    "score": null,
-                    "value": "Marwah, S.Pd., M.Pd.",
-                    "aliases": [
-                      "Marwah, S.Pd., M.Pd."
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Ilyas Kala Lembang",
-                    "score": null,
-                    "value": "Ilyas Kala Lembang",
-                    "aliases": [
-                      "Ilyas Kala Lembang"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ],
-                "Kabupaten Kepulauan Selayar": [
-                  {
-                    "label": "Santi Arby",
-                    "score": null,
-                    "value": "Santi Arby",
-                    "aliases": [
-                      "Santi Arby"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  },
-                  {
-                    "label": "Herman",
-                    "score": null,
-                    "value": "Herman",
-                    "aliases": [
-                      "Herman"
-                    ],
-                    "level_kompetensi": null,
-                    "level_kompetensi_label": null
-                  }
-                ]
-              },
-              "reset_on_parent_change": true
-            },
+            "dependency_config": null,
             "validasi": {
               "required": true,
               "tipe_field": "select",
@@ -605,7 +102,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -616,7 +113,7 @@
           {
             "id": 16514,
             "assessment_form_id": 3254,
-            "label": "2. Instansi",
+            "label": "Instansi",
             "nama_field": "f_r1ulz2e3",
             "tipe_field": "text",
             "placeholder": "",
@@ -635,7 +132,7 @@
             "is_required": false,
             "is_active": true,
             "created_at": "2026-10-18T14:39:25.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -646,7 +143,7 @@
           {
             "id": 16515,
             "assessment_form_id": 3254,
-            "label": "3. Unsur",
+            "label": "Unsur",
             "nama_field": "f_ldqbjowd",
             "tipe_field": "select",
             "placeholder": "",
@@ -678,7 +175,7 @@
             "is_required": false,
             "is_active": true,
             "created_at": "2026-10-18T14:39:25.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -689,7 +186,7 @@
           {
             "id": 16516,
             "assessment_form_id": 3254,
-            "label": "4. Pelatihan",
+            "label": "Pelatihan",
             "nama_field": "f_zqblu8tl",
             "tipe_field": "select",
             "placeholder": "",
@@ -717,7 +214,7 @@
             "is_required": false,
             "is_active": true,
             "created_at": "2026-10-18T14:39:25.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -736,7 +233,7 @@
         "urutan": 2,
         "is_active": true,
         "created_at": "2026-10-18T14:28:38.000000Z",
-        "updated_at": "2026-10-18T14:39:25.000000Z",
+        "updated_at": "2026-10-18T20:25:22.000000Z",
         "kompetensi": "",
         "indikator_kode": "B",
         "indikator_label": "Evaluasi narasumber",
@@ -794,7 +291,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Kesesuaian materi",
             "scoring_config": {
               "method": "choice_option_score",
@@ -854,7 +351,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Penguasaan materi",
             "scoring_config": {
               "method": "choice_option_score",
@@ -914,7 +411,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Sistematika Penyajian",
             "scoring_config": {
               "method": "choice_option_score",
@@ -974,7 +471,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Kedalaman dan keluasan wawasan",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1034,7 +531,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Kejelasan Materi",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1094,7 +591,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Teknik Penyampaian",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1154,7 +651,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Penggunaan media/alat bantu",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1214,7 +711,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Kemampuan menjawab",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1274,7 +771,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Sikap/Pelayanan",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1334,7 +831,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Pembelajaran Mendalam",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1394,7 +891,7 @@
             "is_required": true,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "Kelayakan",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1429,7 +926,7 @@
             "is_required": false,
             "is_active": true,
             "created_at": "2026-10-18T14:28:38.000000Z",
-            "updated_at": "2026-10-18T14:39:25.000000Z",
+            "updated_at": "2026-10-18T20:25:22.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",

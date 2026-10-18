@@ -2611,6 +2611,13 @@
 
             const syncDependencyConfigState = ($fieldCard) => {
                 const config = collectDependencyConfigData($fieldCard);
+
+                if (!config.enabled) {
+                    $fieldCard.find('.field-dependency-config-input').val('');
+
+                    return '';
+                }
+
                 const hasOptions = Object.keys(config.options_by_parent).length > 0;
                 const configText = config.parent_field && hasOptions ? JSON.stringify(config) : '';
 

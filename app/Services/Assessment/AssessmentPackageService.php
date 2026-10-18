@@ -362,6 +362,14 @@ class AssessmentPackageService
                     $field->attributesToArray(),
                     array_flip(self::FIELD_KEYS)
                 );
+
+                if (
+                    is_array($attributes['dependency_config'] ?? null)
+                    && ($attributes['dependency_config']['enabled'] ?? true) === false
+                ) {
+                    $attributes['dependency_config'] = null;
+                }
+
                 echo $this->encodePretty($this->normalizeLikertFieldAttributes($attributes), $depth + 2);
             });
 
