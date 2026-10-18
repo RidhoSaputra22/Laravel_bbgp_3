@@ -75,7 +75,7 @@
                               href="{{ route('user.kegiatan') }}">Kegiatan</a></li>
 
                         <li class="nav-item {{ $menu == 'evaluasi-kegiatan' ? 'active' : '' }}"><a class="nav-link"
-                              href="https://evaluasi.simbbgtksulsel.com/quiz/evaluasi-pelaksanaan-hari-belajar-guru">Evaluasi Kegiatan</a></li>
+                              href="https://evaluasi.simbbgtksulsel.com/quiz/">Pre–Post Kegiatan</a></li>
 
                         <li class="nav-item {{ $menu == 'sekolah' ? 'active' : '' }}"><a class="nav-link"
                               href="{{ route('user.data-sekolah') }}">Input Data Sekolah</a></li>
