@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-18T04:54:53.986827Z",
+    "exported_at": "2026-10-18T14:39:53.503278Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -14,7 +14,7 @@
     ]
   },
   "data": {
-    "id": 16,
+    "id": 137,
     "kode_assessment": "ASM-PREPOST-PM-BK-HEBAT-001",
     "judul": "Pre Test Pembelajaran Mendalam & 7 Jurus BK Hebat",
     "slug": "pre-test-pembelajaran-mendalam-7-jurus-bk-hebat",
@@ -22,8 +22,8 @@
     "petunjuk": "Lengkapi identitas peserta. Pilihlah satu jawaban yang paling tepat pada setiap soal, dari pilihan A, B, C, atau D.",
     "status": "publish",
     "is_active": true,
-    "created_at": "2026-10-18T02:50:07.000000Z",
-    "updated_at": "2026-10-18T04:21:47.000000Z",
+    "created_at": "2026-10-18T04:56:34.000000Z",
+    "updated_at": "2026-10-18T04:56:34.000000Z",
     "instrument_type": "pilihan_ganda_kompleks",
     "kategori": "evaluasi_pelaksanaan",
     "target_ketenagaan": null,
@@ -36,15 +36,15 @@
     },
     "forms": [
       {
-        "id": 1300,
-        "assessment_id": 16,
+        "id": 3466,
+        "assessment_id": 137,
         "judul_form": "A. Identitas Peserta",
         "kode_form": "FORM-IDENTITAS-PESERTA",
         "deskripsi": "Identitas peserta Pre Test.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-18T02:50:07.000000Z",
-        "updated_at": "2026-10-18T04:20:25.000000Z",
+        "created_at": "2026-10-18T14:29:09.000000Z",
+        "updated_at": "2026-10-18T14:29:09.000000Z",
         "kompetensi": "",
         "indikator_kode": "",
         "indikator_label": "",
@@ -52,8 +52,8 @@
         "scoring_config": null,
         "fields": [
           {
-            "id": 6316,
-            "assessment_form_id": 1300,
+            "id": 16405,
+            "assessment_form_id": 3466,
             "label": "Nama Peserta",
             "nama_field": "f_01ce51b7",
             "tipe_field": "text",
@@ -72,8 +72,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "presence",
@@ -82,8 +82,8 @@
             }
           },
           {
-            "id": 6317,
-            "assessment_form_id": 1300,
+            "id": 16406,
+            "assessment_form_id": 3466,
             "label": "Instansi",
             "nama_field": "f_2a7c3a16",
             "tipe_field": "text",
@@ -102,8 +102,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "presence",
@@ -112,8 +112,8 @@
             }
           },
           {
-            "id": 6318,
-            "assessment_form_id": 1300,
+            "id": 16407,
+            "assessment_form_id": 3466,
             "label": "Unsur",
             "nama_field": "f_a05f1d00",
             "tipe_field": "select",
@@ -145,8 +145,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -157,15 +157,15 @@
         ]
       },
       {
-        "id": 1301,
-        "assessment_id": 16,
+        "id": 3467,
+        "assessment_id": 137,
         "judul_form": "B. Pembelajaran Mendalam",
         "kode_form": "FORM-PM",
         "deskripsi": "Soal nomor 1–10 tentang Pembelajaran Mendalam.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-18T02:50:07.000000Z",
-        "updated_at": "2026-10-18T04:21:47.000000Z",
+        "created_at": "2026-10-18T14:29:09.000000Z",
+        "updated_at": "2026-10-18T14:29:09.000000Z",
         "kompetensi": "",
         "indikator_kode": "PM",
         "indikator_label": "Pembelajaran Mendalam",
@@ -176,8 +176,8 @@
         },
         "fields": [
           {
-            "id": 6319,
-            "assessment_form_id": 1301,
+            "id": 16408,
+            "assessment_form_id": 3467,
             "label": "1. Pembelajaran Mendalam merupakan pendekatan pembelajaran yang menekankan pada ....",
             "nama_field": "f_a197d8d2",
             "tipe_field": "radio",
@@ -221,8 +221,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -235,8 +235,8 @@
             }
           },
           {
-            "id": 6320,
-            "assessment_form_id": 1301,
+            "id": 16409,
+            "assessment_form_id": 3467,
             "label": "2. Tiga prinsip utama Pembelajaran Mendalam yang perlu dihadirkan dalam proses pembelajaran adalah ....",
             "nama_field": "f_39c7d31f",
             "tipe_field": "radio",
@@ -280,8 +280,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -294,8 +294,8 @@
             }
           },
           {
-            "id": 6321,
-            "assessment_form_id": 1301,
+            "id": 16410,
+            "assessment_form_id": 3467,
             "label": "3. Seorang guru mengaitkan materi pecahan dengan kegiatan membagi hasil panen secara adil. Penerapan tersebut terutama mencerminkan prinsip ....",
             "nama_field": "f_e72abb0f",
             "tipe_field": "radio",
@@ -339,8 +339,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -353,8 +353,8 @@
             }
           },
           {
-            "id": 6322,
-            "assessment_form_id": 1301,
+            "id": 16411,
+            "assessment_form_id": 3467,
             "label": "4. Perilaku guru yang paling mencerminkan prinsip berkesadaran (mindful) dalam pembelajaran adalah ....",
             "nama_field": "f_ebe07ef1",
             "tipe_field": "radio",
@@ -398,8 +398,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -412,8 +412,8 @@
             }
           },
           {
-            "id": 6323,
-            "assessment_form_id": 1301,
+            "id": 16412,
+            "assessment_form_id": 3467,
             "label": "5. Penerapan prinsip menggembirakan (joyful) dalam Pembelajaran Mendalam paling tepat ditunjukkan melalui ....",
             "nama_field": "f_043d062f",
             "tipe_field": "radio",
@@ -457,8 +457,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -471,8 +471,8 @@
             }
           },
           {
-            "id": 6324,
-            "assessment_form_id": 1301,
+            "id": 16413,
+            "assessment_form_id": 3467,
             "label": "6. Pengalaman belajar dalam Pembelajaran Mendalam meliputi tiga tahapan utama, yaitu ....",
             "nama_field": "f_dc6ebb13",
             "tipe_field": "radio",
@@ -516,8 +516,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -530,8 +530,8 @@
             }
           },
           {
-            "id": 6325,
-            "assessment_form_id": 1301,
+            "id": 16414,
+            "assessment_form_id": 3467,
             "label": "7. Setelah mempelajari pengelolaan sampah, peserta didik menerapkan pengetahuannya dengan merancang sistem pemilahan sampah di sekolah. Kegiatan tersebut menunjukkan tahap ....",
             "nama_field": "f_e2a73488",
             "tipe_field": "radio",
@@ -575,8 +575,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -589,8 +589,8 @@
             }
           },
           {
-            "id": 6326,
-            "assessment_form_id": 1301,
+            "id": 16415,
+            "assessment_form_id": 3467,
             "label": "8. Strategi pembelajaran yang paling sesuai dengan pendekatan Pembelajaran Mendalam pada materi perubahan lingkungan adalah ....",
             "nama_field": "f_2b1e683e",
             "tipe_field": "radio",
@@ -634,8 +634,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -648,8 +648,8 @@
             }
           },
           {
-            "id": 6327,
-            "assessment_form_id": 1301,
+            "id": 16416,
+            "assessment_form_id": 3467,
             "label": "9. Pelaksanaan asesmen dalam Pembelajaran Mendalam sebaiknya dilakukan dengan cara ....",
             "nama_field": "f_72a8e1f0",
             "tipe_field": "radio",
@@ -693,8 +693,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -707,8 +707,8 @@
             }
           },
           {
-            "id": 6328,
-            "assessment_form_id": 1301,
+            "id": 16417,
+            "assessment_form_id": 3467,
             "label": "10. Seorang guru melaksanakan proyek kelompok, tetapi peserta didik hanya mengikuti instruksi tanpa memahami tujuan dan manfaatnya. Perbaikan yang paling tepat adalah ....",
             "nama_field": "f_1646931a",
             "tipe_field": "radio",
@@ -752,8 +752,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -768,15 +768,15 @@
         ]
       },
       {
-        "id": 1302,
-        "assessment_id": 16,
+        "id": 3468,
+        "assessment_id": 137,
         "judul_form": "C. 7 Jurus BK Hebat",
         "kode_form": "FORM-BK-HEBAT",
         "deskripsi": "Soal nomor 11–20 tentang 7 Jurus BK Hebat.",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-18T02:50:07.000000Z",
-        "updated_at": "2026-10-18T04:21:47.000000Z",
+        "created_at": "2026-10-18T14:29:09.000000Z",
+        "updated_at": "2026-10-18T14:29:09.000000Z",
         "kompetensi": "",
         "indikator_kode": "BK",
         "indikator_label": "7 Jurus BK Hebat",
@@ -787,8 +787,8 @@
         },
         "fields": [
           {
-            "id": 6329,
-            "assessment_form_id": 1302,
+            "id": 16418,
+            "assessment_form_id": 3468,
             "label": "11. Dalam melakukan pemetaan berkaitan dengan multiple inteligensi dengan alat asesmen seperti RIASEC diberikan kepada murid hal ini termasuk dari peneran jurus pertama yaitu:",
             "nama_field": "f_0eb66fa1",
             "tipe_field": "radio",
@@ -832,8 +832,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:07.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -846,8 +846,8 @@
             }
           },
           {
-            "id": 6330,
-            "assessment_form_id": 1302,
+            "id": 16419,
+            "assessment_form_id": 3468,
             "label": "12. Kemampuan seseorang dalam menghadapi sebuah masalah dan berupaya melakukan adapatasi secara sehat dalam menghadapi kesulitan, kegagalan, maupun trauma merupakan bagian dari jurus ke berapa?",
             "nama_field": "f_880e70f0",
             "tipe_field": "radio",
@@ -891,8 +891,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -905,8 +905,8 @@
             }
           },
           {
-            "id": 6331,
-            "assessment_form_id": 1302,
+            "id": 16420,
+            "assessment_form_id": 3468,
             "label": "13. Metode yang digunakan dalam 7 jurus BK Hebat yaitu:",
             "nama_field": "f_86e6d16d",
             "tipe_field": "radio",
@@ -950,8 +950,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -964,8 +964,8 @@
             }
           },
           {
-            "id": 6332,
-            "assessment_form_id": 1302,
+            "id": 16421,
+            "assessment_form_id": 3468,
             "label": "14. Penggunaan metode ARKA yang diterapkan guru BK dalam memberikan materi tentang!",
             "nama_field": "f_4d00b539",
             "tipe_field": "radio",
@@ -1009,8 +1009,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1023,8 +1023,8 @@
             }
           },
           {
-            "id": 6333,
-            "assessment_form_id": 1302,
+            "id": 16422,
+            "assessment_form_id": 3468,
             "label": "15. Dalam penerapan pemebelajaran sosial emosional (SEL) untuk mengenali perasaan murid hal ini berkaitan erat dengan 7 jurus BK hebat pada jurus berapa?",
             "nama_field": "f_1da94c96",
             "tipe_field": "radio",
@@ -1068,8 +1068,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1082,8 +1082,8 @@
             }
           },
           {
-            "id": 6334,
-            "assessment_form_id": 1302,
+            "id": 16423,
+            "assessment_form_id": 3468,
             "label": "16. Satuan Pendidikan/Sekolah ingin bekerja sama dengan keluarga dalam hal ini orang tua untuk mendukung kebiasaan belajar murid hal ini termasuk dalam pembahasan jurus ke berapa pada 7 jurus BK Hebat?",
             "nama_field": "f_1eb78fac",
             "tipe_field": "radio",
@@ -1127,8 +1127,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1141,8 +1141,8 @@
             }
           },
           {
-            "id": 6335,
-            "assessment_form_id": 1302,
+            "id": 16424,
+            "assessment_form_id": 3468,
             "label": "17. Saat mendapatkan nilai ujian yang belum maksimal, murid berkata bahwa “saya tidak mampu” ini termasuk bagian dari inti materi 7 jurus tepatnya pada jurus berapa?",
             "nama_field": "f_4a08bfaa",
             "tipe_field": "radio",
@@ -1186,8 +1186,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1200,8 +1200,8 @@
             }
           },
           {
-            "id": 6336,
-            "assessment_form_id": 1302,
+            "id": 16425,
+            "assessment_form_id": 3468,
             "label": "18. Berikut urutan 7 jurus BK Hebat yang benar adalah…",
             "nama_field": "f_c65f2847",
             "tipe_field": "radio",
@@ -1245,8 +1245,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1259,8 +1259,8 @@
             }
           },
           {
-            "id": 6337,
-            "assessment_form_id": 1302,
+            "id": 16426,
+            "assessment_form_id": 3468,
             "label": "19. Mendengarkan aktif ketika murid bercerita termasuk dalam inti materi jurus berapa?",
             "nama_field": "f_03da2b39",
             "tipe_field": "radio",
@@ -1304,8 +1304,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",
@@ -1318,8 +1318,8 @@
             }
           },
           {
-            "id": 6338,
-            "assessment_form_id": 1302,
+            "id": 16427,
+            "assessment_form_id": 3468,
             "label": "20. Seorang murid berkata bahwa “Saya tidak memiliki minat dalam pelajaran ini” tanggapan awal yang paling tepat untuk mendukung eksplorasi potensinya adalah…",
             "nama_field": "f_84eb45e4",
             "tipe_field": "radio",
@@ -1363,8 +1363,8 @@
             "urutan": 10,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-18T02:50:08.000000Z",
-            "updated_at": "2026-10-18T04:21:47.000000Z",
+            "created_at": "2026-10-18T14:29:09.000000Z",
+            "updated_at": "2026-10-18T14:29:09.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "choice_option_score",

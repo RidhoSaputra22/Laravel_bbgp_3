@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-15T13:16:28.167109Z",
+    "exported_at": "2026-10-18T14:39:53.381018Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -23,7 +23,7 @@
     "status": "publish",
     "is_active": true,
     "created_at": "2026-10-04T21:25:52.000000Z",
-    "updated_at": "2026-10-14T20:40:53.000000Z",
+    "updated_at": "2026-10-15T14:53:03.000000Z",
     "instrument_type": "studi_kasus",
     "kategori": "assessment",
     "target_ketenagaan": "tenaga_kependidikan",
@@ -38,15 +38,15 @@
     },
     "forms": [
       {
-        "id": 1877,
+        "id": 3452,
         "assessment_id": 14,
         "judul_form": "Studi Kasus 1 – Kepribadian: Integritas dan Refleksi Pengawas",
         "kode_form": "FORM-PENGAWAS-STUDI-KASUS-01",
         "deskripsi": "Pada kunjungan pendampingan, Anda membandingkan rekap capaian pembelajaran sebuah sekolah dengan dokumen sumber dan hasil observasi. Sejumlah angka belum cocok. Kepala sekolah menyebut adanya tekanan untuk memenuhi target, tetapi Anda belum memeriksa seluruh dokumen atau meminta klarifikasi pihak terkait. Anda perlu menindaklanjuti temuan secara objektif tanpa menyimpulkan pelanggaran sebelum verifikasi.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:20.000000Z",
-        "updated_at": "2026-10-14T23:32:20.000000Z",
+        "created_at": "2026-10-18T14:29:03.000000Z",
+        "updated_at": "2026-10-18T14:29:03.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "SK-01",
         "indikator_label": "Integritas, objektivitas, pengendalian diri, dan refleksi pengawas. Kisi-kisi Bloom: C4 menganalisis bukti; C5 mengevaluasi respons; C6 merancang pembinaan.",
@@ -57,8 +57,8 @@
         },
         "fields": [
           {
-            "id": 8576,
-            "assessment_form_id": 1877,
+            "id": 16348,
+            "assessment_form_id": 3452,
             "label": "1. Analisislah perbedaan data yang ditemukan, bukti yang tersedia, dan informasi yang masih perlu diverifikasi!",
             "nama_field": "f_bpbyzb9l",
             "tipe_field": "textarea",
@@ -78,8 +78,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Analisislah perbedaan data yang ditemukan, bukti yang tersedia, dan informasi yang masih perlu diverifikasi!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -95,8 +95,8 @@
             }
           },
           {
-            "id": 8577,
-            "assessment_form_id": 1877,
+            "id": 16349,
+            "assessment_form_id": 3452,
             "label": "2. Evaluasilah pilihan respons pengawas agar integritas terjaga dan hak pihak terkait tetap dihormati!",
             "nama_field": "f_ry7oknj7",
             "tipe_field": "textarea",
@@ -116,8 +116,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Evaluasilah pilihan respons pengawas agar integritas terjaga dan hak pihak terkait tetap dihormati!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -133,8 +133,8 @@
             }
           },
           {
-            "id": 8578,
-            "assessment_form_id": 1877,
+            "id": 16350,
+            "assessment_form_id": 3452,
             "label": "3. Rancanglah rencana pembinaan dan tindak lanjut setelah proses verifikasi selesai!",
             "nama_field": "f_mcgzh2lh",
             "tipe_field": "textarea",
@@ -154,8 +154,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Rancanglah rencana pembinaan dan tindak lanjut setelah proses verifikasi selesai!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -171,8 +171,8 @@
             }
           },
           {
-            "id": 8579,
-            "assessment_form_id": 1877,
+            "id": 16351,
+            "assessment_form_id": 3452,
             "label": "4. Nilailah bagaimana pengawas perlu merefleksikan proses penanganan kasus ini!",
             "nama_field": "f_bv3rwom5",
             "tipe_field": "textarea",
@@ -192,8 +192,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Nilailah bagaimana pengawas perlu merefleksikan proses penanganan kasus ini!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -211,15 +211,15 @@
         ]
       },
       {
-        "id": 1878,
+        "id": 3453,
         "assessment_id": 14,
         "judul_form": "Studi Kasus 2 – Sosial: Kolaborasi dan Kemitraan",
         "kode_form": "FORM-PENGAWAS-STUDI-KASUS-02",
         "deskripsi": "Program literasi di sekolah dampingan belum berjalan sesuai rencana. Undangan kegiatan selama ini disampaikan mendekati hari pelaksanaan dan sebagian besar dijadwalkan pada jam kerja orang tua. Guru dan kepala sekolah belum meminta masukan keluarga atau memetakan mitra masyarakat yang dapat mendukung program. Kepala sekolah meminta bantuan Anda menyusun langkah perbaikan.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:20.000000Z",
-        "updated_at": "2026-10-14T23:32:20.000000Z",
+        "created_at": "2026-10-18T14:29:03.000000Z",
+        "updated_at": "2026-10-18T14:29:03.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "SK-02",
         "indikator_label": "Komunikasi, kolaborasi, dan pelibatan pemangku kepentingan. Kisi-kisi Bloom: C4 menganalisis hambatan; C5 mengevaluasi pendekatan; C6 merancang kemitraan.",
@@ -230,8 +230,8 @@
         },
         "fields": [
           {
-            "id": 8580,
-            "assessment_form_id": 1878,
+            "id": 16352,
+            "assessment_form_id": 3453,
             "label": "1. Analisislah penyebab rendahnya keterlibatan orang tua dan masyarakat berdasarkan fakta dalam kasus!",
             "nama_field": "f_fffzx5ff",
             "tipe_field": "textarea",
@@ -251,8 +251,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Analisislah penyebab rendahnya keterlibatan orang tua dan masyarakat berdasarkan fakta dalam kasus!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -268,8 +268,8 @@
             }
           },
           {
-            "id": 8581,
-            "assessment_form_id": 1878,
+            "id": 16353,
+            "assessment_form_id": 3453,
             "label": "2. Evaluasilah pendekatan komunikasi sekolah dan tentukan perubahan yang paling diperlukan!",
             "nama_field": "f_kkkocqbx",
             "tipe_field": "textarea",
@@ -289,8 +289,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Evaluasilah pendekatan komunikasi sekolah dan tentukan perubahan yang paling diperlukan!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -306,8 +306,8 @@
             }
           },
           {
-            "id": 8582,
-            "assessment_form_id": 1878,
+            "id": 16354,
+            "assessment_form_id": 3453,
             "label": "3. Susunlah rencana kemitraan untuk menjalankan program literasi bersama keluarga dan masyarakat!",
             "nama_field": "f_55neuvn9",
             "tipe_field": "textarea",
@@ -327,8 +327,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Susunlah rencana kemitraan untuk menjalankan program literasi bersama keluarga dan masyarakat!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -344,8 +344,8 @@
             }
           },
           {
-            "id": 8583,
-            "assessment_form_id": 1878,
+            "id": 16355,
+            "assessment_form_id": 3453,
             "label": "4. Tentukan indikator dan cara evaluasi untuk menilai apakah kolaborasi tersebut berjalan efektif!",
             "nama_field": "f_idtl5jcy",
             "tipe_field": "textarea",
@@ -365,8 +365,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Tentukan indikator dan cara evaluasi untuk menilai apakah kolaborasi tersebut berjalan efektif!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -384,15 +384,15 @@
         ]
       },
       {
-        "id": 1879,
+        "id": 3454,
         "assessment_id": 14,
         "judul_form": "Studi Kasus 3 – Profesional: Pengembangan Kepala Sekolah",
         "kode_form": "FORM-PENGAWAS-STUDI-KASUS-03",
         "deskripsi": "Kepala sekolah dampingan mampu mengelola administrasi dan jadwal sekolah, tetapi observasi menunjukkan tujuan pembelajaran di beberapa kelas belum jelas dan umpan balik kepada guru belum teratur. Guru menyampaikan bahwa kegiatan pengembangan sebelumnya lebih banyak berupa rapat umum dan belum menindaklanjuti kebutuhan tiap kelas. Anda diminta membantu kepala sekolah menyusun perbaikan.",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:20.000000Z",
-        "updated_at": "2026-10-14T23:32:20.000000Z",
+        "created_at": "2026-10-18T14:29:03.000000Z",
+        "updated_at": "2026-10-18T14:29:03.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "SK-03",
         "indikator_label": "Analisis kebutuhan dan pendampingan pengembangan kepala sekolah. Kisi-kisi Bloom: C4 menganalisis kebutuhan; C6 merancang pengembangan; C5 mengevaluasi hasil.",
@@ -403,8 +403,8 @@
         },
         "fields": [
           {
-            "id": 8584,
-            "assessment_form_id": 1879,
+            "id": 16356,
+            "assessment_form_id": 3454,
             "label": "1. Analisislah kebutuhan pengembangan kepala sekolah berdasarkan observasi dan masukan guru!",
             "nama_field": "f_lvo8o94o",
             "tipe_field": "textarea",
@@ -424,8 +424,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Analisislah kebutuhan pengembangan kepala sekolah berdasarkan observasi dan masukan guru!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -441,8 +441,8 @@
             }
           },
           {
-            "id": 8585,
-            "assessment_form_id": 1879,
+            "id": 16357,
+            "assessment_form_id": 3454,
             "label": "2. Susunlah rencana pengembangan diri kepala sekolah yang memuat tujuan, kegiatan, jadwal, dan dukungan!",
             "nama_field": "f_7q5eqews",
             "tipe_field": "textarea",
@@ -462,8 +462,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Susunlah rencana pengembangan diri kepala sekolah yang memuat tujuan, kegiatan, jadwal, dan dukungan!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -479,8 +479,8 @@
             }
           },
           {
-            "id": 8586,
-            "assessment_form_id": 1879,
+            "id": 16358,
+            "assessment_form_id": 3454,
             "label": "3. Rancanglah pola pendampingan pengawas untuk membantu kepala sekolah menerapkan rencana tersebut!",
             "nama_field": "f_85o57i3o",
             "tipe_field": "textarea",
@@ -500,8 +500,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Rancanglah pola pendampingan pengawas untuk membantu kepala sekolah menerapkan rencana tersebut!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -517,8 +517,8 @@
             }
           },
           {
-            "id": 8587,
-            "assessment_form_id": 1879,
+            "id": 16359,
+            "assessment_form_id": 3454,
             "label": "4. Tetapkan indikator dan cara mengevaluasi keberhasilan pengembangan kepala sekolah!",
             "nama_field": "f_utpj65hi",
             "tipe_field": "textarea",
@@ -538,8 +538,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Tetapkan indikator dan cara mengevaluasi keberhasilan pengembangan kepala sekolah!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -557,15 +557,15 @@
         ]
       },
       {
-        "id": 1880,
+        "id": 3455,
         "assessment_id": 14,
         "judul_form": "Studi Kasus 4 – Profesional: Pengembangan Satuan Pendidikan",
         "kode_form": "FORM-PENGAWAS-STUDI-KASUS-04",
         "deskripsi": "Profil satuan pendidikan menunjukkan capaian numerasi murid masih rendah, terutama pada pemecahan masalah dan interpretasi data. Program sebelumnya memberi kegiatan yang sama untuk semua kelas, tetapi tidak memiliki data awal, pembagian sasaran, atau pemantauan berkala. Kepala sekolah meminta Anda membantu menyusun program yang lebih tepat sasaran.",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:20.000000Z",
-        "updated_at": "2026-10-14T23:32:20.000000Z",
+        "created_at": "2026-10-18T14:29:03.000000Z",
+        "updated_at": "2026-10-18T14:29:03.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "SK-04",
         "indikator_label": "Pemanfaatan profil dan data satuan pendidikan untuk merancang perbaikan. Kisi-kisi Bloom: C4 menganalisis data; C6 merancang program; C5 mengevaluasi hasil.",
@@ -576,8 +576,8 @@
         },
         "fields": [
           {
-            "id": 8588,
-            "assessment_form_id": 1880,
+            "id": 16360,
+            "assessment_form_id": 3455,
             "label": "1. Analisislah data dan informasi tambahan yang diperlukan untuk menemukan penyebab kesenjangan numerasi!",
             "nama_field": "f_raby4utr",
             "tipe_field": "textarea",
@@ -597,8 +597,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Analisislah data dan informasi tambahan yang diperlukan untuk menemukan penyebab kesenjangan numerasi!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -614,8 +614,8 @@
             }
           },
           {
-            "id": 8589,
-            "assessment_form_id": 1880,
+            "id": 16361,
+            "assessment_form_id": 3455,
             "label": "2. Rancanglah program numerasi yang menanggapi kebutuhan tiap kelas atau kelompok murid!",
             "nama_field": "f_a35u6iov",
             "tipe_field": "textarea",
@@ -635,8 +635,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Rancanglah program numerasi yang menanggapi kebutuhan tiap kelas atau kelompok murid!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -652,8 +652,8 @@
             }
           },
           {
-            "id": 8590,
-            "assessment_form_id": 1880,
+            "id": 16362,
+            "assessment_form_id": 3455,
             "label": "3. Susunlah tahapan pelaksanaan program, termasuk cara pengawas mendampingi sekolah!",
             "nama_field": "f_ajhrh3yk",
             "tipe_field": "textarea",
@@ -673,8 +673,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Susunlah tahapan pelaksanaan program, termasuk cara pengawas mendampingi sekolah!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -690,8 +690,8 @@
             }
           },
           {
-            "id": 8591,
-            "assessment_form_id": 1880,
+            "id": 16363,
+            "assessment_form_id": 3455,
             "label": "4. Tetapkan indikator untuk mengevaluasi efektivitas program dan menentukan tindak lanjut!",
             "nama_field": "f_y81retpp",
             "tipe_field": "textarea",
@@ -711,8 +711,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:03.000000Z",
+            "updated_at": "2026-10-18T14:29:03.000000Z",
             "deskripsi": "Tetapkan indikator untuk mengevaluasi efektivitas program dan menentukan tindak lanjut!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -730,15 +730,15 @@
         ]
       },
       {
-        "id": 1881,
+        "id": 3456,
         "assessment_id": 14,
         "judul_form": "Studi Kasus 5 – Profesional: Teknologi dan Kebijakan",
         "kode_form": "FORM-PENGAWAS-STUDI-KASUS-05",
         "deskripsi": "Kebijakan baru meminta sekolah menggunakan platform digital untuk mendukung pembelajaran. Kesiapan sekolah berbeda-beda: sebagian guru belum terbiasa, koneksi internet tidak stabil di beberapa wilayah, dan sekolah belum memiliki panduan perlindungan akun serta data murid. Anda diminta mendampingi sekolah menerapkan kebijakan secara bertahap.",
         "urutan": 5,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:20.000000Z",
-        "updated_at": "2026-10-14T23:32:20.000000Z",
+        "created_at": "2026-10-18T14:29:03.000000Z",
+        "updated_at": "2026-10-18T14:29:03.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "SK-05",
         "indikator_label": "Analisis kebijakan, kesiapan teknologi, dan pendampingan implementasi. Kisi-kisi Bloom: C4 menganalisis kesiapan; C6 merancang implementasi; C5 mengevaluasi dampak.",
@@ -749,8 +749,8 @@
         },
         "fields": [
           {
-            "id": 8592,
-            "assessment_form_id": 1881,
+            "id": 16364,
+            "assessment_form_id": 3456,
             "label": "1. Analisislah kesesuaian kebijakan dengan kesiapan sekolah dan petakan hambatan implementasinya!",
             "nama_field": "f_otpy4xg1",
             "tipe_field": "textarea",
@@ -770,8 +770,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Analisislah kesesuaian kebijakan dengan kesiapan sekolah dan petakan hambatan implementasinya!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -787,8 +787,8 @@
             }
           },
           {
-            "id": 8593,
-            "assessment_form_id": 1881,
+            "id": 16365,
+            "assessment_form_id": 3456,
             "label": "2. Rancanglah tahapan implementasi platform digital yang sesuai dengan kondisi sekolah!",
             "nama_field": "f_66xh8xfo",
             "tipe_field": "textarea",
@@ -808,8 +808,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Rancanglah tahapan implementasi platform digital yang sesuai dengan kondisi sekolah!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -825,8 +825,8 @@
             }
           },
           {
-            "id": 8594,
-            "assessment_form_id": 1881,
+            "id": 16366,
+            "assessment_form_id": 3456,
             "label": "3. Susunlah program penguatan kapasitas guru dan kepala sekolah untuk menggunakan platform secara aman dan bermakna!",
             "nama_field": "f_yyd3f3i7",
             "tipe_field": "textarea",
@@ -846,8 +846,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Susunlah program penguatan kapasitas guru dan kepala sekolah untuk menggunakan platform secara aman dan bermakna!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -863,8 +863,8 @@
             }
           },
           {
-            "id": 8595,
-            "assessment_form_id": 1881,
+            "id": 16367,
+            "assessment_form_id": 3456,
             "label": "4. Tetapkan cara mengawasi dan mengevaluasi implementasi tanpa mengabaikan kesenjangan akses dan perlindungan data!",
             "nama_field": "f_rj8h09l8",
             "tipe_field": "textarea",
@@ -884,8 +884,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:20.000000Z",
-            "updated_at": "2026-10-14T23:32:20.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Tetapkan cara mengawasi dan mengevaluasi implementasi tanpa mengabaikan kesenjangan akses dan perlindungan data!",
             "scoring_config": {
               "method": "semantic_similarity",

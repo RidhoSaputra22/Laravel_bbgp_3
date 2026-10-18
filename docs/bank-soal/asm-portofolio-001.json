@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-15T13:16:27.275077Z",
+    "exported_at": "2026-10-18T14:39:52.445672Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -23,7 +23,7 @@
     "status": "publish",
     "is_active": true,
     "created_at": "2026-06-29T07:41:15.000000Z",
-    "updated_at": "2026-10-14T20:39:11.000000Z",
+    "updated_at": "2026-10-15T14:53:04.000000Z",
     "instrument_type": "portofolio",
     "kategori": "assessment",
     "target_ketenagaan": "tenaga_pendidik",
@@ -38,15 +38,15 @@
     },
     "forms": [
       {
-        "id": 1882,
+        "id": 3457,
         "assessment_id": 2,
         "judul_form": "Identitas Responden",
         "kode_form": "FORM-IDENTITAS",
         "deskripsi": "Data identitas dasar responden pada instrumen portofolio guru.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:21.000000Z",
-        "updated_at": "2026-10-14T23:32:21.000000Z",
+        "created_at": "2026-10-18T14:29:04.000000Z",
+        "updated_at": "2026-10-18T14:29:04.000000Z",
         "kompetensi": "",
         "indikator_kode": "",
         "indikator_label": "",
@@ -54,8 +54,8 @@
         "scoring_config": null,
         "fields": [
           {
-            "id": 8596,
-            "assessment_form_id": 1882,
+            "id": 16368,
+            "assessment_form_id": 3457,
             "label": "Nama Lengkap",
             "nama_field": "f_racpu67i",
             "tipe_field": "text",
@@ -74,8 +74,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Tuliskan nama lengkap sesuai identitas resmi.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -87,17 +87,20 @@
             }
           },
           {
-            "id": 8597,
-            "assessment_form_id": 1882,
+            "id": 16369,
+            "assessment_form_id": 3457,
             "label": "Foto Diri Memegang Surat Tugas Asesmen",
             "nama_field": "f_g8n62psw",
             "tipe_field": "file",
             "placeholder": "",
             "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen. Format JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
+              "accept": [
+                "image/jpeg",
+                "image/png"
+              ],
               "max_files": 1,
               "input_mode": "file",
-              "accept": ["image/jpeg", "image/png"],
               "max_size_kb": 5120
             },
             "nilai_default": null,
@@ -112,8 +115,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Foto diri sambil memegang surat tugas asesmen.",
             "scoring_config": {
               "method": "presence",
@@ -122,8 +125,8 @@
             }
           },
           {
-            "id": 8598,
-            "assessment_form_id": 1882,
+            "id": 16370,
+            "assessment_form_id": 3457,
             "label": "NIP/NUPTK",
             "nama_field": "f_xn1v0rwn",
             "tipe_field": "text",
@@ -142,8 +145,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Masukkan Nomor Induk Pegawai atau Nomor Unik Pendidik dan Tenaga Kependidikan.",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -155,8 +158,8 @@
             }
           },
           {
-            "id": 8599,
-            "assessment_form_id": 1882,
+            "id": 16371,
+            "assessment_form_id": 3457,
             "label": "Pangkat/Golongan",
             "nama_field": "f_4n93wqcz",
             "tipe_field": "select",
@@ -312,8 +315,8 @@
             "urutan": 4,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Pilih pangkat atau golongan terakhir, jika ada.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -325,8 +328,8 @@
             }
           },
           {
-            "id": 8600,
-            "assessment_form_id": 1882,
+            "id": 16372,
+            "assessment_form_id": 3457,
             "label": "Jabatan",
             "nama_field": "f_3hq0pos7",
             "tipe_field": "select",
@@ -378,8 +381,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Pilih jabatan utama yang sedang dijalankan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -388,8 +391,8 @@
             }
           },
           {
-            "id": 8601,
-            "assessment_form_id": 1882,
+            "id": 16373,
+            "assessment_form_id": 3457,
             "label": "Satuan Pendidikan",
             "nama_field": "f_yhk2d3i0",
             "tipe_field": "select",
@@ -481,8 +484,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Pilih nama satuan pendidikan tempat bertugas.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -494,8 +497,8 @@
             }
           },
           {
-            "id": 8602,
-            "assessment_form_id": 1882,
+            "id": 16374,
+            "assessment_form_id": 3457,
             "label": "Kabupaten/Kota",
             "nama_field": "f_33dullal",
             "tipe_field": "select",
@@ -611,8 +614,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Pilih kabupaten atau kota lokasi satuan pendidikan.",
             "scoring_config": {
               "method": "choice_option_score",
@@ -624,8 +627,8 @@
             }
           },
           {
-            "id": 8603,
-            "assessment_form_id": 1882,
+            "id": 16375,
+            "assessment_form_id": 3457,
             "label": "Lama Bertugas sebagai Guru (Tahun)",
             "nama_field": "f_gcdysqxn",
             "tipe_field": "number",
@@ -644,8 +647,8 @@
             "urutan": 8,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Masukkan total lama bertugas sebagai guru dalam tahun.",
             "scoring_config": {
               "method": "numeric_threshold",
@@ -654,17 +657,21 @@
             }
           },
           {
-            "id": 8604,
-            "assessment_form_id": 1882,
+            "id": 16376,
+            "assessment_form_id": 3457,
             "label": "Unggah SK Guru",
             "nama_field": "f_nqz4n8fe",
             "tipe_field": "file",
             "placeholder": "",
             "bantuan": "Unggah SK pengangkatan atau penugasan sebagai guru. Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB.",
             "opsi_field": {
+              "accept": [
+                "application/pdf",
+                "image/jpeg",
+                "image/png"
+              ],
               "max_files": 1,
               "input_mode": "file",
-              "accept": ["application/pdf", "image/jpeg", "image/png"],
               "max_size_kb": 5120
             },
             "nilai_default": null,
@@ -679,8 +686,8 @@
             "urutan": 9,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "SK pengangkatan atau penugasan sebagai guru.",
             "scoring_config": {
               "method": "presence",
@@ -691,15 +698,15 @@
         ]
       },
       {
-        "id": 1883,
+        "id": 3458,
         "assessment_id": 2,
         "judul_form": "Riwayat Pendidikan Formal",
         "kode_form": "FORM-PENDIDIKAN",
         "deskripsi": "Riwayat pendidikan formal guru dengan jenjang S1, S2, atau S3.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:21.000000Z",
-        "updated_at": "2026-10-14T23:32:21.000000Z",
+        "created_at": "2026-10-18T14:29:04.000000Z",
+        "updated_at": "2026-10-18T14:29:04.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "4.1",
         "indikator_label": "Kualifikasi akademik",
@@ -712,8 +719,8 @@
         },
         "fields": [
           {
-            "id": 8605,
-            "assessment_form_id": 1883,
+            "id": 16377,
+            "assessment_form_id": 3458,
             "label": "Riwayat Pendidikan Formal",
             "nama_field": "f_2hwlsza6",
             "tipe_field": "repeater",
@@ -789,8 +796,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Masukkan riwayat pendidikan formal pada jenjang S1, S2, dan/atau S3.",
             "scoring_config": {
               "method": "repeater_completeness",
@@ -811,15 +818,15 @@
         ]
       },
       {
-        "id": 1884,
+        "id": 3459,
         "assessment_id": 2,
         "judul_form": "Pengalaman Pelatihan",
         "kode_form": "FORM-PELATIHAN",
         "deskripsi": "Pengalaman pelatihan yang relevan dengan profesi dalam lima tahun terakhir.",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:21.000000Z",
-        "updated_at": "2026-10-14T23:32:21.000000Z",
+        "created_at": "2026-10-18T14:29:04.000000Z",
+        "updated_at": "2026-10-18T14:29:04.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "4.2",
         "indikator_label": "Pengembangan profesi berkelanjutan",
@@ -832,8 +839,8 @@
         },
         "fields": [
           {
-            "id": 8606,
-            "assessment_form_id": 1884,
+            "id": 16378,
+            "assessment_form_id": 3459,
             "label": "Pengalaman Pelatihan Relevan",
             "nama_field": "f_t4053a2a",
             "tipe_field": "repeater",
@@ -897,8 +904,8 @@
             "urutan": 1,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Cantumkan pelatihan, workshop, bimtek, seminar, atau program pengembangan profesi dalam lima tahun terakhir.",
             "scoring_config": {
               "method": "repeater_completeness",
@@ -919,15 +926,15 @@
         ]
       },
       {
-        "id": 1885,
+        "id": 3460,
         "assessment_id": 2,
         "judul_form": "Riwayat Pengalaman Mengajar sebagai Guru",
         "kode_form": "FORM-PENGALAMAN-MENGAJAR",
         "deskripsi": "Riwayat pengalaman responden dalam menjalankan tugas sebagai guru.",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:21.000000Z",
-        "updated_at": "2026-10-14T23:32:21.000000Z",
+        "created_at": "2026-10-18T14:29:04.000000Z",
+        "updated_at": "2026-10-18T14:29:04.000000Z",
         "kompetensi": "pedagogik",
         "indikator_kode": "1.2",
         "indikator_label": "Pengalaman praktik pembelajaran",
@@ -939,8 +946,8 @@
         },
         "fields": [
           {
-            "id": 8607,
-            "assessment_form_id": 1885,
+            "id": 16379,
+            "assessment_form_id": 3460,
             "label": "Riwayat Pengalaman Mengajar sebagai Guru",
             "nama_field": "f_ixpr7wv2",
             "tipe_field": "repeater",
@@ -996,8 +1003,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Cantumkan pengalaman mengajar sebagai guru.",
             "scoring_config": {
               "method": "repeater_completeness",
@@ -1018,15 +1025,15 @@
         ]
       },
       {
-        "id": 1886,
+        "id": 3461,
         "assessment_id": 2,
         "judul_form": "Karya/Inovasi/Prestasi/Diseminasi",
         "kode_form": "FORM-KARYA-INOVASI",
         "deskripsi": "Kontribusi profesional guru berupa karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi.",
         "urutan": 7,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:21.000000Z",
-        "updated_at": "2026-10-14T23:32:21.000000Z",
+        "created_at": "2026-10-18T14:29:04.000000Z",
+        "updated_at": "2026-10-18T14:29:04.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "4.5",
         "indikator_label": "Karya, inovasi, prestasi, dan diseminasi",
@@ -1039,8 +1046,8 @@
         },
         "fields": [
           {
-            "id": 8608,
-            "assessment_form_id": 1886,
+            "id": 16380,
+            "assessment_form_id": 3461,
             "label": "Karya/Artikel/HAKI/Inovasi/Praktik Baik/Prestasi/Diseminasi",
             "nama_field": "f_3jmvqwrr",
             "tipe_field": "repeater",
@@ -1129,8 +1136,8 @@
             "urutan": 1,
             "is_required": false,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "Cantumkan karya, artikel, HAKI, inovasi, praktik baik, prestasi, penghargaan, atau diseminasi jika ada.",
             "scoring_config": {
               "method": "repeater_completeness",
@@ -1151,15 +1158,15 @@
         ]
       },
       {
-        "id": 1887,
+        "id": 3462,
         "assessment_id": 2,
         "judul_form": "Refleksi Diri",
         "kode_form": "FORM-REFLEKSI-DIRI",
         "deskripsi": "Refleksi diri responden sebagai guru.",
         "urutan": 8,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:21.000000Z",
-        "updated_at": "2026-10-14T23:32:21.000000Z",
+        "created_at": "2026-10-18T14:29:04.000000Z",
+        "updated_at": "2026-10-18T14:29:04.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "2.2",
         "indikator_label": "Refleksi dan pengembangan diri",
@@ -1171,8 +1178,8 @@
         },
         "fields": [
           {
-            "id": 8609,
-            "assessment_form_id": 1887,
+            "id": 16381,
+            "assessment_form_id": 3462,
             "label": "Kekuatan dan Area Pengembangan sebagai Guru",
             "nama_field": "f_jii9oqo3",
             "tipe_field": "textarea",
@@ -1191,8 +1198,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:21.000000Z",
-            "updated_at": "2026-10-14T23:32:21.000000Z",
+            "created_at": "2026-10-18T14:29:04.000000Z",
+            "updated_at": "2026-10-18T14:29:04.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "semantic_similarity",

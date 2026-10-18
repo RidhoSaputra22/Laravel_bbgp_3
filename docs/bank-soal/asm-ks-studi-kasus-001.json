@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-15T13:16:27.704165Z",
+    "exported_at": "2026-10-18T14:39:52.897505Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -23,7 +23,7 @@
     "status": "publish",
     "is_active": true,
     "created_at": "2026-06-29T13:56:59.000000Z",
-    "updated_at": "2026-10-14T20:39:53.000000Z",
+    "updated_at": "2026-10-15T14:52:50.000000Z",
     "instrument_type": "studi_kasus",
     "kategori": "assessment",
     "target_ketenagaan": "tenaga_kependidikan",
@@ -38,15 +38,15 @@
     },
     "forms": [
       {
-        "id": 1778,
+        "id": 3353,
         "assessment_id": 7,
         "judul_form": "Kasus 1 – Integritas dan Kepemimpinan",
         "kode_form": "FORM-KS-SK-01",
         "deskripsi": "Saat menelaah dokumen pertanggungjawaban dana BOS, kepala sekolah menemukan beberapa transaksi yang belum didukung bukti memadai. Seorang pihak luar meminta laporan disesuaikan agar realisasi tampak memenuhi target dan mengisyaratkan bahwa proses administrasi sekolah akan dipersulit jika permintaan ditolak. Laporan belum diubah; kepala sekolah perlu memverifikasi fakta dan menentukan langkah sesuai aturan.",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:09.000000Z",
-        "updated_at": "2026-10-14T23:32:09.000000Z",
+        "created_at": "2026-10-18T14:28:52.000000Z",
+        "updated_at": "2026-10-18T14:28:52.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "CASE-1",
         "indikator_label": "Integritas, objektivitas, dan akuntabilitas. Kisi-kisi Bloom: C4 menganalisis tekanan dan risiko; C5 mengevaluasi pilihan tindakan; C6 merancang penyelesaian.",
@@ -57,8 +57,8 @@
         },
         "fields": [
           {
-            "id": 7996,
-            "assessment_form_id": 1778,
+            "id": 15768,
+            "assessment_form_id": 3353,
             "label": "1. Analisislah bentuk tekanan, konflik nilai, dan risiko yang dihadapi kepala sekolah dalam kasus tersebut!",
             "nama_field": "f_pkn1ywaz",
             "tipe_field": "textarea",
@@ -77,8 +77,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Analisislah bentuk tekanan, konflik nilai, dan risiko yang dihadapi kepala sekolah dalam kasus tersebut!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -96,8 +96,8 @@
             }
           },
           {
-            "id": 7997,
-            "assessment_form_id": 1778,
+            "id": 15769,
+            "assessment_form_id": 3353,
             "label": "2. Evaluasilah pilihan tindakan kepala sekolah. Jelaskan alasan memilih tindakan yang paling etis dan sesuai prosedur!",
             "nama_field": "f_rh6ye8us",
             "tipe_field": "textarea",
@@ -116,8 +116,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Evaluasilah pilihan tindakan kepala sekolah. Jelaskan alasan memilih tindakan yang paling etis dan sesuai prosedur!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -136,8 +136,8 @@
             }
           },
           {
-            "id": 7998,
-            "assessment_form_id": 1778,
+            "id": 15770,
+            "assessment_form_id": 3353,
             "label": "3. Rancanglah urutan langkah penyelesaian yang berintegritas, mulai dari verifikasi dokumen hingga tindak lanjut!",
             "nama_field": "f_8wcevjij",
             "tipe_field": "textarea",
@@ -156,8 +156,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Rancanglah urutan langkah penyelesaian yang berintegritas, mulai dari verifikasi dokumen hingga tindak lanjut!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -177,15 +177,15 @@
         ]
       },
       {
-        "id": 1779,
+        "id": 3354,
         "assessment_id": 7,
         "judul_form": "Kasus 2 – Kolaborasi dan Hubungan Sosial",
         "kode_form": "FORM-KS-SK-02",
         "deskripsi": "Pada penyusunan program literasi sekolah, hanya sedikit orang tua menghadiri pertemuan. Komite sekolah menyampaikan keberatan terhadap salah satu kebijakan karena informasi baru diterima setelah rancangan keputusan selesai. Sekolah belum memetakan kebutuhan keluarga atau menyediakan saluran umpan balik yang rutin.",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:09.000000Z",
-        "updated_at": "2026-10-14T23:32:09.000000Z",
+        "created_at": "2026-10-18T14:28:52.000000Z",
+        "updated_at": "2026-10-18T14:28:52.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "CASE-2",
         "indikator_label": "Komunikasi, pelibatan, dan kemitraan dengan orang tua serta masyarakat. Kisi-kisi Bloom: C4 menganalisis hambatan; C5 mengevaluasi pendekatan; C6 merancang kolaborasi.",
@@ -196,8 +196,8 @@
         },
         "fields": [
           {
-            "id": 7999,
-            "assessment_form_id": 1779,
+            "id": 15771,
+            "assessment_form_id": 3354,
             "label": "1. Analisislah faktor yang menyebabkan rendahnya partisipasi orang tua dan masyarakat dalam kasus tersebut!",
             "nama_field": "f_v3t8iuyz",
             "tipe_field": "textarea",
@@ -216,8 +216,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Analisislah faktor yang menyebabkan rendahnya partisipasi orang tua dan masyarakat dalam kasus tersebut!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -235,8 +235,8 @@
             }
           },
           {
-            "id": 8000,
-            "assessment_form_id": 1779,
+            "id": 15772,
+            "assessment_form_id": 3354,
             "label": "2. Nilailah pendekatan sekolah dalam menyampaikan dan menyusun program. Gunakan fakta kasus sebagai dasar penilaian!",
             "nama_field": "f_ywi2xeqy",
             "tipe_field": "textarea",
@@ -255,8 +255,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Nilailah pendekatan sekolah dalam menyampaikan dan menyusun program. Gunakan fakta kasus sebagai dasar penilaian!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -275,8 +275,8 @@
             }
           },
           {
-            "id": 8001,
-            "assessment_form_id": 1779,
+            "id": 15773,
+            "assessment_form_id": 3354,
             "label": "3. Susunlah rencana kemitraan untuk meningkatkan partisipasi orang tua dan masyarakat dalam program literasi!",
             "nama_field": "f_n3o2uryr",
             "tipe_field": "textarea",
@@ -295,8 +295,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Susunlah rencana kemitraan untuk meningkatkan partisipasi orang tua dan masyarakat dalam program literasi!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -316,15 +316,15 @@
         ]
       },
       {
-        "id": 1780,
+        "id": 3355,
         "assessment_id": 7,
         "judul_form": "Kasus 3 – Kepemimpinan Pembelajaran",
         "kode_form": "FORM-KS-SK-03",
         "deskripsi": "Rekap asesmen internal menunjukkan hasil belajar murid menurun selama dua tahun ajaran berturut-turut. Catatan observasi kelas memperlihatkan pembelajaran masih didominasi ceramah, kesempatan murid berlatih dan berdiskusi terbatas, serta umpan balik formatif belum rutin. Sekolah belum membahas pola hasil asesmen tersebut dalam forum belajar guru.",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:09.000000Z",
-        "updated_at": "2026-10-14T23:32:09.000000Z",
+        "created_at": "2026-10-18T14:28:52.000000Z",
+        "updated_at": "2026-10-18T14:28:52.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "CASE-3",
         "indikator_label": "Analisis mutu pembelajaran dan kepemimpinan instruksional. Kisi-kisi Bloom: C4 menganalisis penyebab; C5 mengevaluasi praktik; C6 merancang intervensi.",
@@ -335,8 +335,8 @@
         },
         "fields": [
           {
-            "id": 8002,
-            "assessment_form_id": 1780,
+            "id": 15774,
+            "assessment_form_id": 3355,
             "label": "1. Analisislah faktor yang mungkin menyebabkan penurunan hasil belajar berdasarkan data dan catatan observasi dalam kasus!",
             "nama_field": "f_gc9ehnbr",
             "tipe_field": "textarea",
@@ -355,8 +355,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Analisislah faktor yang mungkin menyebabkan penurunan hasil belajar berdasarkan data dan catatan observasi dalam kasus!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -375,8 +375,8 @@
             }
           },
           {
-            "id": 8003,
-            "assessment_form_id": 1780,
+            "id": 15775,
+            "assessment_form_id": 3355,
             "label": "2. Evaluasilah praktik pembelajaran dan tindak lanjut sekolah saat ini terhadap kebutuhan belajar murid!",
             "nama_field": "f_ch3bpq40",
             "tipe_field": "textarea",
@@ -395,8 +395,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Evaluasilah praktik pembelajaran dan tindak lanjut sekolah saat ini terhadap kebutuhan belajar murid!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -415,8 +415,8 @@
             }
           },
           {
-            "id": 8004,
-            "assessment_form_id": 1780,
+            "id": 15776,
+            "assessment_form_id": 3355,
             "label": "3. Rancanglah intervensi peningkatan pembelajaran yang dapat dilaksanakan sekolah selama satu semester!",
             "nama_field": "f_g4dnvm60",
             "tipe_field": "textarea",
@@ -435,8 +435,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Rancanglah intervensi peningkatan pembelajaran yang dapat dilaksanakan sekolah selama satu semester!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -457,15 +457,15 @@
         ]
       },
       {
-        "id": 1781,
+        "id": 3356,
         "assessment_id": 7,
         "judul_form": "Kasus 4 – Manajerial dan Akuntabilitas",
         "kode_form": "FORM-KS-SK-04",
         "deskripsi": "Guru dan komite sekolah meminta penjelasan mengenai penggunaan dana sekolah. Laporan yang tersedia hanya dibahas oleh tim pengelola dan belum disampaikan secara berkala kepada warga sekolah. Belum ada jadwal publikasi ringkasan realisasi, mekanisme pertanyaan, atau dokumentasi tindak lanjut.",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:09.000000Z",
-        "updated_at": "2026-10-14T23:32:09.000000Z",
+        "created_at": "2026-10-18T14:28:52.000000Z",
+        "updated_at": "2026-10-18T14:28:52.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "CASE-4",
         "indikator_label": "Tata kelola, transparansi, dan akuntabilitas pengelolaan dana sekolah. Kisi-kisi Bloom: C4 menganalisis celah; C5 mengevaluasi dampak; C6 merancang mekanisme.",
@@ -476,8 +476,8 @@
         },
         "fields": [
           {
-            "id": 8005,
-            "assessment_form_id": 1781,
+            "id": 15777,
+            "assessment_form_id": 3356,
             "label": "1. Analisislah celah tata kelola dan transparansi yang tampak dalam pengelolaan dana sekolah pada kasus!",
             "nama_field": "f_l2y81mdp",
             "tipe_field": "textarea",
@@ -496,8 +496,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Analisislah celah tata kelola dan transparansi yang tampak dalam pengelolaan dana sekolah pada kasus!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -515,8 +515,8 @@
             }
           },
           {
-            "id": 8006,
-            "assessment_form_id": 1781,
+            "id": 15778,
+            "assessment_form_id": 3356,
             "label": "2. Evaluasilah dampak kondisi tersebut terhadap kepercayaan warga sekolah dan akuntabilitas pengelolaan dana!",
             "nama_field": "f_ppsotb3g",
             "tipe_field": "textarea",
@@ -535,8 +535,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Evaluasilah dampak kondisi tersebut terhadap kepercayaan warga sekolah dan akuntabilitas pengelolaan dana!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -555,8 +555,8 @@
             }
           },
           {
-            "id": 8007,
-            "assessment_form_id": 1781,
+            "id": 15779,
+            "assessment_form_id": 3356,
             "label": "3. Rancanglah mekanisme pelaporan dan komunikasi keuangan sekolah yang transparan, aman, dan dapat ditindaklanjuti!",
             "nama_field": "f_1kv5fgbj",
             "tipe_field": "textarea",
@@ -575,8 +575,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Rancanglah mekanisme pelaporan dan komunikasi keuangan sekolah yang transparan, aman, dan dapat ditindaklanjuti!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -596,15 +596,15 @@
         ]
       },
       {
-        "id": 1782,
+        "id": 3357,
         "assessment_id": 7,
         "judul_form": "Kasus 5 – Kewirausahaan dan Inovasi",
         "kode_form": "FORM-KS-SK-05",
         "deskripsi": "Sekolah belum memiliki program unggulan yang dikembangkan secara konsisten. Beberapa kegiatan pernah dilakukan, tetapi sekolah belum menilai kebutuhan murid dan lingkungan secara sistematis atau mengukur dampaknya. Padahal, sekolah memiliki potensi lokal yang dapat digunakan sebagai sumber belajar dan mitra kegiatan.",
         "urutan": 5,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:09.000000Z",
-        "updated_at": "2026-10-14T23:32:09.000000Z",
+        "created_at": "2026-10-18T14:28:52.000000Z",
+        "updated_at": "2026-10-18T14:28:52.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "CASE-5",
         "indikator_label": "Kepemimpinan inovasi berbasis kebutuhan dan potensi sekolah. Kisi-kisi Bloom: C4 menganalisis penyebab; C5 mengevaluasi alternatif; C6 merancang uji coba.",
@@ -615,8 +615,8 @@
         },
         "fields": [
           {
-            "id": 8008,
-            "assessment_form_id": 1782,
+            "id": 15780,
+            "assessment_form_id": 3357,
             "label": "1. Analisislah penyebab program inovasi sekolah belum berkembang dan informasi apa yang masih perlu dikumpulkan!",
             "nama_field": "f_vbvuqk7f",
             "tipe_field": "textarea",
@@ -635,8 +635,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Analisislah penyebab program inovasi sekolah belum berkembang dan informasi apa yang masih perlu dikumpulkan!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -654,8 +654,8 @@
             }
           },
           {
-            "id": 8009,
-            "assessment_form_id": 1782,
+            "id": 15781,
+            "assessment_form_id": 3357,
             "label": "2. Nilailah satu alternatif program inovasi berdasarkan relevansi, kelayakan sumber daya, manfaat, dan risiko pelaksanaannya!",
             "nama_field": "f_josug9l7",
             "tipe_field": "textarea",
@@ -674,8 +674,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Nilailah satu alternatif program inovasi berdasarkan relevansi, kelayakan sumber daya, manfaat, dan risiko pelaksanaannya!",
             "scoring_config": {
               "method": "semantic_similarity",
@@ -694,8 +694,8 @@
             }
           },
           {
-            "id": 8010,
-            "assessment_form_id": 1782,
+            "id": 15782,
+            "assessment_form_id": 3357,
             "label": "3. Rancanglah uji coba program inovasi yang realistis dan dapat dievaluasi sebelum diperluas!",
             "nama_field": "f_6h8cb4do",
             "tipe_field": "textarea",
@@ -714,8 +714,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:09.000000Z",
-            "updated_at": "2026-10-14T23:32:09.000000Z",
+            "created_at": "2026-10-18T14:28:52.000000Z",
+            "updated_at": "2026-10-18T14:28:52.000000Z",
             "deskripsi": "Rancanglah uji coba program inovasi yang realistis dan dapat dievaluasi sebelum diperluas!",
             "scoring_config": {
               "method": "semantic_similarity",

@@ -1105,7 +1105,7 @@ class AssessmentController extends Controller
                 ->all()
             : array_values(array_filter(array_map(
                 'trim',
-                preg_split('/[\r\n,]+/', (string) ($fieldData['opsi_field_text'] ?? null)) ?: []
+                preg_split('/[\r\n]+/', (string) ($fieldData['opsi_field_text'] ?? null)) ?: []
             )));
         $scoreMap = $this->parseOptionScoreText($fieldData['opsi_score_text'] ?? null, $options);
 
@@ -1949,7 +1949,7 @@ class AssessmentController extends Controller
                 ->filter()
                 ->values();
 
-            return $labels->isEmpty() ? null : $labels->implode(', ');
+            return $labels->isEmpty() ? null : $labels->implode("\n");
         }
 
         if (!is_array($rawOptions) || !array_is_list($rawOptions)) {
@@ -1962,7 +1962,7 @@ class AssessmentController extends Controller
             ->filter()
             ->values();
 
-        return $labels->isEmpty() ? null : $labels->implode(', ');
+        return $labels->isEmpty() ? null : $labels->implode("\n");
     }
 
     private function formatRawFieldOptionsJsonForBuilder(?string $fieldType, mixed $rawOptions): ?string

@@ -3,7 +3,7 @@
     "schema": "database-assessment-v1",
     "version": 1,
     "export_type": "assessment-package",
-    "exported_at": "2026-10-15T13:16:27.966189Z",
+    "exported_at": "2026-10-18T14:39:53.176070Z",
     "application": "Laravel",
     "streaming": true,
     "runtime_data_excluded": [
@@ -23,7 +23,7 @@
     "status": "publish",
     "is_active": true,
     "created_at": "2026-08-07T21:11:33.000000Z",
-    "updated_at": "2026-10-14T23:27:42.000000Z",
+    "updated_at": "2026-10-15T14:52:43.000000Z",
     "instrument_type": "skala_likert",
     "kategori": "assessment",
     "target_ketenagaan": "tenaga_kependidikan",
@@ -38,15 +38,15 @@
     },
     "forms": [
       {
-        "id": 1724,
+        "id": 3299,
         "assessment_id": 10,
         "judul_form": "1.1.1 Makna, tujuan, dan pandangan hidup kepemimpinan satuan pendidikan berdasarkan prinsip moral dan keyakinan terhadap Tuhan Yang Maha Esa dalam memimpin satuan pendidikan",
         "kode_form": "FORM-LIKERT-KS-111",
         "deskripsi": "",
         "urutan": 1,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.1",
         "indikator_label": "Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik",
@@ -58,8 +58,8 @@
         },
         "fields": [
           {
-            "id": 7743,
-            "assessment_form_id": 1724,
+            "id": 15515,
+            "assessment_form_id": 3299,
             "label": "Saya menjadikan nilai-nilai moral, etika, dan keyakinan kepada Tuhan Yang Maha Esa sebagai landasan utama dalam mengambil keputusan sebagai kepala satuan pendidikan.",
             "nama_field": "f_6rawrh9h",
             "tipe_field": "likert",
@@ -105,8 +105,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -120,8 +120,8 @@
             }
           },
           {
-            "id": 7744,
-            "assessment_form_id": 1724,
+            "id": 15516,
+            "assessment_form_id": 3299,
             "label": "Saya memandang kepemimpinan satuan pendidikan sebagai amanah yang harus dijalankan dengan integritas, tanggung jawab, keteladanan, dan semangat melayani.",
             "nama_field": "f_7csdhgn0",
             "tipe_field": "likert",
@@ -167,8 +167,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -182,8 +182,8 @@
             }
           },
           {
-            "id": 7745,
-            "assessment_form_id": 1724,
+            "id": 15517,
+            "assessment_form_id": 3299,
             "label": "Saya lebih mengutamakan pencapaian target administrasi meskipun terkadang harus mengabaikan pertimbangan nilai moral dalam pengambilan keputusan.",
             "nama_field": "f_849r9m4c",
             "tipe_field": "likert",
@@ -229,8 +229,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -245,8 +245,8 @@
             }
           },
           {
-            "id": 7746,
-            "assessment_form_id": 1724,
+            "id": 15518,
+            "assessment_form_id": 3299,
             "label": "Saya menunjukkan keselarasan antara ucapan, sikap, dan tindakan sehingga menjadi teladan bagi guru, tenaga kependidikan, peserta didik, dan warga sekolah.",
             "nama_field": "f_qcrxh8kp",
             "tipe_field": "likert",
@@ -292,8 +292,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -307,8 +307,8 @@
             }
           },
           {
-            "id": 7747,
-            "assessment_form_id": 1724,
+            "id": 15519,
+            "assessment_form_id": 3299,
             "label": "Saya melakukan refleksi terhadap keputusan dan tindakan kepemimpinan untuk memastikan kesesuaiannya dengan nilai moral, etika profesi, dan tujuan pendidikan.",
             "nama_field": "f_jk6i928p",
             "tipe_field": "likert",
@@ -354,8 +354,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -369,8 +369,8 @@
             }
           },
           {
-            "id": 7748,
-            "assessment_form_id": 1724,
+            "id": 15520,
+            "assessment_form_id": 3299,
             "label": "Saya jarang mempertimbangkan nilai-nilai moral dan keyakinan spiritual ketika menentukan kebijakan atau menyelesaikan persoalan di satuan pendidikan.",
             "nama_field": "f_adlgge3e",
             "tipe_field": "likert",
@@ -416,8 +416,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -432,8 +432,8 @@
             }
           },
           {
-            "id": 7749,
-            "assessment_form_id": 1724,
+            "id": 15521,
+            "assessment_form_id": 3299,
             "label": "Saya berupaya membangun budaya sekolah yang menjunjung tinggi integritas, kejujuran, tanggung jawab, dan nilai-nilai kemanusiaan dalam setiap aktivitas pendidikan.",
             "nama_field": "f_n0np42dr",
             "tipe_field": "likert",
@@ -479,8 +479,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -496,15 +496,15 @@
         ]
       },
       {
-        "id": 1725,
+        "id": 3300,
         "assessment_id": 10,
         "judul_form": "1.1.2 Pengelolaan Emosi dalam Menjalankan Peran sebagai Kepala Sekolah",
         "kode_form": "FORM-LIKERT-KS-112",
         "deskripsi": "",
         "urutan": 2,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.1",
         "indikator_label": "Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik",
@@ -516,8 +516,8 @@
         },
         "fields": [
           {
-            "id": 7750,
-            "assessment_form_id": 1725,
+            "id": 15522,
+            "assessment_form_id": 3300,
             "label": "Saya mampu mengendalikan emosi secara profesional ketika menghadapi permasalahan, konflik, maupun tekanan dalam memimpin satuan pendidikan.",
             "nama_field": "f_rcqne284",
             "tipe_field": "likert",
@@ -563,8 +563,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -578,8 +578,8 @@
             }
           },
           {
-            "id": 7751,
-            "assessment_form_id": 1725,
+            "id": 15523,
+            "assessment_form_id": 3300,
             "label": "Saya mudah menunjukkan kemarahan atau kekecewaan kepada guru, tenaga kependidikan, maupun pihak lain ketika menghadapi situasi yang tidak sesuai dengan harapan saya.",
             "nama_field": "f_eh3kkozd",
             "tipe_field": "likert",
@@ -625,8 +625,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -641,8 +641,8 @@
             }
           },
           {
-            "id": 7752,
-            "assessment_form_id": 1725,
+            "id": 15524,
+            "assessment_form_id": 3300,
             "label": "Saya mengambil keputusan secara tenang, objektif, dan berdasarkan pertimbangan yang matang meskipun berada dalam situasi yang penuh tekanan.",
             "nama_field": "f_jcxlwy1y",
             "tipe_field": "likert",
@@ -688,8 +688,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -703,8 +703,8 @@
             }
           },
           {
-            "id": 7753,
-            "assessment_form_id": 1725,
+            "id": 15525,
+            "assessment_form_id": 3300,
             "label": "Saya menerima kritik, masukan, dan perbedaan pendapat secara terbuka sebagai bagian dari upaya meningkatkan kualitas kepemimpinan.",
             "nama_field": "f_fowfiu2u",
             "tipe_field": "likert",
@@ -750,8 +750,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -765,8 +765,8 @@
             }
           },
           {
-            "id": 7754,
-            "assessment_form_id": 1725,
+            "id": 15526,
+            "assessment_form_id": 3300,
             "label": "Saya mampu menjaga sikap profesional dan menjadi teladan dalam mengelola emosi ketika berinteraksi dengan seluruh warga sekolah dan pemangku kepentingan.",
             "nama_field": "f_cikfruyr",
             "tipe_field": "likert",
@@ -812,8 +812,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -827,8 +827,8 @@
             }
           },
           {
-            "id": 7755,
-            "assessment_form_id": 1725,
+            "id": 15527,
+            "assessment_form_id": 3300,
             "label": "Saya sering membiarkan suasana hati memengaruhi cara saya berkomunikasi dan mengambil keputusan sebagai kepala sekolah.",
             "nama_field": "f_jg7aflto",
             "tipe_field": "likert",
@@ -874,8 +874,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -890,8 +890,8 @@
             }
           },
           {
-            "id": 7756,
-            "assessment_form_id": 1725,
+            "id": 15528,
+            "assessment_form_id": 3300,
             "label": "Saya secara berkala melakukan refleksi dan pengelolaan diri agar mampu mempertahankan kestabilan emosi dalam menjalankan kepemimpinan satuan pendidikan.",
             "nama_field": "f_m1dnpmke",
             "tipe_field": "likert",
@@ -937,8 +937,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -954,15 +954,15 @@
         ]
       },
       {
-        "id": 1726,
+        "id": 3301,
         "assessment_id": 10,
         "judul_form": "1.1.3 Penerapan Kode Etik dalam Menjalankan Tugas dan Peran sebagai Kepala Sekolah",
         "kode_form": "FORM-LIKERT-KS-113",
         "deskripsi": "",
         "urutan": 3,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.1",
         "indikator_label": "Kematangan moral, emosi, dan spiritual dalam berperilaku sesuai dengan kode etik",
@@ -974,8 +974,8 @@
         },
         "fields": [
           {
-            "id": 7757,
-            "assessment_form_id": 1726,
+            "id": 15529,
+            "assessment_form_id": 3301,
             "label": "Saya menerapkan kode etik kepala sekolah secara konsisten dalam mengambil keputusan, memimpin warga sekolah, dan melaksanakan tugas profesional.",
             "nama_field": "f_hkp4sc2d",
             "tipe_field": "likert",
@@ -1021,8 +1021,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1036,8 +1036,8 @@
             }
           },
           {
-            "id": 7758,
-            "assessment_form_id": 1726,
+            "id": 15530,
+            "assessment_form_id": 3301,
             "label": "Saya menjaga hubungan profesional dengan guru, tenaga kependidikan, peserta didik, orang tua, dan pemangku kepentingan sesuai dengan prinsip etika dan peraturan yang berlaku.",
             "nama_field": "f_17v7k1bv",
             "tipe_field": "likert",
@@ -1083,8 +1083,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1098,8 +1098,8 @@
             }
           },
           {
-            "id": 7759,
-            "assessment_form_id": 1726,
+            "id": 15531,
+            "assessment_form_id": 3301,
             "label": "Saya menganggap pelanggaran terhadap kode etik masih dapat ditoleransi apabila bertujuan mempercepat penyelesaian pekerjaan atau mencapai target tertentu.",
             "nama_field": "f_2rdk6ayk",
             "tipe_field": "likert",
@@ -1145,8 +1145,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1161,8 +1161,8 @@
             }
           },
           {
-            "id": 7760,
-            "assessment_form_id": 1726,
+            "id": 15532,
+            "assessment_form_id": 3301,
             "label": "Saya menjaga kerahasiaan informasi dan data satuan pendidikan serta menggunakannya secara bertanggung jawab sesuai dengan ketentuan yang berlaku.",
             "nama_field": "f_i46zxova",
             "tipe_field": "likert",
@@ -1208,8 +1208,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1223,8 +1223,8 @@
             }
           },
           {
-            "id": 7761,
-            "assessment_form_id": 1726,
+            "id": 15533,
+            "assessment_form_id": 3301,
             "label": "Saya menjadi teladan dalam menjunjung tinggi integritas, kejujuran, akuntabilitas, dan profesionalisme dalam setiap pelaksanaan tugas sebagai kepala sekolah.",
             "nama_field": "f_jxi3iljt",
             "tipe_field": "likert",
@@ -1270,8 +1270,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1285,8 +1285,8 @@
             }
           },
           {
-            "id": 7762,
-            "assessment_form_id": 1726,
+            "id": 15534,
+            "assessment_form_id": 3301,
             "label": "Saya jarang meninjau kembali apakah kebijakan dan tindakan yang saya ambil telah sesuai dengan kode etik dan prinsip profesionalisme kepala sekolah.",
             "nama_field": "f_un9i2mzy",
             "tipe_field": "likert",
@@ -1332,8 +1332,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1348,8 +1348,8 @@
             }
           },
           {
-            "id": 7763,
-            "assessment_form_id": 1726,
+            "id": 15535,
+            "assessment_form_id": 3301,
             "label": "Saya secara berkala melakukan refleksi terhadap pelaksanaan tugas kepemimpinan untuk memastikan seluruh keputusan dan tindakan tetap sesuai dengan kode etik profesi serta peraturan yang berlaku.",
             "nama_field": "f_o78pzoup",
             "tipe_field": "likert",
@@ -1395,8 +1395,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1412,15 +1412,15 @@
         ]
       },
       {
-        "id": 1727,
+        "id": 3302,
         "assessment_id": 10,
         "judul_form": "1.2.1 Refleksi dan Perencanaan Kebutuhan Pengembangan Diri untuk Peningkatan Kepemimpinan Satuan Pendidikan yang Berpusat pada Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-121",
         "deskripsi": "",
         "urutan": 4,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.2",
         "indikator_label": "Pengembangan diri melalui kebiasaan refleksi",
@@ -1432,8 +1432,8 @@
         },
         "fields": [
           {
-            "id": 7764,
-            "assessment_form_id": 1727,
+            "id": 15536,
+            "assessment_form_id": 3302,
             "label": "Saya melakukan refleksi secara berkala terhadap efektivitas kepemimpinan yang saya jalankan sebagai dasar untuk meningkatkan mutu layanan pembelajaran yang berpusat pada peserta didik.",
             "nama_field": "f_bfahbq7q",
             "tipe_field": "likert",
@@ -1479,8 +1479,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1494,8 +1494,8 @@
             }
           },
           {
-            "id": 7765,
-            "assessment_form_id": 1727,
+            "id": 15537,
+            "assessment_form_id": 3302,
             "label": "Saya menggunakan hasil evaluasi, data mutu pendidikan, serta masukan dari warga sekolah sebagai dasar dalam menyusun rencana pengembangan diri.",
             "nama_field": "f_of5vpfte",
             "tipe_field": "likert",
@@ -1541,8 +1541,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1556,8 +1556,8 @@
             }
           },
           {
-            "id": 7766,
-            "assessment_form_id": 1727,
+            "id": 15538,
+            "assessment_form_id": 3302,
             "label": "Saya merasa pengalaman yang saya miliki sudah cukup sehingga tidak perlu lagi melakukan refleksi atau menyusun rencana pengembangan diri secara teratur.",
             "nama_field": "f_atuvnfeh",
             "tipe_field": "likert",
@@ -1603,8 +1603,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1619,8 +1619,8 @@
             }
           },
           {
-            "id": 7767,
-            "assessment_form_id": 1727,
+            "id": 15539,
+            "assessment_form_id": 3302,
             "label": "Saya menetapkan prioritas pengembangan kompetensi kepemimpinan berdasarkan kebutuhan nyata satuan pendidikan dan perkembangan belajar peserta didik.",
             "nama_field": "f_lodmnpl8",
             "tipe_field": "likert",
@@ -1666,8 +1666,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1681,8 +1681,8 @@
             }
           },
           {
-            "id": 7768,
-            "assessment_form_id": 1727,
+            "id": 15540,
+            "assessment_form_id": 3302,
             "label": "Saya menyusun rencana pengembangan diri yang memiliki tujuan, indikator keberhasilan, dan langkah tindak lanjut yang jelas untuk meningkatkan kualitas kepemimpinan sekolah.",
             "nama_field": "f_rngb7wze",
             "tipe_field": "likert",
@@ -1728,8 +1728,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1743,8 +1743,8 @@
             }
           },
           {
-            "id": 7769,
-            "assessment_form_id": 1727,
+            "id": 15541,
+            "assessment_form_id": 3302,
             "label": "Saya jarang mengevaluasi apakah kegiatan pengembangan diri yang saya ikuti benar-benar sesuai dengan kebutuhan peningkatan mutu satuan pendidikan.",
             "nama_field": "f_rkqikzm6",
             "tipe_field": "likert",
@@ -1790,8 +1790,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1806,8 +1806,8 @@
             }
           },
           {
-            "id": 7770,
-            "assessment_form_id": 1727,
+            "id": 15542,
+            "assessment_form_id": 3302,
             "label": "Saya secara berkala meninjau kembali hasil pengembangan diri dan menyesuaikan rencana pengembangan berikutnya agar semakin mendukung kepemimpinan yang berpusat pada peserta didik.",
             "nama_field": "f_udnaqlf0",
             "tipe_field": "likert",
@@ -1853,8 +1853,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1870,15 +1870,15 @@
         ]
       },
       {
-        "id": 1728,
+        "id": 3303,
         "assessment_id": 10,
         "judul_form": "1.2.2 Cara Adaptif Melakukan Pengembangan Diri untuk Meningkatkan Kepemimpinan Satuan Pendidikan yang Berpusat pada Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-122",
         "deskripsi": "",
         "urutan": 5,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.2",
         "indikator_label": "Pengembangan diri melalui kebiasaan refleksi",
@@ -1890,8 +1890,8 @@
         },
         "fields": [
           {
-            "id": 7771,
-            "assessment_form_id": 1728,
+            "id": 15543,
+            "assessment_form_id": 3303,
             "label": "Saya secara aktif memilih berbagai bentuk pengembangan diri yang sesuai dengan kebutuhan peningkatan mutu kepemimpinan dan pembelajaran di satuan pendidikan.",
             "nama_field": "f_qgu5ky5t",
             "tipe_field": "likert",
@@ -1937,8 +1937,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -1952,8 +1952,8 @@
             }
           },
           {
-            "id": 7772,
-            "assessment_form_id": 1728,
+            "id": 15544,
+            "assessment_form_id": 3303,
             "label": "Saya lebih memilih menggunakan cara kepemimpinan yang sudah biasa saya lakukan daripada mempelajari pendekatan baru yang lebih sesuai dengan kebutuhan sekolah.",
             "nama_field": "f_skbzp87e",
             "tipe_field": "likert",
@@ -1999,8 +1999,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2015,8 +2015,8 @@
             }
           },
           {
-            "id": 7773,
-            "assessment_form_id": 1728,
+            "id": 15545,
+            "assessment_form_id": 3303,
             "label": "Saya memanfaatkan komunitas belajar, jejaring profesional, pelatihan, mentoring, dan teknologi digital untuk meningkatkan kompetensi kepemimpinan.",
             "nama_field": "f_k1co7n8r",
             "tipe_field": "likert",
@@ -2062,8 +2062,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2077,8 +2077,8 @@
             }
           },
           {
-            "id": 7774,
-            "assessment_form_id": 1728,
+            "id": 15546,
+            "assessment_form_id": 3303,
             "label": "Saya menyesuaikan strategi pengembangan diri dengan perubahan kebijakan pendidikan, perkembangan ilmu pengetahuan, serta kebutuhan warga sekolah dan peserta didik.",
             "nama_field": "f_6uk4uedk",
             "tipe_field": "likert",
@@ -2124,8 +2124,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2139,8 +2139,8 @@
             }
           },
           {
-            "id": 7775,
-            "assessment_form_id": 1728,
+            "id": 15547,
+            "assessment_form_id": 3303,
             "label": "Saya terbuka terhadap gagasan, inovasi, dan praktik baik dari berbagai sumber sebagai bahan untuk meningkatkan efektivitas kepemimpinan satuan pendidikan.",
             "nama_field": "f_n9d05dru",
             "tipe_field": "likert",
@@ -2186,8 +2186,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2201,8 +2201,8 @@
             }
           },
           {
-            "id": 7776,
-            "assessment_form_id": 1728,
+            "id": 15548,
+            "assessment_form_id": 3303,
             "label": "Saya jarang menyesuaikan cara mengembangkan kompetensi diri meskipun menghadapi tantangan baru dalam memimpin satuan pendidikan.",
             "nama_field": "f_ftfjqtc2",
             "tipe_field": "likert",
@@ -2248,8 +2248,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2264,8 +2264,8 @@
             }
           },
           {
-            "id": 7777,
-            "assessment_form_id": 1728,
+            "id": 15549,
+            "assessment_form_id": 3303,
             "label": "Saya secara berkala mengevaluasi efektivitas berbagai kegiatan pengembangan diri yang saya ikuti dan mengadaptasinya agar semakin berdampak pada peningkatan mutu pembelajaran yang berpusat pada peserta didik.",
             "nama_field": "f_s4vgeldd",
             "tipe_field": "likert",
@@ -2311,8 +2311,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2328,15 +2328,15 @@
         ]
       },
       {
-        "id": 1729,
+        "id": 3304,
         "assessment_id": 10,
         "judul_form": "1.2.3 Penerapan Hasil Pengembangan Diri yang Berkelanjutan untuk Perbaikan Kualitas Kepemimpinan Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-123",
         "deskripsi": "",
         "urutan": 6,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.2",
         "indikator_label": "Pengembangan diri melalui kebiasaan refleksi",
@@ -2348,8 +2348,8 @@
         },
         "fields": [
           {
-            "id": 7778,
-            "assessment_form_id": 1729,
+            "id": 15550,
+            "assessment_form_id": 3304,
             "label": "Saya menerapkan pengetahuan, keterampilan, dan wawasan yang diperoleh dari kegiatan pengembangan diri untuk meningkatkan efektivitas kepemimpinan di satuan pendidikan.",
             "nama_field": "f_zqrccw1f",
             "tipe_field": "likert",
@@ -2395,8 +2395,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2410,8 +2410,8 @@
             }
           },
           {
-            "id": 7779,
-            "assessment_form_id": 1729,
+            "id": 15551,
+            "assessment_form_id": 3304,
             "label": "Saya mengadaptasi hasil pelatihan, pendampingan, atau komunitas belajar menjadi kebijakan, program, atau strategi yang mendukung peningkatan mutu pembelajaran.",
             "nama_field": "f_kdaalxvd",
             "tipe_field": "likert",
@@ -2457,8 +2457,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2472,8 +2472,8 @@
             }
           },
           {
-            "id": 7780,
-            "assessment_form_id": 1729,
+            "id": 15552,
+            "assessment_form_id": 3304,
             "label": "Saya jarang menerapkan hasil pengembangan diri karena cara kepemimpinan yang selama ini saya gunakan sudah dianggap memadai.",
             "nama_field": "f_hel9yche",
             "tipe_field": "likert",
@@ -2519,8 +2519,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2535,8 +2535,8 @@
             }
           },
           {
-            "id": 7781,
-            "assessment_form_id": 1729,
+            "id": 15553,
+            "assessment_form_id": 3304,
             "label": "Saya mengevaluasi dampak penerapan hasil pengembangan diri terhadap peningkatan kinerja guru, budaya sekolah, dan kualitas pembelajaran.",
             "nama_field": "f_43ta9meg",
             "tipe_field": "likert",
@@ -2582,8 +2582,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2597,8 +2597,8 @@
             }
           },
           {
-            "id": 7782,
-            "assessment_form_id": 1729,
+            "id": 15554,
+            "assessment_form_id": 3304,
             "label": "Saya mendorong guru dan tenaga kependidikan untuk bersama-sama menerapkan praktik baik yang diperoleh dari kegiatan pengembangan profesional demi peningkatan mutu satuan pendidikan.",
             "nama_field": "f_movmt15z",
             "tipe_field": "likert",
@@ -2644,8 +2644,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2659,8 +2659,8 @@
             }
           },
           {
-            "id": 7783,
-            "assessment_form_id": 1729,
+            "id": 15555,
+            "assessment_form_id": 3304,
             "label": "Saya tidak merasa perlu meninjau kembali efektivitas hasil pengembangan diri setelah diterapkan dalam kepemimpinan sekolah.",
             "nama_field": "f_g0hmda59",
             "tipe_field": "likert",
@@ -2706,8 +2706,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2722,8 +2722,8 @@
             }
           },
           {
-            "id": 7784,
-            "assessment_form_id": 1729,
+            "id": 15556,
+            "assessment_form_id": 3304,
             "label": "Saya secara berkelanjutan menyempurnakan praktik kepemimpinan berdasarkan hasil evaluasi penerapan pengembangan diri agar memberikan dampak yang lebih besar terhadap mutu layanan pendidikan dan hasil belajar peserta didik.",
             "nama_field": "f_z5td3psp",
             "tipe_field": "likert",
@@ -2769,8 +2769,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2786,15 +2786,15 @@
         ]
       },
       {
-        "id": 1730,
+        "id": 3305,
         "assessment_id": 10,
         "judul_form": "1.3.1 Empati terhadap Peserta Didik dalam Pengambilan Keputusan",
         "kode_form": "FORM-LIKERT-KS-131",
         "deskripsi": "",
         "urutan": 7,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.3",
         "indikator_label": "Orientasi berpusat pada peserta didik",
@@ -2806,8 +2806,8 @@
         },
         "fields": [
           {
-            "id": 7785,
-            "assessment_form_id": 1730,
+            "id": 15557,
+            "assessment_form_id": 3305,
             "label": "Saya mempertimbangkan kebutuhan, kepentingan, dan kesejahteraan peserta didik sebagai dasar utama dalam setiap pengambilan keputusan di satuan pendidikan.",
             "nama_field": "f_iqiwds7a",
             "tipe_field": "likert",
@@ -2853,8 +2853,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2868,8 +2868,8 @@
             }
           },
           {
-            "id": 7786,
-            "assessment_form_id": 1730,
+            "id": 15558,
+            "assessment_form_id": 3305,
             "label": "Saya lebih mengutamakan kemudahan pengelolaan sekolah daripada mempertimbangkan dampak keputusan terhadap kebutuhan peserta didik.",
             "nama_field": "f_j4sdhux2",
             "tipe_field": "likert",
@@ -2915,8 +2915,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2931,8 +2931,8 @@
             }
           },
           {
-            "id": 7787,
-            "assessment_form_id": 1730,
+            "id": 15559,
+            "assessment_form_id": 3305,
             "label": "Saya menggunakan data, aspirasi, dan masukan dari peserta didik maupun guru sebagai bahan pertimbangan dalam menetapkan kebijakan yang berkaitan dengan pembelajaran dan layanan pendidikan.",
             "nama_field": "f_wbju5iet",
             "tipe_field": "likert",
@@ -2978,8 +2978,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -2993,8 +2993,8 @@
             }
           },
           {
-            "id": 7788,
-            "assessment_form_id": 1730,
+            "id": 15560,
+            "assessment_form_id": 3305,
             "label": "Saya berupaya memahami kondisi, tantangan, dan keberagaman latar belakang peserta didik sebelum menetapkan kebijakan atau mengambil keputusan yang memengaruhi mereka.",
             "nama_field": "f_ofuu2esw",
             "tipe_field": "likert",
@@ -3040,8 +3040,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3055,8 +3055,8 @@
             }
           },
           {
-            "id": 7789,
-            "assessment_form_id": 1730,
+            "id": 15561,
+            "assessment_form_id": 3305,
             "label": "Saya mendorong terciptanya kebijakan sekolah yang berpihak pada perkembangan akademik, sosial, emosional, dan karakter peserta didik.",
             "nama_field": "f_g9lpurl7",
             "tipe_field": "likert",
@@ -3102,8 +3102,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3117,8 +3117,8 @@
             }
           },
           {
-            "id": 7790,
-            "assessment_form_id": 1730,
+            "id": 15562,
+            "assessment_form_id": 3305,
             "label": "Saya jarang mengevaluasi apakah keputusan yang saya ambil telah memberikan manfaat nyata bagi perkembangan dan kesejahteraan peserta didik.",
             "nama_field": "f_90iq4b5f",
             "tipe_field": "likert",
@@ -3164,8 +3164,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3180,8 +3180,8 @@
             }
           },
           {
-            "id": 7791,
-            "assessment_form_id": 1730,
+            "id": 15563,
+            "assessment_form_id": 3305,
             "label": "Saya secara berkala merefleksikan dampak keputusan yang saya ambil untuk memastikan seluruh kebijakan sekolah tetap berorientasi pada kepentingan terbaik peserta didik.",
             "nama_field": "f_o9oqbgob",
             "tipe_field": "likert",
@@ -3227,8 +3227,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3244,15 +3244,15 @@
         ]
       },
       {
-        "id": 1731,
+        "id": 3306,
         "assessment_id": 10,
         "judul_form": "1.3.2 Respek terhadap Hak Peserta Didik dalam Menjalankan Peran sebagai Kepala Sekolah",
         "kode_form": "FORM-LIKERT-KS-132",
         "deskripsi": "",
         "urutan": 8,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.3",
         "indikator_label": "Orientasi berpusat pada peserta didik",
@@ -3264,8 +3264,8 @@
         },
         "fields": [
           {
-            "id": 7792,
-            "assessment_form_id": 1731,
+            "id": 15564,
+            "assessment_form_id": 3306,
             "label": "Saya memastikan setiap kebijakan dan program sekolah menghormati hak peserta didik untuk memperoleh layanan pendidikan yang adil, aman, dan berkualitas.",
             "nama_field": "f_ngveskux",
             "tipe_field": "likert",
@@ -3311,8 +3311,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3326,8 +3326,8 @@
             }
           },
           {
-            "id": 7793,
-            "assessment_form_id": 1731,
+            "id": 15565,
+            "assessment_form_id": 3306,
             "label": "Saya mendorong terciptanya budaya sekolah yang menghargai keberagaman, kesetaraan, dan martabat setiap peserta didik tanpa diskriminasi.",
             "nama_field": "f_vfhhhzej",
             "tipe_field": "likert",
@@ -3373,8 +3373,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3388,8 +3388,8 @@
             }
           },
           {
-            "id": 7794,
-            "assessment_form_id": 1731,
+            "id": 15566,
+            "assessment_form_id": 3306,
             "label": "Saya menganggap perbedaan latar belakang atau kemampuan peserta didik dapat menjadi dasar pemberian perlakuan yang berbeda dalam memperoleh layanan sekolah.",
             "nama_field": "f_4yx7fjgn",
             "tipe_field": "likert",
@@ -3435,8 +3435,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3451,8 +3451,8 @@
             }
           },
           {
-            "id": 7795,
-            "assessment_form_id": 1731,
+            "id": 15567,
+            "assessment_form_id": 3306,
             "label": "Saya memastikan peserta didik memperoleh kesempatan untuk menyampaikan pendapat, aspirasi, dan kebutuhannya melalui mekanisme yang sesuai.",
             "nama_field": "f_b562uwrb",
             "tipe_field": "likert",
@@ -3498,8 +3498,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3513,8 +3513,8 @@
             }
           },
           {
-            "id": 7796,
-            "assessment_form_id": 1731,
+            "id": 15568,
+            "assessment_form_id": 3306,
             "label": "Saya mengawasi pelaksanaan kebijakan sekolah agar seluruh warga sekolah menghormati hak-hak peserta didik sesuai dengan peraturan dan etika pendidikan.",
             "nama_field": "f_jt0qba2b",
             "tipe_field": "likert",
@@ -3560,8 +3560,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3575,8 +3575,8 @@
             }
           },
           {
-            "id": 7797,
-            "assessment_form_id": 1731,
+            "id": 15569,
+            "assessment_form_id": 3306,
             "label": "Saya jarang mengevaluasi apakah kebijakan sekolah yang saya tetapkan telah benar-benar melindungi dan menghormati hak peserta didik.",
             "nama_field": "f_gx1lirse",
             "tipe_field": "likert",
@@ -3622,8 +3622,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3638,8 +3638,8 @@
             }
           },
           {
-            "id": 7798,
-            "assessment_form_id": 1731,
+            "id": 15570,
+            "assessment_form_id": 3306,
             "label": "Saya secara berkala meninjau dan menyempurnakan kebijakan sekolah agar semakin berpihak pada pemenuhan hak, perlindungan, dan perkembangan optimal seluruh peserta didik.",
             "nama_field": "f_tt5d6v1y",
             "tipe_field": "likert",
@@ -3685,8 +3685,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3702,15 +3702,15 @@
         ]
       },
       {
-        "id": 1732,
+        "id": 3307,
         "assessment_id": 10,
         "judul_form": "1.3.3 Kepedulian terhadap Keselamatan dan Keamanan Peserta Didik sebagai Individu dan Kelompok dalam Menjalankan Peran sebagai Kepala Sekolah",
         "kode_form": "FORM-LIKERT-KS-133",
         "deskripsi": "",
         "urutan": 9,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "kepribadian",
         "indikator_kode": "1.3",
         "indikator_label": "Orientasi berpusat pada peserta didik",
@@ -3722,8 +3722,8 @@
         },
         "fields": [
           {
-            "id": 7799,
-            "assessment_form_id": 1732,
+            "id": 15571,
+            "assessment_form_id": 3307,
             "label": "Saya memastikan tersedianya kebijakan dan program sekolah yang mendukung terciptanya lingkungan belajar yang aman, nyaman, dan melindungi seluruh peserta didik.",
             "nama_field": "f_se9c229l",
             "tipe_field": "likert",
@@ -3769,8 +3769,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3784,8 +3784,8 @@
             }
           },
           {
-            "id": 7800,
-            "assessment_form_id": 1732,
+            "id": 15572,
+            "assessment_form_id": 3307,
             "label": "Saya menganggap persoalan keselamatan dan keamanan peserta didik dapat ditangani setelah terjadi masalah karena bukan menjadi prioritas utama dalam pengelolaan sekolah.",
             "nama_field": "f_yox6b28j",
             "tipe_field": "likert",
@@ -3831,8 +3831,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3847,8 +3847,8 @@
             }
           },
           {
-            "id": 7801,
-            "assessment_form_id": 1732,
+            "id": 15573,
+            "assessment_form_id": 3307,
             "label": "Saya mengidentifikasi berbagai potensi risiko yang dapat mengancam keselamatan fisik, psikologis, dan sosial peserta didik sebagai dasar penyusunan langkah pencegahan.",
             "nama_field": "f_g4uvdsac",
             "tipe_field": "likert",
@@ -3894,8 +3894,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3909,8 +3909,8 @@
             }
           },
           {
-            "id": 7802,
-            "assessment_form_id": 1732,
+            "id": 15574,
+            "assessment_form_id": 3307,
             "label": "Saya membangun budaya sekolah yang mencegah kekerasan, perundungan, diskriminasi, dan berbagai bentuk ancaman terhadap keamanan peserta didik.",
             "nama_field": "f_t4cbtaie",
             "tipe_field": "likert",
@@ -3956,8 +3956,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -3971,8 +3971,8 @@
             }
           },
           {
-            "id": 7803,
-            "assessment_form_id": 1732,
+            "id": 15575,
+            "assessment_form_id": 3307,
             "label": "Saya melibatkan guru, tenaga kependidikan, orang tua/wali, dan pihak terkait dalam menjaga keselamatan serta kesejahteraan peserta didik di satuan pendidikan.",
             "nama_field": "f_kg8vqg87",
             "tipe_field": "likert",
@@ -4018,8 +4018,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4033,8 +4033,8 @@
             }
           },
           {
-            "id": 7804,
-            "assessment_form_id": 1732,
+            "id": 15576,
+            "assessment_form_id": 3307,
             "label": "Saya jarang melakukan evaluasi terhadap kebijakan dan praktik sekolah dalam memastikan perlindungan keselamatan dan keamanan peserta didik.",
             "nama_field": "f_8lgp881s",
             "tipe_field": "likert",
@@ -4080,8 +4080,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4096,8 +4096,8 @@
             }
           },
           {
-            "id": 7805,
-            "assessment_form_id": 1732,
+            "id": 15577,
+            "assessment_form_id": 3307,
             "label": "Saya melakukan pemantauan dan tindak lanjut secara berkelanjutan untuk memastikan lingkungan sekolah tetap aman, inklusif, dan mendukung perkembangan peserta didik secara optimal.",
             "nama_field": "f_5imfewhq",
             "tipe_field": "likert",
@@ -4143,8 +4143,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4160,15 +4160,15 @@
         ]
       },
       {
-        "id": 1733,
+        "id": 3308,
         "assessment_id": 10,
         "judul_form": "2.1.1 Pemberdayaan Guru dan Tenaga Kependidikan untuk Peningkatan Kualitas Pembelajaran di Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-211",
         "deskripsi": "",
         "urutan": 10,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.1",
         "indikator_label": "Pemberdayaan warga satuan pendidikan untuk meningkatkan kualitas pembelajaran",
@@ -4180,8 +4180,8 @@
         },
         "fields": [
           {
-            "id": 7806,
-            "assessment_form_id": 1733,
+            "id": 15578,
+            "assessment_form_id": 3308,
             "label": "Saya mengidentifikasi potensi, kebutuhan, dan kompetensi guru serta tenaga kependidikan sebagai dasar dalam menyusun program pemberdayaan yang tepat.",
             "nama_field": "f_48e2cwte",
             "tipe_field": "likert",
@@ -4227,8 +4227,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4242,8 +4242,8 @@
             }
           },
           {
-            "id": 7807,
-            "assessment_form_id": 1733,
+            "id": 15579,
+            "assessment_form_id": 3308,
             "label": "Saya memberikan kesempatan kepada guru dan tenaga kependidikan untuk mengembangkan kompetensi melalui pelatihan, komunitas belajar, maupun kegiatan pengembangan profesional lainnya.",
             "nama_field": "f_8jffzqys",
             "tipe_field": "likert",
@@ -4289,8 +4289,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4304,8 +4304,8 @@
             }
           },
           {
-            "id": 7808,
-            "assessment_form_id": 1733,
+            "id": 15580,
+            "assessment_form_id": 3308,
             "label": "Saya lebih banyak menentukan program peningkatan kompetensi guru dan tenaga kependidikan tanpa melibatkan mereka dalam proses perencanaan maupun pengambilan keputusan.",
             "nama_field": "f_cog2v0xx",
             "tipe_field": "likert",
@@ -4351,8 +4351,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4367,8 +4367,8 @@
             }
           },
           {
-            "id": 7809,
-            "assessment_form_id": 1733,
+            "id": 15581,
+            "assessment_form_id": 3308,
             "label": "Saya membangun budaya kolaborasi yang mendorong guru dan tenaga kependidikan saling berbagi praktik baik untuk meningkatkan kualitas layanan pendidikan.",
             "nama_field": "f_lapptkc2",
             "tipe_field": "likert",
@@ -4414,8 +4414,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4429,8 +4429,8 @@
             }
           },
           {
-            "id": 7810,
-            "assessment_form_id": 1733,
+            "id": 15582,
+            "assessment_form_id": 3308,
             "label": "Saya memberikan dukungan, apresiasi, dan penguatan terhadap upaya guru dan tenaga kependidikan dalam meningkatkan kualitas pembelajaran di satuan pendidikan.",
             "nama_field": "f_rltlujmr",
             "tipe_field": "likert",
@@ -4476,8 +4476,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4491,8 +4491,8 @@
             }
           },
           {
-            "id": 7811,
-            "assessment_form_id": 1733,
+            "id": 15583,
+            "assessment_form_id": 3308,
             "label": "Saya menganggap pengembangan kompetensi guru dan tenaga kependidikan merupakan tanggung jawab pribadi masing-masing sehingga tidak perlu menjadi fokus kepemimpinan sekolah.",
             "nama_field": "f_g4axigza",
             "tipe_field": "likert",
@@ -4538,8 +4538,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4554,8 +4554,8 @@
             }
           },
           {
-            "id": 7812,
-            "assessment_form_id": 1733,
+            "id": 15584,
+            "assessment_form_id": 3308,
             "label": "Saya melakukan evaluasi terhadap efektivitas program pemberdayaan guru dan tenaga kependidikan sebagai dasar perbaikan berkelanjutan untuk peningkatan mutu pembelajaran.",
             "nama_field": "f_cd9hx7aq",
             "tipe_field": "likert",
@@ -4601,8 +4601,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4618,15 +4618,15 @@
         ]
       },
       {
-        "id": 1734,
+        "id": 3309,
         "assessment_id": 10,
         "judul_form": "2.1.2 Pemberdayaan Orang Tua/Wali untuk Peningkatan Kualitas Pembelajaran di Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-212",
         "deskripsi": "",
         "urutan": 11,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.1",
         "indikator_label": "Pemberdayaan warga satuan pendidikan untuk meningkatkan kualitas pembelajaran",
@@ -4638,8 +4638,8 @@
         },
         "fields": [
           {
-            "id": 7813,
-            "assessment_form_id": 1734,
+            "id": 15585,
+            "assessment_form_id": 3309,
             "label": "Saya membangun komunikasi yang efektif dengan orang tua/wali untuk memahami kebutuhan, perkembangan, dan tantangan belajar peserta didik.",
             "nama_field": "f_os4s6vcl",
             "tipe_field": "likert",
@@ -4685,8 +4685,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4700,8 +4700,8 @@
             }
           },
           {
-            "id": 7814,
-            "assessment_form_id": 1734,
+            "id": 15586,
+            "assessment_form_id": 3309,
             "label": "Saya menganggap keterlibatan orang tua/wali dalam pembelajaran bukan bagian penting dari tanggung jawab kepemimpinan sekolah.",
             "nama_field": "f_d1krg7ax",
             "tipe_field": "likert",
@@ -4747,8 +4747,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4763,8 +4763,8 @@
             }
           },
           {
-            "id": 7815,
-            "assessment_form_id": 1734,
+            "id": 15587,
+            "assessment_form_id": 3309,
             "label": "Saya melibatkan orang tua/wali dalam mendukung program sekolah yang bertujuan meningkatkan kualitas pembelajaran dan perkembangan peserta didik.",
             "nama_field": "f_vhi8uezp",
             "tipe_field": "likert",
@@ -4810,8 +4810,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4825,8 +4825,8 @@
             }
           },
           {
-            "id": 7816,
-            "assessment_form_id": 1734,
+            "id": 15588,
+            "assessment_form_id": 3309,
             "label": "Saya membangun kemitraan dengan orang tua/wali melalui komunikasi, forum diskusi, dan kegiatan kolaboratif untuk mendukung keberhasilan belajar peserta didik.",
             "nama_field": "f_9imd3yn9",
             "tipe_field": "likert",
@@ -4872,8 +4872,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4887,8 +4887,8 @@
             }
           },
           {
-            "id": 7817,
-            "assessment_form_id": 1734,
+            "id": 15589,
+            "assessment_form_id": 3309,
             "label": "Saya menghargai kontribusi, pengalaman, dan masukan orang tua/wali sebagai sumber informasi dalam merancang kebijakan pembelajaran yang berpihak pada peserta didik.",
             "nama_field": "f_8xlu3rqt",
             "tipe_field": "likert",
@@ -4934,8 +4934,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -4949,8 +4949,8 @@
             }
           },
           {
-            "id": 7818,
-            "assessment_form_id": 1734,
+            "id": 15590,
+            "assessment_form_id": 3309,
             "label": "Saya hanya melibatkan orang tua/wali ketika terdapat masalah peserta didik dan tidak menjadikan mereka sebagai mitra dalam peningkatan kualitas pembelajaran.",
             "nama_field": "f_4oofe49q",
             "tipe_field": "likert",
@@ -4996,8 +4996,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5012,8 +5012,8 @@
             }
           },
           {
-            "id": 7819,
-            "assessment_form_id": 1734,
+            "id": 15591,
+            "assessment_form_id": 3309,
             "label": "Saya mengevaluasi efektivitas keterlibatan orang tua/wali dalam mendukung pembelajaran sebagai dasar penguatan kemitraan sekolah dan keluarga.",
             "nama_field": "f_3elhwna5",
             "tipe_field": "likert",
@@ -5059,8 +5059,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5076,15 +5076,15 @@
         ]
       },
       {
-        "id": 1735,
+        "id": 3310,
         "assessment_id": 10,
         "judul_form": "2.2.1 Komunikasi Efektif dengan Warga Satuan Pendidikan yang Mengarah pada Peningkatan Kualitas Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-221",
         "deskripsi": "",
         "urutan": 12,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.2",
         "indikator_label": "Kolaborasi untuk peningkatan kualitas satuan pendidikan",
@@ -5096,8 +5096,8 @@
         },
         "fields": [
           {
-            "id": 7820,
-            "assessment_form_id": 1735,
+            "id": 15592,
+            "assessment_form_id": 3310,
             "label": "Saya membangun komunikasi yang terbuka, jelas, dan profesional dengan guru, tenaga kependidikan, peserta didik, serta warga satuan pendidikan untuk mendukung peningkatan mutu sekolah.",
             "nama_field": "f_q725cc1i",
             "tipe_field": "likert",
@@ -5143,8 +5143,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5158,8 +5158,8 @@
             }
           },
           {
-            "id": 7821,
-            "assessment_form_id": 1735,
+            "id": 15593,
+            "assessment_form_id": 3310,
             "label": "Saya menyampaikan visi, kebijakan, program, dan harapan sekolah secara efektif agar dipahami dan didukung oleh seluruh warga satuan pendidikan.",
             "nama_field": "f_anhvj12a",
             "tipe_field": "likert",
@@ -5205,8 +5205,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5220,8 +5220,8 @@
             }
           },
           {
-            "id": 7822,
-            "assessment_form_id": 1735,
+            "id": 15594,
+            "assessment_form_id": 3310,
             "label": "Saya lebih sering menyampaikan keputusan sekolah secara satu arah tanpa memberikan kesempatan kepada warga satuan pendidikan untuk menyampaikan pendapat atau masukan.",
             "nama_field": "f_q7av2g3q",
             "tipe_field": "likert",
@@ -5267,8 +5267,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5283,8 +5283,8 @@
             }
           },
           {
-            "id": 7823,
-            "assessment_form_id": 1735,
+            "id": 15595,
+            "assessment_form_id": 3310,
             "label": "Saya menciptakan ruang dialog dan kolaborasi untuk membangun kepercayaan serta memperkuat hubungan kerja antarwarga satuan pendidikan.",
             "nama_field": "f_n967nx3r",
             "tipe_field": "likert",
@@ -5330,8 +5330,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5345,8 +5345,8 @@
             }
           },
           {
-            "id": 7824,
-            "assessment_form_id": 1735,
+            "id": 15596,
+            "assessment_form_id": 3310,
             "label": "Saya menggunakan berbagai media dan strategi komunikasi yang sesuai untuk memastikan informasi penting sekolah tersampaikan secara efektif dan tepat sasaran.",
             "nama_field": "f_xl9odob4",
             "tipe_field": "likert",
@@ -5392,8 +5392,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5407,8 +5407,8 @@
             }
           },
           {
-            "id": 7825,
-            "assessment_form_id": 1735,
+            "id": 15597,
+            "assessment_form_id": 3310,
             "label": "Saya jarang mengevaluasi kualitas komunikasi yang dilakukan dengan warga satuan pendidikan sehingga berbagai kendala komunikasi sering berulang.",
             "nama_field": "f_pbwz8wzq",
             "tipe_field": "likert",
@@ -5454,8 +5454,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5470,8 +5470,8 @@
             }
           },
           {
-            "id": 7826,
-            "assessment_form_id": 1735,
+            "id": 15598,
+            "assessment_form_id": 3310,
             "label": "Saya melakukan refleksi terhadap efektivitas komunikasi dengan warga satuan pendidikan sebagai dasar perbaikan kepemimpinan dan peningkatan kualitas sekolah.",
             "nama_field": "f_sq37fnqw",
             "tipe_field": "likert",
@@ -5517,8 +5517,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5534,15 +5534,15 @@
         ]
       },
       {
-        "id": 1736,
+        "id": 3311,
         "assessment_id": 10,
         "judul_form": "2.2.2 Pengorganisasian Tugas-Tugas Bersama Warga Satuan Pendidikan untuk Peningkatan Kualitas Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-222",
         "deskripsi": "",
         "urutan": 13,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.2",
         "indikator_label": "Kolaborasi untuk peningkatan kualitas satuan pendidikan",
@@ -5554,8 +5554,8 @@
         },
         "fields": [
           {
-            "id": 7827,
-            "assessment_form_id": 1736,
+            "id": 15599,
+            "assessment_form_id": 3311,
             "label": "Saya menyusun pembagian tugas dan tanggung jawab bersama warga satuan pendidikan berdasarkan kebutuhan program sekolah dan kompetensi masing-masing individu.",
             "nama_field": "f_g3vsp9p0",
             "tipe_field": "likert",
@@ -5601,8 +5601,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5616,8 +5616,8 @@
             }
           },
           {
-            "id": 7828,
-            "assessment_form_id": 1736,
+            "id": 15600,
+            "assessment_form_id": 3311,
             "label": "Saya cenderung memberikan tugas kepada warga satuan pendidikan tanpa mempertimbangkan kemampuan, minat, dan kesiapan mereka dalam melaksanakan tanggung jawab tersebut.",
             "nama_field": "f_zt2tjkt4",
             "tipe_field": "likert",
@@ -5663,8 +5663,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5679,8 +5679,8 @@
             }
           },
           {
-            "id": 7829,
-            "assessment_form_id": 1736,
+            "id": 15601,
+            "assessment_form_id": 3311,
             "label": "Saya melibatkan guru, tenaga kependidikan, dan warga sekolah lainnya dalam merencanakan serta melaksanakan program peningkatan kualitas satuan pendidikan.",
             "nama_field": "f_cyeo8zpy",
             "tipe_field": "likert",
@@ -5726,8 +5726,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5741,8 +5741,8 @@
             }
           },
           {
-            "id": 7830,
-            "assessment_form_id": 1736,
+            "id": 15602,
+            "assessment_form_id": 3311,
             "label": "Saya membangun kerja sama yang efektif dengan membangun koordinasi, kejelasan peran, dan tanggung jawab bersama dalam mencapai tujuan sekolah.",
             "nama_field": "f_ao0ad2vp",
             "tipe_field": "likert",
@@ -5788,8 +5788,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5803,8 +5803,8 @@
             }
           },
           {
-            "id": 7831,
-            "assessment_form_id": 1736,
+            "id": 15603,
+            "assessment_form_id": 3311,
             "label": "Saya memberikan dukungan dan fasilitasi kepada warga satuan pendidikan agar mampu menjalankan tugas secara optimal dan berkontribusi terhadap kemajuan sekolah.",
             "nama_field": "f_rj4xceqe",
             "tipe_field": "likert",
@@ -5850,8 +5850,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5865,8 +5865,8 @@
             }
           },
           {
-            "id": 7832,
-            "assessment_form_id": 1736,
+            "id": 15604,
+            "assessment_form_id": 3311,
             "label": "Saya menganggap pengaturan tugas dan tanggung jawab warga satuan pendidikan cukup dilakukan melalui instruksi pimpinan tanpa perlu koordinasi dan evaluasi bersama.",
             "nama_field": "f_nxwsl915",
             "tipe_field": "likert",
@@ -5912,8 +5912,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5928,8 +5928,8 @@
             }
           },
           {
-            "id": 7833,
-            "assessment_form_id": 1736,
+            "id": 15605,
+            "assessment_form_id": 3311,
             "label": "Saya melakukan evaluasi bersama terhadap pelaksanaan tugas dan program sekolah untuk meningkatkan efektivitas kerja serta kualitas layanan pendidikan.",
             "nama_field": "f_973nc8fb",
             "tipe_field": "likert",
@@ -5975,8 +5975,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -5992,15 +5992,15 @@
         ]
       },
       {
-        "id": 1737,
+        "id": 3312,
         "assessment_id": 10,
         "judul_form": "2.2.3 Inisiatif Berkontribusi untuk Mencapai Tujuan Bersama dalam Peningkatan Kualitas Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-223",
         "deskripsi": "",
         "urutan": 14,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.2",
         "indikator_label": "Kolaborasi untuk peningkatan kualitas satuan pendidikan",
@@ -6012,8 +6012,8 @@
         },
         "fields": [
           {
-            "id": 7834,
-            "assessment_form_id": 1737,
+            "id": 15606,
+            "assessment_form_id": 3312,
             "label": "Saya secara aktif mengambil inisiatif dalam merancang dan mengembangkan program yang mendukung peningkatan kualitas satuan pendidikan.",
             "nama_field": "f_jx67hg7i",
             "tipe_field": "likert",
@@ -6059,8 +6059,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6074,8 +6074,8 @@
             }
           },
           {
-            "id": 7835,
-            "assessment_form_id": 1737,
+            "id": 15607,
+            "assessment_form_id": 3312,
             "label": "Saya mendorong warga satuan pendidikan untuk berpartisipasi dan berkontribusi dalam mencapai visi, misi, dan tujuan sekolah.",
             "nama_field": "f_iv0eyq87",
             "tipe_field": "likert",
@@ -6121,8 +6121,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6136,8 +6136,8 @@
             }
           },
           {
-            "id": 7836,
-            "assessment_form_id": 1737,
+            "id": 15608,
+            "assessment_form_id": 3312,
             "label": "Saya cenderung menunggu arahan dari pihak lain sebelum mengambil tindakan dalam menyelesaikan permasalahan atau mengembangkan program sekolah.",
             "nama_field": "f_zami7ofr",
             "tipe_field": "likert",
@@ -6183,8 +6183,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6199,8 +6199,8 @@
             }
           },
           {
-            "id": 7837,
-            "assessment_form_id": 1737,
+            "id": 15609,
+            "assessment_form_id": 3312,
             "label": "Saya berperan sebagai penggerak perubahan dengan memberikan gagasan, solusi, dan dukungan terhadap berbagai upaya peningkatan mutu pendidikan.",
             "nama_field": "f_wsbu7r3l",
             "tipe_field": "likert",
@@ -6246,8 +6246,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6261,8 +6261,8 @@
             }
           },
           {
-            "id": 7838,
-            "assessment_form_id": 1737,
+            "id": 15610,
+            "assessment_form_id": 3312,
             "label": "Saya membangun budaya kerja yang mendorong kepedulian, tanggung jawab bersama, dan komitmen seluruh warga sekolah terhadap kemajuan satuan pendidikan.",
             "nama_field": "f_28ptfd3a",
             "tipe_field": "likert",
@@ -6308,8 +6308,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6323,8 +6323,8 @@
             }
           },
           {
-            "id": 7839,
-            "assessment_form_id": 1737,
+            "id": 15611,
+            "assessment_form_id": 3312,
             "label": "Saya menganggap keberhasilan peningkatan kualitas sekolah merupakan tanggung jawab beberapa pihak tertentu saja sehingga tidak perlu melibatkan seluruh warga satuan pendidikan.",
             "nama_field": "f_n7xsdaq8",
             "tipe_field": "likert",
@@ -6370,8 +6370,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6386,8 +6386,8 @@
             }
           },
           {
-            "id": 7840,
-            "assessment_form_id": 1737,
+            "id": 15612,
+            "assessment_form_id": 3312,
             "label": "Saya melakukan refleksi terhadap kontribusi dan kepemimpinan yang telah dilakukan untuk terus meningkatkan efektivitas pencapaian tujuan bersama sekolah.",
             "nama_field": "f_vojnz7ye",
             "tipe_field": "likert",
@@ -6433,8 +6433,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6450,15 +6450,15 @@
         ]
       },
       {
-        "id": 1738,
+        "id": 3313,
         "assessment_id": 10,
         "judul_form": "2.3.1 Berpartisipasi Aktif dalam Organisasi Profesi dan Jejaring yang Lebih Luas untuk Peningkatan Kualitas Kepemimpinan di Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-231",
         "deskripsi": "",
         "urutan": 15,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.3",
         "indikator_label": "Keterlibatan dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan kualitas satuan pendidikan",
@@ -6470,8 +6470,8 @@
         },
         "fields": [
           {
-            "id": 7841,
-            "assessment_form_id": 1738,
+            "id": 15613,
+            "assessment_form_id": 3313,
             "label": "Saya aktif mengikuti organisasi profesi, komunitas kepemimpinan, atau jejaring pendidikan sebagai sarana meningkatkan kompetensi kepemimpinan sekolah.",
             "nama_field": "f_xfmer81r",
             "tipe_field": "likert",
@@ -6517,8 +6517,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6532,8 +6532,8 @@
             }
           },
           {
-            "id": 7842,
-            "assessment_form_id": 1738,
+            "id": 15614,
+            "assessment_form_id": 3313,
             "label": "Saya menganggap keterlibatan dalam organisasi profesi dan jejaring pendidikan tidak terlalu diperlukan karena peningkatan kualitas kepemimpinan dapat dilakukan secara mandiri.",
             "nama_field": "f_ryxl6t9d",
             "tipe_field": "likert",
@@ -6579,8 +6579,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6595,8 +6595,8 @@
             }
           },
           {
-            "id": 7843,
-            "assessment_form_id": 1738,
+            "id": 15615,
+            "assessment_form_id": 3313,
             "label": "Saya berkontribusi dalam berbagai kegiatan organisasi profesi atau jejaring yang mendukung peningkatan mutu pengelolaan satuan pendidikan.",
             "nama_field": "f_gzpz1eka",
             "tipe_field": "likert",
@@ -6642,8 +6642,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6657,8 +6657,8 @@
             }
           },
           {
-            "id": 7844,
-            "assessment_form_id": 1738,
+            "id": 15616,
+            "assessment_form_id": 3313,
             "label": "Saya memanfaatkan hasil diskusi, kajian, dan pengalaman dari organisasi profesi atau jejaring untuk memperkaya praktik kepemimpinan di sekolah.",
             "nama_field": "f_tk29ld2e",
             "tipe_field": "likert",
@@ -6704,8 +6704,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6719,8 +6719,8 @@
             }
           },
           {
-            "id": 7845,
-            "assessment_form_id": 1738,
+            "id": 15617,
+            "assessment_form_id": 3313,
             "label": "Saya membangun hubungan kolaboratif dengan berbagai pihak di luar satuan pendidikan untuk memperoleh wawasan dan solusi dalam menghadapi tantangan kepemimpinan sekolah.",
             "nama_field": "f_8rsu47co",
             "tipe_field": "likert",
@@ -6766,8 +6766,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6781,8 +6781,8 @@
             }
           },
           {
-            "id": 7846,
-            "assessment_form_id": 1738,
+            "id": 15618,
+            "assessment_form_id": 3313,
             "label": "Saya jarang terlibat dalam organisasi profesi atau jejaring pendidikan karena kegiatan tersebut tidak memberikan pengaruh langsung terhadap pengelolaan sekolah.",
             "nama_field": "f_63urt3lc",
             "tipe_field": "likert",
@@ -6828,8 +6828,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6844,8 +6844,8 @@
             }
           },
           {
-            "id": 7847,
-            "assessment_form_id": 1738,
+            "id": 15619,
+            "assessment_form_id": 3313,
             "label": "Saya melakukan refleksi terhadap pengalaman dan kontribusi dalam organisasi profesi atau jejaring sebagai dasar pengembangan kualitas kepemimpinan secara berkelanjutan.",
             "nama_field": "f_72ceq6zz",
             "tipe_field": "likert",
@@ -6891,8 +6891,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6908,15 +6908,15 @@
         ]
       },
       {
-        "id": 1739,
+        "id": 3314,
         "assessment_id": 10,
         "judul_form": "2.3.2 Berbagi Praktik Baik dan Karya tentang Kepemimpinan Satuan Pendidikan untuk Peningkatan Kualitas Satuan Pendidikan yang Berpusat pada Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-232",
         "deskripsi": "",
         "urutan": 16,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "sosial",
         "indikator_kode": "2.3",
         "indikator_label": "Keterlibatan dalam organisasi profesi dan jejaring yang lebih luas untuk peningkatan kualitas satuan pendidikan",
@@ -6928,8 +6928,8 @@
         },
         "fields": [
           {
-            "id": 7848,
-            "assessment_form_id": 1739,
+            "id": 15620,
+            "assessment_form_id": 3314,
             "label": "Saya mendokumentasikan praktik baik, inovasi, dan pengalaman kepemimpinan sekolah yang berdampak terhadap peningkatan kualitas pembelajaran.",
             "nama_field": "f_wl2fubj5",
             "tipe_field": "likert",
@@ -6975,8 +6975,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -6990,8 +6990,8 @@
             }
           },
           {
-            "id": 7849,
-            "assessment_form_id": 1739,
+            "id": 15621,
+            "assessment_form_id": 3314,
             "label": "Saya membagikan pengalaman dan gagasan kepemimpinan kepada rekan kepala sekolah, organisasi profesi, atau jejaring pendidikan sebagai sumber pembelajaran bersama.",
             "nama_field": "f_a0gx1an2",
             "tipe_field": "likert",
@@ -7037,8 +7037,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7052,8 +7052,8 @@
             }
           },
           {
-            "id": 7850,
-            "assessment_form_id": 1739,
+            "id": 15622,
+            "assessment_form_id": 3314,
             "label": "Saya merasa praktik kepemimpinan yang saya lakukan cukup untuk diketahui di lingkungan sekolah sendiri sehingga tidak perlu dibagikan kepada pihak lain.",
             "nama_field": "f_v3p43xic",
             "tipe_field": "likert",
@@ -7099,8 +7099,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7115,8 +7115,8 @@
             }
           },
           {
-            "id": 7851,
-            "assessment_form_id": 1739,
+            "id": 15623,
+            "assessment_form_id": 3314,
             "label": "Saya memanfaatkan forum profesional, komunitas belajar, atau media berbagi untuk menyampaikan karya dan praktik baik dalam mengembangkan satuan pendidikan.",
             "nama_field": "f_7uonzx5b",
             "tipe_field": "likert",
@@ -7162,8 +7162,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7177,8 +7177,8 @@
             }
           },
           {
-            "id": 7852,
-            "assessment_form_id": 1739,
+            "id": 15624,
+            "assessment_form_id": 3314,
             "label": "Saya menerima masukan dari berbagai pihak terhadap praktik kepemimpinan yang saya bagikan sebagai bahan penyempurnaan pengelolaan sekolah.",
             "nama_field": "f_aqswgs9j",
             "tipe_field": "likert",
@@ -7224,8 +7224,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7239,8 +7239,8 @@
             }
           },
           {
-            "id": 7853,
-            "assessment_form_id": 1739,
+            "id": 15625,
+            "assessment_form_id": 3314,
             "label": "Saya jarang mendokumentasikan atau membagikan hasil inovasi kepemimpinan karena menganggap praktik tersebut hanya relevan untuk kebutuhan sekolah sendiri.",
             "nama_field": "f_6tgf65pm",
             "tipe_field": "likert",
@@ -7286,8 +7286,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7302,8 +7302,8 @@
             }
           },
           {
-            "id": 7854,
-            "assessment_form_id": 1739,
+            "id": 15626,
+            "assessment_form_id": 3314,
             "label": "Saya secara berkelanjutan mengembangkan budaya berbagi praktik baik kepemimpinan yang berorientasi pada peningkatan kualitas satuan pendidikan dan kepentingan terbaik peserta didik.",
             "nama_field": "f_8mu59tca",
             "tipe_field": "likert",
@@ -7349,8 +7349,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7366,15 +7366,15 @@
         ]
       },
       {
-        "id": 1740,
+        "id": 3315,
         "assessment_id": 10,
         "judul_form": "3.1.1 Kepemimpinan Satuan Pendidikan dalam Mewujudkan Visi yang Berpusat pada Peserta Didik dengan Melibatkan Warga Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-311",
         "deskripsi": "",
         "urutan": 17,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.1",
         "indikator_label": "Pengembangan visi dan budaya belajar satuan pendidikan",
@@ -7386,8 +7386,8 @@
         },
         "fields": [
           {
-            "id": 7855,
-            "assessment_form_id": 1740,
+            "id": 15627,
+            "assessment_form_id": 3315,
             "label": "Saya mengembangkan visi satuan pendidikan yang menempatkan kebutuhan, perkembangan, dan keberhasilan peserta didik sebagai prioritas utama.",
             "nama_field": "f_ukmgyat2",
             "tipe_field": "likert",
@@ -7433,8 +7433,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7448,8 +7448,8 @@
             }
           },
           {
-            "id": 7856,
-            "assessment_form_id": 1740,
+            "id": 15628,
+            "assessment_form_id": 3315,
             "label": "Saya menyusun dan menjalankan visi sekolah berdasarkan pertimbangan pimpinan saja tanpa melibatkan warga satuan pendidikan.",
             "nama_field": "f_nmamk51q",
             "tipe_field": "likert",
@@ -7495,8 +7495,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7511,8 +7511,8 @@
             }
           },
           {
-            "id": 7857,
-            "assessment_form_id": 1740,
+            "id": 15629,
+            "assessment_form_id": 3315,
             "label": "Saya melibatkan guru, tenaga kependidikan, peserta didik, orang tua/wali, dan pemangku kepentingan dalam memahami serta mewujudkan visi satuan pendidikan.",
             "nama_field": "f_lbzvickl",
             "tipe_field": "likert",
@@ -7558,8 +7558,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7573,8 +7573,8 @@
             }
           },
           {
-            "id": 7858,
-            "assessment_form_id": 1740,
+            "id": 15630,
+            "assessment_form_id": 3315,
             "label": "Saya menerjemahkan visi sekolah ke dalam program, kebijakan, dan budaya satuan pendidikan yang mendukung pembelajaran berpusat pada peserta didik.",
             "nama_field": "f_8z0cjnyg",
             "tipe_field": "likert",
@@ -7620,8 +7620,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7635,8 +7635,8 @@
             }
           },
           {
-            "id": 7859,
-            "assessment_form_id": 1740,
+            "id": 15631,
+            "assessment_form_id": 3315,
             "label": "Saya membangun komitmen bersama warga satuan pendidikan agar setiap kegiatan sekolah selaras dengan visi yang telah ditetapkan.",
             "nama_field": "f_3eyi7fs8",
             "tipe_field": "likert",
@@ -7682,8 +7682,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7697,8 +7697,8 @@
             }
           },
           {
-            "id": 7860,
-            "assessment_form_id": 1740,
+            "id": 15632,
+            "assessment_form_id": 3315,
             "label": "Saya menganggap keterlibatan warga satuan pendidikan dalam mewujudkan visi sekolah tidak terlalu diperlukan karena tanggung jawab utama berada pada kepala sekolah.",
             "nama_field": "f_vgq03gj3",
             "tipe_field": "likert",
@@ -7744,8 +7744,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7760,8 +7760,8 @@
             }
           },
           {
-            "id": 7861,
-            "assessment_form_id": 1740,
+            "id": 15633,
+            "assessment_form_id": 3315,
             "label": "Saya melakukan evaluasi dan refleksi secara berkala terhadap ketercapaian visi sekolah sebagai dasar penyempurnaan kepemimpinan dan program satuan pendidikan.",
             "nama_field": "f_0jojn5r0",
             "tipe_field": "likert",
@@ -7807,8 +7807,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7824,15 +7824,15 @@
         ]
       },
       {
-        "id": 1741,
+        "id": 3316,
         "assessment_id": 10,
         "judul_form": "3.1.2 Pengembangan Kebiasaan Belajar sebagai Cerminan Visi Satuan Pendidikan yang Berpusat pada Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-312",
         "deskripsi": "",
         "urutan": 18,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.1",
         "indikator_label": "Pengembangan visi dan budaya belajar satuan pendidikan",
@@ -7844,8 +7844,8 @@
         },
         "fields": [
           {
-            "id": 7862,
-            "assessment_form_id": 1741,
+            "id": 15634,
+            "assessment_form_id": 3316,
             "label": "Saya mengembangkan budaya belajar di satuan pendidikan yang mendorong peserta didik aktif, mandiri, dan bertanggung jawab terhadap proses belajarnya.",
             "nama_field": "f_7s98ccbe",
             "tipe_field": "likert",
@@ -7891,8 +7891,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7906,8 +7906,8 @@
             }
           },
           {
-            "id": 7863,
-            "assessment_form_id": 1741,
+            "id": 15635,
+            "assessment_form_id": 3316,
             "label": "Saya mendorong guru dan tenaga kependidikan untuk menciptakan lingkungan belajar yang mendukung rasa ingin tahu, kreativitas, dan perkembangan potensi peserta didik.",
             "nama_field": "f_sh0jzptd",
             "tipe_field": "likert",
@@ -7953,8 +7953,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -7968,8 +7968,8 @@
             }
           },
           {
-            "id": 7864,
-            "assessment_form_id": 1741,
+            "id": 15636,
+            "assessment_form_id": 3316,
             "label": "Saya lebih berfokus pada pencapaian target administratif sekolah dibandingkan membangun kebiasaan belajar yang sesuai dengan kebutuhan peserta didik.",
             "nama_field": "f_n6u6mzbk",
             "tipe_field": "likert",
@@ -8015,8 +8015,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8031,8 +8031,8 @@
             }
           },
           {
-            "id": 7865,
-            "assessment_form_id": 1741,
+            "id": 15637,
+            "assessment_form_id": 3316,
             "label": "Saya mengembangkan kebijakan dan program sekolah yang membangun kebiasaan refleksi, kolaborasi, literasi, dan pembelajaran sepanjang hayat.",
             "nama_field": "f_ke13morn",
             "tipe_field": "likert",
@@ -8078,8 +8078,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8093,8 +8093,8 @@
             }
           },
           {
-            "id": 7866,
-            "assessment_form_id": 1741,
+            "id": 15638,
+            "assessment_form_id": 3316,
             "label": "Saya memberikan dukungan kepada warga sekolah untuk menciptakan praktik pembelajaran yang sesuai dengan visi sekolah yang berpusat pada peserta didik.",
             "nama_field": "f_xn8mou45",
             "tipe_field": "likert",
@@ -8140,8 +8140,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8155,8 +8155,8 @@
             }
           },
           {
-            "id": 7867,
-            "assessment_form_id": 1741,
+            "id": 15639,
+            "assessment_form_id": 3316,
             "label": "Saya menganggap pembentukan kebiasaan belajar peserta didik sepenuhnya menjadi tanggung jawab guru di kelas sehingga tidak perlu menjadi perhatian utama kepala sekolah.",
             "nama_field": "f_357fmvyr",
             "tipe_field": "likert",
@@ -8202,8 +8202,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8218,8 +8218,8 @@
             }
           },
           {
-            "id": 7868,
-            "assessment_form_id": 1741,
+            "id": 15640,
+            "assessment_form_id": 3316,
             "label": "Saya melakukan pemantauan dan evaluasi terhadap budaya belajar yang berkembang di sekolah sebagai dasar peningkatan kualitas pembelajaran.",
             "nama_field": "f_dymxs5oz",
             "tipe_field": "likert",
@@ -8265,8 +8265,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8282,15 +8282,15 @@
         ]
       },
       {
-        "id": 1742,
+        "id": 3317,
         "assessment_id": 10,
         "judul_form": "3.1.3 Pengelolaan Komunitas Belajar dalam Satuan Pendidikan yang Berbasis Data dengan Berorientasi pada Peningkatan Capaian Belajar Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-313",
         "deskripsi": "",
         "urutan": 19,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.1",
         "indikator_label": "Pengembangan visi dan budaya belajar satuan pendidikan",
@@ -8302,8 +8302,8 @@
         },
         "fields": [
           {
-            "id": 7869,
-            "assessment_form_id": 1742,
+            "id": 15641,
+            "assessment_form_id": 3317,
             "label": "Saya mengembangkan komunitas belajar di satuan pendidikan sebagai wadah kolaborasi untuk meningkatkan kualitas pembelajaran dan capaian belajar peserta didik.",
             "nama_field": "f_we90d6lc",
             "tipe_field": "likert",
@@ -8349,8 +8349,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8364,8 +8364,8 @@
             }
           },
           {
-            "id": 7870,
-            "assessment_form_id": 1742,
+            "id": 15642,
+            "assessment_form_id": 3317,
             "label": "Saya menjalankan komunitas belajar hanya sebagai kegiatan rutin sekolah tanpa mengaitkannya dengan kebutuhan peningkatan pembelajaran dan hasil belajar peserta didik.",
             "nama_field": "f_nq054odv",
             "tipe_field": "likert",
@@ -8411,8 +8411,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8427,8 +8427,8 @@
             }
           },
           {
-            "id": 7871,
-            "assessment_form_id": 1742,
+            "id": 15643,
+            "assessment_form_id": 3317,
             "label": "Saya mendorong guru dan tenaga kependidikan memanfaatkan data hasil belajar, asesmen, dan informasi lain sebagai dasar dalam komunitas belajar.",
             "nama_field": "f_nhxgmtmc",
             "tipe_field": "likert",
@@ -8474,8 +8474,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8489,8 +8489,8 @@
             }
           },
           {
-            "id": 7872,
-            "assessment_form_id": 1742,
+            "id": 15644,
+            "assessment_form_id": 3317,
             "label": "Saya memfasilitasi kegiatan komunitas belajar yang berfokus pada refleksi praktik pembelajaran, berbagi strategi, dan penyelesaian masalah pembelajaran.",
             "nama_field": "f_9kruhrzx",
             "tipe_field": "likert",
@@ -8536,8 +8536,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8551,8 +8551,8 @@
             }
           },
           {
-            "id": 7873,
-            "assessment_form_id": 1742,
+            "id": 15645,
+            "assessment_form_id": 3317,
             "label": "Saya memastikan komunitas belajar berjalan secara kolaboratif dengan melibatkan warga sekolah untuk meningkatkan kualitas layanan pendidikan.",
             "nama_field": "f_7y3rfvew",
             "tipe_field": "likert",
@@ -8598,8 +8598,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8613,8 +8613,8 @@
             }
           },
           {
-            "id": 7874,
-            "assessment_form_id": 1742,
+            "id": 15646,
+            "assessment_form_id": 3317,
             "label": "Saya tidak terlalu memperhatikan hasil atau data capaian belajar peserta didik dalam menentukan arah kegiatan komunitas belajar di sekolah.",
             "nama_field": "f_fq2ie5e2",
             "tipe_field": "likert",
@@ -8660,8 +8660,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8676,8 +8676,8 @@
             }
           },
           {
-            "id": 7875,
-            "assessment_form_id": 1742,
+            "id": 15647,
+            "assessment_form_id": 3317,
             "label": "Saya melakukan pemantauan dan evaluasi terhadap efektivitas komunitas belajar sebagai dasar perbaikan berkelanjutan dalam peningkatan mutu pembelajaran.",
             "nama_field": "f_stbgzz66",
             "tipe_field": "likert",
@@ -8723,8 +8723,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8740,15 +8740,15 @@
         ]
       },
       {
-        "id": 1743,
+        "id": 3318,
         "assessment_id": 10,
         "judul_form": "3.2.1 Kepemimpinan Pembelajaran dalam Membudayakan Lingkungan yang Aman, Nyaman, dan Inklusif untuk Warga Satuan Pendidikan",
         "kode_form": "FORM-LIKERT-KS-321",
         "deskripsi": "",
         "urutan": 20,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.2",
         "indikator_label": "Kepemimpinan pembelajaran yang berpusat pada peserta didik",
@@ -8760,8 +8760,8 @@
         },
         "fields": [
           {
-            "id": 7876,
-            "assessment_form_id": 1743,
+            "id": 15648,
+            "assessment_form_id": 3318,
             "label": "Saya membangun budaya satuan pendidikan yang menciptakan rasa aman, nyaman, dan dihargai bagi seluruh warga sekolah dalam mendukung proses pembelajaran.",
             "nama_field": "f_qwbnkavk",
             "tipe_field": "likert",
@@ -8807,8 +8807,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8822,8 +8822,8 @@
             }
           },
           {
-            "id": 7877,
-            "assessment_form_id": 1743,
+            "id": 15649,
+            "assessment_form_id": 3318,
             "label": "Saya mengembangkan kebijakan dan program sekolah yang mendorong terciptanya lingkungan belajar yang ramah, inklusif, dan berpihak pada peserta didik.",
             "nama_field": "f_4ovqbh5w",
             "tipe_field": "likert",
@@ -8869,8 +8869,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8884,8 +8884,8 @@
             }
           },
           {
-            "id": 7878,
-            "assessment_form_id": 1743,
+            "id": 15650,
+            "assessment_form_id": 3318,
             "label": "Saya menganggap penciptaan lingkungan sekolah yang aman dan nyaman lebih banyak menjadi tanggung jawab guru di kelas daripada menjadi bagian dari kepemimpinan kepala sekolah.",
             "nama_field": "f_gnr9mp4m",
             "tipe_field": "likert",
@@ -8931,8 +8931,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -8947,8 +8947,8 @@
             }
           },
           {
-            "id": 7879,
-            "assessment_form_id": 1743,
+            "id": 15651,
+            "assessment_form_id": 3318,
             "label": "Saya memastikan setiap warga satuan pendidikan memperoleh perlakuan yang adil serta kesempatan yang sama untuk berkembang dan berpartisipasi.",
             "nama_field": "f_4flue7ka",
             "tipe_field": "likert",
@@ -8994,8 +8994,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9009,8 +9009,8 @@
             }
           },
           {
-            "id": 7880,
-            "assessment_form_id": 1743,
+            "id": 15652,
+            "assessment_form_id": 3318,
             "label": "Saya mendorong pencegahan dan penanganan berbagai bentuk kekerasan, diskriminasi, maupun perilaku yang menghambat terciptanya iklim sekolah yang positif.",
             "nama_field": "f_z30eammj",
             "tipe_field": "likert",
@@ -9056,8 +9056,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9071,8 +9071,8 @@
             }
           },
           {
-            "id": 7881,
-            "assessment_form_id": 1743,
+            "id": 15653,
+            "assessment_form_id": 3318,
             "label": "Saya jarang melakukan evaluasi terhadap kondisi lingkungan sekolah karena menganggap suasana belajar yang aman dan nyaman sudah terbentuk dengan sendirinya.",
             "nama_field": "f_v7q6zvrp",
             "tipe_field": "likert",
@@ -9118,8 +9118,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9134,8 +9134,8 @@
             }
           },
           {
-            "id": 7882,
-            "assessment_form_id": 1743,
+            "id": 15654,
+            "assessment_form_id": 3318,
             "label": "Saya melakukan refleksi dan tindak lanjut secara berkelanjutan untuk memperkuat budaya sekolah yang aman, nyaman, dan inklusif bagi seluruh warga satuan pendidikan.",
             "nama_field": "f_qq315b9v",
             "tipe_field": "likert",
@@ -9181,8 +9181,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9198,15 +9198,15 @@
         ]
       },
       {
-        "id": 1744,
+        "id": 3319,
         "assessment_id": 10,
         "judul_form": "3.2.2 Kepemimpinan Pembelajaran dalam Perencanaan, Pelaksanaan, Asesmen, dan Pelaporan Capaian Belajar Peserta Didik dengan Memperhatikan Karakteristik Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-322",
         "deskripsi": "",
         "urutan": 21,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.2",
         "indikator_label": "Kepemimpinan pembelajaran yang berpusat pada peserta didik",
@@ -9218,8 +9218,8 @@
         },
         "fields": [
           {
-            "id": 7883,
-            "assessment_form_id": 1744,
+            "id": 15655,
+            "assessment_form_id": 3319,
             "label": "Saya mengarahkan guru untuk menyusun perencanaan pembelajaran yang sesuai dengan kebutuhan peserta didik dan karakteristik pembelajaran di satuan pendidikan.",
             "nama_field": "f_syw4fj15",
             "tipe_field": "likert",
@@ -9265,8 +9265,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9280,8 +9280,8 @@
             }
           },
           {
-            "id": 7884,
-            "assessment_form_id": 1744,
+            "id": 15656,
+            "assessment_form_id": 3319,
             "label": "Saya menyerahkan sepenuhnya penyusunan perencanaan, pelaksanaan, dan evaluasi pembelajaran kepada guru tanpa memberikan arahan atau pendampingan.",
             "nama_field": "f_aqmlyzry",
             "tipe_field": "likert",
@@ -9327,8 +9327,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9343,8 +9343,8 @@
             }
           },
           {
-            "id": 7885,
-            "assessment_form_id": 1744,
+            "id": 15657,
+            "assessment_form_id": 3319,
             "label": "Saya memberikan dukungan kepada guru dalam memilih strategi pembelajaran, metode, dan sumber belajar yang sesuai dengan karakteristik peserta didik.",
             "nama_field": "f_xbxe700m",
             "tipe_field": "likert",
@@ -9390,8 +9390,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9405,8 +9405,8 @@
             }
           },
           {
-            "id": 7886,
-            "assessment_form_id": 1744,
+            "id": 15658,
+            "assessment_form_id": 3319,
             "label": "Saya mendorong guru memanfaatkan hasil asesmen sebagai dasar perbaikan pembelajaran dan peningkatan capaian belajar peserta didik.",
             "nama_field": "f_cc6dns75",
             "tipe_field": "likert",
@@ -9452,8 +9452,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9467,8 +9467,8 @@
             }
           },
           {
-            "id": 7887,
-            "assessment_form_id": 1744,
+            "id": 15659,
+            "assessment_form_id": 3319,
             "label": "Saya memfasilitasi guru dalam menyusun laporan capaian belajar peserta didik secara objektif, informatif, dan sesuai perkembangan peserta didik.",
             "nama_field": "f_zt8y1h7a",
             "tipe_field": "likert",
@@ -9514,8 +9514,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9529,8 +9529,8 @@
             }
           },
           {
-            "id": 7888,
-            "assessment_form_id": 1744,
+            "id": 15660,
+            "assessment_form_id": 3319,
             "label": "Saya lebih berfokus pada pencapaian administrasi pembelajaran dibandingkan mendampingi guru dalam meningkatkan kualitas proses belajar dan asesmen peserta didik.",
             "nama_field": "f_9kzgqgtm",
             "tipe_field": "likert",
@@ -9576,8 +9576,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9592,8 +9592,8 @@
             }
           },
           {
-            "id": 7889,
-            "assessment_form_id": 1744,
+            "id": 15661,
+            "assessment_form_id": 3319,
             "label": "Saya melakukan supervisi, refleksi, dan tindak lanjut terhadap praktik pembelajaran guru untuk meningkatkan kualitas layanan pendidikan di satuan pendidikan.",
             "nama_field": "f_vu80shst",
             "tipe_field": "likert",
@@ -9639,8 +9639,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9656,15 +9656,15 @@
         ]
       },
       {
-        "id": 1745,
+        "id": 3320,
         "assessment_id": 10,
         "judul_form": "3.3.1 Penelusuran Sumber Daya Satuan Pendidikan yang Berasal dari Berbagai Sumber untuk Perencanaan dan Pelaksanaan Program",
         "kode_form": "FORM-LIKERT-KS-331",
         "deskripsi": "",
         "urutan": 22,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.3",
         "indikator_label": "Pengelolaan sumber daya satuan pendidikan secara efektif, transparan, dan akuntabel",
@@ -9676,8 +9676,8 @@
         },
         "fields": [
           {
-            "id": 7890,
-            "assessment_form_id": 1745,
+            "id": 15662,
+            "assessment_form_id": 3320,
             "label": "Saya mengidentifikasi berbagai sumber daya yang tersedia di satuan pendidikan sebagai dasar penyusunan program yang berorientasi pada peningkatan mutu pembelajaran.",
             "nama_field": "f_upgdnwp7",
             "tipe_field": "likert",
@@ -9723,8 +9723,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9738,8 +9738,8 @@
             }
           },
           {
-            "id": 7891,
-            "assessment_form_id": 1745,
+            "id": 15663,
+            "assessment_form_id": 3320,
             "label": "Saya memetakan potensi sumber daya manusia, sarana prasarana, lingkungan, dan jejaring kemitraan untuk mendukung pencapaian tujuan satuan pendidikan.",
             "nama_field": "f_j8p65kow",
             "tipe_field": "likert",
@@ -9785,8 +9785,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9800,8 +9800,8 @@
             }
           },
           {
-            "id": 7892,
-            "assessment_form_id": 1745,
+            "id": 15664,
+            "assessment_form_id": 3320,
             "label": "Saya lebih sering menyusun program sekolah berdasarkan kebiasaan sebelumnya tanpa melakukan analisis terhadap ketersediaan dan kebutuhan sumber daya yang ada.",
             "nama_field": "f_trnaz7lc",
             "tipe_field": "likert",
@@ -9847,8 +9847,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9863,8 +9863,8 @@
             }
           },
           {
-            "id": 7893,
-            "assessment_form_id": 1745,
+            "id": 15665,
+            "assessment_form_id": 3320,
             "label": "Saya melibatkan warga satuan pendidikan dan pemangku kepentingan dalam menggali potensi sumber daya yang dapat mendukung pelaksanaan program sekolah.",
             "nama_field": "f_dxw0xqzg",
             "tipe_field": "likert",
@@ -9910,8 +9910,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9925,8 +9925,8 @@
             }
           },
           {
-            "id": 7894,
-            "assessment_form_id": 1745,
+            "id": 15666,
+            "assessment_form_id": 3320,
             "label": "Saya menggunakan hasil pemetaan sumber daya sebagai pertimbangan dalam menentukan prioritas program dan pengambilan keputusan di satuan pendidikan.",
             "nama_field": "f_5zo8kair",
             "tipe_field": "likert",
@@ -9972,8 +9972,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -9987,8 +9987,8 @@
             }
           },
           {
-            "id": 7895,
-            "assessment_form_id": 1745,
+            "id": 15667,
+            "assessment_form_id": 3320,
             "label": "Saya menganggap pencarian dan pengembangan sumber daya tambahan bukan bagian penting dari tugas kepemimpinan kepala sekolah selama program sekolah tetap berjalan.",
             "nama_field": "f_jpr5hal4",
             "tipe_field": "likert",
@@ -10034,8 +10034,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10050,8 +10050,8 @@
             }
           },
           {
-            "id": 7896,
-            "assessment_form_id": 1745,
+            "id": 15668,
+            "assessment_form_id": 3320,
             "label": "Saya melakukan evaluasi terhadap pemanfaatan sumber daya satuan pendidikan untuk memastikan efektivitas dan keberlanjutan pelaksanaan program sekolah.",
             "nama_field": "f_b599b5n5",
             "tipe_field": "likert",
@@ -10097,8 +10097,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10114,15 +10114,15 @@
         ]
       },
       {
-        "id": 1746,
+        "id": 3321,
         "assessment_id": 10,
         "judul_form": "3.3.2 Pengelolaan Sumber Daya Satuan Pendidikan Secara Efektif untuk Peningkatan Pembelajaran Peserta Didik",
         "kode_form": "FORM-LIKERT-KS-332",
         "deskripsi": "",
         "urutan": 23,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.3",
         "indikator_label": "Pengelolaan sumber daya satuan pendidikan secara efektif, transparan, dan akuntabel",
@@ -10134,8 +10134,8 @@
         },
         "fields": [
           {
-            "id": 7897,
-            "assessment_form_id": 1746,
+            "id": 15669,
+            "assessment_form_id": 3321,
             "label": "Saya mengelola sumber daya satuan pendidikan secara terencana untuk mendukung peningkatan kualitas pembelajaran peserta didik.",
             "nama_field": "f_elclfq9e",
             "tipe_field": "likert",
@@ -10181,8 +10181,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10196,8 +10196,8 @@
             }
           },
           {
-            "id": 7898,
-            "assessment_form_id": 1746,
+            "id": 15670,
+            "assessment_form_id": 3321,
             "label": "Saya lebih banyak menggunakan sumber daya sekolah berdasarkan kebiasaan yang sudah berjalan tanpa mempertimbangkan dampaknya terhadap peningkatan pembelajaran peserta didik.",
             "nama_field": "f_52sav7p5",
             "tipe_field": "likert",
@@ -10243,8 +10243,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10259,8 +10259,8 @@
             }
           },
           {
-            "id": 7899,
-            "assessment_form_id": 1746,
+            "id": 15671,
+            "assessment_form_id": 3321,
             "label": "Saya mengoptimalkan pemanfaatan sumber daya manusia, sarana prasarana, teknologi, dan lingkungan sekolah untuk mendukung proses pembelajaran.",
             "nama_field": "f_9bc9g4hd",
             "tipe_field": "likert",
@@ -10306,8 +10306,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10321,8 +10321,8 @@
             }
           },
           {
-            "id": 7900,
-            "assessment_form_id": 1746,
+            "id": 15672,
+            "assessment_form_id": 3321,
             "label": "Saya memastikan penggunaan sumber daya sekolah dilakukan secara efektif, efisien, transparan, dan sesuai dengan prioritas kebutuhan pembelajaran.",
             "nama_field": "f_zkxuym17",
             "tipe_field": "likert",
@@ -10368,8 +10368,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10383,8 +10383,8 @@
             }
           },
           {
-            "id": 7901,
-            "assessment_form_id": 1746,
+            "id": 15673,
+            "assessment_form_id": 3321,
             "label": "Saya melibatkan warga satuan pendidikan dalam pemanfaatan dan pengelolaan sumber daya untuk mencapai tujuan peningkatan mutu pembelajaran.",
             "nama_field": "f_livl97em",
             "tipe_field": "likert",
@@ -10430,8 +10430,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10445,8 +10445,8 @@
             }
           },
           {
-            "id": 7902,
-            "assessment_form_id": 1746,
+            "id": 15674,
+            "assessment_form_id": 3321,
             "label": "Saya menganggap pengelolaan sumber daya sekolah hanya berkaitan dengan administrasi dan keuangan sehingga tidak perlu dikaitkan langsung dengan kualitas pembelajaran.",
             "nama_field": "f_3x1b1tgg",
             "tipe_field": "likert",
@@ -10492,8 +10492,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10508,8 +10508,8 @@
             }
           },
           {
-            "id": 7903,
-            "assessment_form_id": 1746,
+            "id": 15675,
+            "assessment_form_id": 3321,
             "label": "Saya melakukan pemantauan dan evaluasi terhadap pemanfaatan sumber daya untuk memastikan kontribusinya terhadap perkembangan dan capaian belajar peserta didik.",
             "nama_field": "f_1x5780kf",
             "tipe_field": "likert",
@@ -10555,8 +10555,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10572,15 +10572,15 @@
         ]
       },
       {
-        "id": 1747,
+        "id": 3322,
         "assessment_id": 10,
         "judul_form": "3.3.3 Pengelolaan Sumber Daya Satuan Pendidikan Secara Transparan dan Akuntabel",
         "kode_form": "FORM-LIKERT-KS-333",
         "deskripsi": "",
         "urutan": 24,
         "is_active": true,
-        "created_at": "2026-10-14T23:32:04.000000Z",
-        "updated_at": "2026-10-14T23:32:04.000000Z",
+        "created_at": "2026-10-18T14:28:46.000000Z",
+        "updated_at": "2026-10-18T14:28:46.000000Z",
         "kompetensi": "profesional",
         "indikator_kode": "3.3",
         "indikator_label": "Pengelolaan sumber daya satuan pendidikan secara efektif, transparan, dan akuntabel",
@@ -10592,8 +10592,8 @@
         },
         "fields": [
           {
-            "id": 7904,
-            "assessment_form_id": 1747,
+            "id": 15676,
+            "assessment_form_id": 3322,
             "label": "Saya mengelola sumber daya satuan pendidikan berdasarkan prinsip keterbukaan, tanggung jawab, dan kepentingan terbaik bagi peningkatan mutu pendidikan.",
             "nama_field": "f_3jy3o72w",
             "tipe_field": "likert",
@@ -10639,8 +10639,8 @@
             "urutan": 1,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10654,8 +10654,8 @@
             }
           },
           {
-            "id": 7905,
-            "assessment_form_id": 1747,
+            "id": 15677,
+            "assessment_form_id": 3322,
             "label": "Saya menyampaikan informasi mengenai perencanaan, pemanfaatan, dan evaluasi sumber daya sekolah kepada pihak terkait secara jelas dan dapat dipertanggungjawabkan.",
             "nama_field": "f_l14vxh0a",
             "tipe_field": "likert",
@@ -10701,8 +10701,8 @@
             "urutan": 2,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10716,8 +10716,8 @@
             }
           },
           {
-            "id": 7906,
-            "assessment_form_id": 1747,
+            "id": 15678,
+            "assessment_form_id": 3322,
             "label": "Saya menganggap informasi terkait pengelolaan sumber daya sekolah cukup diketahui oleh pihak tertentu saja sehingga tidak perlu disampaikan secara terbuka kepada warga satuan pendidikan.",
             "nama_field": "f_kixbrx16",
             "tipe_field": "likert",
@@ -10763,8 +10763,8 @@
             "urutan": 3,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10779,8 +10779,8 @@
             }
           },
           {
-            "id": 7907,
-            "assessment_form_id": 1747,
+            "id": 15679,
+            "assessment_form_id": 3322,
             "label": "Saya menerapkan mekanisme pengelolaan sumber daya sekolah yang sesuai dengan aturan, prosedur, dan prinsip akuntabilitas.",
             "nama_field": "f_xs6uqaef",
             "tipe_field": "likert",
@@ -10826,8 +10826,8 @@
             "urutan": 4,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10841,8 +10841,8 @@
             }
           },
           {
-            "id": 7908,
-            "assessment_form_id": 1747,
+            "id": 15680,
+            "assessment_form_id": 3322,
             "label": "Saya melibatkan warga satuan pendidikan dalam pengawasan dan evaluasi penggunaan sumber daya untuk membangun kepercayaan bersama.",
             "nama_field": "f_4wi48ebn",
             "tipe_field": "likert",
@@ -10888,8 +10888,8 @@
             "urutan": 5,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10903,8 +10903,8 @@
             }
           },
           {
-            "id": 7909,
-            "assessment_form_id": 1747,
+            "id": 15681,
+            "assessment_form_id": 3322,
             "label": "Saya lebih memprioritaskan penyelesaian program sekolah daripada memastikan proses pengelolaan sumber daya dilakukan secara transparan dan terdokumentasi dengan baik.",
             "nama_field": "f_53nytvbi",
             "tipe_field": "likert",
@@ -10950,8 +10950,8 @@
             "urutan": 6,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",
@@ -10966,8 +10966,8 @@
             }
           },
           {
-            "id": 7910,
-            "assessment_form_id": 1747,
+            "id": 15682,
+            "assessment_form_id": 3322,
             "label": "Saya melakukan refleksi dan perbaikan secara berkala terhadap tata kelola sumber daya sekolah agar semakin efektif, transparan, dan akuntabel.",
             "nama_field": "f_1wpp0b4w",
             "tipe_field": "likert",
@@ -11013,8 +11013,8 @@
             "urutan": 7,
             "is_required": true,
             "is_active": true,
-            "created_at": "2026-10-14T23:32:04.000000Z",
-            "updated_at": "2026-10-14T23:32:04.000000Z",
+            "created_at": "2026-10-18T14:28:46.000000Z",
+            "updated_at": "2026-10-18T14:28:46.000000Z",
             "deskripsi": "",
             "scoring_config": {
               "method": "likert_scale",

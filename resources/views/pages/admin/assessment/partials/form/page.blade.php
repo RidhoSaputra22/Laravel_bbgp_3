@@ -974,7 +974,7 @@
                                 <strong>masuk penilaian</strong> di setiap form.
                             </li>
                             <li>Untuk field <strong>Daftar Pilihan</strong> dan <strong>Kotak Centang</strong>,
-                                pisahkan opsi dengan koma atau baris baru.</li>
+                                isi satu opsi per baris. Opsi akan tampil otomatis sebagai pilihan terstruktur.</li>
                             <li>Untuk field <strong>Pilihan Ganda</strong>, isi <strong>kode jawaban</strong>,
                                 <strong>isi jawaban</strong>, dan <strong>level kompetensi</strong> pada setiap opsi.
                             </li>
@@ -2915,7 +2915,7 @@
                                 rows="3"
                                 placeholder="Contoh: SD&#10;SMP&#10;SMA">${escapeHtml(optionLines)}</textarea>
                             <small class="text-muted d-block mt-2">
-                                Isi opsi per baris atau dipisah koma jika tipe kolom menggunakan daftar pilihan.
+                                Isi satu opsi per baris jika tipe kolom menggunakan daftar pilihan.
                             </small>
                         </div>
                     </div>
@@ -3339,10 +3339,10 @@
                                     <textarea class="${getInputClass(opsiFieldTextName)} field-manual-options-input"
                                         name="${opsiFieldTextName}"
                                         rows="2"
-                                        placeholder="Contoh: Ya, Tidak, Mungkin">${escapeHtml(fieldData.opsi_field_text)}</textarea>
+                                        placeholder="Contoh: Ya&#10;Tidak&#10;Mungkin">${escapeHtml(fieldData.opsi_field_text)}</textarea>
                                     ${buildInvalidFeedback(opsiFieldTextName)}
                                     <small class="text-muted d-block mt-2 manual-choice-options-hint">
-                                        Isi opsi manual per baris atau dipisah koma.
+                                        Isi satu opsi per baris.
                                     </small>
                                 </div>
                                 <div class="option-score-wrapper">
@@ -4634,7 +4634,7 @@
                 }
 
                 return value
-                    .split(/[\r\n,]+/)
+                    .split(/[\r\n]+/)
                     .map((item) => item.trim())
                     .filter(Boolean);
             };
@@ -5707,6 +5707,7 @@
                 '.field-manual-options-input, .radio-option-text, .radio-option-code, .radio-option-level',
                 function() {
                     refreshDependencyGroups($(this).closest('.assessment-form-card'));
+                    schedulePreviewRender();
                 });
 
             $(document).on('input', '.field-dependency-config-input', function() {

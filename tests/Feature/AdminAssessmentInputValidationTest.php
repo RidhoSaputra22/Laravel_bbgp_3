@@ -99,6 +99,41 @@ class AdminAssessmentInputValidationTest extends TestCase
         $this->assertCount(1, $assessment->forms()->first()->fields);
     }
 
+    public function test_assessment_choice_options_use_newline_as_the_only_separator(): void
+    {
+        $title = 'Assessment Newline Options '.uniqid();
+
+        $this->withSession($this->adminSession())
+            ->post(route('assessment.store'), [
+                'judul' => $title,
+                'target_ketenagaan' => 'tenaga_pendidik',
+                'status' => 'draft',
+                'forms' => [[
+                    'judul_form' => 'Pilihan',
+                    'is_scoreable' => false,
+                    'fields' => [[
+                        'label' => 'Pilihan jawaban',
+                        'tipe_field' => 'checkbox',
+                        'opsi_field_text' => "Ya, mungkin\nTidak",
+                    ]],
+                ]],
+            ])
+            ->assertRedirect(route('assessment.index'));
+
+        $field = Assessment::query()
+            ->where('judul', $title)
+            ->firstOrFail()
+            ->forms()
+            ->firstOrFail()
+            ->fields()
+            ->firstOrFail();
+
+        $this->assertSame([
+            ['label' => 'Ya, mungkin', 'value' => 'Ya, mungkin'],
+            ['label' => 'Tidak', 'value' => 'Tidak'],
+        ], $field->opsi_field);
+    }
+
     public function test_validator_form_requires_sections_and_fields(): void
     {
         $this->withSession($this->adminSession())
