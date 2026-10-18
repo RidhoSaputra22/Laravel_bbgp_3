@@ -1,0 +1,1386 @@
+{
+  "meta": {
+    "schema": "database-assessment-v1",
+    "version": 1,
+    "export_type": "assessment-package",
+    "exported_at": "2026-10-18T04:54:42.811729Z",
+    "application": "Laravel",
+    "streaming": true,
+    "runtime_data_excluded": [
+      "assessment_assignment_targets",
+      "assessment_attempts",
+      "assessment_attempt_answers",
+      "assessment_attempt_security_events"
+    ]
+  },
+  "data": {
+    "id": 17,
+    "kode_assessment": "ASM-PREPOST-SIMAN-MAKASSAR-001",
+    "judul": "Pre-Test Pemanfaatan SIMAN dalam Pembelajaran",
+    "slug": "pre-test-pemanfaatan-siman-dalam-pembelajaran",
+    "deskripsi": "Instrumen Pre Test Pelatihan Pemanfaatan SIMAN dalam Pembelajaran bagi Guru Terpencil Kota Makassar",
+    "petunjuk": "Lengkapi identitas peserta. Pilihlah satu jawaban yang paling tepat untuk setiap soal dari pilihan A, B, C, atau D. Jumlah soal: 20; perhitungan nilai persentase berdasarkan jumlah jawaban benar dibagi 20 lalu dikalikan 100.",
+    "status": "publish",
+    "is_active": true,
+    "created_at": "2026-10-18T03:03:07.000000Z",
+    "updated_at": "2026-10-18T04:22:05.000000Z",
+    "instrument_type": "pilihan_ganda_kompleks",
+    "kategori": "evaluasi_pelaksanaan",
+    "target_ketenagaan": null,
+    "target_jabatan": null,
+    "scoring_config": {
+      "weight": 0.4,
+      "profile": "pilihan_ganda_kompleks",
+      "verification_gap_threshold": 1.5,
+      "empty_response_threshold_percent": 10
+    },
+    "forms": [
+      {
+        "id": 1303,
+        "assessment_id": 17,
+        "judul_form": "A. Identitas Peserta",
+        "kode_form": "FORM-IDENTITAS-PESERTA",
+        "deskripsi": "Identitas peserta Pelatihan Pemanfaatan SIMAN dalam Pembelajaran.",
+        "urutan": 1,
+        "is_active": true,
+        "created_at": "2026-10-18T03:03:07.000000Z",
+        "updated_at": "2026-10-18T03:03:07.000000Z",
+        "kompetensi": "",
+        "indikator_kode": "",
+        "indikator_label": "",
+        "is_scoreable": false,
+        "scoring_config": null,
+        "fields": [
+          {
+            "id": 6339,
+            "assessment_form_id": 1303,
+            "label": "Nama Peserta",
+            "nama_field": "f_f51e6155",
+            "tipe_field": "text",
+            "placeholder": "Masukkan nama peserta",
+            "bantuan": "",
+            "opsi_field": null,
+            "nilai_default": null,
+            "autofill_source": "nama_lengkap",
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "text",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "presence",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6340,
+            "assessment_form_id": 1303,
+            "label": "Instansi",
+            "nama_field": "f_5dca2b44",
+            "tipe_field": "text",
+            "placeholder": "Masukkan instansi",
+            "bantuan": "",
+            "opsi_field": null,
+            "nilai_default": null,
+            "autofill_source": "satuan_pendidikan",
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "text",
+              "allow_other_input": false
+            },
+            "urutan": 2,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "presence",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6341,
+            "assessment_form_id": 1303,
+            "label": "Unsur",
+            "nama_field": "f_b3a17ebf",
+            "tipe_field": "select",
+            "placeholder": "Pilih unsur peserta",
+            "bantuan": "",
+            "opsi_field": [
+              {
+                "label": "Kepala Sekolah",
+                "value": "Kepala Sekolah"
+              },
+              {
+                "label": "Guru",
+                "value": "Guru"
+              },
+              {
+                "label": "Tendik",
+                "value": "Tendik"
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "select",
+              "allow_other_input": false
+            },
+            "urutan": 3,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "enabled": false,
+              "numeric_direction": "greater_is_better"
+            }
+          }
+        ]
+      },
+      {
+        "id": 1304,
+        "assessment_id": 17,
+        "judul_form": "B. Pembelajaran Mendalam",
+        "kode_form": "FORM-SIMAN-PM",
+        "deskripsi": "Soal nomor 1–5 tentang konsep dan prinsip Pembelajaran Mendalam.",
+        "urutan": 2,
+        "is_active": true,
+        "created_at": "2026-10-18T03:03:07.000000Z",
+        "updated_at": "2026-10-18T04:22:05.000000Z",
+        "kompetensi": "",
+        "indikator_kode": "PM",
+        "indikator_label": "Pembelajaran Mendalam",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 5,
+          "profile": "pilihan_ganda_kompleks"
+        },
+        "fields": [
+          {
+            "id": 6342,
+            "assessment_form_id": 1304,
+            "label": "1. Pembelajaran Mendalam merupakan pendekatan pembelajaran yang menekankan pada ....",
+            "nama_field": "f_4fbbf42a",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Penguasaan materi secara menyeluruh melalui latihan dan pengulangan yang terstruktur.",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Penguasaan pengetahuan melalui pengalaman belajar yang berkesadaran, bermakna, dan menggembirakan.",
+                "score": 5,
+                "value": "B",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Pencapaian tujuan pembelajaran melalui penyampaian materi dan penilaian secara berkelanjutan.",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Peningkatan hasil belajar melalui penggunaan teknologi dan sumber belajar digital yang beragam.",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6343,
+            "assessment_form_id": 1304,
+            "label": "2. Tiga prinsip utama Pembelajaran Mendalam yang perlu dihadirkan dalam proses pembelajaran adalah ....",
+            "nama_field": "f_7d414cac",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Aktif, kreatif, dan inovatif dalam menyelesaikan tugas pembelajaran secara kolaboratif.",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Kritis, logis, dan sistematis dalam mengembangkan pengetahuan berdasarkan pengalaman belajar.",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Berkesadaran, bermakna, dan menggembirakan dalam membangun pengalaman belajar peserta didik.",
+                "score": 5,
+                "value": "C",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Mandiri, disiplin, dan bertanggung jawab dalam menyelesaikan kegiatan pembelajaran di sekolah.",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 2,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6344,
+            "assessment_form_id": 1304,
+            "label": "3. Perilaku guru yang paling mencerminkan prinsip berkesadaran (mindful) dalam pembelajaran adalah ....",
+            "nama_field": "f_a9caa08b",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Menjelaskan tujuan belajar, mengajak peserta didik memantau pemahaman, dan mengevaluasi proses berpikirnya.",
+                "score": 5,
+                "value": "A",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Menyampaikan materi secara sistematis, memberikan contoh, dan meminta peserta didik mencatat konsep penting.",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menyediakan berbagai sumber belajar, memberikan latihan, dan memeriksa hasil pekerjaan peserta didik.",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Membagi peserta didik dalam kelompok, memberikan tugas, dan menilai hasil kerja berdasarkan kriteria tertentu.",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 3,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6345,
+            "assessment_form_id": 1304,
+            "label": "4. Pengalaman belajar dalam Pembelajaran Mendalam meliputi tiga tahapan utama, yaitu ....",
+            "nama_field": "f_700c3414",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Mengamati, menanya, dan mengomunikasikan hasil pengamatan dalam kegiatan pembelajaran.",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Memahami, mengaplikasi, dan merefleksi pengetahuan melalui pengalaman belajar yang terarah.",
+                "score": 5,
+                "value": "B",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Merencanakan, melaksanakan, dan mengevaluasi kegiatan berdasarkan tujuan pembelajaran yang ditetapkan.",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Mengidentifikasi, menganalisis, dan menyimpulkan informasi dari berbagai sumber pembelajaran.",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 4,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:05.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6346,
+            "assessment_form_id": 1304,
+            "label": "5. Pelaksanaan asesmen dalam Pembelajaran Mendalam sebaiknya dilakukan dengan cara ....",
+            "nama_field": "f_383164de",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Menggunakan asesmen awal, proses, dan akhir untuk memantau perkembangan serta memberikan umpan balik.",
+                "score": 5,
+                "value": "A",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Mengutamakan tes akhir untuk mengukur penguasaan materi setelah seluruh kegiatan pembelajaran selesai.",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menggunakan tes tertulis secara berkala untuk membandingkan capaian peserta didik dengan standar kelas.",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Memberikan penilaian pada hasil tugas untuk menentukan ketercapaian tujuan pembelajaran setiap peserta didik.",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 5,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          }
+        ]
+      },
+      {
+        "id": 1305,
+        "assessment_id": 17,
+        "judul_form": "C. Pemanfaatan SIMAN dalam Pembelajaran",
+        "kode_form": "FORM-SIMAN-PEMANFAATAN",
+        "deskripsi": "Soal nomor 6–20 tentang pemanfaatan SIMAN dan layanan pendukung pembelajaran.",
+        "urutan": 3,
+        "is_active": true,
+        "created_at": "2026-10-18T03:03:07.000000Z",
+        "updated_at": "2026-10-18T04:22:06.000000Z",
+        "kompetensi": "",
+        "indikator_kode": "SIMAN",
+        "indikator_label": "Pemanfaatan SIMAN dalam Pembelajaran",
+        "is_scoreable": true,
+        "scoring_config": {
+          "weight": 15,
+          "profile": "pilihan_ganda_kompleks"
+        },
+        "fields": [
+          {
+            "id": 6347,
+            "assessment_form_id": 1305,
+            "label": "6. Pada editor SIMAN, tab yang digunakan untuk menambah halaman baru pada situs adalah...",
+            "nama_field": "f_640b7ccb",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Insert",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Pages",
+                "score": 5,
+                "value": "B",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Themes",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Publish",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 1,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6348,
+            "assessment_form_id": 1305,
+            "label": "7. Agar berkas Google Drive yang disematkan di situs dapat dibuka oleh pengunjung, pengaturan akses berkas yang tepat adalah...",
+            "nama_field": "f_2bf2bdb1",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Hanya pemilik berkas",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Siapa saja dapat menyunting",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Siapa saja yang memiliki tautan dapat melihat",
+                "score": 5,
+                "value": "C",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Dibatasi untuk akun sekolah tertentu saja",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 2,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6349,
+            "assessment_form_id": 1305,
+            "label": "8. Untuk menyematkan dokumen Google Docs atau Slides ke halaman SIMAN, menu yang digunakan adalah...",
+            "nama_field": "f_3a2f30f1",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Insert > Drive",
+                "score": 5,
+                "value": "A",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Pages > Tambah halaman",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Themes > Gaya teks",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Publish > Alamat web",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 3,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6350,
+            "assessment_form_id": 1305,
+            "label": "9. Guru disarankan memperkecil ukuran gambar sebelum diunggah ke situs kelas. Alasan utamanya adalah...",
+            "nama_field": "f_c3fd734b",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Agar gambar tampak lebih tajam",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Agar situs memiliki lebih banyak halaman",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Agar gambar tidak dapat diunduh siswa",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Agar halaman cepat dibuka saat sinyal lemah",
+                "score": 5,
+                "value": "D",
+                "level_kompetensi": 5
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 4,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6351,
+            "assessment_form_id": 1305,
+            "label": "10. Fungsi teks alternatif (alt text) pada gambar di situs pembelajaran adalah...",
+            "nama_field": "f_8c89d3c9",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Memberi bingkai pada gambar",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menjelaskan isi gambar bagi pengguna yang tidak dapat melihatnya",
+                "score": 5,
+                "value": "B",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Mengubah gambar menjadi tautan",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menambah ukuran berkas gambar",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 5,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6352,
+            "assessment_form_id": 1305,
+            "label": "11. Pengaturan “jadikan kuis” pada Google Forms berguna untuk...",
+            "nama_field": "f_513ac1e5",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Memberi kunci jawaban dan penilaian otomatis",
+                "score": 5,
+                "value": "A",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Mengubah tema dan warna formulir",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menghapus seluruh respons siswa",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menambah halaman baru pada situs",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 6,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:07.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6353,
+            "assessment_form_id": 1305,
+            "label": "12. Guru di sekolah terpencil sebaiknya menghindari soal jenis unggah berkas di Google Forms karena...",
+            "nama_field": "f_282dd62c",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Berkas yang diunggah otomatis terhapus",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Soal tersebut tidak dapat diberi skor",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Responden harus masuk dengan akun Google, sedangkan banyak siswa belum memilikinya",
+                "score": 5,
+                "value": "C",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Formulir tidak dapat disematkan ke situs",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": "satuan_pendidikan",
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 7,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6354,
+            "assessment_form_id": 1305,
+            "label": "13. Agar materi tetap dapat digunakan saat tidak ada internet di kelas, langkah yang paling tepat adalah...",
+            "nama_field": "f_253affe6",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Menunggu sinyal membaik sebelum mengajar",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menambah jumlah video pada situs",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menghapus semua dokumen tersemat",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Mengunduh materi sebagai PDF dan menyimpannya di flashdisk atau HP",
+                "score": 5,
+                "value": "D",
+                "level_kompetensi": 5
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 8,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6355,
+            "assessment_form_id": 1305,
+            "label": "14. Kode QR tautan situs kelas yang dicetak dan ditempel di dinding kelas berfungsi sebagai...",
+            "nama_field": "f_95374293",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Pintu masuk cepat ke situs bagi siswa yang memiliki perangkat",
+                "score": 5,
+                "value": "A",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Pengganti seluruh materi pembelajaran",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Alat untuk mengunci situs dari pengunjung",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Tanda kehadiran siswa",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 9,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6356,
+            "assessment_form_id": 1305,
+            "label": "15. Sebelum mengunggah foto kegiatan siswa ke situs yang dapat dilihat publik, guru sebaiknya...",
+            "nama_field": "f_524c1ec6",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Langsung mengunggah agar situs menarik",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Meminta izin orang tua/wali dan menimbang kebutuhannya",
+                "score": 5,
+                "value": "B",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Menuliskan nama lengkap siswa pada foto",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Meminta siswa mengunggah fotonya sendiri",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 10,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6357,
+            "assessment_form_id": 1305,
+            "label": "16. Agar rekan guru dapat ikut menyunting situs kelas, fitur yang digunakan adalah...",
+            "nama_field": "f_b942875b",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Publish",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Themes",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Berbagi (Share) dengan menambahkan kolaborator",
+                "score": 5,
+                "value": "C",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Insert",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 11,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6358,
+            "assessment_form_id": 1305,
+            "label": "17. Setelah situs dipublikasikan, cara paling tepat untuk memastikan pengunjung dapat membuka semua kontennya adalah...",
+            "nama_field": "f_2d09eee1",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Membuka situs dalam mode edit",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Menambah halaman baru",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Mengganti tema situs",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Membuka situs di jendela penyamaran atau perangkat lain",
+                "score": 5,
+                "value": "D",
+                "level_kompetensi": 5
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 12,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6359,
+            "assessment_form_id": 1305,
+            "label": "18. Isi halaman Profil Kelas yang tepat dan tetap menjaga privasi adalah...",
+            "nama_field": "f_a29682b8",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Nomor HP pribadi dan alamat rumah siswa",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Identitas guru, jadwal pelajaran, tata tertib, dan kontak sekolah",
+                "score": 5,
+                "value": "B",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Foto wajah seluruh siswa tanpa izin",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Daftar nilai seluruh siswa",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 13,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6360,
+            "assessment_form_id": 1305,
+            "label": "19. Urutan berpikir yang tepat dalam merancang skenario pembelajaran yang memanfaatkan SIMAN adalah...",
+            "nama_field": "f_69eab9b0",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Tujuan, asesmen, kegiatan, lalu teknologi",
+                "score": 5,
+                "value": "A",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Teknologi, kegiatan, tujuan, lalu asesmen",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Kegiatan, teknologi, asesmen, lalu tujuan",
+                "score": 0,
+                "value": "C",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Asesmen, teknologi, tujuan, lalu kegiatan",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 14,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          },
+          {
+            "id": 6361,
+            "assessment_form_id": 1305,
+            "label": "20. Halaman Tugas pada situs kelas sebaiknya memuat...",
+            "nama_field": "f_2ed20a1f",
+            "tipe_field": "radio",
+            "placeholder": "",
+            "bantuan": "Pilih satu jawaban yang paling tepat.",
+            "opsi_field": [
+              {
+                "label": "Judul tugas saja",
+                "score": 0,
+                "value": "A",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Tautan video saja",
+                "score": 0,
+                "value": "B",
+                "level_kompetensi": 1
+              },
+              {
+                "label": "Tujuan, langkah, tenggat, dan cara pengumpulan alternatif (misalnya kertas)",
+                "score": 5,
+                "value": "C",
+                "level_kompetensi": 5
+              },
+              {
+                "label": "Daftar nama siswa yang belum mengumpulkan",
+                "score": 0,
+                "value": "D",
+                "level_kompetensi": 1
+              }
+            ],
+            "nilai_default": null,
+            "autofill_source": null,
+            "lookup_source": null,
+            "dependency_config": null,
+            "validasi": {
+              "required": true,
+              "tipe_field": "radio",
+              "allow_other_input": false
+            },
+            "urutan": 15,
+            "is_required": true,
+            "is_active": true,
+            "created_at": "2026-10-18T03:03:08.000000Z",
+            "updated_at": "2026-10-18T04:22:06.000000Z",
+            "deskripsi": "",
+            "scoring_config": {
+              "method": "choice_option_score",
+              "weight": 1,
+              "enabled": true,
+              "profile": "pilihan_ganda_kompleks",
+              "scale_max": 5,
+              "scale_min": 0,
+              "numeric_direction": "greater_is_better"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "included": {
+    "assignment_configs": []
+  }
+}
