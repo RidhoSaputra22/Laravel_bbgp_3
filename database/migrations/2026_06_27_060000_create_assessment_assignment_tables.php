@@ -14,7 +14,7 @@ return new class extends Migration
         if (!Schema::hasTable('assessment_assignments')) {
             Schema::create('assessment_assignments', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('assessment_id')->constrained('assessments')->cascadeOnDelete();
+                $table->foreignId('assessment_id')->nullable()->constrained('assessments')->cascadeOnDelete();
                 $table->string('kode_penugasan')->unique();
                 $table->string('judul_penugasan');
                 $table->text('deskripsi')->nullable();

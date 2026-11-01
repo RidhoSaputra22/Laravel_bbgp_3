@@ -868,7 +868,7 @@ class AssessmentController extends Controller
         foreach (array_values($forms) as $formIndex => $formData) {
             $formAttributes = [
                 'judul_form' => $formData['judul_form'],
-                'kode_form' => $formData['kode_form'] ?: 'FORM-' . str_pad((string) ($formIndex + 1), 2, '0', STR_PAD_LEFT),
+                'kode_form' => ($formData['kode_form'] ?? null) ?: 'FORM-' . str_pad((string) ($formIndex + 1), 2, '0', STR_PAD_LEFT),
                 'deskripsi' => $formData['deskripsi'] ?? null,
                 'kompetensi' => $formData['kompetensi'] ?? null,
                 'indikator_kode' => $formData['indikator_kode'] ?? null,

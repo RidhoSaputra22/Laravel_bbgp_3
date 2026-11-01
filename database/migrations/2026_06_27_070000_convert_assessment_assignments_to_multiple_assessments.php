@@ -43,9 +43,11 @@ return new class extends Migration {
             });
         }
 
-        Schema::table('assessment_assignments', function (Blueprint $table) {
-            $table->dropColumn('assessment_id');
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::table('assessment_assignments', function (Blueprint $table) {
+                $table->dropColumn('assessment_id');
+            });
+        }
     }
 
     /**
@@ -225,6 +227,10 @@ return new class extends Migration {
 
     private function foreignKeyExists(string $table, string $constraintName): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return false;
+        }
+
         return DB::table('information_schema.table_constraints')
             ->where('constraint_schema', DB::getDatabaseName())
             ->where('table_name', $table)
@@ -235,6 +241,10 @@ return new class extends Migration {
 
     private function dropForeignKeysForColumn(string $table, string $column): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         $rows = DB::select("
         SELECT CONSTRAINT_NAME
         FROM information_schema.KEY_COLUMN_USAGE
@@ -263,6 +273,10 @@ return new class extends Migration {
 
     private function indexExists(string $table, string $indexName): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return Schema::hasIndex($table, $indexName);
+        }
+
         return DB::table('information_schema.statistics')
             ->where('table_schema', DB::getDatabaseName())
             ->where('table_name', $table)

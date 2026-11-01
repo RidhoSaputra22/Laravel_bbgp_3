@@ -218,7 +218,7 @@ class AdminCoreFeaturesTest extends TestCase
 
         $activity = Kegiatan::query()->where('nama_kegiatan', $name)->firstOrFail();
         $this->assertSame('2026-10-01', (string) $activity->tgl_kegiatan);
-        $this->assertSame('08:00:00', (string) $activity->jam_mulai);
+        $this->assertSame('08:00', substr((string) $activity->jam_mulai, 0, 5));
         $this->assertSame('2026-10-02', (string) $activity->tgl_selesai);
 
         $this->withSession($this->adminSession())

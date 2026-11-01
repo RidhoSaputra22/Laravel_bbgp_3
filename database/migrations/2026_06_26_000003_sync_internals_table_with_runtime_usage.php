@@ -107,6 +107,12 @@ return new class extends Migration
 
     private function withRelaxedSqlMode(callable $callback): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            $callback();
+
+            return;
+        }
+
         $originalMode = (string) (DB::selectOne('SELECT @@SESSION.sql_mode AS sql_mode')->sql_mode ?? '');
 
         $relaxedModes = array_filter(
