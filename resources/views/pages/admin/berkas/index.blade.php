@@ -80,14 +80,8 @@
                                                                         <td class="text-nowrap">
                                                                             {{ Helper::dateIndo(explode(' ', $data->created_at, -1)[0]) }}
                                                                         </td>
-                                                                        @php
-                                                                            $path = asset(
-                                                                                'upload/berkas/' . $data->nama_berkas,
-                                                                            );
-                                                                            $path = explode('/', $path);
-                                                                        @endphp
                                                                         <td class="text-nowrap">
-                                                                            <a href="{{ $path[5] == $data->nama_berkas ? asset('upload/berkas/' . $data->nama_berkas) : $data->nama_berkas }}"
+                                                                            <a href="{{ filter_var($data->nama_berkas, FILTER_VALIDATE_URL) ? $data->nama_berkas : route('berkas.file', $data->id) }}"
                                                                                 target="_blank"
                                                                                 class="btn btn-icon btn-primary btn-sm">
                                                                                 Preview laporan
@@ -143,14 +137,8 @@
                                                                     <td class="text-nowrap">
                                                                         {{ Helper::dateIndo(explode(' ', $data->created_at, -1)[0]) }}
                                                                     </td>
-                                                                    @php
-                                                                        $path = asset(
-                                                                            'upload/berkas/' . $data->nama_berkas,
-                                                                        );
-                                                                        $path = explode('/', $path);
-                                                                    @endphp
                                                                     <td class="text-nowrap">
-                                                                        <a href="{{ $path[5] == $data->nama_berkas ? asset('upload/berkas/' . $data->nama_berkas) : $data->nama_berkas }}"
+                                                                        <a href="{{ filter_var($data->nama_berkas, FILTER_VALIDATE_URL) ? $data->nama_berkas : route('berkas.file', $data->id) }}"
                                                                             target="_blank"
                                                                             class="btn btn-icon btn-primary btn-sm">
                                                                             Preview laporan

@@ -83,8 +83,8 @@ class RtlController extends Controller
 
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $file) {
-                // Gunakan Storage Disk Public
-                $path = $file->store('rtl', 'public');
+                // Simpan dokumen sensitif di disk privat.
+                $path = $file->store('rtl', 'private_uploads');
 
                 RtlDocument::create([
                     'rtl_id' => $rtl->id,
@@ -118,7 +118,7 @@ class RtlController extends Controller
 
             if ($validated['status'] == 'approved' && $request->hasFile('certificate')) {
                 // Simpan sertifikat ke storage
-                $path = $request->file('certificate')->store('sertifikat', 'public');
+                $path = $request->file('certificate')->store('sertifikat', 'private_uploads');
                 $rtl->certificate_file = $path;
             }
 
@@ -139,7 +139,7 @@ class RtlController extends Controller
         }
 
         // Hapus file dari storage
-        Storage::disk('public')->delete($doc->file_path);
+        Storage::disk('private_uploads')->delete('rtl/'.basename($doc->file_path));
         $doc->delete();
 
         return response()->json(['success' => true]);
@@ -149,10 +149,37 @@ class RtlController extends Controller
     {
         $rtl = Rtl::with(['kegiatan', 'user', 'documents'])->findOrFail($id);
 
-        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
-        abort_unless($isAdmin || (string) $rtl->no_ktp === (string) session('no_ktp'), 403);
+        $this->authorizeRtl($rtl);
 
         return response()->json($rtl);
+    }
+
+    public function document($id)
+    {
+        $document = RtlDocument::with('rtl')->findOrFail($id);
+        $this->authorizeRtl($document->rtl);
+
+        $path = 'rtl/'.basename($document->file_path);
+        $disk = Storage::disk('private_uploads');
+
+        abort_unless($disk->exists($path), 404);
+
+        return response()->file($disk->path($path));
+    }
+
+    public function certificate($id)
+    {
+        $rtl = Rtl::findOrFail($id);
+        $this->authorizeRtl($rtl);
+
+        abort_unless($rtl->certificate_file, 404);
+
+        $path = 'sertifikat/'.basename($rtl->certificate_file);
+        $disk = Storage::disk('private_uploads');
+
+        abort_unless($disk->exists($path), 404);
+
+        return response()->file($disk->path($path));
     }
 
     public function reupload(Request $request, $id)
@@ -170,7 +197,7 @@ class RtlController extends Controller
         foreach ($request->file('files') as $file) {
             RtlDocument::create([
                 'rtl_id' => $rtl->id,
-                'file_path' => $file->store('rtl', 'public'),
+                'file_path' => $file->store('rtl', 'private_uploads'),
                 'original_name' => $file->getClientOriginalName(),
             ]);
         }
@@ -178,5 +205,12 @@ class RtlController extends Controller
         $rtl->update(['status' => 'pending']);
 
         return redirect()->back()->with('message', 'Dokumen RTL berhasil diunggah.');
+    }
+
+    private function authorizeRtl(Rtl $rtl): void
+    {
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+
+        abort_unless($isAdmin || (string) $rtl->no_ktp === (string) session('no_ktp'), 403);
     }
 }

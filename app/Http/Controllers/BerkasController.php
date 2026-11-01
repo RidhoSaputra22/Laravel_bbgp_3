@@ -59,7 +59,7 @@ class BerkasController extends Controller
             if ($r->hasFile('nama_berkas')) {
                 $file = $r->file('nama_berkas');
                 $fileName = Str::uuid() . '.' . $file->extension();
-                Storage::disk('public')->putFileAs('berkas', $file, $fileName);
+                Storage::disk('private_uploads')->putFileAs('berkas', $file, $fileName);
                 $validated['nama_berkas'] = $fileName;
             } else {
                 abort_unless(!empty($validated['nama_link']), 422, 'Link laporan wajib diisi.');
@@ -103,6 +103,21 @@ class BerkasController extends Controller
         ]);
     }
 
+    public function file(string $id)
+    {
+        $data = Berkas::findOrFail($id);
+        $this->authorizeBerkas($data);
+
+        abort_if(filter_var($data->nama_berkas, FILTER_VALIDATE_URL), 404);
+
+        $path = 'berkas/'.basename((string) $data->nama_berkas);
+        $disk = Storage::disk('private_uploads');
+
+        abort_unless($disk->exists($path), 404);
+
+        return response()->file($disk->path($path));
+    }
+
 
 
     /**
@@ -125,7 +140,7 @@ class BerkasController extends Controller
             if ($r->hasFile('nama_berkas')) {
                 $file = $r->file('nama_berkas');
                 $fileName = Str::uuid() . '.' . $file->extension();
-                Storage::disk('public')->putFileAs('berkas', $file, $fileName);
+                Storage::disk('private_uploads')->putFileAs('berkas', $file, $fileName);
                 $validated['nama_berkas'] = $fileName;
             } elseif (!empty($validated['nama_link'])) {
                 $validated['nama_berkas'] = $validated['nama_link'];
@@ -160,7 +175,7 @@ class BerkasController extends Controller
         $data = Berkas::findOrFail($id);
         $this->authorizeBerkas($data);
         if ($data->nama_berkas && !filter_var($data->nama_berkas, FILTER_VALIDATE_URL)) {
-            Storage::disk('public')->delete('berkas/' . basename($data->nama_berkas));
+            Storage::disk('private_uploads')->delete('berkas/' . basename($data->nama_berkas));
         }
         $data->delete();
         return response()->json($data);

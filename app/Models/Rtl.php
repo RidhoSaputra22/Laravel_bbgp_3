@@ -39,7 +39,6 @@ class Rtl extends Model
     {
         if (!$this->certificate_file) return null;
 
-        // Semua file sertifikat sekarang diakses via prefix 'upload'
-        return asset('upload/' . $this->certificate_file);
+        return route('user.rtl.certificate', $this->id);
     }
 }

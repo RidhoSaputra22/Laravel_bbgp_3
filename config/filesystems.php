@@ -43,6 +43,13 @@ return [
             'throw' => false,
         ],
 
+        'private_uploads' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/uploads'),
+            'visibility' => 'private',
+            'throw' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             // Cek apakah di hosting (ada public_html), jika tidak pakai default

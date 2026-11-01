@@ -24,10 +24,6 @@ class RtlDocument extends Model
 
     public function getUrlAttribute()
     {
-        $path = $this->file_path;
-        
-        // Sekarang kita selalu menggunakan prefix 'upload' karena folder 'public_html/upload' 
-        // sudah kita hubungkan (symlink) ke folder 'storage/app/public'
-        return asset('upload/' . $path);
+        return route('user.rtl.document', $this->id);
     }
 }

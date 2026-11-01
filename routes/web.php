@@ -39,7 +39,7 @@ Route::group(
         Route::get('/kontak', 'UserController@kontak')->name('user.kontak');
         Route::get('/eksternal', 'UserController@guru')->name('user.guru');
         Route::get('/dataguru', 'UserController@dataguru')->name('user.guru.data');
-        Route::get('/cari', 'UserController@cari')->name('user.cari.guru');
+        Route::get('/cari', 'UserController@cari')->name('user.cari.guru')->middleware('ValidasiUser');
 
         Route::get('/detail/{jenis}/{id}', 'UserController@detail')->name('user.detail.post');
 
@@ -52,7 +52,7 @@ Route::group(
         Route::get('/buletin-diksi', 'UserController@buletin')->name('user.buletin-diksi');
         Route::get('/lab-virtual', 'UserController@labVirtual')->name('user.lab-virtual');
 
-        Route::get('/pegawai', 'UserController@pegawai')->name('user.pegawai');
+        Route::get('/pegawai', 'UserController@pegawai')->name('user.pegawai')->middleware('ValidasiUser');
         Route::get('/pegawai/form', 'UserController@form_pegawai')->name('user.form_pegawai');
         Route::post('/pegawai/daftar', 'UserController@daftar_pegawai')->name('user.daftar_pegawai');
         Route::get('/pegawai/all', 'UserController@getPenugasanAll')->name('user.pegawai.all');
@@ -76,19 +76,19 @@ Route::group(
         Route::post('/eksternal/daftar', 'UserController@daftar_guru')->name('user.daftar_guru');
 
         Route::get('/kegiatan', 'KegiatanController@index')->name('user.kegiatan');
-        Route::get('/kegiatan/cari', 'KegiatanController@cari')->name('user.cari');
+        Route::get('/kegiatan/cari', 'KegiatanController@cari')->name('user.cari')->middleware('ValidasiUser');
 
         Route::get('/kegiatan/registrasi', 'KegiatanController@regist')->name('user.kegiatan_regist');
         Route::post('/kegiatan/store', 'KegiatanController@store')->name('user.kegiatan_store');
 
         // response json
         Route::get('/kegiatan/getStatus', 'KegiatanController@getStatus')->name('user.kegiatan.getStatus');
-        Route::get('/kegiatan/cariPeserta', 'KegiatanController@cariPeserta')->name('user.kegiatan.cariPeserta');
-        Route::get('/kegiatan/peserta', 'KegiatanController@getPesertaByKegiatan')->name('user.kegiatan.peserta');
-        Route::get('/peserta/detail', 'KegiatanController@getPesertaDetail')->name('user.peserta.detail');
+        Route::get('/kegiatan/cariPeserta', 'KegiatanController@cariPeserta')->name('user.kegiatan.cariPeserta')->middleware('ValidasiUser');
+        Route::get('/kegiatan/peserta', 'KegiatanController@getPesertaByKegiatan')->name('user.kegiatan.peserta')->middleware('ValidasiUser');
+        Route::get('/peserta/detail', 'KegiatanController@getPesertaDetail')->name('user.peserta.detail')->middleware('ValidasiUser');
 
         // trace pesrta dari kegiatan sebelum nya
-        Route::get('/peserta/cekData', 'KegiatanController@cekDataPeserta')->name('user.peserta.cekData');
+        Route::get('/peserta/cekData', 'KegiatanController@cekDataPeserta')->name('user.peserta.cekData')->middleware('ValidasiUser');
 
         Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta')->middleware('AdminOnly');
         Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta')->middleware('AdminOnly');
@@ -105,6 +105,8 @@ Route::group(
             Route::get('/', [RtlController::class, 'index'])->name('user.rtl.index');
             Route::post('/store', [RtlController::class, 'store'])->name('user.rtl.store');
             Route::post('/reupload/{id}', [RtlController::class, 'reupload'])->name('user.rtl.reupload');
+            Route::get('/document/{id}', [RtlController::class, 'document'])->name('user.rtl.document');
+            Route::get('/{id}/certificate', [RtlController::class, 'certificate'])->name('user.rtl.certificate');
             Route::get('/{id}', [RtlController::class, 'show'])->name('user.rtl.show');
         });
     }
@@ -233,6 +235,7 @@ Route::group(
                 Route::get('/', 'BerkasController@index')->name('berkas.index');
                 Route::get('/create', 'BerkasController@create')->name('berkas.create');
                 Route::post('/store', 'BerkasController@store')->name('berkas.store');
+                Route::get('/file/{id}', 'BerkasController@file')->name('berkas.file');
                 Route::get('/edit/{id}', 'BerkasController@edit')->name('berkas.edit');
                 Route::put('/update', 'BerkasController@update')->name('berkas.update');
                 Route::post('/hapus/{id}', 'BerkasController@destroy')->name('berkas.hapus');
