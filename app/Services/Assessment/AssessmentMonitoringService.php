@@ -1861,7 +1861,7 @@ class AssessmentMonitoringService
             'score_label' => $score !== null ? number_format($score, 2) : null,
             'score_level' => $score !== null ? LevelKompetensi::fromScore($score)?->shortLabel() : null,
             'review_url' => ((int) ($row->is_submitted ?? 0)) === 1
-                ? route('assessment.portal.result', (int) $row->target_id)
+                ? route('assessment.assignment.review.show', (int) $row->target_id)
                 : null,
             'retry_url' => $isDisqualified
                 ? route('assessment.assignment.retry-disqualified-target', (int) $row->target_id)
@@ -2190,7 +2190,9 @@ class AssessmentMonitoringService
             'score' => $score,
             'score_label' => $score !== null ? number_format($score, 2) : null,
             'score_level' => $score !== null ? LevelKompetensi::fromScore($score)?->shortLabel() : null,
-            'review_url' => $this->isSubmitted($target) ? route('assessment.portal.result', $target->id) : null,
+            'review_url' => $this->isSubmitted($target)
+                ? route('assessment.assignment.review.show', $target->id)
+                : null,
         ];
     }
 

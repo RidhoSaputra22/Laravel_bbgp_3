@@ -36,7 +36,7 @@ class AssessmentBuilderSidebarViewTest extends TestCase
         $response->assertDontSee('Lihat Preview');
     }
 
-    public function test_assessment_edit_view_renders_summary_sidebar_with_edit_and_preview_actions(): void
+    public function test_assessment_edit_view_renders_summary_sidebar_without_preview_action(): void
     {
         $assessment = new Assessment([
             'kode_assessment' => 'ASM-001',
@@ -88,8 +88,7 @@ class AssessmentBuilderSidebarViewTest extends TestCase
 
         $response->assertSee('id="assessment-builder-summary"', false);
         $response->assertSee('Edit Assessment');
-        $response->assertSee(route('assessment.show', 99), false);
-        $response->assertSee('Lihat Preview');
+        $response->assertDontSee('Lihat Preview');
         $response->assertSee('Pantau jumlah soal, status, dan kesiapan tampil saat Anda memperbarui struktur assessment.');
         $response->assertSee('id="summary-total-forms">1</span>', false);
         $response->assertSee('id="summary-total-questions">1</span>', false);

@@ -74,7 +74,6 @@
         'repeater_completeness' => 'Cek kelengkapan tabel',
     ];
     $isEditMode = $httpMethod !== 'POST';
-    $previewUrl = $isEditMode && $assessment->id ? route($assessmentRoutePrefix . '.show', $assessment->id) : null;
     $normalizeCheckedValue = function (mixed $value, bool $default = false): bool {
         if ($value === null) {
             return $default;
@@ -738,7 +737,6 @@
             gap: 0.75rem;
         }
 
-        .assessment-summary-actions__preview,
         .assessment-summary-actions__secondary {
             margin: 0;
             width: 100%;
@@ -1113,16 +1111,6 @@
 
                             <div class="assessment-summary-actions mt-4">
 
-                                @if ($previewUrl)
-                                    <form action="{{ route('assessment.preview.launch', $assessment->id) }}"
-                                        method="POST" data-preview-url="{{ $previewUrl }}"
-                                        class="assessment-summary-actions__preview">
-                                        @csrf
-                                        <button type="submit" class="btn btn-info btn-block">
-                                            <i class="fas fa-play-circle"></i> Lihat Preview
-                                        </button>
-                                    </form>
-                                @endif
                                 <div class="assessment-summary-actions__secondary">
                                     <a href="{{ route($assessmentRoutePrefix . '.index') }}" class="btn btn-light">
                                         Kembali

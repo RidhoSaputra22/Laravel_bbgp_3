@@ -451,7 +451,7 @@ class AssessmentAttemptServiceTest extends TestCase
         $lookup = $this->makeService()->buildAnswerLookup($attempt->fresh('answers'));
 
         $this->assertSame(
-            route('assessment.portal.file', 1),
+            route('assessment.assignment.review.file', 1),
             $lookup[$field->id]['file_url'] ?? null
         );
         $this->assertSame('image/png', data_get($lookup[$field->id] ?? [], 'payload.mime_type'));

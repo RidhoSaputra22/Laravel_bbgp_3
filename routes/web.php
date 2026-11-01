@@ -1,11 +1,5 @@
 <?php
 
-use App\Http\Controllers\Assessment\AdminPreviewController as AssessmentAdminPreviewController;
-use App\Http\Controllers\Assessment\AuthController as AssessmentPortalAuthController;
-use App\Http\Controllers\Assessment\PortalAttemptController as AssessmentPortalAttemptController;
-use App\Http\Controllers\Assessment\PortalController as AssessmentPortalController;
-use App\Http\Controllers\Assessment\PortalResultController as AssessmentPortalResultController;
-use App\Http\Controllers\Assessment\PortalSecurityController as AssessmentPortalSecurityController;
 use App\Http\Controllers\AssessmentPackageController;
 use App\Http\Controllers\EvaluasiPelaksanaanResultController;
 use App\Http\Controllers\GuruDashboardController;
@@ -14,7 +8,6 @@ use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
 use App\Http\Controllers\User\SekolahController as UserSekolahController;
-use App\Http\Controllers\ValidatorTaskController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -124,33 +117,6 @@ Route::prefix('pegawai')
     ->name('pegawai.')
     ->group(function () {
         Route::get('/dashboard', [PegawaiController::class, 'dashboard'])->name('dashboard');
-    });
-
-Route::prefix('assessment')
-    ->name('assessment.portal.')
-    ->group(function () {
-        Route::get('/', [AssessmentPortalController::class, 'landing'])->name('index');
-        Route::get('/result/{id}', [AssessmentPortalResultController::class, 'result'])->name('result');
-        Route::get('/result/{id}/download', [AssessmentPortalResultController::class, 'downloadResultPdf'])->name('result.download');
-        Route::get('/file/{answer}', [AssessmentPortalResultController::class, 'file'])->name('file');
-        Route::get('/auth', [AssessmentPortalAuthController::class, 'showLoginForm'])->name('auth');
-        Route::post('/auth', [AssessmentPortalAuthController::class, 'login'])->name('login');
-
-        Route::middleware('assessment.portal')->group(function () {
-            Route::get('/dashboard', [AssessmentPortalController::class, 'dashboard'])->name('dashboard');
-            Route::post('/validator-tasks/{assignment}/draft', [ValidatorTaskController::class, 'saveDraft'])
-                ->name('validator.tasks.draft');
-            Route::post('/validator-tasks/{assignment}/submit', [ValidatorTaskController::class, 'submit'])
-                ->name('validator.tasks.submit');
-            Route::post('/show/{id}/confirm', [AssessmentPortalController::class, 'confirmEntry'])->name('confirm');
-            Route::post('/show/{id}/start', [AssessmentPortalController::class, 'start'])->name('start');
-            Route::get('/show/{id}', [AssessmentPortalController::class, 'show'])->name('show');
-            Route::post('/show/{id}/autosave', [AssessmentPortalAttemptController::class, 'autosave'])->name('autosave');
-            Route::post('/show/{id}/security/violation', [AssessmentPortalSecurityController::class, 'securityViolation'])->name('security.violation');
-            Route::post('/show/{id}/security/disqualify', [AssessmentPortalSecurityController::class, 'securityDisqualify'])->name('security.disqualify');
-            Route::post('/show/{id}/submit', [AssessmentPortalAttemptController::class, 'submit'])->name('submit');
-            Route::post('/logout', [AssessmentPortalAuthController::class, 'logout'])->name('logout');
-        });
     });
 
 //  Admin
@@ -402,23 +368,6 @@ Route::group(
                 Route::get('/edit/{id}', 'AssessmentController@edit')->name('assessment.edit');
                 Route::put('/update/{id}', 'AssessmentController@update')->name('assessment.update');
                 Route::post('/hapus/{id}', 'AssessmentController@destroy')->name('assessment.hapus');
-                Route::post('/preview/{assessment}/launch', [AssessmentAdminPreviewController::class, 'launch'])
-                    ->name('assessment.preview.launch');
-                Route::get('/preview/session/{id}', [AssessmentAdminPreviewController::class, 'show'])
-                    ->name('assessment.preview.show');
-                Route::post('/preview/session/{id}/start', [AssessmentAdminPreviewController::class, 'start'])
-                    ->name('assessment.preview.start');
-                Route::post('/preview/session/{id}/autosave', [AssessmentAdminPreviewController::class, 'autosave'])
-                    ->name('assessment.preview.autosave');
-                Route::post('/preview/session/{id}/security/violation', [AssessmentAdminPreviewController::class, 'securityViolation'])
-                    ->name('assessment.preview.security.violation');
-                Route::post('/preview/session/{id}/security/disqualify', [AssessmentAdminPreviewController::class, 'securityDisqualify'])
-                    ->name('assessment.preview.security.disqualify');
-                Route::post('/preview/session/{id}/submit', [AssessmentAdminPreviewController::class, 'submit'])
-                    ->name('assessment.preview.submit');
-                Route::get('/preview/session/{id}/result', [AssessmentAdminPreviewController::class, 'result'])
-                    ->name('assessment.preview.result');
-
                 Route::prefix('kombinasi')->group(function () {
                     Route::get('/', 'AssessmentCombinationController@index')->name('assessment.combination.index');
                     Route::get('/create', 'AssessmentCombinationController@create')->name('assessment.combination.create');
@@ -459,6 +408,8 @@ Route::group(
                     Route::post('/hapus/{id}', 'AssessmentAssignmentController@destroy')->name('assessment.assignment.hapus');
                     Route::post('/retry/{id}', 'AssessmentAssignmentController@retry')->name('assessment.assignment.retry');
                     Route::get('/show/{id}', 'AssessmentAssignmentController@show')->name('assessment.assignment.show');
+                    Route::get('/review/file/{answer}', 'AssessmentAttemptReviewController@file')
+                        ->name('assessment.assignment.review.file');
                     Route::get('/review/{targetId}', 'AssessmentAttemptReviewController@show')->name('assessment.assignment.review.show');
                     Route::put('/review/{targetId}', 'AssessmentAttemptReviewController@update')->name('assessment.assignment.review.update');
                 });

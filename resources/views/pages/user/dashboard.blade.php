@@ -91,9 +91,6 @@
                         <div class="card">
                             <div class="card-header"><h4>Akses Cepat</h4></div>
                             <div class="card-body">
-                                <a href="{{ route('assessment.portal.dashboard') }}" class="btn btn-primary btn-block">
-                                    <i class="fas fa-clipboard-list"></i> Buka Assessment
-                                </a>
                                 <a href="{{ route('guru.show', session('no_ktp')) }}" class="btn btn-outline-primary btn-block">
                                     <i class="fas fa-user"></i> Lihat Biodata
                                 </a>

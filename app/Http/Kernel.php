@@ -66,7 +66,6 @@ class Kernel extends HttpKernel
         'AdminOnly' => \App\Http\Middleware\AdminOnly::class,
         'ExternalOnly' => \App\Http\Middleware\ExternalOnly::class,
         'PegawaiOnly' => \App\Http\Middleware\PegawaiOnly::class,
-        'assessment.portal' => \App\Http\Middleware\EnsureAssessmentPortalAuthenticated::class,
         'abilities' => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
         'ability' => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
     ];

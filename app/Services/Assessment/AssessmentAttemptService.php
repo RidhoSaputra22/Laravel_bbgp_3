@@ -374,7 +374,7 @@ class AssessmentAttemptService
             ->mapWithKeys(function (AssessmentAttemptAnswer $answer) {
                 $payload = is_array($answer->answer_payload ?? null) ? $answer->answer_payload : [];
                 $resolvedFileUrl = $answer->answer_file_path
-                    ? route('assessment.portal.file', $answer->id)
+                    ? route('assessment.assignment.review.file', $answer->id)
                     : (trim((string) ($payload['link_url'] ?? '')) ?: null);
 
                 return [

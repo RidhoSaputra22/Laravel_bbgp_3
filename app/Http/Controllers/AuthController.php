@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Guru;
 use App\Models\User;
-use App\Services\Assessment\AssessmentPortalAuthService;
-use App\Support\Assessment\ValidatorAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -74,12 +72,6 @@ class AuthController extends Controller
 
             if ($user->role == 'pegawai') {
                 return redirect()->route('pegawai.dashboard')->with('message', 'sukses login');
-            }
-
-            if ($user->role == 'stakeholder' && ValidatorAccess::isEligibleUser($user->setRelation('guru', $guru))) {
-                app(AssessmentPortalAuthService::class)->storeSession($user, $guru);
-
-                return redirect()->route('assessment.portal.dashboard')->with('message', 'sukses login');
             }
 
             if ($user->role == 'tenaga pendidik' || $user->role == 'tenaga kependidikan' || $user->role == 'stakeholder') {

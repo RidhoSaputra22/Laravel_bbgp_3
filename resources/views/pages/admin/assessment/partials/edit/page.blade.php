@@ -10,14 +10,6 @@
         <section class="section">
             <div class="section-header">
                 <h1>{{ $isEvaluationPelaksanaan ? 'Edit Bank Soal Evaluasi Pelaksanaan' : 'Edit Assessment' }}</h1>
-                <div class="section-header-breadcrumb">
-                    <form action="{{ route('assessment.preview.launch', $assessment->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-info">
-                            <i class="fas fa-play-circle"></i> Lihat Preview
-                        </button>
-                    </form>
-                </div>
             </div>
 
             <div class="section-body">
