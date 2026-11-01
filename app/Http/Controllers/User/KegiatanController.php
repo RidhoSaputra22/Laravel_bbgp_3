@@ -230,27 +230,6 @@ class KegiatanController extends Controller
 
         $pesertaRecord = PesertaKegiatan::create($r);
 
-        // Update master data (Guru or Pegawai) so data is synced for future use
-        $master = Pegawai::where('no_ktp', $request->no_ktp)->first();
-        if (!$master) {
-            $master = Guru::where('no_ktp', $request->no_ktp)->first();
-        }
-
-        if ($master) {
-            $master->update([
-                'tempat_lahir' => $r['tempat_lahir'] ?? $master->tempat_lahir,
-                'tgl_lahir' => $r['tgl_lahir'] ?? $master->tgl_lahir,
-                'agama' => $r['agama'] ?? $master->agama,
-                'pendidikan' => $r['pendidikan'] ?? $master->pendidikan,
-                'alamat_rumah' => $r['alamat_rumah'] ?? $master->alamat_rumah,
-                'kabupaten_rumah' => $r['kabupaten_rumah'] ?? $master->kabupaten_rumah,
-                'jkl' => $r['jkl'] ?? ($r['gender'] ?? $master->jkl),
-                'status' => $r['status'] ?? $master->status,
-                'nip' => $r['nip'] ?? $master->nip,
-                'nama' => $r['nama'] ?? $master->nama,
-            ]);
-        }
-
         Session::flush();
 
         Session::put('no_ktp', $request->no_ktp);
