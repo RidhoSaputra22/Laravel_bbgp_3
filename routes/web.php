@@ -55,10 +55,10 @@ Route::group(
         Route::get('/pegawai', 'UserController@pegawai')->name('user.pegawai')->middleware('ValidasiUser');
         Route::get('/pegawai/form', 'UserController@form_pegawai')->name('user.form_pegawai');
         Route::post('/pegawai/daftar', 'UserController@daftar_pegawai')->name('user.daftar_pegawai');
-        Route::get('/pegawai/all', 'UserController@getPenugasanAll')->name('user.pegawai.all');
-        Route::get('/pegawai/detail', 'UserController@getPenugasanDetail')->name('user.pegawai.detail');
-        Route::get('/pegawai/detailLoka', 'UserController@getPenugasanDetailLoka')->name('user.pegawai.detail.loka');
-        Route::get('/pegawai/detailEksternal', 'UserController@getPenugasanDetailEksternal')->name('user.pegawai.detail.eksternal');
+        Route::get('/pegawai/all', 'UserController@getPenugasanAll')->name('user.pegawai.all')->middleware('ValidasiUser');
+        Route::get('/pegawai/detail', 'UserController@getPenugasanDetail')->name('user.pegawai.detail')->middleware('ValidasiUser');
+        Route::get('/pegawai/detailLoka', 'UserController@getPenugasanDetailLoka')->name('user.pegawai.detail.loka')->middleware('ValidasiUser');
+        Route::get('/pegawai/detailEksternal', 'UserController@getPenugasanDetailEksternal')->name('user.pegawai.detail.eksternal')->middleware('ValidasiUser');
 
         Route::get('/statistik', 'UserController@statistik')->name('user.statistik');
         Route::get('/api/statistics/month/{month}', 'UserController@getMonthStatistics')->name('user.statistik.month');
