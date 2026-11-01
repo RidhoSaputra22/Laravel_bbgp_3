@@ -39,7 +39,7 @@ Route::group(
         Route::get('/kontak', 'UserController@kontak')->name('user.kontak');
         Route::get('/eksternal', 'UserController@guru')->name('user.guru');
         Route::get('/dataguru', 'UserController@dataguru')->name('user.guru.data');
-        Route::get('/cari', 'UserController@cari')->name('user.cari.guru')->middleware('ValidasiUser');
+        Route::get('/cari', 'UserController@cari')->name('user.cari.guru')->middleware(['ValidasiUser', 'AdminOnly']);
 
         Route::get('/detail/{jenis}/{id}', 'UserController@detail')->name('user.detail.post');
 

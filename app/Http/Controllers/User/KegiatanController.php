@@ -14,10 +14,28 @@ use App\Models\PesertaKegiatan;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 class KegiatanController extends Controller
 {
+    private const PRIVILEGED_ROLES = [
+        'admin', 'superadmin', 'kepala', 'database',
+        'kepegawaian', 'kegiatan', 'keuangan',
+    ];
+
+    private function authorizeNik(string $nik): void
+    {
+        $role = strtolower(trim((string) (Auth::user()?->role ?? session('role'))));
+        $identityNik = Auth::user()?->no_ktp ?: session('no_ktp');
+
+        abort_unless(
+            in_array($role, self::PRIVILEGED_ROLES, true)
+                || ($identityNik !== null && hash_equals((string) $identityNik, $nik)),
+            403
+        );
+    }
+
     public function index()
     {
         // Ambil kegiatan yang statusnya aktif (status = 1)
@@ -43,6 +61,8 @@ class KegiatanController extends Controller
         $cari = $request->validate([
             'cari' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
         ])['cari'];
+
+        $this->authorizeNik($cari);
 
         $data = PesertaKegiatan::where('no_ktp', $cari)->paginate(10);
 
@@ -71,6 +91,7 @@ class KegiatanController extends Controller
 
         $kegiatanId = $validated['kegiatan_id'];
         $nik = $validated['nik'];
+        $this->authorizeNik($nik);
         Session::put(['nik' => $nik, 'val' => $kegiatanId]);
 
         $title = 'Peserta';
@@ -270,6 +291,7 @@ class KegiatanController extends Controller
         $nik = $request->validate([
             'nik' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
         ])['nik'];
+        $this->authorizeNik($nik);
         $title = 'Peserta';
         $prefillColumns = [
             'id', 'nama', 'no_ktp', 'nip', 'email', 'tempat_lahir', 'tgl_lahir',
@@ -362,6 +384,8 @@ class KegiatanController extends Controller
             'nik' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
         ]);
 
+        $this->authorizeNik($validated['nik']);
+
         $data = PesertaKegiatan::select([
                 'id', 'id_kegiatan', 'no_ktp', 'nama', 'instansi',
                 'status_keikutpesertaan', 'golongan', 'jenis_gol', 'jkl',
@@ -383,7 +407,7 @@ class KegiatanController extends Controller
             'no_hp', 'no_wa', 'kabupaten', 'no_surat_tugas', 'tgl_surat_tugas',
         ])->findOrFail($pesertaId);
 
-        abort_unless(session('nik') && hash_equals((string) session('nik'), (string) $peserta->no_ktp), 403);
+        $this->authorizeNik((string) $peserta->no_ktp);
 
         return response()->json($peserta);
     }
