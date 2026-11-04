@@ -193,12 +193,13 @@ hasil akhirnya disimpan ke `opsi_field`, `dependency_config`, atau
 | `textarea` | Area Teks | Teks panjang | Uraian, refleksi, analisis, catatan, dan jawaban naratif. |
 | `number` | Angka | Angka | Nilai capaian, jumlah, kuantitas, atau skor yang dapat dibandingkan dengan target. |
 | `email` | Email | Alamat email | Input email dengan bentuk input email. |
+| `url` | URL / Link | Alamat URL | Mengumpulkan tautan HTTP/HTTPS, misalnya tautan dokumen atau portofolio. |
 | `date` | Tanggal | Tanggal | Input tanggal dengan format tanggal browser. |
 | `select` | Daftar Pilihan | Satu opsi | Pilihan tunggal dari opsi manual, master database, atau mapping dependency. |
 | `radio` | Pilihan Ganda | Satu opsi | Pilihan tunggal dengan kode, isi jawaban, skor, dan level kompetensi per opsi. |
 | `likert` | Skala Likert | Satu nilai 1–4 | Pernyataan sikap/persepsi dengan opsi Likert tetap. |
 | `checkbox` | Kotak Centang | Satu atau beberapa opsi | Memungkinkan peserta memilih beberapa opsi sekaligus. |
-| `file` | Unggah File | File atau link | Mengumpulkan bukti dokumen langsung atau URL bukti. |
+| `file` | Unggah File | File | Mengumpulkan bukti dokumen langsung; URL tersedia melalui mode input bukti. |
 | `repeater` | Tabel Berulang | Array baris dan kolom | Mengumpulkan banyak data berstruktur, misalnya riwayat pelatihan atau pengalaman. |
 
 ### 5.1 Field `select` dan `checkbox`

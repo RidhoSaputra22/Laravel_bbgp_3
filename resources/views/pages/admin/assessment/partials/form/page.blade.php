@@ -5342,6 +5342,7 @@
                         email: 'email',
                         number: 'number',
                         date: 'date',
+                        url: 'url',
                     };
 
                     inputHtml = `

@@ -134,6 +134,38 @@ class AdminAssessmentInputValidationTest extends TestCase
         ], $field->opsi_field);
     }
 
+    public function test_assessment_store_accepts_url_field_type(): void
+    {
+        $title = 'Assessment URL Field '.uniqid();
+
+        $this->withSession($this->adminSession())
+            ->post(route('assessment.store'), [
+                'judul' => $title,
+                'target_ketenagaan' => 'tenaga_pendidik',
+                'status' => 'draft',
+                'forms' => [[
+                    'judul_form' => 'Bukti Tautan',
+                    'is_scoreable' => false,
+                    'fields' => [[
+                        'label' => 'Link Portofolio',
+                        'tipe_field' => 'url',
+                        'placeholder' => 'https://contoh.test/portofolio',
+                    ]],
+                ]],
+            ])
+            ->assertRedirect(route('assessment.index'));
+
+        $field = Assessment::query()
+            ->where('judul', $title)
+            ->firstOrFail()
+            ->forms()
+            ->firstOrFail()
+            ->fields()
+            ->firstOrFail();
+
+        $this->assertSame('url', $field->tipe_field);
+    }
+
     public function test_validator_form_requires_sections_and_fields(): void
     {
         $this->withSession($this->adminSession())

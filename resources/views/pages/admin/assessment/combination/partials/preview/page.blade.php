@@ -303,7 +303,7 @@
 
                                                             @default
                                                                 <input
-                                                                    type="{{ in_array(($field['tipe_field'] ?? 'text'), ['text', 'email', 'number', 'date'], true) ? ($field['tipe_field'] ?? 'text') : 'text' }}"
+                                                                    type="{{ in_array(($field['tipe_field'] ?? 'text'), ['text', 'email', 'number', 'date', 'url'], true) ? ($field['tipe_field'] ?? 'text') : 'text' }}"
                                                                     id="{{ $fieldLabelId }}" class="form-control"
                                                                     placeholder="{{ $field['placeholder'] ?? '' }}" readonly>
                                                         @endswitch

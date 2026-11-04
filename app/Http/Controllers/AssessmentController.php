@@ -413,6 +413,7 @@ class AssessmentController extends Controller
             'textarea' => 'Area Teks',
             'number' => 'Angka',
             'email' => 'Email',
+            'url' => 'URL / Link',
             'date' => 'Tanggal',
             'select' => 'Daftar Pilihan',
             'radio' => 'Pilihan Ganda',

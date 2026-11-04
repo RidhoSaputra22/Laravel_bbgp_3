@@ -377,7 +377,7 @@
 
                                                 @default
                                                     <input
-                                                        type="{{ in_array($field->tipe_field, ['text', 'email', 'number', 'date'], true) ? $field->tipe_field : 'text' }}"
+                                                        type="{{ in_array($field->tipe_field, ['text', 'email', 'number', 'date', 'url'], true) ? $field->tipe_field : 'text' }}"
                                                         id="{{ $fieldLabelId }}" class="form-control" value=""
                                                         placeholder="{{ $field->placeholder }}">
                                             @endswitch
