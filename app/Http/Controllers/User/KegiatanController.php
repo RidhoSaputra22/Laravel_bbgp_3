@@ -254,7 +254,8 @@ class KegiatanController extends Controller
         Session::flush();
 
         Session::put('no_ktp', $request->no_ktp);
-        Session::put('id', $pesertaRecord->id);
+        Session::put('peserta_no_ktp', $request->no_ktp);
+        Session::put('peserta_id', $pesertaRecord->id);
         Session::put('val', $request->kegiatan_id);
 
         return redirect()->route('user.kegiatan')->with('message', 'sukses daftar');

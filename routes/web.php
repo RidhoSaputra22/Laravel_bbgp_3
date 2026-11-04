@@ -4,6 +4,7 @@ use App\Http\Controllers\AssessmentPackageController;
 use App\Http\Controllers\EvaluasiPelaksanaanResultController;
 use App\Http\Controllers\GuruDashboardController;
 use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\PesertaKegiatanController;
 use App\Http\Controllers\PenyewaanRuanganController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
@@ -453,9 +454,6 @@ Route::group(
                 Route::put('/update', 'PesertaKegiatanController@update')->name('peserta.update');
                 Route::post('/hapus/{id}', 'PesertaKegiatanController@destroy')->name('peserta.hapus');
                 Route::get('/cetak/{id}', 'PesertaKegiatanController@cetak')->name('peserta.cetak');
-                Route::get('/cetakByUser/{id}', 'PesertaKegiatanController@cetakByUser')
-                    ->name('peserta.cetakByUser')
-                    ->withoutMiddleware(['ValidasiUser', 'AdminOnly']);
                 Route::get('/export/{id_kegiatan}', 'PesertaKegiatanController@export')->name('peserta.export');
             });
 
@@ -575,6 +573,10 @@ Route::group(
         });
     }
 );
+
+// PDF biodata peserta: akses hanya dari session peserta setelah registrasi kegiatan.
+Route::get('/dashboard/peserta/cetakByUser/{id}', [PesertaKegiatanController::class, 'cetakByUser'])
+    ->name('peserta.cetakByUser');
 
 // handle route sekolah
 Route::get('/get-sekolahs', [AdminSekolahController::class, 'getSekolahs'])

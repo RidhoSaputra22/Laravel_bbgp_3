@@ -347,9 +347,14 @@ class PesertaKegiatanController extends Controller
 
     public function cetakByUser($id)
     {
-        abort_unless(session('id') && (int) session('id') === (int) $id, 403);
+        abort_unless(
+            session('peserta_id') && (int) session('peserta_id') === (int) $id,
+            403
+        );
 
-        $peserta = PesertaKegiatan::findOrFail($id);
+        $peserta = PesertaKegiatan::whereKey($id)
+            ->where('no_ktp', session('peserta_no_ktp'))
+            ->firstOrFail();
 
         $namaKegiatan = $peserta->kegiatan->nama_kegiatan;
 

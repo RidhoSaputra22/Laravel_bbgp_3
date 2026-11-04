@@ -586,7 +586,7 @@
             <script>
 
                 $(document).ready(function() {
-                    var pesertaId = {!! json_encode(session('id')) !!};
+                    var pesertaId = {!! json_encode(session('peserta_id')) !!};
                     var url = '{{ route('peserta.cetakByUser', ['id' => ':id']) }}'
                         .replace(':id', pesertaId);
 

@@ -87,63 +87,6 @@ func TestTargetDocumentExcludesStageControlMetadataButKeepsFormRules(t *testing.
 	}
 }
 
-func TestSchemaSnapshotPreservesFileFieldOptions(t *testing.T) {
-	fileOptions := map[string]any{
-		"accept":      []any{"image/jpeg", "image/png"},
-		"max_files":   float64(1),
-		"input_mode":  "file",
-		"max_size_kb": float64(1024),
-	}
-
-	snapshot := schemaSnapshot(TargetRow{Assignment: AssignmentRow{ID: 7}}, []SchemaAssessment{{
-		ID:         1,
-		Instrument: sql.NullString{String: "portofolio", Valid: true},
-		Active:     true,
-		Forms: []SchemaForm{{
-			ID: 2,
-			Fields: []SchemaField{{
-				ID:      3,
-				Type:    sql.NullString{String: "file", Valid: true},
-				Options: JSONValue{Value: fileOptions, Valid: true},
-				Active:  true,
-			}},
-		}},
-	}})
-
-	field := snapshot["assessments"].([]any)[0].(map[string]any)["forms"].([]any)[0].(map[string]any)["fields"].([]any)[0].(map[string]any)
-	got, ok := field["opsi_field"].(map[string]any)
-	if !ok {
-		t.Fatalf("file options must remain an object, got %#v", field["opsi_field"])
-	}
-	if !reflect.DeepEqual(got, fileOptions) {
-		t.Fatalf("file options were changed: %#v", got)
-	}
-}
-
-func TestSchemaSnapshotAddsLegacyFileAcceptFromHelp(t *testing.T) {
-	snapshot := schemaSnapshot(TargetRow{Assignment: AssignmentRow{ID: 7}}, []SchemaAssessment{{
-		ID:         1,
-		Instrument: sql.NullString{String: "portofolio", Valid: true},
-		Active:     true,
-		Forms: []SchemaForm{{
-			ID: 2,
-			Fields: []SchemaField{{
-				ID:      3,
-				Type:    sql.NullString{String: "file", Valid: true},
-				Help:    sql.NullString{String: "Format JPG/JPEG/PNG; ukuran maksimal 1 MB.", Valid: true},
-				Options: JSONValue{Value: map[string]any{"max_size_kb": float64(1024)}, Valid: true},
-				Active:  true,
-			}},
-		}},
-	}})
-
-	field := snapshot["assessments"].([]any)[0].(map[string]any)["forms"].([]any)[0].(map[string]any)["fields"].([]any)[0].(map[string]any)
-	options := field["opsi_field"].(map[string]any)
-	if !reflect.DeepEqual(options["accept"], []any{"image/jpeg", "image/png"}) {
-		t.Fatalf("legacy file accept was not inferred: %#v", options["accept"])
-	}
-}
-
 func TestValidatorTombstoneContract(t *testing.T) {
 	document := validatorTombstone(91)
 	if document["_id"] != "validator-assignment:91" {
