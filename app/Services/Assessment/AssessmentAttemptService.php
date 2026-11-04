@@ -932,11 +932,11 @@ class AssessmentAttemptService
                     continue;
                 }
 
-                $maxSizeBytes = max((int) ($fileConfig['max_size_kb'] ?? 5120), 1) * 1024;
+                $maxSizeBytes = max((int) ($fileConfig['max_size_kb'] ?? 1024), 1) * 1024;
 
                 if ($uploadedFile->getSize() > $maxSizeBytes) {
                     $messages[$fieldKey] = "File untuk pertanyaan {$fieldLabel} maksimal "
-                        .max((int) ($fileConfig['max_size_kb'] ?? 5120), 1)." KB.";
+                        .max((int) ($fileConfig['max_size_kb'] ?? 1024), 1)." KB.";
 
                     continue;
                 }
@@ -1654,7 +1654,7 @@ class AssessmentAttemptService
                 ->all(),
             'max_size_kb' => is_numeric($config['max_size_kb'] ?? null)
                 ? max((int) $config['max_size_kb'], 1)
-                : 5120,
+                : 1024,
             'max_files' => is_numeric($config['max_files'] ?? null)
                 ? max((int) $config['max_files'], 1)
                 : 1,

@@ -285,7 +285,7 @@ Konfigurasi tersimpan pada `opsi_field` dalam bentuk:
 {
   "input_mode": "file",
   "accept": ["pdf", "jpg", "png"],
-  "max_size_kb": 5120,
+  "max_size_kb": 1024,
   "max_files": 1
 }
 ```

@@ -2764,7 +2764,7 @@
                     normalizedConfig.accept.map((item) => String(item || '').trim()).filter(Boolean) : [];
                 const maxSizeKb = Number(normalizedConfig.max_size_kb || 0) > 0 ?
                     Number(normalizedConfig.max_size_kb) :
-                    5120;
+                    1024;
                 const maxFiles = Number(normalizedConfig.max_files || 0) > 0 ?
                     Number(normalizedConfig.max_files) :
                     1;

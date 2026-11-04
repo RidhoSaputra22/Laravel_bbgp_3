@@ -1294,7 +1294,7 @@ class AssessmentController extends Controller
             ->all();
         $maxSizeKb = is_numeric($rawConfig['max_size_kb'] ?? null)
             ? max((int) $rawConfig['max_size_kb'], 1)
-            : 5120;
+            : 1024;
         $maxFiles = is_numeric($rawConfig['max_files'] ?? null)
             ? max((int) $rawConfig['max_files'], 1)
             : 1;

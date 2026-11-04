@@ -93,7 +93,7 @@
             "nama_field": "f_v4udsnvd",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen. Format JPG/JPEG/PNG; ukuran maksimal 5 MB.",
+            "bantuan": "Unggah 1 foto diri sambil memegang surat tugas asesmen. Format JPG/JPEG/PNG; ukuran maksimal 1 MB.",
             "opsi_field": {
               "accept": [
                 "image/jpeg",
@@ -101,7 +101,7 @@
               ],
               "max_files": 1,
               "input_mode": "file",
-              "max_size_kb": 5120
+              "max_size_kb": 1024
             },
             "nilai_default": null,
             "autofill_source": null,
@@ -629,7 +629,7 @@
             "nama_field": "f_ivscxlj6",
             "tipe_field": "file",
             "placeholder": "",
-            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai kepala sekolah. Format PDF/JPG/JPEG/PNG; ukuran maksimal 5 MB.",
+            "bantuan": "Unggah SK pengangkatan atau penugasan sebagai kepala sekolah. Format PDF/JPG/JPEG/PNG; ukuran maksimal 1 MB.",
             "opsi_field": {
               "accept": [
                 "application/pdf",
@@ -638,7 +638,7 @@
               ],
               "max_files": 1,
               "input_mode": "file",
-              "max_size_kb": 5120
+              "max_size_kb": 1024
             },
             "nilai_default": null,
             "autofill_source": null,

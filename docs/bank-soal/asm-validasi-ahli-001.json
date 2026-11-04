@@ -2768,7 +2768,7 @@
               ],
               "max_files": 1,
               "input_mode": "file",
-              "max_size_kb": 5120
+              "max_size_kb": 1024
             },
             "nilai_default": null,
             "autofill_source": null,
