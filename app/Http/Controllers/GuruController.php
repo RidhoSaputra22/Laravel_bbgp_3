@@ -30,7 +30,7 @@ class GuruController extends Controller
             's_kependidikan' => SatuanPendidikan::select('id', 'name')->get(),
             's_gelar' => Pendidikan::select('id', 'name')->get(),
             's_jabatan' => Jabatan::select('id', 'name')->get(),
-            's_kabupaten' => Kabupaten::select('id', 'name')->get(),
+            's_kabupaten' => $this->kabupatenOptions(),
             's_kecamatan' => Kecamatan::select('id', 'name')->get(),
             's_sekolah' => [], // Loaded via AJAX
             's_jabPendidik' => JabatanPendidik::select('id', 'name')->get(),
@@ -41,7 +41,7 @@ class GuruController extends Controller
             's_jabKategoriKepsek' => ['Sertifikat GP (Guru Penggerak)', 'Diklat Cakep', 'Lainnya'],
             's_jabTugas' => ['GP (Guru Penggerak)', 'PP (Pengajar Praktik)', 'Fasil (Fasilitator)', 'Instruktur'],
         );
-        
+
         return view('pages.admin.guru.index', ['menu' => 'guru', 'status' => $datas]);
     }
 
@@ -57,7 +57,7 @@ class GuruController extends Controller
             's_kependidikan' => SatuanPendidikan::get(),
             's_gelar' => Pendidikan::get(),
             's_jabatan' => Jabatan::get(),
-            's_kabupaten' => Kabupaten::get(),
+            's_kabupaten' => $this->kabupatenOptions(),
             's_kecamatan' => Kecamatan::get(),
             's_sekolah' => [],
             's_jabPendidik' => JabatanPendidik::get(),
@@ -76,6 +76,10 @@ class GuruController extends Controller
     public function store(Request $request)
     {
         $r = $request->all();
+
+        if ($kabupaten = $this->kabupaten()) {
+            $r['kabupaten'] = $kabupaten;
+        }
 
 
 
@@ -99,8 +103,8 @@ class GuruController extends Controller
     public function verifikasi(string $id)
     {
 
-        $data = Guru::find($id);
-        $getData = Guru::find($id);
+        $data = $this->scopedGurus()->findOrFail($id);
+        $getData = clone $data;
         $data->is_verif = 'sudah';
         $data->save();
         return response()->json([
@@ -119,7 +123,7 @@ class GuruController extends Controller
             's_kependidikan' => SatuanPendidikan::get(),
             's_gelar' => Pendidikan::get(),
             's_jabatan' => Jabatan::get(),
-            's_kabupaten' => Kabupaten::get(),
+            's_kabupaten' => $this->kabupatenOptions(),
             's_kecamatan' => Kecamatan::get(),
             's_sekolah' => [],
             's_jabPendidik' => JabatanPendidik::get(),
@@ -131,7 +135,7 @@ class GuruController extends Controller
             's_jabTugas' => ['GP (Guru Penggerak)', 'PP (Pengajar Praktik)', 'Fasil (Fasilitator)', 'Instruktur'],
         );
 
-        $data = Guru::find($id);
+        $data = $this->scopedGurus()->findOrFail($id);
         return view('pages.admin.guru.edit', ['menu' => 'guru', 'datas' => $data, 'status' => $datas]);
     }
 
@@ -143,7 +147,7 @@ class GuruController extends Controller
 
         // Endpoint ini hanya dipakai oleh halaman admin dan memang boleh
         // mengembalikan data lengkap. Route-nya dilindungi AdminOnly.
-        $peserta = Guru::with([
+        $peserta = $this->scopedGurus()->with([
             'sekolah' => fn ($query) => $query->select([
                 'npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten',
             ]),
@@ -181,7 +185,7 @@ class GuruController extends Controller
     {
         //
         $r = $request->all();
-        $data = Guru::find($r['id']);
+        $data = $this->scopedGurus()->findOrFail($r['id']);
 
 
 
@@ -200,6 +204,10 @@ class GuruController extends Controller
             $r['kabupaten'] = $r['diluarKab'];
         }
 
+        if ($kabupaten = $this->kabupaten()) {
+            $r['kabupaten'] = $kabupaten;
+        }
+
         $r['kategori_jabatan'] = $r['jabKategori'] ?? '';
         $r['tugas_jabatan'] = $r['jabTugas'] ?? '';
         $data->update($r);
@@ -212,7 +220,7 @@ class GuruController extends Controller
     public function destroy(string $id)
     {
 
-        $data = Guru::find($id);
+        $data = $this->scopedGurus()->findOrFail($id);
         $data->delete();
         return response()->json($data);
     }
@@ -221,7 +229,7 @@ class GuruController extends Controller
     {
 
 
-        $datas = Guru::query();
+        $datas = $this->scopedGurus();
 
         // Apply filters jika ada
         if ($request->nama) {
@@ -297,14 +305,14 @@ class GuruController extends Controller
                 's_jabStakeholder' => JabatanStakeHolder::get(),
                 's_jabKategori' => ['GP (Guru Penggerak)', 'NoN GP (Guru Penggerak)'],
                 's_jabTugas' => ['GP (Guru Penggerak)', 'PP (Pengajar Praktik)', 'Fasil (Fasilitator)', 'Instruktur'],
-    
+
             );
             $data = Guru::where('id', session('guru_id'))->first();
             if (!$data) {
                 Session::flush();
                 return redirect()->route('login');
             }
-    
+
             return view('pages.admin.guru.indexByUser', ['menu' => 'guru', 'datas' => $data, 'status' => $datas]);
         } catch (\Exception $e) {
             return response()->json($e->getMessage());
@@ -428,11 +436,11 @@ class GuruController extends Controller
 
     public function cari(Request $request)
     {
-        $query = Guru::query()
+        $query = $this->scopedGurus('gurus.kabupaten')
             ->leftJoin('sekolahs', 'gurus.npsn_sekolah', '=', 'sekolahs.npsn_sekolah')
             ->select('gurus.*', 'sekolahs.nama_sekolah');
 
-        $totalRecords = Guru::count();
+        $totalRecords = $this->scopedGurus()->count();
 
         if ($request->nama_sekolah) {
             $query->where('sekolahs.nama_sekolah', 'like', '%' . $request->nama_sekolah . '%');
@@ -488,5 +496,29 @@ class GuruController extends Controller
                 ];
             })
         ]);
+    }
+
+    private function kabupaten(): ?string
+    {
+        $user = auth()->user();
+
+        return $user?->role === 'pegawai-kabupaten'
+            ? ($user->kabupaten ?: session('kabupaten'))
+            : null;
+    }
+
+    private function kabupatenOptions()
+    {
+        return Kabupaten::query()
+            ->when($this->kabupaten(), fn ($query, $kabupaten) => $query->where('name', $kabupaten))
+            ->get();
+    }
+
+    private function scopedGurus(string $column = 'kabupaten')
+    {
+        return Guru::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where($column, $kabupaten)
+        );
     }
 }

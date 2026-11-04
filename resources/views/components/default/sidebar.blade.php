@@ -14,7 +14,9 @@
             $externalRoles = ['tenaga pendidik', 'tenaga kependidikan', 'stakeholder'];
             $dashboardUrl = in_array($currentRole, $externalRoles, true)
                 ? route('guru.dashboard')
-                : ($currentRole === 'pegawai' ? route('pegawai.dashboard') : route('dashboard'));
+                : ($currentRole === 'pegawai'
+                    ? route('pegawai.dashboard')
+                    : ($currentRole === 'pegawai-kabupaten' ? route('kegiatan.index') : route('dashboard')));
          @endphp
 
          <li class="menu-header">Dashboard</li>
@@ -191,6 +193,27 @@
                <a href="{{ route('penyewaan.index') }}" class="nav-link "><i class="fas fa-money-check"></i>
                   <span>Penyewaan Fasilitas</span>
                </a>
+            </li>
+         @endif
+
+         @if (session('role') == 'pegawai-kabupaten')
+            <li class="{{ $menu == 'guru' ? 'active' : '' }}">
+               <a class="nav-link" href="{{ route('guru.index') }}">
+                  <i class="fas fa-chalkboard-teacher"></i> <span>Data Eksternal</span>
+               </a>
+            </li>
+
+            <li class="nav-item dropdown {{ $menu == 'kegiatan' || $menu == 'peserta' ? 'active' : '' }}">
+               <a href="#" class="nav-link has-dropdown"><i class="fas fa-calendar-week"></i>
+                  <span>Data Kegiatan</span></a>
+               <ul class="dropdown-menu">
+                  <li class="{{ $menu == 'kegiatan' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('kegiatan.index') }}">Kegiatan</a>
+                  </li>
+                  <li class="{{ $menu == 'peserta' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('peserta.index') }}">Peserta Kegiatan</a>
+                  </li>
+               </ul>
             </li>
          @endif
 

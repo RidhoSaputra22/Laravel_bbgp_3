@@ -76,10 +76,28 @@
                                           stakeholder</option>
                                        <option {{ $datas->role == 'pegawai' ? 'selected' : '' }} value="pegawai">Pegawai
                                           BBGTK</option>
+                                       <option {{ $datas->role == 'pegawai-kabupaten' ? 'selected' : '' }} value="pegawai-kabupaten">
+                                          Pegawai Kabupaten</option>
                                        <option {{ $datas->role == 'database' ? 'selected' : '' }} value="database">
                                           Database</option>
                                        <option {{ $datas->role == 'superadmin' ? 'selected' : '' }} value="superadmin">
                                           superadmin</option>
+                                    </select>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div class="row">
+                              <div class="col-md-6">
+                                 <div class="form-group">
+                                    <label>Kabupaten (khusus Pegawai Kabupaten)</label>
+                                    <select name="kabupaten" class="form-control select2">
+                                       <option value="">-- Pilih Kabupaten --</option>
+                                       @foreach ($kabupatenOptions as $kabupaten)
+                                             <option value="{{ $kabupaten->name }}" {{ $selectedKabupaten === $kabupaten->name ? 'selected' : '' }}>
+                                             {{ $kabupaten->name }}
+                                          </option>
+                                       @endforeach
                                     </select>
                                  </div>
                               </div>

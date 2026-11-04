@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\GolonganP3k;
 use App\Models\Kegiatan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class KegiatanController extends Controller
@@ -17,7 +18,7 @@ class KegiatanController extends Controller
      */
     public function index()
     {
-        $datas = Kegiatan::orderBy('id', 'DESC')->get();
+        $datas = $this->scopedActivities()->orderBy('id', 'DESC')->get();
         $menu = $this->menu;
         
         return view('pages.admin.kegiatan.index', compact('menu', 'datas'));
@@ -46,6 +47,10 @@ class KegiatanController extends Controller
         $selesai_kegiatan = explode(" ", $r["selesai_kegiatan"]);
         $r['tgl_selesai'] = $selesai_kegiatan[0];
         $r['jam_selesai'] = $selesai_kegiatan[1];
+
+        if ($kabupaten = $this->kabupaten()) {
+            $r['kabupaten'] = $kabupaten;
+        }
         
         
         Kegiatan::create($r->all());
@@ -58,7 +63,7 @@ class KegiatanController extends Controller
      */
     public function edit(string $id)
     {
-        $datas = Kegiatan::find($id);
+        $datas = $this->scopedActivities()->findOrFail($id);
         $menu = $this->menu;
         $datetime = array(
             'mulai_kegiatan' => $datas->tgl_kegiatan . ' ' . $datas->jam_mulai,
@@ -81,7 +86,11 @@ class KegiatanController extends Controller
         $r['tgl_selesai'] = $selesai_kegiatan[0];
         $r['jam_selesai'] = $selesai_kegiatan[1];
 
-        $datas = Kegiatan::find($r->id);
+        if ($kabupaten = $this->kabupaten()) {
+            $r['kabupaten'] = $kabupaten;
+        }
+
+        $datas = $this->scopedActivities()->findOrFail($r->id);
         $datas->update($r->all());
         $menu = $this->menu;
 
@@ -93,8 +102,25 @@ class KegiatanController extends Controller
      */
     public function destroy(string $id)
     {
-        $data = Kegiatan::find($id);
+        $data = $this->scopedActivities()->findOrFail($id);
         $data->delete();
         return response()->json($data);
+    }
+
+    private function kabupaten(): ?string
+    {
+        $user = Auth::user();
+
+        return $user?->role === 'pegawai-kabupaten'
+            ? ($user->kabupaten ?: session('kabupaten'))
+            : null;
+    }
+
+    private function scopedActivities()
+    {
+        return Kegiatan::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+        );
     }
 }

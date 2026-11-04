@@ -225,7 +225,9 @@ class AdminController extends Controller
             'username' => $validated['username'],
         ]);
 
-        return redirect()->route('dashboard')->with('message', 'update profile');
+        return redirect()->route(
+            $user->role === 'pegawai-kabupaten' ? 'kegiatan.index' : 'dashboard'
+        )->with('message', 'update profile');
     }
 
     public function getJadwalByPegawai($nik)

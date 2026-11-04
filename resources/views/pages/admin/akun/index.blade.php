@@ -65,7 +65,22 @@
                                                    </option>
                                                    <option value="stakeholder">Stakeholder</option>
                                                    <option value="pegawai">Pegawai BBGTK</option>
+                                                   <option value="pegawai-kabupaten">Pegawai Kabupaten</option>
                                                    <option value="superadmin">Super Admin</option>
+                                                </select>
+                                             </div>
+                                          </div>
+                                       </div>
+
+                                       <div class="row">
+                                          <div class="col-md-6">
+                                             <div class="form-group">
+                                                <label>Kabupaten (khusus Pegawai Kabupaten)</label>
+                                                <select name="kabupaten" class="form-control select2">
+                                                   <option value="">-- Pilih Kabupaten --</option>
+                                                   @foreach ($kabupatenOptions as $kabupaten)
+                                                      <option value="{{ $kabupaten->name }}">{{ $kabupaten->name }}</option>
+                                                   @endforeach
                                                 </select>
                                              </div>
                                           </div>

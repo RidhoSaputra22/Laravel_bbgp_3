@@ -20,6 +20,16 @@
                     Silahkan ubah profile anda di halaman ini.
                 </p>
 
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="row mt-sm-4 justify-content-center">
                    
                     <div class="col-12 col-md-12 col-lg-7">
@@ -55,7 +65,7 @@
                                      <div class="row">
                                         <div class="form-group  col-12">
                                             <label>Ubah Password (bisa kosong jika tidak ada perubahan)</label>
-                                            <input type="password" class="form-control" value="" name="password" placeholder="Masukkan password baru anda" >
+                                            <input type="password" class="form-control" value="" name="password" placeholder="Masukkan password baru anda" autocomplete="new-password">
                                             <input type="hidden" class="form-control" value="{{ $data->password }}" name="oldPassword" >
                                         </div>
                                      </div>

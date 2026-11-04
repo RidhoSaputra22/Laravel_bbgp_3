@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Admin;
+use App\Models\Kabupaten;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,8 @@ class AkunController extends Controller
 
         return view('pages.admin.akun.index', [
             'menu' => 'akun',
-            'datas' => $data
+            'datas' => $data,
+            'kabupatenOptions' => Kabupaten::orderBy('name')->get(['name']),
         ]);
     }
 
@@ -85,15 +87,24 @@ class AkunController extends Controller
             'no_ktp' => 'nullable|string|max:50',
             'role' => ['required', Rule::in($this->managedRoles())],
             'password' => 'required|string|min:8|max:255',
+            'kabupaten' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::requiredIf($r->input('role') === 'pegawai-kabupaten'),
+                Rule::exists('kabupatens', 'name'),
+            ],
         ]);
         $this->guardRoleManagement(null, $validated['role']);
 
         $usernameExists = Admin::where('username', $validated['username'])->exists()
             || User::where('username', $validated['username'])->exists();
         if (! $usernameExists) {
+            $kabupaten = $validated['role'] === 'pegawai-kabupaten' ? $validated['kabupaten'] : null;
+            unset($validated['kabupaten']);
             $validated['password'] = Hash::make($validated['password']);
             Admin::create($validated);
-            User::create($validated);
+            User::create($validated + ['kabupaten' => $kabupaten]);
 
             return redirect()->route('akun.index')->with('message', 'store');
         } else {
@@ -113,8 +124,16 @@ class AkunController extends Controller
         $this->authorizeAccountAdmin();
 
         $data = Admin::find($id);
+        $kabupaten = $data
+            ? User::where('username', $data->username)->value('kabupaten')
+            : null;
 
-        return view('pages.admin.akun.edit', ['menu' => 'akun', 'datas' => $data]);
+        return view('pages.admin.akun.edit', [
+            'menu' => 'akun',
+            'datas' => $data,
+            'selectedKabupaten' => $kabupaten,
+            'kabupatenOptions' => Kabupaten::orderBy('name')->get(['name']),
+        ]);
     }
 
     /**
@@ -131,6 +150,13 @@ class AkunController extends Controller
             'no_ktp' => 'nullable|string|max:50',
             'role' => ['required', Rule::in($this->managedRoles())],
             'password' => 'nullable|string|min:8|max:255',
+            'kabupaten' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::requiredIf($request->input('role') === 'pegawai-kabupaten'),
+                Rule::exists('kabupatens', 'name'),
+            ],
         ]);
         $admin = Admin::find($r['id']);
 
@@ -150,13 +176,17 @@ class AkunController extends Controller
             unset($r['password']);
         }
 
+        $kabupaten = $r['role'] === 'pegawai-kabupaten' ? ($r['kabupaten'] ?? null) : null;
+        $adminPayload = $r;
+        unset($adminPayload['kabupaten']);
+
         // Update Admin
-        $admin->update($r);
+        $admin->update($adminPayload);
 
         // Update User yang memiliki username yang sama
         $user = User::where('username', $oldUsername)->first();
         if ($user) {
-            $user->update($r);
+            $user->update($adminPayload + ['kabupaten' => $kabupaten]);
         }
 
         return redirect()->route('akun.index')->with('message', 'update');
@@ -242,6 +272,7 @@ class AkunController extends Controller
             'keuangan',
             'kegiatan',
             'database',
+            'pegawai-kabupaten',
         ];
     }
 

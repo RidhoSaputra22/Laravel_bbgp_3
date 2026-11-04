@@ -23,6 +23,7 @@ class DataKegiatanSeeder extends Seeder
                 'jam_mulai' => '08:00:00',
                 'jam_selesai' => '16:00:00',
                 'deskripsi_kegiatan' => 'Pelatihan bagi guru dan kepala sekolah untuk menerapkan pembelajaran mendalam, koding, dan kecerdasan artifisial secara bertanggung jawab.',
+                'kabupaten' => 'Kota Makassar',
                 'status' => 'true',
             ],
             [
@@ -33,6 +34,7 @@ class DataKegiatanSeeder extends Seeder
                 'jam_mulai' => '08:00:00',
                 'jam_selesai' => '16:00:00',
                 'deskripsi_kegiatan' => 'Lokakarya untuk menyusun praktik baik komunitas belajar dan rencana tindak lanjut satuan pendidikan.',
+                'kabupaten' => 'Kota Parepare',
                 'status' => 'true',
             ],
             [
@@ -43,6 +45,7 @@ class DataKegiatanSeeder extends Seeder
                 'jam_mulai' => '08:00:00',
                 'jam_selesai' => '16:00:00',
                 'deskripsi_kegiatan' => 'Bimbingan teknis pemutakhiran data sekolah, validasi dokumen, dan penguatan tata kelola informasi pendidikan.',
+                'kabupaten' => 'Kabupaten Gowa',
                 'status' => 'true',
             ],
         ] as $activity) {

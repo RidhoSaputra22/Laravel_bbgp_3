@@ -29,7 +29,7 @@ class PesertaKegiatanController extends Controller
     public function index(Request $request)
     {
         if ($request->has('draw')) {
-            $query = PesertaKegiatan::select([
+            $query = $this->scopedParticipants()->select([
                 'id',
                 'no_ktp',
                 'nama',
@@ -42,7 +42,7 @@ class PesertaKegiatanController extends Controller
                 'no_hp',
                 'no_wa',
             ])->with('kegiatan:id,nama_kegiatan');
-            $total = PesertaKegiatan::count();
+            $total = $this->scopedParticipants()->count();
             $search = trim((string) $request->input('search.value', ''));
 
             if ($request->filled('kegiatan_id')) {
@@ -114,8 +114,8 @@ class PesertaKegiatanController extends Controller
 
         $menu = $this->menu;
 
-        $kegiatan = Kegiatan::orderBy('id', 'DESC')->get();
-        $kabupaten = Kabupaten::get();
+        $kegiatan = $this->scopedActivities()->orderBy('id', 'DESC')->get();
+        $kabupaten = $this->kabupatenOptions();
         return view('pages.admin.peserta.index', compact('menu', 'kegiatan', 'kabupaten'));
     }
 
@@ -124,10 +124,10 @@ class PesertaKegiatanController extends Controller
      */
     public function create()
     {
-        $kegiatan = Kegiatan::get();
+        $kegiatan = $this->scopedActivities()->get();
         $menu = $this->menu;
         $status = array(
-            'kabupaten' => Kabupaten::get(),
+            'kabupaten' => $this->kabupatenOptions(),
             'golongan' => JabatanPenugasanGolongan::get(),
             'golongan_p3k' => GolonganP3k::get(),
         );
@@ -141,6 +141,11 @@ class PesertaKegiatanController extends Controller
     public function store(Request $request)
     {
         $r = $request->all();
+
+        if ($kabupaten = $this->kabupaten()) {
+            $this->scopedActivities()->findOrFail($r['id_kegiatan']);
+            $r['kabupaten'] = $kabupaten;
+        }
 
         $getNik = PesertaKegiatan::where('no_ktp', $r['no_ktp'])->first();
         if ($getNik == null) {
@@ -210,17 +215,17 @@ class PesertaKegiatanController extends Controller
      */
     public function edit(string $id)
     {
-        $datas = PesertaKegiatan::findOrFail($id);
-        $kegiatan = Kegiatan::get();
+        $datas = $this->scopedParticipants()->findOrFail($id);
+        $kegiatan = $this->scopedActivities()->get();
 
-        $getById = Guru::where('no_ktp', $datas->no_ktp)->first();
+        $getById = $this->scopedGurus()->where('no_ktp', $datas->no_ktp)->first();
         if ($getById == null) {
-            $getById = Pegawai::where('no_ktp', $datas->no_ktp)->first();
+            $getById = $this->scopedPegawais()->where('no_ktp', $datas->no_ktp)->first();
         }
         $profile = $getById ?? $datas;
         $menu = $this->menu;
         $status = array(
-            'kabupaten' => Kabupaten::get(),
+            'kabupaten' => $this->kabupatenOptions(),
             'golongan' => JabatanPenugasanGolongan::get(),
             'golongan_p3k' => GolonganP3k::get(),
             's_gelar' => Pendidikan::get(),
@@ -234,11 +239,16 @@ class PesertaKegiatanController extends Controller
      */
     public function update(Request $r)
     {
-        $datas = PesertaKegiatan::find($r->id);
+        $datas = $this->scopedParticipants()->findOrFail($r->id);
 
 
-        $getDataPeserta = Guru::where('no_ktp', $r->no_ktp)->first()
-            ?? Pegawai::where('no_ktp', $r->no_ktp)->first();
+        $getDataPeserta = $this->scopedGurus()->where('no_ktp', $r->no_ktp)->first()
+            ?? $this->scopedPegawais()->where('no_ktp', $r->no_ktp)->first();
+
+        if ($kabupaten = $this->kabupaten()) {
+            $this->scopedActivities()->findOrFail($r->id_kegiatan);
+            $r['kabupaten'] = $kabupaten;
+        }
 
         if ($getDataPeserta) {
             $getDataPeserta->agama = $r->agama;
@@ -308,7 +318,7 @@ class PesertaKegiatanController extends Controller
      */
     public function destroy(string $id)
     {
-        $data = PesertaKegiatan::find($id);
+        $data = $this->scopedParticipants()->findOrFail($id);
         $data->delete();
         return response()->json($data);
     }
@@ -316,14 +326,14 @@ class PesertaKegiatanController extends Controller
     public function cetak($id)
     {
 
-        $peserta = PesertaKegiatan::find($id);
+        $peserta = $this->scopedParticipants()->findOrFail($id);
 
         $namaKegiatan = $peserta->kegiatan->nama_kegiatan;
 
         // Mendapatkan data guru dari model Guru
-        $getById = Guru::where('no_ktp', $peserta->no_ktp)->first();
+        $getById = $this->scopedGurus()->where('no_ktp', $peserta->no_ktp)->first();
         if ($getById == null) {
-            $getById = Pegawai::where('no_ktp', $peserta->no_ktp)->first();
+            $getById = $this->scopedPegawais()->where('no_ktp', $peserta->no_ktp)->first();
         }
 
 
@@ -361,9 +371,57 @@ class PesertaKegiatanController extends Controller
     public function export($id_kegiatan)
     {
 
-        $getKegiatan = Kegiatan::find($id_kegiatan);
-        $data = PesertaKegiatan::where('id_kegiatan', $id_kegiatan)->get();
+        $getKegiatan = $this->scopedActivities()->findOrFail($id_kegiatan);
+        $data = $this->scopedParticipants()->where('id_kegiatan', $id_kegiatan)->get();
 
         return Excel::download(new PartisipanKegiatanExport($id_kegiatan, $getKegiatan->tgl_kegiatan, $getKegiatan->nama_kegiatan), 'Data-Partisipan-' . $getKegiatan->nama_kegiatan . '.xlsx');
+    }
+
+    private function kabupaten(): ?string
+    {
+        $user = auth()->user();
+
+        return $user?->role === 'pegawai-kabupaten'
+            ? ($user->kabupaten ?: session('kabupaten'))
+            : null;
+    }
+
+    private function kabupatenOptions()
+    {
+        return Kabupaten::query()
+            ->when($this->kabupaten(), fn ($query, $kabupaten) => $query->where('name', $kabupaten))
+            ->get();
+    }
+
+    private function scopedActivities()
+    {
+        return Kegiatan::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+        );
+    }
+
+    private function scopedParticipants()
+    {
+        return PesertaKegiatan::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+        );
+    }
+
+    private function scopedGurus()
+    {
+        return Guru::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+        );
+    }
+
+    private function scopedPegawais()
+    {
+        return Pegawai::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+        );
     }
 }

@@ -83,15 +83,15 @@ Route::group(
         // trace pesrta dari kegiatan sebelum nya
         Route::get('/peserta/cekData', 'KegiatanController@cekDataPeserta')->name('user.peserta.cekData')->middleware('ValidasiUser');
 
-        Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta')->middleware('AdminOnly');
-        Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta')->middleware('AdminOnly');
-        Route::get('/print/absensi-panitia', 'KegiatanController@printAbsensiPanitia')->name('print.absensi.panitia')->middleware('AdminOnly');
-        Route::get('/print/absensi-narasumber', 'KegiatanController@printAbsensiNarasumber')->name('print.absensi.narasumber')->middleware('AdminOnly');
+        Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-panitia', 'KegiatanController@printAbsensiPanitia')->name('print.absensi.panitia')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-narasumber', 'KegiatanController@printAbsensiNarasumber')->name('print.absensi.narasumber')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
 
-        Route::get('/print/absensi-tp', 'KegiatanController@printAbsensiTp')->name('print.absensi.tp')->middleware('AdminOnly');
-        Route::get('/print/absensi-tkp', 'KegiatanController@printAbsensiTkp')->name('print.absensi.tkp')->middleware('AdminOnly');
-        Route::get('/print/absensi-stk', 'KegiatanController@printAbsensiStk')->name('print.absensi.stk')->middleware('AdminOnly');
-        Route::get('/print/absensi-pgw', 'KegiatanController@printAbsensiPgw')->name('print.absensi.pgw')->middleware('AdminOnly');
+        Route::get('/print/absensi-tp', 'KegiatanController@printAbsensiTp')->name('print.absensi.tp')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-tkp', 'KegiatanController@printAbsensiTkp')->name('print.absensi.tkp')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-stk', 'KegiatanController@printAbsensiStk')->name('print.absensi.stk')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-pgw', 'KegiatanController@printAbsensiPgw')->name('print.absensi.pgw')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
 
         // RTL User
         Route::prefix('rtl')->group(function () {
@@ -136,31 +136,31 @@ Route::group(
             Route::get('/getByKegiatanUser', 'AdminController@getByKegiatanUser')->name('dashboard.jadwal.getByKegiatanUser')->middleware('AdminOnly');
 
             // Profile User yang Login
-            Route::get('/profile/{id}', 'AdminController@profile')->name('profile.index')->middleware('AdminOnly');
-            Route::put('/profile/update', 'AdminController@profile_update')->name('profile.update')->middleware('AdminOnly');
+            Route::get('/profile/{id}', 'AdminController@profile')->name('profile.index')->middleware('AdminOnly:admin,superadmin,kepala,database,pegawai-kabupaten');
+            Route::put('/profile/update', 'AdminController@profile_update')->name('profile.update')->middleware('AdminOnly:admin,superadmin,kepala,database,pegawai-kabupaten');
 
             Route::get('/fetch-sekolah', 'GuruController@fetchSekolah')->name('fetchSekolah')->middleware('AdminOnly');
 
             // Guru / Eksternal
             Route::prefix('eksternal')->group(function () {
-                Route::get('/', 'GuruController@index')->name('guru.index')->middleware('AdminOnly');
-                Route::get('/create', 'GuruController@create')->name('guru.create')->middleware('AdminOnly');
-                Route::post('/store', 'GuruController@store')->name('guru.store')->middleware('AdminOnly');
-                Route::post('/verifikasi/{id}', 'GuruController@verifikasi')->name('guru.verifikasi')->middleware('AdminOnly');
-                Route::get('/edit/{id}', 'GuruController@edit')->name('guru.edit')->middleware('AdminOnly');
-                Route::put('/update', 'GuruController@update')->name('guru.update')->middleware('AdminOnly');
-                Route::post('/hapus/{id}', 'GuruController@destroy')->name('guru.hapus')->middleware('AdminOnly');
+                Route::get('/', 'GuruController@index')->name('guru.index')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
+                Route::get('/create', 'GuruController@create')->name('guru.create')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
+                Route::post('/store', 'GuruController@store')->name('guru.store')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
+                Route::post('/verifikasi/{id}', 'GuruController@verifikasi')->name('guru.verifikasi')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
+                Route::get('/edit/{id}', 'GuruController@edit')->name('guru.edit')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
+                Route::put('/update', 'GuruController@update')->name('guru.update')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
+                Route::post('/hapus/{id}', 'GuruController@destroy')->name('guru.hapus')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
 
-                Route::get('/export', 'GuruController@export')->name('guru.export')->middleware('AdminOnly:admin,superadmin,kepala,database');
+                Route::get('/export', 'GuruController@export')->name('guru.export')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
                 Route::get('/export/{id}', 'GuruController@exportByUser')->name('guru.export.user');
 
                 // untuk login ekternal by user
-                Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly:admin,superadmin,kepala,database');
+                Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
                 Route::get('/detailByUser', 'GuruController@getDetailByUser')->name('guru.detail.user');
                 Route::get('/show/{id}', 'GuruController@show')->name('guru.show');
                 Route::get('/editByUser/{id}', 'GuruController@editByUser')->name('guru.edit.user');
                 Route::put('/updateByUser', 'GuruController@updateByUser')->name('guru.update.user');
-                Route::get('/cari', 'GuruController@cari')->name('guru.cari')->middleware('AdminOnly:admin,superadmin,kepala,database');
+                Route::get('/cari', 'GuruController@cari')->name('guru.cari')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten');
 
                 Route::get('/data-sekolah/{id}', [UserSekolahController::class, 'show'])->name('user.show.data-sekolah');
                 Route::get('/data-sekolah/{id}/edit', [UserSekolahController::class, 'edit'])->name('user.edit.data-sekolah');
@@ -435,7 +435,7 @@ Route::group(
             });
 
             // Kegiatan
-            Route::prefix('kegiatan')->middleware('AdminOnly')->group(function () {
+            Route::prefix('kegiatan')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten')->group(function () {
                 Route::get('/', 'KegiatanController@index')->name('kegiatan.index');
                 Route::get('/create', 'KegiatanController@create')->name('kegiatan.create');
                 Route::post('/store', 'KegiatanController@store')->name('kegiatan.store');
@@ -445,7 +445,7 @@ Route::group(
             });
 
             // Peserta Kegiatan
-            Route::prefix('peserta')->middleware('AdminOnly')->group(function () {
+            Route::prefix('peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten')->group(function () {
                 Route::get('/', 'PesertaKegiatanController@index')->name('peserta.index');
                 Route::get('/create', 'PesertaKegiatanController@create')->name('peserta.create');
                 Route::post('/store', 'PesertaKegiatanController@store')->name('peserta.store');

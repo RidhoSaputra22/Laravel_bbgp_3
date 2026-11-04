@@ -16,6 +16,7 @@ class Kegiatan extends Model
         'jam_mulai',
         'jam_selesai',
         'deskripsi_kegiatan',
+        'kabupaten',
         'status' // aktif tidak nya kegiatan itu
     ];
 

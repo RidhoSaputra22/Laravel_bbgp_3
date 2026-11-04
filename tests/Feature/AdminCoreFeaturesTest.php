@@ -81,6 +81,19 @@ class AdminCoreFeaturesTest extends TestCase
             ->get(route('profile.index', $this->admin->id))
             ->assertOk();
 
+        $invalidProfile = $this->from(route('profile.index', $this->admin->id))
+            ->withSession($this->adminSession())
+            ->put(route('profile.update'), [
+                'id' => Admin::query()->where('username', $this->admin->username)->value('id'),
+                'name' => 'Admin Profile Test',
+                'username' => $this->admin->username,
+                'password' => '12345',
+            ]);
+
+        $this->assertTrue($invalidProfile->isRedirect());
+        $this->followRedirects($invalidProfile)
+            ->assertSee('8 karakter');
+
         $newUsername = 'admin-profile-updated-'.uniqid();
         $this->withSession($this->adminSession())
             ->put(route('profile.update'), [

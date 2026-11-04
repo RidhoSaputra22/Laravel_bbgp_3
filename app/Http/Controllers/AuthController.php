@@ -44,6 +44,7 @@ class AuthController extends Controller
                     'kepegawaian',
                     'kegiatan',
                     'keuangan',
+                    'pegawai-kabupaten',
                 ]),
             ],
         ]);
@@ -68,6 +69,7 @@ class AuthController extends Controller
             Session::put('no_ktp', $user->no_ktp);
             Session::put('nik', $user->nik ?? null);
             Session::put('role', $user->role);
+            Session::put('kabupaten', $user->kabupaten);
             Session::put('cek', true);
 
             if ($user->role == 'pegawai') {
@@ -92,7 +94,7 @@ class AuthController extends Controller
         ]);
         $user_found = User::where('username', $validated['username'])->first();
 
-        if (! $user_found || ! in_array($user_found->role, ['admin', 'superadmin', 'kepala'])) {
+        if (! $user_found || ! in_array($user_found->role, ['admin', 'superadmin', 'kepala', 'pegawai-kabupaten'])) {
             return redirect()->back()->with('message', 'gagal login');
         }
 
@@ -112,7 +114,12 @@ class AuthController extends Controller
             Session::put('no_ktp', $user->no_ktp ?? null);
             Session::put('username', $user->username);
             Session::put('role', $user->role);
+            Session::put('kabupaten', $user->kabupaten);
             Session::put('cek', true);
+
+            if ($user->role === 'pegawai-kabupaten') {
+                return redirect()->route('kegiatan.index')->with('message', 'sukses login');
+            }
 
             if ($user->role == 'pegawai') {
                 return redirect()->route('pegawai.dashboard')->with('message', 'sukses login');

@@ -416,10 +416,10 @@ class KegiatanController extends Controller
     public function printAbsensiPeserta(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
 
         // Mendapatkan data guru dari model Guru
-        $data = PesertaKegiatan::where('status_keikutpesertaan', 'peserta')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
+        $data = $this->scopedPeserta()->where('status_keikutpesertaan', 'peserta')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenPeserta', compact('data', 'kegiatan'));
@@ -437,10 +437,10 @@ class KegiatanController extends Controller
     public function printRegistrasiPeserta(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Registrasi Peserta
         // Return response with PDF
-        $data = PesertaKegiatan::where('status_keikutpesertaan', 'peserta')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
+        $data = $this->scopedPeserta()->where('status_keikutpesertaan', 'peserta')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenRegisterPeserta', compact('data', 'kegiatan'));
@@ -456,11 +456,11 @@ class KegiatanController extends Controller
     public function printAbsensiPanitia(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Absensi Panitia
         // Return response with PDF
 
-        $data = PesertaKegiatan::where('status_keikutpesertaan', 'panitia')->where('id_kegiatan', $kegiatanId)->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
+        $data = $this->scopedPeserta()->where('status_keikutpesertaan', 'panitia')->where('id_kegiatan', $kegiatanId)->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenPanitia', compact('data', 'kegiatan'));
@@ -477,11 +477,11 @@ class KegiatanController extends Controller
     public function printAbsensiNarasumber(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Absensi Narasumber
         // Return response with PDF
 
-        $data = PesertaKegiatan::where('status_keikutpesertaan', 'narasumber')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
+        $data = $this->scopedPeserta()->where('status_keikutpesertaan', 'narasumber')->where('id_kegiatan', $kegiatanId)->orderByRaw("FIELD(kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")->get();
 
 
         $pdf = PDF::loadView('pages.user.kegiatan.cetak.absenNarasumber', compact('data', 'kegiatan'));
@@ -497,11 +497,11 @@ class KegiatanController extends Controller
     public function printAbsensiTp(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Absensi Narasumber
         // Return response with PDF
 
-        $data = PesertaKegiatan::join('gurus', 'peserta_kegiatans.no_ktp', '=', 'gurus.no_ktp')
+        $data = $this->scopedPeserta()->join('gurus', 'peserta_kegiatans.no_ktp', '=', 'gurus.no_ktp')
             ->where('peserta_kegiatans.id_kegiatan', $kegiatanId)
             ->where('gurus.eksternal_jabatan', 'Tenaga Pendidik')
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
@@ -521,11 +521,11 @@ class KegiatanController extends Controller
     public function printAbsensiTkp(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Absensi Narasumber
         // Return response with PDF
 
-        $data = PesertaKegiatan::join('gurus', 'peserta_kegiatans.no_ktp', '=', 'gurus.no_ktp')
+        $data = $this->scopedPeserta()->join('gurus', 'peserta_kegiatans.no_ktp', '=', 'gurus.no_ktp')
             ->where('peserta_kegiatans.id_kegiatan', $kegiatanId)
             ->where('gurus.eksternal_jabatan', 'Tenaga Kependidikan')
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
@@ -545,11 +545,11 @@ class KegiatanController extends Controller
     public function printAbsensiStk(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Absensi Narasumber
         // Return response with PDF
 
-        $data = PesertaKegiatan::join('gurus', 'peserta_kegiatans.no_ktp', '=', 'gurus.no_ktp')
+        $data = $this->scopedPeserta()->join('gurus', 'peserta_kegiatans.no_ktp', '=', 'gurus.no_ktp')
             ->where('peserta_kegiatans.id_kegiatan', $kegiatanId)
             ->where('gurus.eksternal_jabatan', 'Stakeholder')
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
@@ -569,11 +569,11 @@ class KegiatanController extends Controller
     public function printAbsensiPgw(Request $request)
     {
         $kegiatanId = $this->validatedKegiatanId($request);
-        $kegiatan = Kegiatan::find($kegiatanId);
+        $kegiatan = $this->scopedKegiatan()->findOrFail($kegiatanId);
         // Logic to generate PDF for Absensi Narasumber
         // Return response with PDF
 
-        $data = PesertaKegiatan::join('pegawais', 'peserta_kegiatans.no_ktp', '=', 'pegawais.no_ktp')
+        $data = $this->scopedPeserta()->join('pegawais', 'peserta_kegiatans.no_ktp', '=', 'pegawais.no_ktp')
             ->where('peserta_kegiatans.id_kegiatan', $kegiatanId)
             ->orderByRaw("FIELD(peserta_kegiatans.kabupaten, 'Kabupaten Kepulauan Selayar', 'Kota Parepare', 'Kabupaten Barru', 'Kabupaten Jeneponto', 'Kabupaten Takalar', 'Kabupaten Sidrap', 'Kabupaten Pinrang', 'Kabupaten Luwu Timur', 'Kabupaten Toraja Utara', 'Kabupaten Wajo', 'Kabupaten Pangkep', 'Kabupaten Soppeng', 'Kabupaten Bulukumba', 'Kabupaten Gowa', 'Kabupaten Maros', 'Kabupaten Tana Toraja', 'Kota Palopo', 'Kabupaten Bone', 'Kota Makassar', 'Kabupaten Enrekang', 'Kabupaten Sinjai', 'Kabupaten Luwu', 'Kabupaten Luwu Utara', 'Kabupaten Bantaeng')")
             ->get();
@@ -593,5 +593,30 @@ class KegiatanController extends Controller
         return (int) $request->validate([
             'kegiatan_id' => 'required|integer|exists:kegiatans,id',
         ])['kegiatan_id'];
+    }
+
+    private function kabupaten(): ?string
+    {
+        $user = Auth::user();
+
+        return $user?->role === 'pegawai-kabupaten'
+            ? ($user->kabupaten ?: session('kabupaten'))
+            : null;
+    }
+
+    private function scopedKegiatan()
+    {
+        return Kegiatan::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+        );
+    }
+
+    private function scopedPeserta()
+    {
+        return PesertaKegiatan::query()->when(
+            $this->kabupaten(),
+            fn ($query, $kabupaten) => $query->where('peserta_kegiatans.kabupaten', $kabupaten)
+        );
     }
 }
