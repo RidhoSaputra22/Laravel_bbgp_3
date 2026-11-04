@@ -507,6 +507,36 @@ class AssessmentAttemptServiceTest extends TestCase
         }
     }
 
+    public function test_save_snapshot_rejects_legacy_file_type_without_accept_config(): void
+    {
+        ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario([
+            'tipe_field' => 'file',
+            'opsi_field' => [
+                'input_mode' => 'file',
+                'max_size_kb' => 5120,
+                'max_files' => 1,
+            ],
+            'validasi' => [
+                'mimes' => ['jpg', 'jpeg', 'png'],
+            ],
+        ]);
+
+        try {
+            $this->makeService()->saveSnapshot(
+                $attempt,
+                [],
+                [$field->id => UploadedFile::fake()->create('bukti.odp', 100, 'application/vnd.oasis.opendocument.presentation')],
+                [$field->id]
+            );
+            $this->fail('Legacy file configuration should reject an unsupported file type.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                ['Tipe file untuk pertanyaan Pertanyaan Reflektif tidak diizinkan.'],
+                $exception->errors()['answers.'.$field->id] ?? []
+            );
+        }
+    }
+
     public function test_save_snapshot_marks_stage_as_draft_for_manual_stage_draft_request(): void
     {
         ['attempt' => $attempt, 'field' => $field] = $this->createAttemptScenario();

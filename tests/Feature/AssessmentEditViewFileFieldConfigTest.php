@@ -143,6 +143,8 @@ class AssessmentEditViewFileFieldConfigTest extends TestCase
         $response->assertSee('Edit Assessment');
         $response->assertSee('Tanda Tangan Validator');
         $response->assertSee('Mode Input Bukti');
+        $response->assertSee('Format File yang Diizinkan');
+        $response->assertSee('Jumlah File Maksimal');
         $response->assertSee('Link file / Google Drive');
     }
 }

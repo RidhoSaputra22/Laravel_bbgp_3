@@ -382,6 +382,11 @@
 
         }
 
+        .assessment-form-card > .card-header,
+        .assessment-field-header {
+            gap: 0.75rem;
+        }
+
         .assessment-insert-divider {
             align-items: center;
             display: flex;
@@ -993,6 +998,26 @@
 
                     <div class="assessment-builder-shell is-loading" id="assessment-builder-shell" aria-busy="true"
                         aria-live="polite">
+                        <div class="assessment-structure-search mb-3">
+                            <label for="assessment-structure-search-input">Cari Form / Pertanyaan</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fas fa-search" aria-hidden="true"></i></span>
+                                </div>
+                                <input type="search" class="form-control" id="assessment-structure-search-input"
+                                    placeholder="Cari berdasarkan judul form atau pertanyaan..." autocomplete="off">
+                                <div class="input-group-append">
+                                    <button type="button" class="btn btn-outline-secondary d-none"
+                                        id="assessment-structure-search-clear" aria-label="Hapus pencarian">
+                                        <i class="fas fa-times" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form-text text-muted" id="assessment-structure-search-summary">
+                                Ketik judul form atau pertanyaan untuk memfilter struktur.
+                            </small>
+                        </div>
+
                         <div class="assessment-builder-loading" id="assessment-builder-loading" role="status">
                             <div class="assessment-builder-loading__content">
                                 <div class="spinner-border text-primary mb-3" aria-hidden="true"></div>
@@ -2758,10 +2783,16 @@
 
             const normalizeFileInputMode = (value) => String(value || '').trim() === 'link' ? 'link' : 'file';
 
+            const normalizeFileAccept = (value) => {
+                const values = Array.isArray(value) ? value : String(value || '').split(/[,;\n]+/);
+
+                return values.map((item) => String(item || '').trim()).filter(Boolean);
+            };
+
             const normalizeFileFieldConfig = (config = {}) => {
                 const normalizedConfig = config && typeof config === 'object' ? config : {};
-                const accept = Array.isArray(normalizedConfig.accept) ?
-                    normalizedConfig.accept.map((item) => String(item || '').trim()).filter(Boolean) : [];
+                const accept = Object.prototype.hasOwnProperty.call(normalizedConfig, 'accept') ?
+                    normalizeFileAccept(normalizedConfig.accept) : ['image/jpeg', 'image/png'];
                 const maxSizeKb = Number(normalizedConfig.max_size_kb || 0) > 0 ?
                     Number(normalizedConfig.max_size_kb) :
                     1024;
@@ -2781,24 +2812,30 @@
                 return normalizeFileFieldConfig(parseJsonSafely(value) || {});
             };
 
-            const buildFileFieldConfigPayload = (rawValue, inputMode = 'file') => {
+            const buildFileFieldConfigPayload = (rawValue, inputMode = 'file', overrides = {}) => {
                 const normalizedConfig = normalizeFileFieldConfig({
                     ...parseFileFieldConfigJson(rawValue),
                     input_mode: inputMode,
                 });
+                const accept = normalizeFileAccept(
+                    Object.prototype.hasOwnProperty.call(overrides, 'accept') ?
+                        overrides.accept : normalizedConfig.accept
+                );
+                const maxFiles = Number(overrides.max_files || 0) > 0 ?
+                    Number(overrides.max_files) : normalizedConfig.max_files;
 
                 return {
                     input_mode: normalizedConfig.input_mode,
-                    ...(normalizedConfig.accept.length ? {
-                        accept: normalizedConfig.accept
+                    ...(accept.length ? {
+                        accept: accept
                     } : {}),
                     max_size_kb: normalizedConfig.max_size_kb,
-                    max_files: normalizedConfig.max_files,
+                    max_files: Math.max(1, Math.round(maxFiles)),
                 };
             };
 
-            const buildFileFieldConfigJson = (rawValue, inputMode = 'file') => {
-                return JSON.stringify(buildFileFieldConfigPayload(rawValue, inputMode));
+            const buildFileFieldConfigJson = (rawValue, inputMode = 'file', overrides = {}) => {
+                return JSON.stringify(buildFileFieldConfigPayload(rawValue, inputMode, overrides));
             };
 
             const buildFileInputModeOptions = (selectedValue = 'file') => {
@@ -3044,6 +3081,8 @@
                 const dependencyConfigTextName = `${fieldPrefix}[dependency_config_text]`;
                 const repeaterConfigName = `${fieldPrefix}[repeater_config_text]`;
                 const rawOpsiFieldJsonName = `${fieldPrefix}[raw_opsi_field_json]`;
+                const fileAcceptName = `${fieldPrefix}[file_accept]`;
+                const fileMaxFilesName = `${fieldPrefix}[file_max_files]`;
                 const radioOptionsName = `${fieldPrefix}[radio_options]`;
                 const bantuanName = `${fieldPrefix}[bantuan]`;
                 const scoringPrefix = `${fieldPrefix}[scoring]`;
@@ -3132,8 +3171,8 @@
                             <input type="hidden"
                                 name="${rawOpsiFieldJsonName}"
                                 value="${escapeHtml(fieldData.raw_opsi_field_json || '')}">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Pertanyaan ${fieldIndex + 1}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3 assessment-field-header">
+                                <h6 class="mb-0 assessment-field-title">${escapeHtml(fieldData.label || `Pertanyaan ${fieldIndex + 1}`)}</h6>
                                 <div class="assessment-builder-actions">
                                     <input type="checkbox" class="d-none"
                                         name="forms[${formIndex}][fields][${fieldIndex}][is_required]"
@@ -3141,11 +3180,17 @@
                                     <input type="checkbox" class="d-none"
                                         name="forms[${formIndex}][fields][${fieldIndex}][is_active]"
                                         value="1" ${fieldData.is_active === undefined || normalizeChecked(fieldData.is_active) ? 'checked' : ''}>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-toggle-field"
+                                        aria-expanded="false" title="Buka pertanyaan">
+                                        <i class="fas fa-chevron-down"></i>
+                                        <span class="sr-only collapse-toggle-label">Buka pertanyaan</span>
+                                    </button>
                                     <button type="button" class="btn btn-outline-danger btn-sm btn-remove-field">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </div>
                             </div>
+                            <div class="assessment-field-content d-none">
                             <div class="row">
                                 <div class="col-md-5">
                                     <div class="form-group">
@@ -3239,6 +3284,32 @@
                                         <small class="form-text text-muted file-option-hint">
                                             ${buildFileConfigHint(resolvedFileInputMode)}
                                         </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row file-option-wrapper ${fieldType === fileFieldType ? '' : 'd-none'}">
+                                <div class="col-md-8">
+                                    <div class="form-group">
+                                        <label>Format File yang Diizinkan</label>
+                                        <input type="text" class="${getInputClass(fileAcceptName, 'form-control field-file-accept-input')}"
+                                            name="${fileAcceptName}"
+                                            value="${escapeHtml(fileFieldConfig.accept.join(', '))}"
+                                            placeholder="Contoh: image/jpeg, image/png">
+                                        ${buildInvalidFeedback(fileAcceptName)}
+                                        <small class="form-text text-muted">
+                                            Pisahkan dengan koma. Contoh: image/jpeg, image/png atau application/pdf.
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Jumlah File Maksimal</label>
+                                        <input type="number" min="1" max="100"
+                                            class="${getInputClass(fileMaxFilesName, 'form-control field-file-max-files-input')}"
+                                            name="${fileMaxFilesName}"
+                                            value="${escapeHtml(fileFieldConfig.max_files)}">
+                                        ${buildInvalidFeedback(fileMaxFilesName)}
                                     </div>
                                 </div>
                             </div>
@@ -3755,6 +3826,7 @@
                                 </div>
 
                             </div>
+                            </div>
 
 
                         </div>
@@ -3791,8 +3863,8 @@
                         <input type="hidden" class="assessment-form-id-input"
                             name="${formIdName}"
                             value="${escapeHtml(formData.id || '')}">
-                        <div class="card-header">
-                            <h4>Form ${formIndex + 1}</h4>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0 assessment-form-title">${escapeHtml(formData.judul_form || `Form ${formIndex + 1}`)}</h4>
                             <div class="assessment-builder-actions">
                                 <div class="custom-control custom-switch">
                                     <input type="checkbox" class="custom-control-input"
@@ -3808,17 +3880,23 @@
                                         value="1" ${formData.is_scoreable === undefined || normalizeChecked(formData.is_scoreable) ? 'checked' : ''}>
                                     <label class="custom-control-label" for="form-scoreable-${formIndex}">Masuk penilaian</label>
                                 </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm btn-toggle-form"
+                                    aria-expanded="false" title="Buka form">
+                                    <i class="fas fa-chevron-down"></i>
+                                    <span class="sr-only collapse-toggle-label">Buka form</span>
+                                </button>
                                 <button type="button" class="btn btn-outline-danger btn-sm btn-remove-form">
                                     <i class="fas fa-trash-alt"></i> Hapus Form
                                 </button>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body assessment-form-content d-none">
+                            <div class="assessment-form-settings">
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label>${buildRequiredLabel('Judul Form')}</label>
-                                        <input type="text" class="${getInputClass(judulFormName)}"
+                                        <input type="text" class="${getInputClass(judulFormName, 'form-control form-title-input')}"
                                             name="${judulFormName}"
                                             value="${escapeHtml(formData.judul_form)}"
                                             placeholder="Contoh: Profil Peserta"
@@ -3924,6 +4002,7 @@
                                         rows="3">${escapeHtml(formScoring.advanced_rules_text)}</textarea>
                                 </div>
                             </div>
+                            </div>
 
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0">Daftar Pertanyaan</h6>
@@ -3932,7 +4011,7 @@
                             <div class="${joinClasses('assessment-field-list', hasError(fieldsName) ? 'assessment-invalid-list' : '')}"></div>
                             ${buildInvalidFeedback(fieldsName, 'mt-2')}
 
-                            <div class="text-right mt-3">
+                            <div class="text-right mt-3 assessment-form-field-actions">
                                 <button type="button" class="btn btn-primary btn-sm btn-add-field">
                                     <i class="fas fa-plus"></i> Tambah Field
                                 </button>
@@ -4077,6 +4156,22 @@
                     $fieldCard);
             };
 
+            const updateFormCardTitle = ($formCard) => {
+                const formIndex = resolveFormDomIndex($formCard);
+                const title = $formCard.find('.form-title-input').val()?.trim() ||
+                    `Form ${formIndex + 1}`;
+
+                $formCard.find('.assessment-form-title').text(title);
+            };
+
+            const updateFieldCardTitle = ($fieldCard) => {
+                const fieldIndex = resolveFieldDomIndex($fieldCard);
+                const label = $fieldCard.find('.field-label-input').val()?.trim() ||
+                    `Pertanyaan ${fieldIndex + 1}`;
+
+                $fieldCard.find('.assessment-field-title').text(label);
+            };
+
             const focusFormAt = (formIndex) => {
                 const $formCard = $('#form-builder-list').children('.assessment-form-card').eq(formIndex);
 
@@ -4084,6 +4179,7 @@
                     return;
                 }
 
+                setCollapsibleCardState($formCard, 'form', false);
                 $('html, body').animate({
                     scrollTop: Math.max($formCard.offset().top - 90, 0),
                 }, 250);
@@ -4101,6 +4197,8 @@
                     return;
                 }
 
+                setCollapsibleCardState($formCard, 'form', false);
+                setCollapsibleCardState($fieldCard, 'field', false);
                 $('html, body').animate({
                     scrollTop: Math.max($fieldCard.offset().top - 90, 0),
                 }, 250);
@@ -4125,6 +4223,7 @@
                 $formCard.attr('data-field-counter', fieldIndex + 1);
 
                 const $fieldCard = $formCard.find('.assessment-field-card').last();
+                updateFieldCardTitle($fieldCard);
                 toggleOptionWrapper($fieldCard);
                 toggleScoringWrapper($fieldCard);
                 updateAutoFieldNameHint($fieldCard);
@@ -4156,6 +4255,7 @@
                     skipSummary: true,
                     skipInsertControls: true,
                 }));
+                updateFormCardTitle($formCard);
                 toggleEmptyState();
                 renderFieldInsertControls($formCard);
 
@@ -4184,6 +4284,7 @@
                 renderInsertControls();
                 toggleEmptyState();
                 renderBuilderSummary();
+                renderStructureSearch();
 
                 if (Number.isInteger(options.focusFormIndex)) {
                     scheduleAfterPaint(() => {
@@ -4447,6 +4548,8 @@
                     .toggleClass('d-none', !showFileOptions);
                 $fieldCard.find('.field-file-input-mode-select')
                     .prop('disabled', !showFileOptions);
+                $fieldCard.find('.field-file-accept-input, .field-file-max-files-input')
+                    .prop('disabled', !showFileOptions);
 
                 if (showMultipleChoiceOptions) {
                     ensureMultipleChoiceOptions($fieldCard);
@@ -4623,6 +4726,110 @@
                 $('#form-builder-empty').toggleClass('d-none', hasForms);
             };
 
+            const setCollapsibleCardState = ($card, type, collapsed) => {
+                const contentSelector = type === 'form' ? '.assessment-form-content' :
+                    '.assessment-field-content';
+                const buttonSelector = type === 'form' ? '.btn-toggle-form' : '.btn-toggle-field';
+                const label = type === 'form' ? 'form' : 'pertanyaan';
+                const $button = $card.find(buttonSelector).first();
+
+                $card.find(contentSelector).first().toggleClass('d-none', collapsed);
+                $card.toggleClass('is-collapsed', collapsed);
+                $button.attr('aria-expanded', collapsed ? 'false' : 'true')
+                    .attr('title', collapsed ? `Buka ${label}` : `Lipat ${label}`);
+                $button.find('i')
+                    .toggleClass('fa-chevron-down', collapsed)
+                    .toggleClass('fa-chevron-up', !collapsed);
+                $button.find('.collapse-toggle-label').text(collapsed ? `Buka ${label}` : `Lipat ${label}`);
+            };
+
+            const toggleCollapsibleCard = ($card, type) => {
+                const contentSelector = type === 'form' ? '.assessment-form-content' :
+                    '.assessment-field-content';
+                const collapsed = !$card.find(contentSelector).first().hasClass('d-none');
+
+                setCollapsibleCardState($card, type, collapsed);
+            };
+
+            const normalizeStructureSearchText = (value) => String(value || '').trim().toLocaleLowerCase();
+
+            const renderStructureSearch = () => {
+                const $input = $('#assessment-structure-search-input');
+
+                if (!$input.length) {
+                    return;
+                }
+
+                const query = normalizeStructureSearchText($input.val());
+                const hasQuery = query !== '';
+                let visibleFormCount = 0;
+                let matchedFieldCount = 0;
+                const $forms = $('#form-builder-list').children('.assessment-form-card');
+
+                $forms.each(function() {
+                    const $form = $(this);
+                    const formTitle = normalizeStructureSearchText(
+                        $form.find('.form-title-input').val() || $form.find('.assessment-form-title').text()
+                    );
+                    const formMatches = !hasQuery || formTitle.includes(query);
+                    let fieldMatchCount = 0;
+
+                    $form.find('.assessment-field-list').first().children('.assessment-field-card').each(function() {
+                        const $field = $(this);
+                        const fieldTitle = normalizeStructureSearchText(
+                            $field.find('.field-label-input').val() || $field.find('.assessment-field-title').text()
+                        );
+                        const fieldMatches = !hasQuery || fieldTitle.includes(query);
+                        const showField = !hasQuery || formMatches || fieldMatches;
+
+                        if (hasQuery && fieldMatches) {
+                            fieldMatchCount += 1;
+                            matchedFieldCount += 1;
+                        }
+
+                        $field.toggleClass('d-none', !showField);
+
+                        if (hasQuery && fieldMatches) {
+                            setCollapsibleCardState($field, 'field', false);
+                        }
+                    });
+
+                    const showForm = !hasQuery || formMatches || fieldMatchCount > 0;
+                    const fieldOnlyMatch = hasQuery && !formMatches && fieldMatchCount > 0;
+                    $form.toggleClass('d-none', !showForm);
+                    $form.find('.assessment-form-settings').toggleClass('d-none', fieldOnlyMatch);
+                    $form.find('.assessment-form-field-actions').toggleClass('d-none', fieldOnlyMatch);
+                    $form.next('.assessment-form-insert-divider').toggleClass('d-none', hasQuery);
+                    $form.find('.assessment-field-insert-divider').toggleClass('d-none', hasQuery);
+
+                    if (hasQuery && showForm) {
+                        setCollapsibleCardState($form, 'form', false);
+                    }
+
+                    if (showForm) {
+                        visibleFormCount += 1;
+                    }
+                });
+
+                $('#assessment-structure-search-clear').toggleClass('d-none', !hasQuery);
+
+                if (!hasQuery) {
+                    $('#assessment-structure-search-summary').text(
+                        visibleFormCount + ' form tersedia. Cari berdasarkan judul form atau pertanyaan.'
+                    );
+                    return;
+                }
+
+                if (visibleFormCount === 0) {
+                    $('#assessment-structure-search-summary').text('Tidak ada form atau pertanyaan yang cocok.');
+                    return;
+                }
+
+                const fieldSummary = matchedFieldCount > 0 ? ' dan ' + matchedFieldCount + ' pertanyaan' : '';
+                $('#assessment-structure-search-summary').text(
+                    'Ditemukan ' + visibleFormCount + ' form' + fieldSummary + '.'
+                );
+            };
             const parseOptionText = (value) => {
                 if (!value) {
                     return [];
@@ -4772,6 +4979,12 @@
                     normalizeFileInputMode($fieldCard.find('select[name$="[file_input_mode]"]').val() ||
                         'file') :
                     '';
+                const fileAccept = fieldType === fileFieldType ?
+                    $fieldCard.find('input[name$="[file_accept]"]').val()?.trim() || '' :
+                    '';
+                const fileMaxFiles = fieldType === fileFieldType ?
+                    $fieldCard.find('input[name$="[file_max_files]"]').val()?.trim() || '' :
+                    '';
                 const $autofillSourceSelect = $fieldCard.find('select[name$="[autofill_source]"]');
                 const $lookupSourceSelect = $fieldCard.find('select[name$="[lookup_source]"]');
 
@@ -4794,6 +5007,8 @@
                     allow_other_input: supportsSelectOtherInput(fieldType) ?
                         $fieldCard.find('input[name$="[allow_other_input]"]').is(':checked') : false,
                     file_input_mode: fileInputMode,
+                    file_accept: fileAccept,
+                    file_max_files: fileMaxFiles,
                     opsi_field_text: textOptionFieldTypes.includes(fieldType) ?
                         $fieldCard.find('textarea[name$="[opsi_field_text]"]').val()?.trim() || '' : null,
                     opsi_score_text: textOptionFieldTypes.includes(fieldType) ?
@@ -4802,7 +5017,10 @@
                         ($fieldCard.find('.repeater-config-json-input').val()?.trim() ||
                             buildRepeaterConfigJson(collectRepeaterConfigData($fieldCard))) : null,
                     raw_opsi_field_json: fieldType === fileFieldType ?
-                        buildFileFieldConfigJson(rawFileOptionConfig, fileInputMode) : rawFileOptionConfig,
+                        buildFileFieldConfigJson(rawFileOptionConfig, fileInputMode, {
+                            accept: fileAccept,
+                            max_files: fileMaxFiles,
+                        }) : rawFileOptionConfig,
                     radio_options: fieldType === multipleChoiceFieldType ? getMultipleChoiceOptions(
                         $fieldCard) : [],
                     scoring: {
@@ -5493,6 +5711,20 @@
                 addFormAtEnd();
             });
 
+            $('#assessment-structure-search-input').on('input', function() {
+                renderStructureSearch();
+            });
+
+            $('#assessment-structure-search-input').on('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                }
+            });
+
+            $('#assessment-structure-search-clear').on('click', function() {
+                $('#assessment-structure-search-input').val('').trigger('input').trigger('focus');
+            });
+
             $(document).on('click', '.btn-add-field', function() {
                 addFieldAtEnd($(this).closest('.assessment-form-card'));
             });
@@ -5517,6 +5749,18 @@
 
             $(document).on('click', '.btn-remove-form', function() {
                 removeFormAt(resolveFormDomIndex($(this).closest('.assessment-form-card')));
+            });
+
+            $(document).on('click', '.btn-toggle-form, .btn-toggle-field', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const $button = $(this);
+                const isForm = $button.hasClass('btn-toggle-form');
+                toggleCollapsibleCard(
+                    $button.closest(isForm ? '.assessment-form-card' : '.assessment-field-card'),
+                    isForm ? 'form' : 'field'
+                );
             });
 
             $(document).on('click', '.btn-remove-field', function() {
@@ -5660,6 +5904,7 @@
 
             $(document).on('input', '.field-label-input', function() {
                 const $fieldCard = $(this).closest('.assessment-field-card');
+                updateFieldCardTitle($fieldCard);
                 updateAutoFieldNameHint($fieldCard);
                 updateParticipantAutofillState($fieldCard);
                 updateFieldLookupState($fieldCard);
@@ -5667,6 +5912,12 @@
                 refreshDependencyGroups($fieldCard.closest('.assessment-form-card'));
                 syncRepeaterConfigState($fieldCard);
                 schedulePreviewRender();
+                renderStructureSearch();
+            });
+
+            $(document).on('input', '.form-title-input', function() {
+                updateFormCardTitle($(this).closest('.assessment-form-card'));
+                renderStructureSearch();
             });
 
             $(document).on('change', '.field-type-select', function() {
@@ -5843,6 +6094,7 @@
                     toggleEmptyState();
                     renderInsertControls();
                     renderBuilderSummary();
+                    renderStructureSearch();
                     updatePreviewToggleButton();
                     setBuilderLoadingState(false);
                 };

@@ -146,6 +146,53 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $this->assertSame('assignment', $document['meta']['snapshot_source']);
     }
 
+    public function test_php_mongo_document_preserves_file_accept_metadata(): void
+    {
+        $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);
+        $randomizer->shouldReceive('buildSnapshot')->once()->andReturn([
+            'assessments' => [[
+                'instrument_type' => 'portofolio',
+                'forms' => [[
+                    'fields' => [[
+                        'id' => 40,
+                        'tipe_field' => 'file',
+                        'opsi_field' => [
+                            'accept' => ['image/jpeg', 'image/png'],
+                            'max_files' => 1,
+                            'input_mode' => 'file',
+                            'max_size_kb' => 1024,
+                        ],
+                    ]],
+                ]],
+            ]],
+            'meta' => [],
+        ]);
+        $randomizer->shouldReceive('randomizeSnapshotForTarget')
+            ->once()
+            ->andReturnUsing(fn (array $snapshot): array => $snapshot);
+
+        $assignment = new AssessmentAssignment(['target_ketenagaan' => 'tenaga_pendidik']);
+        $assignment->id = 34;
+        $assignment->setRelation('combination', null);
+
+        $target = new AssessmentAssignmentTarget(['status' => 'ditugaskan']);
+        $target->id = 115844;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('guru', null);
+        $target->setRelation('combination', null);
+        $target->setRelation('attempt', null);
+
+        $document = (new AssessmentAssignmentTargetDocumentBuilder(
+            $randomizer,
+            Mockery::mock(ScoringConfigNormalizer::class)
+        ))->document($target, $assignment);
+
+        $options = $document['forms'][0]['assessments'][0]['forms'][0]['fields'][0]['opsi_field'];
+        $this->assertSame(['image/jpeg', 'image/png'], $options['accept']);
+        $this->assertSame(1, $options['max_files']);
+        $this->assertSame(1024, $options['max_size_kb']);
+    }
+
     public function test_it_adds_autofill_values_only_to_portfolio_identity_form_in_mongo_documents(): void
     {
         $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);

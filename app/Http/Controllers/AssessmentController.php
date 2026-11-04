@@ -18,6 +18,7 @@ use App\Services\Assessment\AssessmentTargetSyncDispatcher;
 use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\AssessmentDependentOptionResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\FileFieldOptionsNormalizer;
 use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\ParticipantAutoFillResolver;
 use App\Support\Assessment\ScoringGuidanceAssistant;
@@ -508,6 +509,8 @@ class AssessmentController extends Controller
                     Rule::in(['file', 'link']),
                 ],
                 'forms.*.fields.*.raw_opsi_field_json' => 'nullable|string',
+                'forms.*.fields.*.file_accept' => 'nullable|string|max:1000',
+                'forms.*.fields.*.file_max_files' => 'nullable|integer|min:1|max:100',
                 'forms.*.fields.*.radio_options' => 'nullable|array',
                 'forms.*.fields.*.radio_options.*.label' => 'nullable|string|max:1000',
                 'forms.*.fields.*.radio_options.*.value' => 'nullable|string|max:255',
@@ -1287,6 +1290,17 @@ class AssessmentController extends Controller
     {
         $rawConfig = $this->parseRawFieldOptionsJson($fieldData['raw_opsi_field_json'] ?? null);
         $rawConfig = is_array($rawConfig) ? $rawConfig : [];
+        if (array_key_exists('file_accept', $fieldData)) {
+            $rawConfig['accept'] = $fieldData['file_accept'];
+        }
+        if (array_key_exists('file_max_files', $fieldData) && is_numeric($fieldData['file_max_files'])) {
+            $rawConfig['max_files'] = (int) $fieldData['file_max_files'];
+        }
+        $rawConfig = FileFieldOptionsNormalizer::normalize(
+            $rawConfig,
+            $fieldData['validasi'] ?? null,
+            $fieldData['bantuan'] ?? null
+        );
         $inputMode = $this->normalizeFileInputMode($fieldData['file_input_mode'] ?? data_get($rawConfig, 'input_mode'));
         $accept = collect(Arr::wrap($rawConfig['accept'] ?? []))
             ->map(fn($value) => trim((string) $value))

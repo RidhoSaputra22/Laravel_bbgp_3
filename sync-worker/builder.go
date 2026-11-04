@@ -7,6 +7,7 @@ import (
 	"hash/crc32"
 	"math"
 	"net/mail"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -119,6 +120,7 @@ func (b *Builder) BuildTargets(ctx context.Context, ids []int64) ([]map[string]a
 func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment) (map[string]any, string) {
 	if snapshot, ok := mapAny(row.Combination.Snapshot.Value); ok && validSnapshot(snapshot) {
 		snapshot = cloneMap(snapshot)
+		normalizeSnapshotFileOptions(snapshot)
 		normalizeSnapshotChoiceOptions(snapshot)
 		randomizeSnapshot(snapshot, row.ID)
 		normalizeScoring(snapshot)
@@ -131,6 +133,7 @@ func (b *Builder) targetSnapshot(row TargetRow, schemas []SchemaAssessment) (map
 	}
 	if snapshot, ok := mapAny(row.Attempt.Value); ok && validSnapshot(snapshot) {
 		snapshot = cloneMap(snapshot)
+		normalizeSnapshotFileOptions(snapshot)
 		normalizeSnapshotChoiceOptions(snapshot)
 		normalizeScoring(snapshot)
 		return snapshot, "attempt"
@@ -260,13 +263,18 @@ func schemaSnapshot(row TargetRow, assessments []SchemaAssessment) map[string]an
 				if field.Required {
 					requiredFields++
 				}
+				options := normalizeFieldOptions(field.Type, jsonAny(field.Options))
+				if field.Type.Valid && field.Type.String == "file" {
+					options = normalizeFileFieldOptions(options, field.Help, jsonAny(field.Validation))
+				}
+
 				fields = append(fields, map[string]any{
 					"id": field.ID, "assessment_id": field.AssessmentID, "assessment_form_id": field.FormID,
 					"label": nullString(field.Label), "deskripsi": nullString(field.Description),
 					"nama_field": nullString(field.Name), "tipe_field": nullString(field.Type),
 					"placeholder": nullString(field.Placeholder), "bantuan": nullString(field.Help),
 					"autofill_source": nullString(field.Autofill), "lookup_source": nullString(field.Lookup),
-					"dependency_config": jsonObject(field.Dependency), "opsi_field": normalizeOptions(jsonAny(field.Options)),
+					"dependency_config": jsonObject(field.Dependency), "opsi_field": options,
 					"validasi": jsonObject(field.Validation), "scoring_config": jsonObject(field.Scoring),
 					"is_required": field.Required,
 				})
@@ -895,6 +903,16 @@ func normalizeOptions(options any) []any {
 	return filtered
 }
 
+func normalizeFieldOptions(fieldType sql.NullString, options any) any {
+	if fieldType.Valid && isChoiceField(fieldType.String) {
+		return normalizeOptions(options)
+	}
+	if options == nil {
+		return []any{}
+	}
+	return options
+}
+
 func mergeLookupOptions(lookup, stored []any) []any {
 	storedByKey := map[string]map[string]any{}
 	for _, raw := range stored {
@@ -994,6 +1012,103 @@ func normalizeSnapshotChoiceOptions(snapshot map[string]any) {
 			}
 		}
 	}
+}
+
+func normalizeSnapshotFileOptions(snapshot map[string]any) {
+	for _, rawAssessment := range arrayValue(snapshot, "assessments") {
+		assessment, ok := rawAssessment.(map[string]any)
+		if !ok {
+			continue
+		}
+		for _, rawForm := range arrayValue(assessment, "forms") {
+			form, ok := rawForm.(map[string]any)
+			if !ok {
+				continue
+			}
+			for _, rawField := range arrayValue(form, "fields") {
+				field, ok := rawField.(map[string]any)
+				if !ok || stringValue(field, "tipe_field") != "file" {
+					continue
+				}
+				field["opsi_field"] = normalizeFileFieldOptions(
+					field["opsi_field"],
+					sql.NullString{String: stringValue(field, "bantuan"), Valid: stringValue(field, "bantuan") != ""},
+					field["validasi"],
+				)
+			}
+		}
+	}
+}
+
+var fileFormatTokenPattern = regexp.MustCompile(`(?i)(?:\.[a-z0-9]+|(?:image|application|text|audio|video)/[a-z0-9.+-]+|\b(?:jpg|jpeg|png|gif|webp|pdf|docx?|xlsx?|pptx?|odt|ods|odp|zip|rar)\b)`)
+
+func normalizeFileFieldOptions(options any, help sql.NullString, validation any) any {
+	object, ok := options.(map[string]any)
+	if !ok {
+		object = map[string]any{}
+	} else {
+		object = cloneMap(object)
+	}
+	if _, exists := object["accept"]; exists {
+		return object
+	}
+
+	accept := normalizeFileAccept(jsonMapValue(validation, "mimes"), false)
+	if len(accept) == 0 && help.Valid {
+		matches := fileFormatTokenPattern.FindAllString(help.String, -1)
+		accept = normalizeFileAccept(matches, true)
+	}
+	if len(accept) == 0 {
+		accept = []any{"image/jpeg", "image/png"}
+	}
+	object["accept"] = accept
+	return object
+}
+
+func jsonMapValue(value any, key string) any {
+	object, ok := value.(map[string]any)
+	if !ok {
+		return nil
+	}
+	return object[key]
+}
+
+func normalizeFileAccept(value any, mapExtensions bool) []any {
+	values := []string{}
+	switch raw := value.(type) {
+	case []any:
+		for _, item := range raw {
+			values = append(values, strings.TrimSpace(stringValueAny(item)))
+		}
+	case string:
+		values = strings.FieldsFunc(raw, func(r rune) bool { return r == ',' || r == ';' || r == '\n' || r == '\r' })
+	}
+
+	result := []any{}
+	seen := map[string]bool{}
+	for _, item := range values {
+		item = strings.ToLower(strings.TrimSpace(item))
+		if item == "" {
+			continue
+		}
+		if mapExtensions {
+			switch item {
+			case "jpg", ".jpg", "jpeg", ".jpeg":
+				item = "image/jpeg"
+			case "png", ".png":
+				item = "image/png"
+			case "pdf", ".pdf":
+				item = "application/pdf"
+			}
+		} else if !strings.Contains(item, "/") && !strings.HasPrefix(item, ".") {
+			item = "." + item
+		}
+		if !seen[item] {
+			seen[item] = true
+			result = append(result, item)
+		}
+	}
+	return result
 }
 
 func isChoiceField(fieldType string) bool {

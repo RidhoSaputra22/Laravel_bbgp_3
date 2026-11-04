@@ -11,6 +11,7 @@ use App\Support\Assessment\AssessmentDependentOptionResolver;
 use App\Support\Assessment\AssessmentUrlValidationHelper;
 use App\Support\Assessment\AssessmentStageProgress;
 use App\Support\Assessment\ValidatorAccess;
+use App\Support\Assessment\FileFieldOptionsNormalizer;
 use App\Support\Assessment\LikertScale;
 use App\Support\Assessment\TextareaWordLimit;
 use Illuminate\Http\UploadedFile;
@@ -1641,6 +1642,11 @@ class AssessmentAttemptService
     private function resolveFileFieldConfig(array $field): array
     {
         $config = is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
+        $config = FileFieldOptionsNormalizer::normalize(
+            $config,
+            $field['validasi'] ?? null,
+            $field['bantuan'] ?? null
+        );
         $inputMode = in_array(trim((string) ($config['input_mode'] ?? 'file')), ['file', 'link'], true)
             ? trim((string) ($config['input_mode'] ?? 'file'))
             : 'file';

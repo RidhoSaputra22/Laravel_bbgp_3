@@ -9,6 +9,7 @@ use App\Support\Assessment\AssessmentFieldLookupResolver;
 use App\Support\Assessment\AssessmentStageConfig;
 use App\Support\Assessment\AssessmentStructureMetadataResolver;
 use App\Support\Assessment\ChoiceOptionNormalizer;
+use App\Support\Assessment\FileFieldOptionsNormalizer;
 use Illuminate\Support\Str;
 
 class AssessmentQuestionRandomizerService
@@ -390,6 +391,14 @@ class AssessmentQuestionRandomizerService
         int $formId
     ): array {
         if (in_array($field->tipe_field, ['repeater', 'file'], true)) {
+            if ($field->tipe_field === 'file') {
+                return FileFieldOptionsNormalizer::normalize(
+                    $field->opsi_field,
+                    $field->validasi,
+                    $field->bantuan
+                );
+            }
+
             return is_array($field->opsi_field) ? $field->opsi_field : [];
         }
 
@@ -420,6 +429,14 @@ class AssessmentQuestionRandomizerService
         int $formId
     ): array {
         if (in_array(($field['tipe_field'] ?? null), ['repeater', 'file'], true)) {
+            if (($field['tipe_field'] ?? null) === 'file') {
+                return FileFieldOptionsNormalizer::normalize(
+                    $field['opsi_field'] ?? null,
+                    $field['validasi'] ?? null,
+                    $field['bantuan'] ?? null
+                );
+            }
+
             return is_array($field['opsi_field'] ?? null) ? $field['opsi_field'] : [];
         }
 
