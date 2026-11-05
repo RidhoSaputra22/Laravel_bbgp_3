@@ -87,15 +87,15 @@ Route::group(
         // trace pesrta dari kegiatan sebelum nya
         Route::get('/peserta/cekData', 'KegiatanController@cekDataPeserta')->name('user.peserta.cekData')->middleware('ValidasiUser');
 
-        Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
-        Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
-        Route::get('/print/absensi-panitia', 'KegiatanController@printAbsensiPanitia')->name('print.absensi.panitia')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
-        Route::get('/print/absensi-narasumber', 'KegiatanController@printAbsensiNarasumber')->name('print.absensi.narasumber')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-peserta', 'KegiatanController@printAbsensiPeserta')->name('print.absensi.peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
+        Route::get('/print/registrasi-peserta', 'KegiatanController@printRegistrasiPeserta')->name('print.registrasi.peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
+        Route::get('/print/absensi-panitia', 'KegiatanController@printAbsensiPanitia')->name('print.absensi.panitia')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
+        Route::get('/print/absensi-narasumber', 'KegiatanController@printAbsensiNarasumber')->name('print.absensi.narasumber')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
 
-        Route::get('/print/absensi-tp', 'KegiatanController@printAbsensiTp')->name('print.absensi.tp')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
-        Route::get('/print/absensi-tkp', 'KegiatanController@printAbsensiTkp')->name('print.absensi.tkp')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
-        Route::get('/print/absensi-stk', 'KegiatanController@printAbsensiStk')->name('print.absensi.stk')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
-        Route::get('/print/absensi-pgw', 'KegiatanController@printAbsensiPgw')->name('print.absensi.pgw')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten');
+        Route::get('/print/absensi-tp', 'KegiatanController@printAbsensiTp')->name('print.absensi.tp')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
+        Route::get('/print/absensi-tkp', 'KegiatanController@printAbsensiTkp')->name('print.absensi.tkp')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
+        Route::get('/print/absensi-stk', 'KegiatanController@printAbsensiStk')->name('print.absensi.stk')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
+        Route::get('/print/absensi-pgw', 'KegiatanController@printAbsensiPgw')->name('print.absensi.pgw')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan');
 
         // RTL User
         Route::prefix('rtl')->group(function () {
@@ -439,7 +439,7 @@ Route::group(
             });
 
             // Kegiatan
-            Route::prefix('kegiatan')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten')->group(function () {
+            Route::prefix('kegiatan')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan')->group(function () {
                 Route::get('/', 'KegiatanController@index')->name('kegiatan.index');
                 Route::get('/create', 'KegiatanController@create')->name('kegiatan.create');
                 Route::post('/store', 'KegiatanController@store')->name('kegiatan.store');
@@ -449,15 +449,20 @@ Route::group(
             });
 
             // Peserta Kegiatan
-            Route::prefix('peserta')->middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten')->group(function () {
-                Route::get('/', 'PesertaKegiatanController@index')->name('peserta.index');
-                Route::get('/create', 'PesertaKegiatanController@create')->name('peserta.create');
-                Route::post('/store', 'PesertaKegiatanController@store')->name('peserta.store');
-                Route::get('/edit/{id}', 'PesertaKegiatanController@edit')->name('peserta.edit');
-                Route::put('/update', 'PesertaKegiatanController@update')->name('peserta.update');
-                Route::post('/hapus/{id}', 'PesertaKegiatanController@destroy')->name('peserta.hapus');
-                Route::get('/cetak/{id}', 'PesertaKegiatanController@cetak')->name('peserta.cetak');
-                Route::get('/export/{id_kegiatan}', 'PesertaKegiatanController@export')->name('peserta.export');
+            Route::prefix('peserta')->group(function () {
+                Route::middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan,pegawai-kabupaten')->group(function () {
+                    Route::get('/', 'PesertaKegiatanController@index')->name('peserta.index');
+                    Route::get('/edit/{id}', 'PesertaKegiatanController@edit')->name('peserta.edit');
+                    Route::put('/update', 'PesertaKegiatanController@update')->name('peserta.update');
+                    Route::get('/cetak/{id}', 'PesertaKegiatanController@cetak')->name('peserta.cetak');
+                    Route::get('/export/{id_kegiatan}', 'PesertaKegiatanController@export')->name('peserta.export');
+                });
+
+                Route::middleware('AdminOnly:admin,superadmin,kepala,database,kegiatan')->group(function () {
+                    Route::get('/create', 'PesertaKegiatanController@create')->name('peserta.create');
+                    Route::post('/store', 'PesertaKegiatanController@store')->name('peserta.store');
+                    Route::post('/hapus/{id}', 'PesertaKegiatanController@destroy')->name('peserta.hapus');
+                });
             });
 
             // Honor

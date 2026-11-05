@@ -226,7 +226,7 @@ class AdminController extends Controller
         ]);
 
         return redirect()->route(
-            $user->role === 'pegawai-kabupaten' ? 'kegiatan.index' : 'dashboard'
+            $user->role === 'pegawai-kabupaten' ? 'peserta.index' : 'dashboard'
         )->with('message', 'update profile');
     }
 

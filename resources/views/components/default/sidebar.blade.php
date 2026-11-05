@@ -16,14 +16,15 @@
                 ? route('guru.dashboard')
                 : ($currentRole === 'pegawai'
                     ? route('pegawai.dashboard')
-                    : ($currentRole === 'pegawai-kabupaten' ? route('kegiatan.index') : route('dashboard')));
+                    : ($currentRole === 'pegawai-kabupaten' ? route('peserta.index') : route('dashboard')));
          @endphp
 
-         <li class="menu-header">Dashboard</li>
-
-         <li class="nav-item  {{ $menu == 'dashboard' ? 'active' : '' }}">
-            <a href="{{ $dashboardUrl }}" class="nav-link "><i class="fas fa-fire"></i><span>Dashboard</span></a>
-         </li>
+         @if ($currentRole !== 'pegawai-kabupaten')
+            <li class="menu-header">Dashboard</li>
+            <li class="nav-item  {{ $menu == 'dashboard' ? 'active' : '' }}">
+               <a href="{{ $dashboardUrl }}" class="nav-link "><i class="fas fa-fire"></i><span>Dashboard</span></a>
+            </li>
+         @endif
 
          @if (session('role') == 'admin' || session('role') == 'superadmin' || session('role') == 'kepala')
             <li class="nav-item dropdown {{ $menu == 'pegawai' ? 'active' : '' }}">
@@ -203,17 +204,10 @@
                </a>
             </li>
 
-            <li class="nav-item dropdown {{ $menu == 'kegiatan' || $menu == 'peserta' ? 'active' : '' }}">
-               <a href="#" class="nav-link has-dropdown"><i class="fas fa-calendar-week"></i>
-                  <span>Data Kegiatan</span></a>
-               <ul class="dropdown-menu">
-                  <li class="{{ $menu == 'kegiatan' ? 'active' : '' }}">
-                     <a class="nav-link" href="{{ route('kegiatan.index') }}">Kegiatan</a>
-                  </li>
-                  <li class="{{ $menu == 'peserta' ? 'active' : '' }}">
-                     <a class="nav-link" href="{{ route('peserta.index') }}">Peserta Kegiatan</a>
-                  </li>
-               </ul>
+            <li class="{{ $menu == 'peserta' ? 'active' : '' }}">
+               <a class="nav-link" href="{{ route('peserta.index') }}">
+                  <i class="fas fa-users"></i> <span>Peserta Kegiatan</span>
+               </a>
             </li>
          @endif
 

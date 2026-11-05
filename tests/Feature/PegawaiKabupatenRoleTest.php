@@ -104,90 +104,40 @@ class PegawaiKabupatenRoleTest extends TestCase
         $this->post(route('login_action_admin'), [
             'username' => $countyUser->username,
             'password' => '12345',
-        ])->assertRedirect(route('kegiatan.index'));
+        ])->assertRedirect(route('peserta.index'));
 
         $this->assertAuthenticatedAs($countyUser);
         $this->assertSame(self::OWN_COUNTY, session('kabupaten'));
 
         $this->get(route('dashboard'))->assertForbidden();
         $this->get(route('akun.index'))->assertForbidden();
-        $this->get(route('guru.index'))->assertOk();
-        $this->get(route('kegiatan.index'))->assertOk();
-        $this->get(route('peserta.index'))->assertOk();
+        $this->get(route('guru.index'))->assertOk()->assertSee('Data Eksternal');
+        $this->get(route('kegiatan.index'))->assertForbidden();
+        $this->get(route('peserta.create'))->assertForbidden();
+        $this->get(route('peserta.index'))
+            ->assertOk()
+            ->assertSee('Peserta Kegiatan BBGTK')
+            ->assertDontSee('>Kegiatan</a>');
     }
 
-    public function test_county_activity_and_external_crud_cannot_cross_county(): void
+    public function test_county_cannot_access_activity_module(): void
     {
         $countyUser = $this->makeUser('pegawai-kabupaten', 'soppeng-crud', self::OWN_COUNTY);
         $ownActivity = $this->makeActivity('Kegiatan Soppeng', self::OWN_COUNTY);
-        $otherActivity = $this->makeActivity('Kegiatan Gowa', self::OTHER_COUNTY);
-        $ownGuru = $this->makeGuru('Guru Soppeng', self::OWN_COUNTY);
-        $otherGuru = $this->makeGuru('Guru Gowa', self::OTHER_COUNTY);
 
         $this->actingAs($countyUser)->withSession($this->countySession($countyUser));
 
-        $this->get(route('kegiatan.index'))
-            ->assertOk()
-            ->assertViewHas('datas', function ($activities) use ($ownActivity, $otherActivity): bool {
-                return $activities->pluck('id')->all() === [$ownActivity->id]
-                    && ! $activities->contains('id', $otherActivity->id);
-            });
-
-        $createdActivityName = 'Kegiatan Baru Soppeng ' . uniqid();
+        $this->get(route('kegiatan.index'))->assertForbidden();
         $this->post(route('kegiatan.store'), [
-            'nama_kegiatan' => $createdActivityName,
-            'tempat_kegiatan' => 'Soppeng',
-            'mulai_kegiatan' => '2026-10-01 08:00',
-            'selesai_kegiatan' => '2026-10-01 16:00',
-            'deskripsi_kegiatan' => 'Kegiatan kabupaten.',
-            'kabupaten' => self::OTHER_COUNTY,
-            'status' => 'true',
-        ])->assertRedirect(route('kegiatan.index'));
-
-        $createdActivity = Kegiatan::query()->where('nama_kegiatan', $createdActivityName)->firstOrFail();
-        $this->assertSame(self::OWN_COUNTY, $createdActivity->kabupaten);
-
-        $this->put(route('kegiatan.update'), [
-            'id' => $ownActivity->id,
-            'nama_kegiatan' => 'Kegiatan Soppeng Diubah',
-            'tempat_kegiatan' => 'Soppeng',
-            'mulai_kegiatan' => '2026-10-02 08:00',
-            'selesai_kegiatan' => '2026-10-02 16:00',
-            'deskripsi_kegiatan' => 'Kegiatan diperbarui.',
-            'kabupaten' => self::OTHER_COUNTY,
-            'status' => 'true',
-        ])->assertRedirect(route('kegiatan.index'));
+            'nama_kegiatan' => 'Kegiatan Baru Soppeng',
+        ])->assertForbidden();
+        $this->get(route('guru.index'))->assertOk();
+        $this->get(route('guru.cari', ['draw' => 1]))->assertOk();
 
         $this->assertDatabaseHas('kegiatans', [
             'id' => $ownActivity->id,
             'kabupaten' => self::OWN_COUNTY,
-            'nama_kegiatan' => 'Kegiatan Soppeng Diubah',
         ]);
-        $this->get(route('kegiatan.edit', $otherActivity->id))->assertNotFound();
-        $this->post(route('kegiatan.hapus', $otherActivity->id))->assertNotFound();
-
-        $this->get(route('guru.cari', ['draw' => 1, 'start' => 0, 'length' => 10]))
-            ->assertOk()
-            ->assertJsonPath('recordsTotal', 1)
-            ->assertJsonPath('data.0.id', $ownGuru->id)
-            ->assertJsonMissing(['id' => $otherGuru->id]);
-
-        $createdGuruKtp = '91' . str_pad((string) random_int(1, 99999999999999), 14, '0', STR_PAD_LEFT);
-        $this->post(route('guru.store'), [
-            'nama_lengkap' => 'Guru Baru Soppeng',
-            'no_ktp' => $createdGuruKtp,
-            'jenisJabatan' => 'Tenaga Pendidik',
-            'jabJenis' => 'Guru',
-            'kabupaten' => self::OTHER_COUNTY,
-        ])->assertRedirect(route('guru.index'));
-
-        $this->assertDatabaseHas('gurus', [
-            'no_ktp' => $createdGuruKtp,
-            'kabupaten' => self::OWN_COUNTY,
-        ]);
-        $this->get(route('admin.eksternal.detail', ['id' => $otherGuru->id]))->assertNotFound();
-        $this->get(route('guru.edit', $otherGuru->id))->assertNotFound();
-        $this->post(route('guru.hapus', $otherGuru->id))->assertNotFound();
     }
 
     public function test_county_participant_crud_export_and_print_are_scoped(): void
@@ -210,6 +160,11 @@ class PegawaiKabupatenRoleTest extends TestCase
             ->assertJsonPath('data.0.id', $ownParticipant->id)
             ->assertJsonMissing(['id' => $otherParticipant->id]);
 
+        $this->get(route('peserta.edit', $ownParticipant->id))
+            ->assertOk()
+            ->assertSee('disabled', false)
+            ->assertSee('name="id_kegiatan" value="' . $ownActivity->id . '"', false);
+
         $createdParticipantNik = '92' . str_pad((string) random_int(1, 99999999999999), 14, '0', STR_PAD_LEFT);
         $this->post(route('peserta.store'), [
             'id_kegiatan' => $ownActivity->id,
@@ -221,14 +176,15 @@ class PegawaiKabupatenRoleTest extends TestCase
             'jkl' => 'Laki-laki',
             'jenis_gol' => 'PNS',
             'golongan_pns' => 'III/a',
-        ])->assertRedirect(route('peserta.index'));
+        ])->assertForbidden();
 
-        $createdParticipant = PesertaKegiatan::query()->where('no_ktp', $createdParticipantNik)->firstOrFail();
-        $this->assertSame(self::OWN_COUNTY, $createdParticipant->kabupaten);
+        $this->assertDatabaseMissing('peserta_kegiatans', [
+            'no_ktp' => $createdParticipantNik,
+        ]);
 
         $this->put(route('peserta.update'), [
             'id' => $ownParticipant->id,
-            'id_kegiatan' => $ownActivity->id,
+            'id_kegiatan' => $otherActivity->id,
             'nama' => 'Peserta Soppeng Diubah',
             'no_ktp' => $ownParticipant->no_ktp,
             'instansi' => 'Instansi Soppeng',
@@ -241,12 +197,14 @@ class PegawaiKabupatenRoleTest extends TestCase
 
         $this->assertDatabaseHas('peserta_kegiatans', [
             'id' => $ownParticipant->id,
+            'id_kegiatan' => $ownActivity->id,
             'nama' => 'Peserta Soppeng Diubah',
             'kabupaten' => self::OWN_COUNTY,
         ]);
+        $this->post(route('peserta.hapus', $ownParticipant->id))->assertForbidden();
         $this->get(route('peserta.edit', $otherParticipant->id))->assertNotFound();
         $this->get(route('peserta.export', ['id_kegiatan' => $otherActivity->id]))->assertNotFound();
-        $this->get(route('print.absensi.peserta', ['kegiatan_id' => $otherActivity->id]))->assertNotFound();
+        $this->get(route('print.absensi.peserta', ['kegiatan_id' => $otherActivity->id]))->assertForbidden();
     }
 
     private function makeUser(string $role, string $username, ?string $kabupaten = null): User

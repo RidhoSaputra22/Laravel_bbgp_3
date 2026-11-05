@@ -32,13 +32,20 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label>Kegiatan yang di daftarkan</label>
-                                                <select name="id_kegiatan" id="" class="form-control select2">
-                                                    <option value="">-- pilih kegiatan --</option>
-                                                    @foreach ($kegiatan as $v)
-                                                        <option {{ $datas->kegiatan->id == $v->id ? 'selected' : '' }}
-                                                            value="{{ $v->id }}">{{ $v->nama_kegiatan }}</option>
-                                                    @endforeach
-                                                </select>
+                                                @if (session('role') === 'pegawai-kabupaten')
+                                                    <select class="form-control" disabled>
+                                                        <option selected>{{ optional($datas->kegiatan)->nama_kegiatan ?? '-- kegiatan tidak ditemukan --' }}</option>
+                                                    </select>
+                                                    <input type="hidden" name="id_kegiatan" value="{{ $datas->id_kegiatan }}">
+                                                @else
+                                                    <select name="id_kegiatan" class="form-control select2">
+                                                        <option value="">-- pilih kegiatan --</option>
+                                                        @foreach ($kegiatan as $v)
+                                                            <option {{ optional($datas->kegiatan)->id == $v->id ? 'selected' : '' }}
+                                                                value="{{ $v->id }}">{{ $v->nama_kegiatan }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                @endif
                                             </div>
 
                                         </div>

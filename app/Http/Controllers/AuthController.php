@@ -118,7 +118,7 @@ class AuthController extends Controller
             Session::put('cek', true);
 
             if ($user->role === 'pegawai-kabupaten') {
-                return redirect()->route('kegiatan.index')->with('message', 'sukses login');
+                return redirect()->route('peserta.index')->with('message', 'sukses login');
             }
 
             if ($user->role == 'pegawai') {

@@ -246,7 +246,7 @@ class PesertaKegiatanController extends Controller
             ?? $this->scopedPegawais()->where('no_ktp', $r->no_ktp)->first();
 
         if ($kabupaten = $this->kabupaten()) {
-            $this->scopedActivities()->findOrFail($r->id_kegiatan);
+            $r['id_kegiatan'] = $datas->id_kegiatan;
             $r['kabupaten'] = $kabupaten;
         }
 
@@ -294,19 +294,11 @@ class PesertaKegiatanController extends Controller
             $r['golongan_pns'] = null;
         } else {
             // Handle case where none of the golongan values are set
-            $status = [
-                'kegiatanById' => Kegiatan::find($r['id_kegiatan']),
-                'kabupaten' => Kabupaten::all(),
-                'golongan' => JabatanPenugasanGolongan::all(),
-                'golongan_p3k' => GolonganP3k::get(),
-            ];
-
-            return redirect()->route('peserta.create', [
-                'kegiatan_id' => $status['kegiatanById']->id,
+            return redirect()->route('peserta.edit', [
+                'id' => $datas->id,
             ])->with([
-                'status' => $status,
                 'message' => 'error golongan',
-                'menu' => 'kegiatan',
+                'menu' => 'peserta',
             ]);
         }
         $datas->update($r->all());

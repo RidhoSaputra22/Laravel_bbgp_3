@@ -24,8 +24,10 @@
                             <div class="card-body">
                                 <!-- Navigation Buttons -->
 
-                                <a href="{{ route('peserta.create') }}" class="btn btn-primary text-white my-3">+ Tambah
-                                    Peserta</a>
+                                @if (session('role') !== 'pegawai-kabupaten')
+                                    <a href="{{ route('peserta.create') }}" class="btn btn-primary text-white my-3">+ Tambah
+                                        Peserta</a>
+                                @endif
 
                                 <h6>Filter By </h6>
                                 <div class="row">
@@ -181,6 +183,7 @@
             $(document).ready(function() {
                 const cetakUrl = @json(route('peserta.cetak', '__id__'));
                 const editUrl = @json(route('peserta.edit', '__id__'));
+                const canDeleteParticipants = @json(session('role') !== 'pegawai-kabupaten');
 
                 var tableKegiatan = $('#table-kegiatan').DataTable({
                     processing: true,
@@ -234,10 +237,11 @@
                             searchable: false,
                             orderable: false,
                             render: function(data) {
-                                return '<a href="' + editUrl.replace('__id__', data) +
-                                    '" class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>' +
-                                    '<button onclick="deleteData(' + data + ', \'peserta\')" class="btn btn-danger">' +
+                                const editButton = '<a href="' + editUrl.replace('__id__', data) +
+                                    '" class="btn btn-warning my-2"><i class="fas fa-edit"></i></a>';
+                                const deleteButton = '<button onclick="deleteData(' + data + ', \'peserta\')" class="btn btn-danger">' +
                                     '<i class="fas fa-trash-alt"></i></button>';
+                                return canDeleteParticipants ? editButton + deleteButton : editButton;
                             }
                         }
                     ],
