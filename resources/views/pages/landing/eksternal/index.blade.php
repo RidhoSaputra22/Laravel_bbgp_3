@@ -161,7 +161,7 @@
 
          function showDetail(pegawaiId) {
             $.ajax({
-               url: '{{ route('user.pegawai.detail.eksternal') }}', // Sesuaikan dengan route yang benar
+               url: '{{ route('public.guru.detail') }}',
                type: 'GET',
                data: {
                   id: pegawaiId

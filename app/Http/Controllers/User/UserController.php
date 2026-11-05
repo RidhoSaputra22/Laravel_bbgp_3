@@ -481,7 +481,19 @@ class UserController extends Controller
 
     public function getPenugasanDetailEksternal(Request $request)
     {
-        $pesertaId = $request->integer('id');
+        return $this->detailEksternal($request);
+    }
+
+    public function getPenugasanDetailEksternalPublik(Request $request)
+    {
+        return $this->detailEksternal($request);
+    }
+
+    private function detailEksternal(Request $request)
+    {
+        $pesertaId = $request->validate([
+            'id' => ['required', 'integer', 'min:1'],
+        ])['id'];
         $peserta = Guru::select([
             'id', 'nama_lengkap', 'gender', 'status_kepegawaian', 'kabupaten',
             'npsn_sekolah', 'eksternal_jabatan', 'jenis_jabatan',

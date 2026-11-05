@@ -53,6 +53,7 @@ Route::group(
         Route::get('/pegawai/detail', 'UserController@getPenugasanDetail')->name('user.pegawai.detail')->middleware('ValidasiUser');
         Route::get('/pegawai/detailLoka', 'UserController@getPenugasanDetailLoka')->name('user.pegawai.detail.loka')->middleware('ValidasiUser');
         Route::get('/pegawai/detailEksternal', 'UserController@getPenugasanDetailEksternal')->name('user.pegawai.detail.eksternal')->middleware('ValidasiUser');
+        Route::get('/pegawai/detailEksternalPublik', 'UserController@getPenugasanDetailEksternalPublik')->name('public.guru.detail');
 
         Route::get('/statistik', 'UserController@statistik')->name('user.statistik');
         Route::get('/api/statistics/month/{month}', 'UserController@getMonthStatistics')->name('user.statistik.month');
@@ -78,8 +79,10 @@ Route::group(
         // response json
         Route::get('/kegiatan/getStatus', 'KegiatanController@getStatus')->name('user.kegiatan.getStatus');
         Route::get('/kegiatan/cariPeserta', 'KegiatanController@cariPeserta')->name('user.kegiatan.cariPeserta')->middleware('ValidasiUser');
+        Route::get('/kegiatan/cariPesertaPublik', 'KegiatanController@cariPesertaPublik')->name('public.kegiatan.cariPeserta');
         Route::get('/kegiatan/peserta', 'KegiatanController@getPesertaByKegiatan')->name('user.kegiatan.peserta')->middleware('ValidasiUser');
         Route::get('/peserta/detail', 'KegiatanController@getPesertaDetail')->name('user.peserta.detail')->middleware('ValidasiUser');
+        Route::get('/peserta/detailPublik', 'KegiatanController@getPesertaDetailPublik')->name('public.peserta.detail');
 
         // trace pesrta dari kegiatan sebelum nya
         Route::get('/peserta/cekData', 'KegiatanController@cekDataPeserta')->name('user.peserta.cekData')->middleware('ValidasiUser');

@@ -84,6 +84,16 @@ class KegiatanController extends Controller
 
     public function cariPeserta(Request $request)
     {
+        return $this->searchParticipant($request, true);
+    }
+
+    public function cariPesertaPublik(Request $request)
+    {
+        return $this->searchParticipant($request, false);
+    }
+
+    private function searchParticipant(Request $request, bool $authorize)
+    {
         $validated = $request->validate([
             'kegiatan_id' => 'required|integer|exists:kegiatans,id',
             'nik' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
@@ -91,8 +101,10 @@ class KegiatanController extends Controller
 
         $kegiatanId = $validated['kegiatan_id'];
         $nik = $validated['nik'];
-        $this->authorizeNik($nik);
-        Session::put(['nik' => $nik, 'val' => $kegiatanId]);
+        if ($authorize) {
+            $this->authorizeNik($nik);
+            Session::put(['nik' => $nik, 'val' => $kegiatanId]);
+        }
 
         $title = 'Peserta';
         $status = true;
@@ -409,6 +421,25 @@ class KegiatanController extends Controller
         ])->findOrFail($pesertaId);
 
         $this->authorizeNik((string) $peserta->no_ktp);
+
+        return response()->json($peserta);
+    }
+
+    public function getPesertaDetailPublik(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:peserta_kegiatans,id',
+            'kegiatan_id' => 'required|integer|exists:kegiatans,id',
+        ]);
+
+        $peserta = PesertaKegiatan::select([
+            'id', 'id_kegiatan', 'no_ktp', 'nama', 'instansi',
+            'status_keikutpesertaan', 'golongan', 'jenis_gol', 'jkl',
+            'kelengkapan_peserta_transport', 'kelengkapan_peserta_biodata',
+            'no_hp', 'no_wa', 'kabupaten', 'no_surat_tugas', 'tgl_surat_tugas',
+        ])->where('id', $validated['id'])
+            ->where('id_kegiatan', $validated['kegiatan_id'])
+            ->firstOrFail();
 
         return response()->json($peserta);
     }

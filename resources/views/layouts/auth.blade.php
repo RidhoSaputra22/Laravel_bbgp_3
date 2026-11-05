@@ -66,7 +66,7 @@
     <!-- JS Libraies -->
     @stack('scripts')
 
-    @if (auth()->check() && in_array(auth()->user()->role, ['admin', 'superadmin'], true))
+    @if (app()->environment('local') && auth()->guest())
         <script src="{{ asset('dev/form-autofill.js') }}"></script>
     @endif
 

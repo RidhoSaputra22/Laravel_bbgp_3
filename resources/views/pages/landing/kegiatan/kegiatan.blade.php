@@ -161,9 +161,11 @@
             $('#btnGroup').hide(); // Menyembunyikan semua tombol saat tidak ada kegiatan dipilih
             $('#allRincian').hide();
 
-            $('#daftarKegiatan').select2({
-               width: 'resolve' // need to override the changed default
-            });
+            if ($.fn.select2) {
+               $('#daftarKegiatan').select2({
+                  width: 'resolve' // need to override the changed default
+               });
+            }
 
             $('#daftarKegiatan').on('change', function() {
                let kegiatanId = $(this).val();
@@ -243,8 +245,9 @@
                let nik = $('#nikSearch').val();
                if (kegiatanId && nik) {
                   $.ajax({
-                     url: '{{ route('user.kegiatan.cariPeserta') }}',
+                     url: '{{ route('public.kegiatan.cariPeserta') }}',
                      type: 'GET',
+                     dataType: 'json',
                      data: {
                         kegiatan_id: kegiatanId,
                         nik: nik
@@ -298,124 +301,32 @@
                               'narasumber');
                         } else {
                            $('#showKegiatan').hide();
-                           var pesertaAda;
-                           $.ajax({
-                              url: '{{ route('user.peserta.cekData') }}',
-                              type: 'GET',
-                              data: {
-                                 kegiatan_id: kegiatanId,
-                                 nik: nik
-                              },
-                              success: function(response) {
-                                 pesertaAda = response.success;
+                           const sudahTerdata = data.length > 0;
+                           const pesan = sudahTerdata ?
+                              `Anda belum terdaftar di kegiatan ini, tetapi terdata sebagai ${tipe}. Lanjut ke registrasi?` :
+                              'Peserta belum mendaftar dalam kegiatan ini. Silakan registrasi.';
 
-                                 // ada 2 alert, yg sdh pernah ikut dan belum pernah
-                                 if (data.length > 0) {
-
-                                    if (tipe === 'Peserta') {
-                                       Swal.fire({
-                                          title: "Warning",
-                                          text: "Anda tidak terdaftar di kegiatan ini. Tapi anda sudah pernah mengikuti kegiatan BBGTK sebelumnya. Lanjut ke Registrasi ? \n Form akan terisi otomatis dari data anda sebelumnya",
-                                          icon: "warning",
-                                          showCancelButton: true,
-                                          confirmButtonColor: "#4040f5",
-                                          cancelButtonColor: "#ff3034",
-                                          confirmButtonText: "Registrasi",
-                                          cancelButtonText: "Tidak, terimakasih",
-                                       }).then((res) => {
-                                          if (res.isConfirmed) {
-                                             // Redirect to registrasi page with kegiatan_id
-                                             window.location
-                                                .href =
-                                                '{{ route('user.kegiatan_regist') }}' +
-                                                '?kegiatan_id=' +
-                                                kegiatanId +
-                                                '&nik=' +
-                                                nik;
-                                          }
-                                       });
-
-                                       return;
-
-                                    } else if (tipe === 'Pegawai') {
-                                       Swal.fire({
-                                          title: "Warning",
-                                          text: "Anda tidak terdaftar di kegiatan ini. Tapi anda ter-data sebagai Pegawai BBGTK . Lanjut ke Registrasi ? \n Form akan terisi otomatis dari data anda sebelumnya",
-                                          icon: "warning",
-                                          showCancelButton: true,
-                                          confirmButtonColor: "#4040f5",
-                                          cancelButtonColor: "#ff3034",
-                                          confirmButtonText: "Registrasi",
-                                          cancelButtonText: "Tidak, terimakasih",
-                                       }).then((res) => {
-                                          if (res.isConfirmed) {
-                                             // Redirect to registrasi page with kegiatan_id
-                                             window.location
-                                                .href =
-                                                '{{ route('user.kegiatan_regist') }}' +
-                                                '?kegiatan_id=' +
-                                                kegiatanId +
-                                                '&nik=' +
-                                                nik;
-                                          }
-                                       });
-
-                                       return;
-                                    } else if (tipe === 'Eksternal') {
-                                       Swal.fire({
-                                          title: "Warning",
-                                          text: "Anda tidak terdaftar di kegiatan ini. Tapi anda ter-data sebagai Eksternal BBGTK. Lanjut ke Registrasi ? \n Form akan terisi otomatis dari data anda sebelumnya",
-                                          icon: "warning",
-                                          showCancelButton: true,
-                                          confirmButtonColor: "#4040f5",
-                                          cancelButtonColor: "#ff3034",
-                                          confirmButtonText: "Registrasi",
-                                          cancelButtonText: "Tidak, terimakasih",
-                                       }).then((res) => {
-                                          if (res.isConfirmed) {
-                                             // Redirect to registrasi page with kegiatan_id
-                                             window.location
-                                                .href =
-                                                '{{ route('user.kegiatan_regist') }}' +
-                                                '?kegiatan_id=' +
-                                                kegiatanId +
-                                                '&nik=' +
-                                                nik;
-                                          }
-                                       });
-
-                                       return;
-                                    }
-
-                                 } else {
-                                    Swal.fire({
-                                       title: "Warning",
-                                       text: "Peserta belum mendaftar dalam kegiatan ini. Silahkan registrasi ke menu Data > Data Eksternal",
-                                       icon: "warning",
-                                       showCancelButton: true,
-                                       confirmButtonColor: "#4040f5",
-                                       cancelButtonColor: "#ff3034",
-                                       confirmButtonText: "Daftar"
-                                    }).then((res) => {
-                                       if (res.isConfirmed) {
-                                          // Redirect to registrasi page with kegiatan_id
-                                          window.location.href =
-                                             '{{ route('user.guru') }}'
-                                       }
-                                    });
-                                    return;
-                                 }
-                              },
-                              error: function(error) {
-                                 console.error(error);
-                                 alert('Error fetching detail.');
+                           Swal.fire({
+                              title: 'Warning',
+                              text: pesan,
+                              icon: 'warning',
+                              showCancelButton: true,
+                              confirmButtonColor: '#4040f5',
+                              cancelButtonColor: '#ff3034',
+                              confirmButtonText: sudahTerdata ? 'Registrasi' : 'Daftar',
+                              cancelButtonText: 'Tidak, terima kasih',
+                           }).then((res) => {
+                              if (res.isConfirmed) {
+                                 window.location.href = sudahTerdata ?
+                                    '{{ route('user.kegiatan_regist') }}?kegiatan_id=' + kegiatanId + '&nik=' + nik :
+                                    '{{ route('user.guru') }}';
                               }
                            });
                         }
                      },
-                     error: function(error) {
-                        console.error(error);
-                        alert('Error fetching peserta data.');
+                     error: function(xhr) {
+                        console.error(xhr);
+                        alert('Tidak dapat mencari peserta. Periksa kembali kegiatan dan NIK yang dimasukkan.');
                      }
                   });
                } else {
@@ -483,10 +394,11 @@
 
          function showDetail(pesertaId) {
             $.ajax({
-               url: '{{ route('user.peserta.detail') }}',
+               url: '{{ route('public.peserta.detail') }}',
                type: 'GET',
                data: {
-                  id: pesertaId
+                  id: pesertaId,
+                  kegiatan_id: $('#daftarKegiatan').val()
                },
                success: function(response) {
 
