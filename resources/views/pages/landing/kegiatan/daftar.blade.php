@@ -42,7 +42,7 @@
                 <form action="{{ route('user.kegiatan_store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="kegiatan_id" id="kegiatan_id"
-                        value="{{ $_GET['kegiatan_id'] ?? $kegiatan_id }}">
+                        value="{{ old('kegiatan_id', $kegiatanId) }}">
 
                     <div class="card">
                         <div class="card-header">
@@ -506,94 +506,79 @@
                 $('#form_golongan_p3k').hide();
                 $('#form_diluar_gol').hide();
 
-                // Load existing data if available
-                $.ajax({
-                    url: '{{ route('user.peserta.cekData') }}',
-                    type: 'GET',
-                    data: {
-                        nik: {!! json_encode(session('nik'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}
-                    },
-                    success: function(response) {
+                // Load existing data passed by regist(). This page is public, so
+                // it must not call the login-protected cekDataPeserta endpoint.
+                const prefill = @json($prefillData);
+                const data = prefill?.data;
+                const prefillNik = @json(request('nik'));
 
-                        if (response.data) {
-                            let data = response.data;
+                if (prefillNik) {
+                    $('#no_ktp').val(prefillNik);
+                }
 
-                            // Fill form with existing data
-                            $('#no_ktp').val(data.no_ktp);
-                            $('#nip').val(data.nip);
-                            $('#nama').val(data.nama ?? data.nama_lengkap);
-                            $('#email').val(data.email);
-                            $('#tempat_lahir').val(data.tempat_lahir);
-                            $('#tgl_lahir').val(data.tgl_lahir);
-                            $('#agama').val(data.agama);
-                            $('#pendidikan').val(data.pendidikan);
-                            $('#jabatan').val(data.jabatan);
-                            $('#tugas_jabatan').val(data.tugas_jabatan);
-                            // Prefill only when the user has not selected a status yet.
-                            if (!$('#status').val()) {
-                                $('#status').val(data.status);
-                            }
-                            $('#instansi').val(data.instansi ?? data.satuan_pendidikan);
-                            $('#satuan_pendidikan').val(data.satuan_pendidikan);
-                            $('#alamat_satuan').val(data.alamat_satuan);
-                            $('#alamat_rumah').val(data.alamat_rumah);
-                            $('#no_hp').val(data.no_hp);
-                            $('#no_wa').val(data.no_wa);
-                            $('#npwp').val(data.npwp);
-                            $('#npsn_sekolah').val(data.npsn_sekolah);
-                            $('#nuptk').val(data.nuptk);
-                            $('#jenis_bank').val(data.jenis_bank);
-                            $('#no_rek').val(data.no_rek);
+                if (data) {
+                    $('#no_ktp').val(data.no_ktp ?? prefillNik);
+                    $('#nip').val(data.nip);
+                    $('#nama').val(data.nama ?? data.nama_lengkap);
+                    $('#email').val(data.email);
+                    $('#tempat_lahir').val(data.tempat_lahir);
+                    $('#tgl_lahir').val(data.tgl_lahir);
+                    $('#agama').val(data.agama);
+                    $('#pendidikan').val(data.pendidikan);
+                    $('#jabatan').val(data.jabatan);
+                    $('#status').val(data.status);
+                    $('#instansi').val(prefill.instansi ?? data.instansi ?? data.satuan_pendidikan);
+                    $('#satuan_pendidikan').val(data.satuan_pendidikan);
+                    $('#alamat').val(data.alamat ?? data.alamat_satuan);
+                    $('#alamat_rumah').val(data.alamat_rumah);
+                    $('#no_hp').val(data.no_hp);
+                    $('#no_wa').val(data.no_wa);
+                    $('#npwp').val(data.npwp);
+                    $('#npsn_sekolah').val(data.npsn_sekolah);
+                    $('#nuptk').val(data.nuptk);
+                    $('#jenis_bank').val(data.jenis_bank);
+                    $('#no_rek').val(data.no_rek);
 
-                            // Set gender
-                            $(`#gender option[value="${data.jkl ?? data.gender}"]`).prop('selected', true);
+                    $(`#gender option[value="${data.jkl ?? data.gender}"]`).prop('selected', true);
 
-                            // Set kabupaten
-                            if (data.kabupaten) {
-                                $('#kabupaten').append($("<option>")
-                                    .text(data.kabupaten)
-                                    .attr('value', data.kabupaten)
-                                    .prop('selected', true)
-                                );
-                            }
-
-                            // Set kabupaten
-                            if (data.pendidikan) {
-                                $('#pendidikan').append($("<option>")
-                                    .text(data.pendidikan)
-                                    .attr('value', data.pendidikan)
-                                    .prop('selected', true)
-                                );
-                            }
-
-                            // Handle golongan
-                            let jenis_gol = $.trim(data.jenis_gol);
-                            $(`#jenis_gol option[value="${jenis_gol}"]`).prop('selected', true);
-
-                            if (jenis_gol == 'PNS') {
-                                $('#form_golongan_pns').show();
-                                $('#golongan_pns').append($("<option>")
-                                    .text(data.golongan)
-                                    .attr('value', data.golongan)
-                                    .prop('selected', true)
-                                );
-                            } else if (jenis_gol == 'P3K') {
-                                $('#form_golongan_p3k').show();
-                                $('#golongan_p3k').append($("<option>")
-                                    .text(data.golongan)
-                                    .attr('value', data.golongan)
-                                    .prop('selected', true)
-                                );
-                            } else if (jenis_gol == 'Tidak ada golongan') {
-                                $('#form_diluar_gol').show();
-                                $('#diluar_gol').val(data.golongan);
-                            }
-                        }
-                    },
-                    error: function(error) {
-                        console.error('Error fetching data:', error);
+                    if (data.kabupaten) {
+                        $('#kabupaten').append($("<option>")
+                            .text(data.kabupaten)
+                            .attr('value', data.kabupaten)
+                            .prop('selected', true)
+                        );
                     }
-                });
+
+                    if (data.pendidikan) {
+                        $('#pendidikan').append($("<option>")
+                            .text(data.pendidikan)
+                            .attr('value', data.pendidikan)
+                            .prop('selected', true)
+                        );
+                    }
+
+                    const jenisGol = $.trim(data.jenis_gol ?? data.status_kepegawaian ?? '');
+                    $(`#jenis_gol option[value="${jenisGol}"]`).prop('selected', true);
+
+                    if (jenisGol === 'PNS') {
+                        $('#form_golongan_pns').show();
+                        $('#golongan_pns').append($("<option>")
+                            .text(data.golongan)
+                            .attr('value', data.golongan)
+                            .prop('selected', true)
+                        );
+                    } else if (jenisGol === 'P3K') {
+                        $('#form_golongan_p3k').show();
+                        $('#golongan_p3k').append($("<option>")
+                            .text(data.golongan)
+                            .attr('value', data.golongan)
+                            .prop('selected', true)
+                        );
+                    } else if (jenisGol === 'Tidak ada golongan') {
+                        $('#form_diluar_gol').show();
+                        $('#diluar_gol').val(data.golongan);
+                    }
+                }
 
                 // Handle Kabupaten selection
                 $('#kabupaten').change(function() {

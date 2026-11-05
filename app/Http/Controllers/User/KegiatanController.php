@@ -147,6 +147,7 @@ class KegiatanController extends Controller
         ]);
         $menu = 'kegiatan';
         $kegiatanId = $validated['kegiatan_id'];
+        $prefillData = $this->prefillDataForNik($validated['nik']);
         $pegawai = Pegawai::orderBy('id', 'ASC')->get();
         $guru = Guru::where('no_ktp', $validated['nik'])->get();
         $kabupaten = Kabupaten::orderBy('id', 'ASC')->get();
@@ -177,7 +178,9 @@ class KegiatanController extends Controller
             'golongan_p3k' => GolonganP3k::get(),
         ];
 
-        return view('pages.landing.kegiatan.daftar', compact('kegiatanId', 'status', 'menu', 'peserta', 'guru'));
+        return view('pages.landing.kegiatan.daftar', compact(
+            'kegiatanId', 'status', 'menu', 'peserta', 'guru', 'prefillData'
+        ));
     }
 
     public function store(Request $request)
@@ -305,6 +308,16 @@ class KegiatanController extends Controller
             'nik' => 'required|string|max:50|regex:/^[A-Za-z0-9._-]+$/',
         ])['nik'];
         $this->authorizeNik($nik);
+
+        $prefillData = $this->prefillDataForNik($nik);
+        Session::put('nik', $nik);
+        Session::put('dataAda', $prefillData['success']);
+
+        return response()->json($prefillData);
+    }
+
+    private function prefillDataForNik(string $nik): array
+    {
         $title = 'Peserta';
         $prefillColumns = [
             'id', 'nama', 'no_ktp', 'nip', 'email', 'tempat_lahir', 'tgl_lahir',
@@ -367,9 +380,10 @@ class KegiatanController extends Controller
                     'id', 'nama_lengkap', 'email', 'no_ktp', 'nip', 'tempat_lahir',
                     'tgl_lahir', 'gender', 'jabatan', 'status', 'agama', 'pendidikan',
                     'kabupaten', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
-                    'no_hp', 'no_wa', 'eksternal_jabatan', 'tugas_jabatan',
+                    'no_hp', 'no_wa', 'npsn_sekolah', 'nuptk', 'eksternal_jabatan',
+                    'tugas_jabatan', 'status_kepegawaian',
                 ])->where('no_ktp', $nik)->first();
-                $instansi = $peserta->sekolah->nama_sekolah ?? '';
+                $instansi = $peserta?->sekolah?->nama_sekolah ?? '';
             }
 
             $status = false;
@@ -379,15 +393,11 @@ class KegiatanController extends Controller
 
 
 
-        Session::put('nik', $nik);
-        Session::put('dataAda', $status);
-
-
-        return response()->json([
+        return [
             'success' => $status,
             'data' => $peserta,
             'instansi' => $instansi
-        ]);
+        ];
     }
 
     public function getPesertaByKegiatan(Request $request)

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Kegiatan;
+use App\Models\Guru;
 use App\Models\PesertaKegiatan;
 use Tests\TestCase;
 
@@ -65,6 +66,30 @@ class KegiatanParticipantSearchTest extends TestCase
             ->assertJsonPath('success', false)
             ->assertJsonPath('tipe', 'Eksternal')
             ->assertJsonCount(0, 'data');
+    }
+
+    public function test_public_registration_prefills_existing_master_data(): void
+    {
+        $kegiatan = $this->kegiatan();
+        $nik = '7887878787878789';
+
+        Guru::query()->create([
+            'nama_lengkap' => 'Guru Prefill Test',
+            'no_ktp' => $nik,
+            'nip' => '198001012010012001',
+            'gender' => 'Laki-laki',
+            'status_kepegawaian' => 'PNS',
+            'jabatan' => 'Guru',
+        ]);
+
+        $this->get(route('user.kegiatan_regist', [
+            'kegiatan_id' => $kegiatan->id,
+            'nik' => $nik,
+        ]))
+            ->assertOk()
+            ->assertSee('Guru Prefill Test')
+            ->assertSee($nik)
+            ->assertSee('198001012010012001');
     }
 
     public function test_protected_search_route_still_requires_login(): void
