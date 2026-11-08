@@ -161,7 +161,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label>5. Mata Pelajaran yang diampu (opsional)</label>
-                                        <input name="mata_pelajaran" type="text"
+                                        <input name="mata_pelajaran" id="mata_pelajaran" type="text"
                                             class="form-control @error('mata_pelajaran') is-invalid @enderror">
                                         @error('mata_pelajaran')
                                             <div class="field-error">{{ $message }}</div>
@@ -512,6 +512,27 @@
                 const data = prefill?.data;
                 const prefillNik = @json(request('nik'));
 
+                function setSelectValue(selector, value) {
+                    if (value === null || value === undefined || value === '') {
+                        return;
+                    }
+
+                    const select = $(selector);
+                    const stringValue = String(value);
+                    const optionExists = select.find('option').filter(function() {
+                        return String($(this).val()) === stringValue;
+                    }).length > 0;
+
+                    if (!optionExists) {
+                        select.append($('<option>', {
+                            value: stringValue,
+                            text: stringValue,
+                        }));
+                    }
+
+                    select.val(stringValue).trigger('change');
+                }
+
                 if (prefillNik) {
                     $('#no_ktp').val(prefillNik);
                 }
@@ -523,42 +544,28 @@
                     $('#email').val(data.email);
                     $('#tempat_lahir').val(data.tempat_lahir);
                     $('#tgl_lahir').val(data.tgl_lahir);
-                    $('#agama').val(data.agama);
-                    $('#pendidikan').val(data.pendidikan);
+                    setSelectValue('#agama', data.agama);
+                    setSelectValue('#pendidikan', data.pendidikan);
                     $('#jabatan').val(data.jabatan);
-                    $('#status').val(data.status);
+                    setSelectValue('#status', data.status);
                     $('#instansi').val(prefill.instansi ?? data.instansi ?? data.satuan_pendidikan);
                     $('#satuan_pendidikan').val(data.satuan_pendidikan);
                     $('#alamat').val(data.alamat ?? data.alamat_satuan);
                     $('#alamat_rumah').val(data.alamat_rumah);
+                    $('#mata_pelajaran').val(data.mata_pelajaran);
                     $('#no_hp').val(data.no_hp);
                     $('#no_wa').val(data.no_wa);
                     $('#npwp').val(data.npwp);
-                    $('#npsn_sekolah').val(data.npsn_sekolah);
-                    $('#nuptk').val(data.nuptk);
-                    $('#jenis_bank').val(data.jenis_bank);
-                    $('#no_rek').val(data.no_rek);
+                    $('#no_surat_tugas').val(data.no_surat_tugas);
+                    $('#tgl_surat_tugas').val(data.tgl_surat_tugas);
+                    setSelectValue('#status_keikutpesertaan', data.status_keikutpesertaan);
 
-                    $(`#gender option[value="${data.jkl ?? data.gender}"]`).prop('selected', true);
-
-                    if (data.kabupaten) {
-                        $('#kabupaten').append($("<option>")
-                            .text(data.kabupaten)
-                            .attr('value', data.kabupaten)
-                            .prop('selected', true)
-                        );
-                    }
-
-                    if (data.pendidikan) {
-                        $('#pendidikan').append($("<option>")
-                            .text(data.pendidikan)
-                            .attr('value', data.pendidikan)
-                            .prop('selected', true)
-                        );
-                    }
+                    setSelectValue('#gender', data.jkl ?? data.gender);
+                    setSelectValue('#kabupaten', data.kabupaten);
+                    setSelectValue('#kabupaten_rumah', data.kabupaten_rumah);
 
                     const jenisGol = $.trim(data.jenis_gol ?? data.status_kepegawaian ?? '');
-                    $(`#jenis_gol option[value="${jenisGol}"]`).prop('selected', true);
+                    setSelectValue('#jenis_gol', jenisGol);
 
                     if (jenisGol === 'PNS') {
                         $('#form_golongan_pns').show();

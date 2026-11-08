@@ -322,7 +322,9 @@ class KegiatanController extends Controller
         $prefillColumns = [
             'id', 'nama', 'no_ktp', 'nip', 'email', 'tempat_lahir', 'tgl_lahir',
             'agama', 'pendidikan', 'jkl', 'status', 'instansi', 'alamat_rumah',
-            'no_hp', 'no_wa', 'kabupaten', 'jenis_gol', 'golongan',
+            'alamat', 'kabupaten_rumah', 'npwp', 'no_hp', 'no_wa', 'kabupaten',
+            'jenis_gol', 'golongan', 'mata_pelajaran', 'diluar_gol',
+            'no_surat_tugas', 'tgl_surat_tugas', 'status_keikutpesertaan',
         ];
         $peserta = PesertaKegiatan::select($prefillColumns)
             ->where('no_ktp', $nik)
@@ -338,13 +340,19 @@ class KegiatanController extends Controller
             $guru = Guru::select([
                 'id', 'nama_lengkap', 'email', 'no_ktp', 'nip', 'tempat_lahir',
                 'tgl_lahir', 'gender', 'jabatan', 'status', 'agama', 'pendidikan',
-                'kabupaten', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
+                'kabupaten', 'kabupaten_rumah', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
                 'no_hp', 'no_wa', 'npsn_sekolah', 'nuptk', 'eksternal_jabatan',
-                'tugas_jabatan', 'jenis_bank',
+                'tugas_jabatan', 'jenis_bank', 'no_rek', 'npwp',
             ])->where('no_ktp', $nik)->first();
             if($guru != null){
                 $instansi = $guru->sekolah->nama_sekolah ?? '';
                 $jabatan = $guru->eksternal_jabatan ?? '';
+
+                foreach (['npwp', 'kabupaten_rumah'] as $field) {
+                    if (blank($peserta->{$field})) {
+                        $peserta->{$field} = $guru->{$field};
+                    }
+                }
             }else{
                 // cek apakah peserta ada di tabel pegawai
                 $pegawai = Pegawai::select([
@@ -379,9 +387,9 @@ class KegiatanController extends Controller
                 $peserta = Guru::select([
                     'id', 'nama_lengkap', 'email', 'no_ktp', 'nip', 'tempat_lahir',
                     'tgl_lahir', 'gender', 'jabatan', 'status', 'agama', 'pendidikan',
-                    'kabupaten', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
+                    'kabupaten', 'kabupaten_rumah', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
                     'no_hp', 'no_wa', 'npsn_sekolah', 'nuptk', 'eksternal_jabatan',
-                    'tugas_jabatan', 'status_kepegawaian',
+                    'tugas_jabatan', 'status_kepegawaian', 'jenis_bank', 'no_rek', 'npwp',
                 ])->where('no_ktp', $nik)->first();
                 $instansi = $peserta?->sekolah?->nama_sekolah ?? '';
             }

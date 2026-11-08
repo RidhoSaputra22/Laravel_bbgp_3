@@ -27,6 +27,7 @@ class Guru extends Model
         'satuan_pendidikan',
         'alamat_satuan',
         'alamat_rumah',
+        'kabupaten_rumah',
         'no_hp',
         'no_wa',
         'pas_foto',
