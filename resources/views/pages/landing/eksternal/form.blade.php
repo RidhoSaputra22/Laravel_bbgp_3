@@ -360,7 +360,7 @@
 
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Jabatan (Pilih Eksternal dulu)</label>
+                                <label>Jabatan Profesi</label>
                                 <select required name="jabJenis" class="form-control " id="jabJenis">
                                     <option value="">-- Pilih Jenis Jabatan --</option>
                                 </select>
