@@ -118,6 +118,11 @@ class GuruController extends Controller
      */
     public function edit(string $id)
     {
+        $sekolahs = Sekolah::query()
+            ->select('npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten')
+            ->orderBy('nama_sekolah')
+            ->get();
+
         $datas = array(
             's_kepegawaian' => Kepegawaian::get(),
             's_kependidikan' => SatuanPendidikan::get(),
@@ -125,7 +130,7 @@ class GuruController extends Controller
             's_jabatan' => Jabatan::get(),
             's_kabupaten' => $this->kabupatenOptions(),
             's_kecamatan' => Kecamatan::get(),
-            's_sekolah' => [],
+            's_sekolah' => $sekolahs,
             's_jabPendidik' => JabatanPendidik::get(),
             's_jabKependidikan' => JabatanKependidikan::get(),
             's_jabStakeholder' => JabatanStakeHolder::get(),

@@ -330,7 +330,7 @@ class UserController extends Controller
             'tgl_lahir' => 'required|date|before:today',
             'gender' => 'required|string|in:Laki-laki,Perempuan',
             'status_kepegawaian' => 'required|exists:kepegawaians,name',
-            'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Buddha',
+            'agama' => 'required|string|in:Islam,Kristen,Katolik,Hindu,Budha,Konghucu',
             'pendidikan' => 'required|exists:pendidikans,name',
             'satuan_pendidikan' => 'required|exists:satuan_pendidikans,name',
             'alamat_satuan' => 'nullable|string|max:1000',
@@ -367,8 +367,6 @@ class UserController extends Controller
             $r['status'] = 'Belum Kawin';
             $r['alamat_satuan'] = $r['alamat_satuan'] ?? '';
             $r['eksternal_jabatan'] = $r['jenisJabatan'] ?? '';
-            $r['agama'] = $r['agama'] === 'Buddha' ? 'Budha' : $r['agama'];
-
             if (($r['jabJenis'] ?? null) == 'Lainnya' && ($r['jabLainnya'] ?? null) != null) {
                 $r['jabJenis'] = $r['jabLainnya'];
                 $r['jenis_jabatan'] = $r['jabJenis'] ?? '';

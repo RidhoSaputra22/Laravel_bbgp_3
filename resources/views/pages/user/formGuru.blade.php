@@ -117,7 +117,8 @@
                                                     <option value="Kristen">Kristen</option>
                                                     <option value="Katolik">Katolik</option>
                                                     <option value="Hindu">Hindu</option>
-                                                    <option value="Buddha">Buddha</option>
+                                                    <option value="Budha">Budha</option>
+                                                    <option value="Konghucu">Konghucu</option>
                                                 </select>
                                             </div>
                                         </div>

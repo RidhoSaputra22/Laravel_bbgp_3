@@ -186,7 +186,9 @@
                                     </option>
                                     <option value="Hindu" {{ old('agama') === 'Hindu' ? 'selected' : '' }}>Hindu
                                     </option>
-                                    <option value="Buddha" {{ old('agama') === 'Buddha' ? 'selected' : '' }}>Buddha
+                                    <option value="Budha" {{ old('agama') === 'Budha' ? 'selected' : '' }}>Budha
+                                    </option>
+                                    <option value="Konghucu" {{ old('agama') === 'Konghucu' ? 'selected' : '' }}>Konghucu
                                     </option>
                                 </select>
                                 @error('agama')

@@ -135,8 +135,10 @@
                                                         value="Katolik">Katolik</option>
                                                     <option {{ $datas->agama == 'Hindu' ? 'selected' : '' }}
                                                         value="Hindu">Hindu</option>
-                                                    <option {{ $datas->agama == 'Buddha' ? 'selected' : '' }}
-                                                        value="Buddha">Buddha</option>
+                                                    <option {{ $datas->agama == 'Budha' ? 'selected' : '' }}
+                                                        value="Budha">Budha</option>
+                                                    <option {{ $datas->agama == 'Konghucu' ? 'selected' : '' }}
+                                                        value="Konghucu">Konghucu</option>
                                                 </select>
                                             </div>
                                         </div>

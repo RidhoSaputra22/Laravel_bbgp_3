@@ -135,8 +135,10 @@
                                                         value="Katolik">Katolik</option>
                                                     <option {{ $datas->agama == 'Hindu' ? 'selected' : '' }}
                                                         value="Hindu">Hindu</option>
-                                                    <option {{ $datas->agama == 'Buddha' ? 'selected' : '' }}
-                                                        value="Buddha">Buddha</option>
+                                                    <option {{ $datas->agama == 'Budha' ? 'selected' : '' }}
+                                                        value="Budha">Budha</option>
+                                                    <option {{ $datas->agama == 'Konghucu' ? 'selected' : '' }}
+                                                        value="Konghucu">Konghucu</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -179,7 +181,7 @@
                                                 <select required name="kabupaten" id="kabupaten"
                                                     class="form-control select2">
                                                     <option value="">-- Pilih Kabupaten / Kota --</option>
-                                                    <option {{ $datas->kabupaten == $v->name ? 'selected' : '' }}
+                                                    <option {{ filled($datas->kabupaten) && !$status['s_kabupaten']->contains('name', $datas->kabupaten) ? 'selected' : '' }}
                                                         value="Tidak ada">diluar SulSel</option>
                                                     @foreach ($status['s_kabupaten'] as $v)
                                                         <option {{ $datas->kabupaten == $v->name ? 'selected' : '' }}
@@ -194,7 +196,7 @@
                                         <div class="col-md-4" id="diluarKab">
                                             <div class="form-group">
                                                 <label>Asal Kabupaten/Kota</label>
-                                                <input name="diluarKab" value="{{ $datas->kabupaten }}" placeholder="jika diluar SulSel" type="text"
+                                                <input name="diluarKab" value="{{ filled($datas->kabupaten) && !$status['s_kabupaten']->contains('name', $datas->kabupaten) ? $datas->kabupaten : '' }}" placeholder="jika diluar SulSel" type="text"
                                                     class="form-control">
                                             </div>
                                         </div>
@@ -225,7 +227,7 @@
                                             <div class="form-group">
                                                 <label>Bank</label>
                                                 <select name="jenis_bank" class="form-control" id="">
-                                                    <option value="Bank BCA">-- Pilih Bank --</option>
+                                                    <option value="" {{ blank($datas->jenis_bank) ? 'selected' : '' }}>-- Pilih Bank --</option>
                                                     <option {{ $datas->jenis_bank == 'Bank BCA' ? 'selected' : '' }}
                                                         value="Bank BCA">Bank BCA</option>
                                                     <option {{ $datas->jenis_bank == 'Bank BRI' ? 'selected' : '' }}
@@ -302,7 +304,8 @@
 
                                         <div class="col-md-4 mb-4">
                                             <label>Kategori Jabatan (Pilih Eksternal dulu) </label>
-                                            <select name="jabKategori" class="form-control " id="jabKategori">
+                                            <select name="jabKategori" class="form-control " id="jabKategori"
+                                                data-selected-value="{{ old('jabKategori', $datas->kategori_jabatan) }}">
                                                 <option value="">-- Pilih Jenis Jabatan --</option>
                                             </select>
                                         </div>
@@ -394,8 +397,8 @@
                 const selectedOption = selectElement.options[selectElement.selectedIndex];
 
                 // Ambil data kecamatan dan kabupaten dari atribut data
-                const kecamatan = selectedOption.getAttribute('data-kecamatan');
-                const kabupaten = selectedOption.getAttribute('data-kabupaten');
+                const kecamatan = selectedOption.getAttribute('data-kecamatan') || '';
+                const kabupaten = selectedOption.getAttribute('data-kabupaten') || '';
 
                 // Perbarui nilai input kecamatan dan kabupaten
                 kecamatanInput.value = kecamatan;
@@ -409,18 +412,21 @@
 
                 const getKabupaten = $('#kabupaten');
                 const fieldKab = $('#diluarKab');
-                fieldKab.show()
 
-                const valKabupaten = $('#kabupaten').find(':selected').val()
+                function updateKabupatenField() {
+                    const isOutside = getKabupaten.val() === 'Tidak ada';
+                    fieldKab.toggle(isOutside);
 
-                getKabupaten.on('change', function() {
-                    const val = $(this).find(':selected').val()
-                    if (val === 'Tidak ada') {
-                        fieldKab.show()
-                    } else {
+                    if (!isOutside) {
                         $('input[name=diluarKab]').val('');
                     }
-                })
+                }
+
+                getKabupaten.on('change', function() {
+                    updateKabupatenField();
+                });
+
+                updateKabupatenField();
 
                 // Filtering functions
                 function fillterJabatan() {
