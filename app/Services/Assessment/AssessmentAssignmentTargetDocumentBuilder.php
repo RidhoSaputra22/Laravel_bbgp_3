@@ -94,6 +94,10 @@ class AssessmentAssignmentTargetDocumentBuilder
                 'no_rek',
                 'jenis_bank',
             ]),
+            'guru.sekolah' => fn ($query) => $query->select([
+                'npsn_sekolah',
+                'nama_sekolah',
+            ]),
             'combination' => fn ($query) => $query->select([
                 'id',
                 'kode_kombinasi',
@@ -499,6 +503,14 @@ class AssessmentAssignmentTargetDocumentBuilder
         $this->applyAutofillDefaults($forms, $target->guru);
         $syncedAt = now()->toIso8601String();
         $snapshotSource = $participant['meta']['snapshot_source'] ?? 'assignment';
+        $user = $participant['user'];
+
+        if (is_array($user)) {
+            $schoolName = trim((string) ($target->guru?->sekolah?->nama_sekolah
+                ?: $target->guru?->satuan_pendidikan));
+
+            $user['nama_sekolah'] = $schoolName !== '' ? $schoolName : null;
+        }
 
         return [
             '_id' => 'assessment-target:'.$target->id,
@@ -515,7 +527,7 @@ class AssessmentAssignmentTargetDocumentBuilder
                 'tanggal_mulai' => $assignment?->tanggal_mulai?->toDateString(),
                 'tanggal_selesai' => $assignment?->tanggal_selesai?->toDateString(),
             ],
-            'user' => $participant['user'],
+            'user' => $user,
             'target' => [
                 'id' => (int) $target->id,
                 'status' => $participant['status'],

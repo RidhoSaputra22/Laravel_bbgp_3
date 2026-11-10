@@ -61,6 +61,79 @@ class MongoAssessmentAssignmentTargetStore
     }
 
     /**
+     * Update only the school name on existing, active target documents.
+     *
+     * @param  array<int, array{target_id:int, school_name:?string}>  $items
+     * @return array{matched:int, modified:int}
+     */
+    public function updateSchoolMetadata(array $items): array
+    {
+        if ($items === []) {
+            return ['matched' => 0, 'modified' => 0];
+        }
+
+        $this->assertAvailable();
+        $operations = [];
+
+        foreach ($items as $item) {
+            $targetId = (int) ($item['target_id'] ?? 0);
+            $schoolName = $item['school_name'] ?? null;
+            $schoolName = $schoolName === null ? null : trim((string) $schoolName);
+
+            if ($targetId < 1) {
+                continue;
+            }
+
+            $operations[] = [
+                'updateOne' => [
+                    [
+                        '_id' => 'assessment-target:'.$targetId,
+                        'assignment_target_id' => $targetId,
+                        'sync.is_active' => true,
+                        'user.id' => ['$exists' => true],
+                        '$or' => [
+                            ['user.metadata' => ['$exists' => false]],
+                            ['user.metadata' => ['$type' => 'object']],
+                        ],
+                    ],
+                    [
+                        ['$set' => ['user.nama_sekolah' => $schoolName ?: null]],
+                        ['$unset' => 'user.metadata.nama_sekolah'],
+                        ['$set' => [
+                            'user.metadata' => [
+                                '$cond' => [
+                                    [
+                                        '$eq' => [
+                                            ['$size' => [
+                                                '$objectToArray' => ['$ifNull' => ['$user.metadata', []]],
+                                            ]],
+                                            0,
+                                        ],
+                                    ],
+                                    '$$REMOVE',
+                                    '$user.metadata',
+                                ],
+                            ],
+                        ]],
+                    ],
+                    ['upsert' => false],
+                ],
+            ];
+        }
+
+        if ($operations === []) {
+            return ['matched' => 0, 'modified' => 0];
+        }
+
+        $result = $this->collection()->bulkWrite($operations, ['ordered' => false]);
+
+        return [
+            'matched' => (int) $result->getMatchedCount(),
+            'modified' => (int) $result->getModifiedCount(),
+        ];
+    }
+
+    /**
      * Count synchronized target documents in one aggregation for the panel.
      *
      * @param  array<int, int|string>  $assignmentIds

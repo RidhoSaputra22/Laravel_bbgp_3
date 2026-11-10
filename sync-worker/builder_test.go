@@ -87,6 +87,20 @@ func TestTargetDocumentExcludesStageControlMetadataButKeepsFormRules(t *testing.
 	}
 }
 
+func TestTargetUserIncludesSchoolMetadata(t *testing.T) {
+	user, ok := targetUser(TargetRow{Guru: GuruRow{
+		ID:          12726,
+		NamaSekolah: sql.NullString{String: "SD Negeri 1 Bone", Valid: true},
+	}}).(map[string]any)
+	if !ok {
+		t.Fatal("target user is not an object")
+	}
+
+	if user["nama_sekolah"] != "SD Negeri 1 Bone" {
+		t.Fatalf("school name is missing: %#v", user["nama_sekolah"])
+	}
+}
+
 func TestValidatorTombstoneContract(t *testing.T) {
 	document := validatorTombstone(91)
 	if document["_id"] != "validator-assignment:91" {

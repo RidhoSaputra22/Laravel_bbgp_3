@@ -60,6 +60,7 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
             'eksternal_jabatan' => 'Tenaga Pendidik',
             'jenis_jabatan' => 'Guru Kelas',
             'kabupaten' => 'Kabupaten Bone',
+            'satuan_pendidikan' => 'SD Negeri 1 Bone',
         ]);
         $guru->id = 12726;
 
@@ -80,6 +81,7 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $this->assertSame('assessment-target:115844', $document['_id']);
         $this->assertSame(115844, $document['assignment_target_id']);
         $this->assertSame('A. NUR ERNY, S.Pd', $document['user']['nama']);
+        $this->assertSame('SD Negeri 1 Bone', $document['user']['nama_sekolah']);
         $this->assertSame(2, count($document['forms']));
         $this->assertSame('portofolio', $document['forms'][0]['instrument_type']);
         $this->assertSame('studi_kasus', $document['forms'][1]['instrument_type']);
@@ -144,6 +146,39 @@ class AssessmentAssignmentTargetDocumentBuilderTest extends TestCase
         $this->assertArrayNotHasKey('total_questions', $document['meta']);
         $this->assertArrayNotHasKey('randomization', $document['meta']);
         $this->assertSame('assignment', $document['meta']['snapshot_source']);
+    }
+
+    public function test_it_writes_null_school_metadata_when_school_is_unknown(): void
+    {
+        $randomizer = Mockery::mock(AssessmentQuestionRandomizerService::class);
+        $randomizer->shouldReceive('buildSnapshot')->once()->andReturn([
+            'assessments' => [],
+            'meta' => [],
+        ]);
+        $randomizer->shouldReceive('randomizeSnapshotForTarget')
+            ->once()
+            ->andReturnUsing(fn (array $snapshot): array => $snapshot);
+
+        $assignment = new AssessmentAssignment(['target_ketenagaan' => 'tenaga_pendidik']);
+        $assignment->id = 34;
+        $assignment->setRelation('combination', null);
+
+        $guru = new Guru(['nama_lengkap' => 'Guru Tanpa Sekolah']);
+        $guru->id = 12726;
+
+        $target = new AssessmentAssignmentTarget(['status' => 'ditugaskan']);
+        $target->id = 115844;
+        $target->setRelation('assignment', $assignment);
+        $target->setRelation('guru', $guru);
+        $target->setRelation('combination', null);
+        $target->setRelation('attempt', null);
+
+        $document = (new AssessmentAssignmentTargetDocumentBuilder(
+            $randomizer,
+            Mockery::mock(ScoringConfigNormalizer::class)
+        ))->document($target, $assignment);
+
+        $this->assertNull($document['user']['nama_sekolah']);
     }
 
     public function test_php_mongo_document_preserves_file_accept_metadata(): void

@@ -212,12 +212,18 @@ func targetUser(row TargetRow) any {
 	if job == nil {
 		job = nullString(row.Guru.Jabatan)
 	}
-	return map[string]any{
+	user := map[string]any{
 		"id": row.Guru.ID, "nama": nullString(row.Guru.Nama), "nik": nullString(row.Guru.NIK),
 		"nip": nullString(row.Guru.NIP), "nuptk": nullString(row.Guru.NUPTK), "email": nullString(row.Guru.Email),
 		"role": role, "jabatan": job, "kabupaten": nullString(row.Guru.Kabupaten),
 		"satuan_pendidikan": nullString(row.Guru.SatuanPendidikan),
 	}
+	schoolName := guruString(row.Guru.NamaSekolah)
+	if schoolName == "" {
+		schoolName = guruString(row.Guru.SatuanPendidikan)
+	}
+	user["nama_sekolah"] = schoolName
+	return user
 }
 
 func targetCombination(row TargetRow) any {

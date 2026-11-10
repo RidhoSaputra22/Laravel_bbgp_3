@@ -105,6 +105,7 @@ type GuruRow struct {
 	Kabupaten         sql.NullString
 	SatuanPendidikan  sql.NullString
 	NPSNSekolah       sql.NullString
+	NamaSekolah       sql.NullString
 	AlamatSatuan      sql.NullString
 	AlamatRumah       sql.NullString
 	NoHP              sql.NullString
@@ -180,7 +181,9 @@ func (d *Database) loadTargets(ctx context.Context, ids []int64) (map[int64]Targ
 			g.jabatan, g.status_kepegawaian, g.eksternal_jabatan, g.jenis_jabatan,
 			g.kategori_jabatan, g.tugas_jabatan, g.latar_jabatan, g.gender,
 			g.tempat_lahir, g.tgl_lahir, g.agama, g.pendidikan,
-			g.kabupaten, g.satuan_pendidikan, g.npsn_sekolah, g.alamat_satuan,
+			g.kabupaten, g.satuan_pendidikan, g.npsn_sekolah,
+			(SELECT s.nama_sekolah FROM sekolahs s WHERE s.npsn_sekolah = g.npsn_sekolah LIMIT 1),
+			g.alamat_satuan,
 			g.alamat_rumah, g.no_hp, g.no_wa, g.npwp, g.no_rek, g.jenis_bank,
 			attempt.structure_snapshot
 		FROM assessment_assignment_targets t
@@ -213,7 +216,8 @@ func (d *Database) loadTargets(ctx context.Context, ids []int64) (map[int64]Targ
 			&guru.Jabatan, &guru.StatusKepegawaian, &guru.EksternalJabatan,
 			&guru.JenisJabatan, &guru.KategoriJabatan, &guru.TugasJabatan, &guru.LatarJabatan,
 			&guru.Gender, &guru.TempatLahir, &guru.TglLahir, &guru.Agama, &guru.Pendidikan,
-			&guru.Kabupaten, &guru.SatuanPendidikan, &guru.NPSNSekolah, &guru.AlamatSatuan,
+			&guru.Kabupaten, &guru.SatuanPendidikan, &guru.NPSNSekolah, &guru.NamaSekolah,
+			&guru.AlamatSatuan,
 			&guru.AlamatRumah, &guru.NoHP, &guru.NoWA, &guru.NPWP, &guru.NoRek, &guru.JenisBank,
 			&row.Attempt,
 		); err != nil {
