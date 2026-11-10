@@ -105,7 +105,7 @@ class MongoAssessmentAssignmentTargetStore
                                     [
                                         '$eq' => [
                                             ['$size' => [
-                                                '$objectToArray' => ['$ifNull' => ['$user.metadata', []]],
+                                                '$objectToArray' => ['$ifNull' => ['$user.metadata', new \stdClass()]],
                                             ]],
                                             0,
                                         ],

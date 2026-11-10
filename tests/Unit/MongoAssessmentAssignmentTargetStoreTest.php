@@ -50,6 +50,8 @@ class MongoAssessmentAssignmentTargetStoreTest extends TestCase
         $operation = $collection->operations[0]['updateOne'];
         $this->assertSame(['$set' => ['user.nama_sekolah' => 'SD Negeri 1 Bone']], $operation[1][0]);
         $this->assertSame(['$unset' => 'user.metadata.nama_sekolah'], $operation[1][1]);
+        $fallback = $operation[1][2]['$set']['user.metadata']['$cond'][0]['$eq'][0]['$size']['$objectToArray']['$ifNull'][1];
+        $this->assertInstanceOf(\stdClass::class, $fallback);
         $this->assertFalse($operation[2]['upsert']);
         $this->assertArrayNotHasKey('replaceOne', $collection->operations[0]);
         $this->assertArrayNotHasKey('deleteMany', $collection->operations[0]);
