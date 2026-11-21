@@ -6,6 +6,8 @@ use App\Models\Kegiatan;
 use App\Models\PesertaKegiatan;
 use App\Models\Rtl;
 use App\Models\RtlDocument;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -110,16 +112,13 @@ class RtlController extends Controller
             $validated = $request->validate([
                 'status' => 'required|in:pending,approved,rejected',
                 'admin_notes' => 'nullable|string|max:5000',
-                'certificate' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
             ]);
 
             $rtl->status = $validated['status'];
             $rtl->admin_notes = $validated['admin_notes'] ?? null;
 
-            if ($validated['status'] == 'approved' && $request->hasFile('certificate')) {
-                // Simpan sertifikat ke storage
-                $path = $request->file('certificate')->store('sertifikat', 'private_uploads');
-                $rtl->certificate_file = $path;
+            if ($validated['status'] === 'approved') {
+                $rtl->certificate_file = $this->generateCertificate($rtl);
             }
 
             $rtl->save();
@@ -127,6 +126,68 @@ class RtlController extends Controller
         }
 
         return redirect()->back()->with('error', 'Gagal memproses pengajuan.');
+    }
+
+    private function generateCertificate(Rtl $rtl): string
+    {
+        $rtl->loadMissing(['kegiatan.penomoran', 'user']);
+
+        $participant = PesertaKegiatan::query()
+            ->where('no_ktp', $rtl->no_ktp)
+            ->where('id_kegiatan', $rtl->id_kegiatan)
+            ->first();
+
+        $activity = $rtl->kegiatan;
+        $startDate = Carbon::parse($activity?->tgl_kegiatan ?? now());
+        $endDate = $activity?->tgl_selesai ? Carbon::parse($activity->tgl_selesai) : null;
+        $year = $startDate->year;
+        $number = $activity?->penomoran?->no_surat ?: sprintf('%04d/BBGTK-SULSEL/RTL/%d', $rtl->id, $year);
+
+        $backgroundPath = public_path('img_template/bg-sertifikat.png');
+        $logoPath = public_path('img_template/iconbbgp.png');
+
+        abort_unless(is_file($backgroundPath) && is_file($logoPath), 500, 'Template sertifikat tidak ditemukan.');
+
+        $pdf = Pdf::loadView('pages.user.rtl.certificate', [
+            'background' => base64_encode(file_get_contents($backgroundPath)),
+            'logo' => base64_encode(file_get_contents($logoPath)),
+            'number' => $number,
+            'participantName' => $participant?->nama ?: ($rtl->user?->nama_lengkap ?: $rtl->no_ktp),
+            'institution' => $participant?->instansi ?: ($rtl->user?->satuan_pendidikan ?: '-'),
+            'participantRole' => ucfirst($participant?->status_keikutpesertaan ?: 'peserta'),
+            'activityName' => $activity?->nama_kegiatan ?: 'Kegiatan BBGTK Sulawesi Selatan',
+            'activityDate' => $this->formatCertificateDate($startDate, $endDate),
+            'activityPlace' => $activity?->tempat_kegiatan ?: 'Makassar',
+            'issueDate' => $this->formatCertificateDate(Carbon::now()),
+        ])->setPaper('a4', 'landscape');
+
+        $path = 'sertifikat/rtl-'.$rtl->id.'.pdf';
+        Storage::disk('private_uploads')->put($path, $pdf->output());
+        if ($rtl->certificate_file && $rtl->certificate_file !== $path) {
+            Storage::disk('private_uploads')->delete($rtl->certificate_file);
+        }
+
+        return $path;
+    }
+
+    private function formatCertificateDate(Carbon $start, ?Carbon $end = null): string
+    {
+        $months = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember',
+        ];
+
+        $startLabel = $start->day.' '.$months[$start->month].' '.$start->year;
+        if (!$end || $end->isSameDay($start)) {
+            return $startLabel;
+        }
+
+        if ($end->year === $start->year && $end->month === $start->month) {
+            return $start->day.' s.d. '.$end->day.' '.$months[$end->month].' '.$end->year;
+        }
+
+        return $startLabel.' s.d. '.$end->day.' '.$months[$end->month].' '.$end->year;
     }
 
     public function deleteDocument($id)

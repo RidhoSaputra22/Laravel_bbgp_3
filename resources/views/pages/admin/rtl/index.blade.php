@@ -10,7 +10,7 @@
          <div class="section-body">
             <h2 class="section-title">Review Dokumen RTL Peserta</h2>
             <p class="section-lead">
-               Verifikasi dokumen RTL yang diunggah peserta untuk penerbitan sertifikat.
+               Verifikasi dokumen RTL yang diunggah peserta. Saat disetujui, sertifikat akan dibuat otomatis.
             </p>
 
             <div class="row">
@@ -95,7 +95,7 @@
                   <span aria-hidden="true">&times;</span>
                </button>
             </div>
-            <form id="reviewForm" action="" method="POST" enctype="multipart/form-data">
+            <form id="reviewForm" action="" method="POST">
                @csrf
                <div class="modal-body">
                   <div class="row">
@@ -126,13 +126,12 @@
                                  </select>
                               </div>
 
-                              <div class="form-group mb-3" id="certUploadGroup" style="display:none;">
-                                 <label class="font-weight-bold text-success">Upload Sertifikat</label>
+                              <div class="form-group mb-3" id="certGenerateGroup" style="display:none;">
+                                 <label class="font-weight-bold text-success">Generate Sertifikat</label>
                                  <div id="existingCert" class="mb-2" style="display:none;">
-                                    <span class="badge badge-success">Sertifikat sudah ada</span>
+                                    <span class="badge badge-success">Sertifikat akan dibuat ulang saat disimpan</span>
                                  </div>
-                                 <input type="file" name="certificate" class="form-control" accept=".pdf,.doc,.docx">
-                                 <small class="text-muted">Upload file baru untuk mengganti yang lama.</small>
+                                 <small class="text-muted">Sistem menggunakan data peserta dan kegiatan yang telah disetujui.</small>
                               </div>
 
                               <div class="form-group mb-0">
@@ -221,11 +220,9 @@
 
          function toggleCertUpload() {
             if ($('#revStatusSelect').val() == 'approved') {
-               $('#certUploadGroup').show();
-               $('input[name="certificate"]').attr('required', $('#existingCert').is(':hidden'));
+               $('#certGenerateGroup').show();
             } else {
-               $('#certUploadGroup').hide();
-               $('input[name="certificate"]').attr('required', false);
+               $('#certGenerateGroup').hide();
             }
          }
 
