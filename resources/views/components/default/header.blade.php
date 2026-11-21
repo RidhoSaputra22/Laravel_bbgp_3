@@ -23,9 +23,11 @@
                 <div class="d-sm-none d-lg-inline-block">Hi, {{ Session('name') }}</div>
             </a>
             <div class="dropdown-menu dropdown-menu-right">
-                <a href="{{ $profileUrl }}" class="dropdown-item has-icon">
-                    <i class="far fa-user"></i> Profile
-                </a>
+                @if ($currentRole !== 'panitia')
+                    <a href="{{ $profileUrl }}" class="dropdown-item has-icon">
+                        <i class="far fa-user"></i> Profile
+                    </a>
+                @endif
                
                 <div class="dropdown-divider"></div>
             <a href="{{ route('logout') }}" class="dropdown-item has-icon text-danger">

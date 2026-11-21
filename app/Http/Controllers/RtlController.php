@@ -17,7 +17,7 @@ class RtlController extends Controller
         $role = session('role');
         $no_ktp = session('no_ktp');
 
-        if (in_array($role, ['admin', 'superadmin', 'kepala', 'database'], true)) {
+        if (in_array($role, ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true)) {
             $rtls = Rtl::with(['kegiatan', 'user', 'documents'])->orderByDesc('created_at')->get();
             return view('pages.admin.rtl.index', [
                 'menu' => 'rtl',
@@ -102,7 +102,7 @@ class RtlController extends Controller
 
     public function update(Request $request, $id)
     {
-        abort_unless(in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true), 403);
+        abort_unless(in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true), 403);
 
         $rtl = Rtl::findOrFail($id);
 
@@ -132,7 +132,7 @@ class RtlController extends Controller
     public function deleteDocument($id)
     {
         $doc = RtlDocument::findOrFail($id);
-        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true);
         abort_unless($isAdmin || (string) $doc->rtl->no_ktp === (string) session('no_ktp'), 403);
         if ($doc->rtl->status == 'approved') {
             return response()->json(['success' => false, 'message' => 'Tidak bisa menghapus dokumen yang sudah disetujui.']);
@@ -209,7 +209,7 @@ class RtlController extends Controller
 
     private function authorizeRtl(Rtl $rtl): void
     {
-        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database'], true);
+        $isAdmin = in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true);
 
         abort_unless($isAdmin || (string) $rtl->no_ktp === (string) session('no_ktp'), 403);
     }

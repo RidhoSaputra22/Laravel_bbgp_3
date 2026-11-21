@@ -45,6 +45,7 @@ class AuthController extends Controller
                     'kegiatan',
                     'keuangan',
                     'pegawai-kabupaten',
+                    'panitia',
                 ]),
             ],
         ]);
@@ -94,7 +95,7 @@ class AuthController extends Controller
         ]);
         $user_found = User::where('username', $validated['username'])->first();
 
-        if (! $user_found || ! in_array($user_found->role, ['admin', 'superadmin', 'kepala', 'pegawai-kabupaten'])) {
+        if (! $user_found || ! in_array($user_found->role, ['admin', 'superadmin', 'kepala', 'pegawai-kabupaten', 'panitia'])) {
             return redirect()->back()->with('message', 'gagal login');
         }
 
@@ -119,6 +120,10 @@ class AuthController extends Controller
 
             if ($user->role === 'pegawai-kabupaten') {
                 return redirect()->route('peserta.index')->with('message', 'sukses login');
+            }
+
+            if ($user->role === 'panitia') {
+                return redirect()->route('guru.index')->with('message', 'sukses login');
             }
 
             if ($user->role == 'pegawai') {

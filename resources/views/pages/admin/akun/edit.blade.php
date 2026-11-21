@@ -78,6 +78,8 @@
                                           BBGTK</option>
                                        <option {{ $datas->role == 'pegawai-kabupaten' ? 'selected' : '' }} value="pegawai-kabupaten">
                                           Pegawai Kabupaten</option>
+                                       <option {{ $datas->role == 'panitia' ? 'selected' : '' }} value="panitia">
+                                          Panitia</option>
                                        <option {{ $datas->role == 'database' ? 'selected' : '' }} value="database">
                                           Database</option>
                                        <option {{ $datas->role == 'superadmin' ? 'selected' : '' }} value="superadmin">

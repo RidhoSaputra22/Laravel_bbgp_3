@@ -66,6 +66,7 @@
                                                    <option value="stakeholder">Stakeholder</option>
                                                    <option value="pegawai">Pegawai BBGTK</option>
                                                    <option value="pegawai-kabupaten">Pegawai Kabupaten</option>
+                                                   <option value="panitia">Panitia</option>
                                                    <option value="superadmin">Super Admin</option>
                                                 </select>
                                              </div>

@@ -273,6 +273,7 @@ class AkunController extends Controller
             'kegiatan',
             'database',
             'pegawai-kabupaten',
+            'panitia',
         ];
     }
 

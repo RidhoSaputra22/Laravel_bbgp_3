@@ -19,7 +19,7 @@
                     : ($currentRole === 'pegawai-kabupaten' ? route('peserta.index') : route('dashboard')));
          @endphp
 
-         @if ($currentRole !== 'pegawai-kabupaten')
+         @if ($currentRole !== 'pegawai-kabupaten' && $currentRole !== 'panitia')
             <li class="menu-header">Dashboard</li>
             <li class="nav-item  {{ $menu == 'dashboard' ? 'active' : '' }}">
                <a href="{{ $dashboardUrl }}" class="nav-link "><i class="fas fa-fire"></i><span>Dashboard</span></a>
@@ -309,6 +309,39 @@
                   </li>
 
                </ul>
+            </li>
+         @endif
+
+         @if (session('role') == 'panitia')
+            <li class="{{ $menu == 'guru' ? 'active' : '' }}">
+               <a class="nav-link" href="{{ route('guru.index') }}">
+                  <i class="fas fa-chalkboard-teacher"></i> <span>Data Eksternal</span>
+               </a>
+            </li>
+
+            <li class="{{ $menu == 'internal' ? 'active' : '' }}">
+               <a class="nav-link" href="{{ route('internal.index') }}">
+                  <i class="fas fa-users"></i> <span>Data Internal</span>
+               </a>
+            </li>
+
+            <li class="nav-item dropdown {{ $menu == 'kegiatan' || $menu == 'peserta' ? 'active' : '' }}">
+               <a href="#" class="nav-link has-dropdown"><i class="fas fa-calendar-week"></i>
+                  <span>Data Kegiatan</span></a>
+               <ul class="dropdown-menu">
+                  <li class="{{ $menu == 'kegiatan' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('kegiatan.index') }}">Kegiatan</a>
+                  </li>
+                  <li class="{{ $menu == 'peserta' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('peserta.index') }}">Peserta Kegiatan</a>
+                  </li>
+               </ul>
+            </li>
+
+            <li class="{{ $menu == 'rtl' ? 'active' : '' }}">
+               <a class="nav-link" href="{{ route('rtl.index') }}">
+                  <i class="fas fa-file-signature"></i> <span>Data RTL</span>
+               </a>
             </li>
          @endif
 
