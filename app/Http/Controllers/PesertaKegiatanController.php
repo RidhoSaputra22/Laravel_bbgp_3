@@ -394,7 +394,12 @@ class PesertaKegiatanController extends Controller
     {
         return Kegiatan::query()->when(
             $this->kabupaten(),
-            fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+            fn ($query, $kabupaten) => $query->whereIn(
+                'id',
+                PesertaKegiatan::query()
+                    ->select('id_kegiatan')
+                    ->where('kabupaten', $kabupaten)
+            )
         );
     }
 

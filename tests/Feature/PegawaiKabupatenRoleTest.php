@@ -207,6 +207,19 @@ class PegawaiKabupatenRoleTest extends TestCase
         $this->get(route('print.absensi.peserta', ['kegiatan_id' => $otherActivity->id]))->assertForbidden();
     }
 
+    public function test_county_participant_filter_lists_activities_with_own_participants(): void
+    {
+        $countyUser = $this->makeUser('pegawai-kabupaten', 'soppeng-filter', self::OWN_COUNTY);
+        $activity = $this->makeActivity('Kegiatan Lama Soppeng', self::OTHER_COUNTY);
+        $this->makeParticipant($activity, 'Peserta Soppeng', self::OWN_COUNTY);
+
+        $this->actingAs($countyUser)->withSession($this->countySession($countyUser));
+
+        $this->get(route('peserta.index'))
+            ->assertOk()
+            ->assertSee('Kegiatan Lama Soppeng');
+    }
+
     private function makeUser(string $role, string $username, ?string $kabupaten = null): User
     {
         return User::query()->create([

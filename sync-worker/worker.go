@@ -104,7 +104,8 @@ func (w *Worker) RunUntilEmpty(ctx context.Context, batchTimeout time.Duration) 
 
 	batches := 0
 	processed := 0
-	renderProgress(processed, total)
+	lastPercent := -1
+	renderProgress(processed, total, &lastPercent)
 	for {
 		batchCtx, cancel := context.WithTimeout(ctx, batchTimeout)
 		batchProcessed, err := w.runOnce(batchCtx, false)
@@ -114,7 +115,7 @@ func (w *Worker) RunUntilEmpty(ctx context.Context, batchTimeout time.Duration) 
 			return err
 		}
 		processed += batchProcessed
-		renderProgress(processed, total)
+		renderProgress(processed, total, &lastPercent)
 		if batchProcessed == 0 {
 			break
 		}
@@ -125,28 +126,43 @@ func (w *Worker) RunUntilEmpty(ctx context.Context, batchTimeout time.Duration) 
 	return nil
 }
 
-func renderProgress(processed, total int) {
+func renderProgress(processed, total int, lastPercent *int) {
 	const width = 40
 	if total < processed {
 		total = processed
 	}
-	if total == 0 {
-		fmt.Printf("\rMongoDB sync [%s] 0/0 (100%%)", strings.Repeat("=", width))
-		return
+	percent := 100
+	filled := width
+	if total > 0 {
+		percent = processed * 100 / total
+		filled = processed * width / total
 	}
-
-	percent := processed * 100 / total
-	filled := processed * width / total
 	if filled > width {
 		filled = width
 	}
-	fmt.Printf("\rMongoDB sync [%s%s] %d/%d (%3d%%)",
+	if !stdoutIsTerminal() && *lastPercent == percent {
+		return
+	}
+
+	line := fmt.Sprintf("MongoDB sync [%s%s] %d/%d (%3d%%)",
 		strings.Repeat("=", filled),
 		strings.Repeat("-", width-filled),
 		processed,
 		total,
 		percent,
 	)
+	if stdoutIsTerminal() {
+		fmt.Printf("\033[2K\r%s", line)
+	} else {
+		fmt.Println(line)
+	}
+	*lastPercent = percent
+}
+
+func stdoutIsTerminal() bool {
+	info, err := os.Stdout.Stat()
+
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
 }
 
 func (w *Worker) failBatch(ctx context.Context, events []OutboxEvent, cause error) error {
@@ -189,22 +205,23 @@ func (w *Worker) Rebuild(ctx context.Context, kind string, reset bool) error {
 
 	processed := 0
 	total := len(targetIDs) + len(validatorIDs)
-	renderProgress(processed, total)
+	lastPercent := -1
+	renderProgress(processed, total, &lastPercent)
 	defer fmt.Println()
 	if targetIDs != nil {
-		if err := w.rebuildTargets(ctx, targetIDs, &processed, total); err != nil {
+		if err := w.rebuildTargets(ctx, targetIDs, &processed, total, &lastPercent); err != nil {
 			return err
 		}
 	}
 	if validatorIDs != nil {
-		if err := w.rebuildValidators(ctx, validatorIDs, &processed, total); err != nil {
+		if err := w.rebuildValidators(ctx, validatorIDs, &processed, total, &lastPercent); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (w *Worker) rebuildTargets(ctx context.Context, ids []int64, processed *int, total int) error {
+func (w *Worker) rebuildTargets(ctx context.Context, ids []int64, processed *int, total int, lastPercent *int) error {
 	for start := 0; start < len(ids); start += w.config.BatchSize {
 		end := start + w.config.BatchSize
 		if end > len(ids) {
@@ -218,11 +235,11 @@ func (w *Worker) rebuildTargets(ctx context.Context, ids []int64, processed *int
 			return err
 		}
 		*processed += end - start
-		renderProgress(*processed, total)
+		renderProgress(*processed, total, lastPercent)
 	}
 	return nil
 }
-func (w *Worker) rebuildValidators(ctx context.Context, ids []int64, processed *int, total int) error {
+func (w *Worker) rebuildValidators(ctx context.Context, ids []int64, processed *int, total int, lastPercent *int) error {
 	for start := 0; start < len(ids); start += w.config.BatchSize {
 		end := start + w.config.BatchSize
 		if end > len(ids) {
@@ -236,7 +253,7 @@ func (w *Worker) rebuildValidators(ctx context.Context, ids []int64, processed *
 			return err
 		}
 		*processed += end - start
-		renderProgress(*processed, total)
+		renderProgress(*processed, total, lastPercent)
 	}
 	return nil
 }
