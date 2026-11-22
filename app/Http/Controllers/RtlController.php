@@ -104,7 +104,8 @@ class RtlController extends Controller
 
     public function update(Request $request, $id)
     {
-        abort_unless(in_array(strtolower(trim((string) session('role'))), ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true), 403);
+        $role = strtolower(trim((string) (Auth::user()?->role ?? session('role'))));
+        abort_unless(in_array($role, ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true), 403);
 
         $rtl = Rtl::findOrFail($id);
 
@@ -112,24 +113,7 @@ class RtlController extends Controller
             $validated = $request->validate([
                 'status' => 'required|in:pending,approved,rejected',
                 'admin_notes' => 'nullable|string|max:5000',
-                'certificate_data' => 'nullable|array',
-                'certificate_data.number' => 'nullable|string|max:255',
-                'certificate_data.participantName' => 'nullable|string|max:255',
-                'certificate_data.institution' => 'nullable|string|max:255',
-                'certificate_data.participantRole' => 'nullable|string|max:255',
-                'certificate_data.activityName' => 'nullable|string|max:500',
-                'certificate_data.activityDate' => 'nullable|string|max:255',
-                'certificate_data.activityPlace' => 'nullable|string|max:255',
-                'certificate_data.issueDate' => 'nullable|string|max:255',
-                'certificate_data.signerName' => 'nullable|string|max:255',
-                'certificate_data.signerNip' => 'nullable|string|max:255',
-                'certificate_data.qrLink' => 'nullable|string|max:2048',
-                'certificate_data.qrImage' => 'nullable|string|max:300000',
-                'certificate_data.materialsTitle' => 'nullable|string|max:500',
-                'certificate_data.materials' => 'nullable|array|max:50',
-                'certificate_data.materials.*' => 'nullable|array',
-                'certificate_data.materials.*.materi' => 'nullable|string|max:500',
-                'certificate_data.materials.*.jp' => 'nullable|numeric|min:0|max:999',
+                ...$this->certificateDataValidationRules(),
             ]);
 
             $rtl->status = $validated['status'];
@@ -148,6 +132,50 @@ class RtlController extends Controller
         }
 
         return redirect()->back()->with('error', 'Gagal memproses pengajuan.');
+    }
+
+    public function saveCertificate(Request $request, $id)
+    {
+        $role = strtolower(trim((string) (Auth::user()?->role ?? session('role'))));
+        abort_unless(in_array($role, ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true), 403);
+
+        $rtl = Rtl::findOrFail($id);
+        $validated = $request->validate($this->certificateDataValidationRules());
+
+        $rtl->certificate_data = $this->certificateData($rtl, $validated['certificate_data'] ?? []);
+        if ($rtl->status === 'approved') {
+            $rtl->certificate_file = $this->generateCertificate($rtl, $rtl->certificate_data);
+        }
+        $rtl->save();
+
+        return response()->json([
+            'success' => true,
+            'certificate_data' => $rtl->certificate_data,
+        ]);
+    }
+
+    private function certificateDataValidationRules(): array
+    {
+        return [
+            'certificate_data' => 'nullable|array',
+            'certificate_data.number' => 'nullable|string|max:255',
+            'certificate_data.participantName' => 'nullable|string|max:255',
+            'certificate_data.institution' => 'nullable|string|max:255',
+            'certificate_data.participantRole' => 'nullable|string|max:255',
+            'certificate_data.activityName' => 'nullable|string|max:500',
+            'certificate_data.activityDate' => 'nullable|string|max:255',
+            'certificate_data.activityPlace' => 'nullable|string|max:255',
+            'certificate_data.issueDate' => 'nullable|string|max:255',
+            'certificate_data.signerName' => 'nullable|string|max:255',
+            'certificate_data.signerNip' => 'nullable|string|max:255',
+            'certificate_data.qrLink' => 'nullable|string|max:2048',
+            'certificate_data.qrImage' => 'nullable|string|max:300000',
+            'certificate_data.materialsTitle' => 'nullable|string|max:500',
+            'certificate_data.materials' => 'nullable|array|max:50',
+            'certificate_data.materials.*' => 'nullable|array',
+            'certificate_data.materials.*.materi' => 'nullable|string|max:500',
+            'certificate_data.materials.*.jp' => 'nullable|numeric|min:0|max:999',
+        ];
     }
 
     private function generateCertificate(Rtl $rtl, array $certificateData): string
@@ -219,7 +247,7 @@ class RtlController extends Controller
             $defaults[$key] = trim(strip_tags($value)) !== '' ? trim($value) : $default;
         }
 
-        $defaults['qrLink'] = trim((string) ($overrides['qrLink'] ?? ''));
+        $defaults['qrLink'] = trim((string) ($overrides['qrLink'] ?? '')) ?: 'https://example.com';
         $qrImage = trim((string) ($overrides['qrImage'] ?? ''));
         $defaults['qrImage'] = $defaults['qrLink'] !== '' && str_starts_with($qrImage, 'data:image/')
             ? $qrImage
@@ -334,12 +362,26 @@ class RtlController extends Controller
 
         abort_unless($rtl->certificate_file, 404);
 
+        if (app()->environment('local')) {
+            // Regenerate on every local preview so template/CSS changes are visible immediately.
+            $rtl->certificate_file = $this->generateCertificate(
+                $rtl,
+                $this->certificateData($rtl, $rtl->certificate_data ?? [])
+            );
+        }
+
         $path = 'sertifikat/'.basename($rtl->certificate_file);
         $disk = Storage::disk('private_uploads');
 
         abort_unless($disk->exists($path), 404);
 
-        return response()->file($disk->path($path));
+        return response()->file($disk->path($path), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="sertifikat-rtl-'.$rtl->id.'.pdf"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     public function reupload(Request $request, $id)

@@ -24,18 +24,24 @@
     position: absolute;
     top: 9mm;
     right: 18mm;
-    display: flex;
-    align-items: center;
-    gap: 2.5mm;
+    width: 43.5mm;
     height: 13mm;
 }
 
 .certificate-top-logo-quality {
+    position: absolute;
+    top: 1.6mm;
+    left: 0;
+    display: block;
     width: 22mm;
     height: auto;
 }
 
 .certificate-top-logo-ramah {
+    position: absolute;
+    top: 1.5mm;
+    right: 0;
+    display: block;
     width: 19mm;
     height: auto;
 }
@@ -49,6 +55,7 @@
 }
 
 .certificate-logo {
+    display: block;
     width: 19mm;
     height: 19mm;
     margin: 0 auto 1mm;
@@ -80,7 +87,7 @@
 .certificate-name {
     display: inline-block;
     border-bottom: 1px solid #111;
-    font-size: 17pt;
+    font-size: 11pt;
     font-weight: 700;
 }
 
@@ -104,21 +111,21 @@
 .certificate-signature {
     position: absolute;
     right: 0;
-    bottom: 18mm;
+    top: 135mm;
     left: 0;
     font-size: 11pt;
     line-height: 1.15;
 }
 
 .certificate-qr-wrap {
-    height: 19mm;
-    margin: .5mm auto 0;
+    height: 26mm;
+    margin: 1.5mm auto 0;
 }
 
 .certificate-qr {
     display: block;
-    width: 18mm;
-    height: 18mm;
+    width: 24mm;
+    height: 24mm;
     margin: 0 auto;
 }
 
@@ -160,11 +167,12 @@
 .certificate-materials-table {
     position: relative;
     z-index: 1;
-    width: calc(100% - 52mm);
+    width: 245mm;
     margin: 18mm 26mm 0;
     border-collapse: separate;
     border-spacing: 0;
-    table-layout: fixed;
+    table-layout: auto;
+    font-family: "Times New Roman", Times, serif;
     font-size: 12pt;
     text-align: left;
 }

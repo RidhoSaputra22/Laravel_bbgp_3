@@ -5,6 +5,11 @@
     </div>
 
     <table class="certificate-materials-table">
+        <colgroup>
+            <col style="width: 18mm">
+            <col style="width: 204mm">
+            <col style="width: 23mm">
+        </colgroup>
         <thead>
             <tr>
                 <th>NO</th>

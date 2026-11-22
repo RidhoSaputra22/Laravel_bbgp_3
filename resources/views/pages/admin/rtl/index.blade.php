@@ -56,6 +56,12 @@
          width: 100%;
       }
 
+      #reviewRtlModal #revAdminNotes {
+         height: 90px;
+         min-height: 90px;
+         resize: vertical;
+      }
+
       .certificate-editor-form {
          height: 100%;
          padding: 1.25rem;
@@ -581,6 +587,7 @@
             qrGenerationTimer: null,
             qrGenerationToken: 0,
             hasCertificate: false,
+            certificateSaving: false,
             requestToken: 0
          };
 
@@ -588,6 +595,18 @@
 
          function copyCertificateData(data) {
             return $.extend(true, {}, data || {});
+         }
+
+         function setCertificateSavingState(saving) {
+            rtlReviewState.certificateSaving = saving;
+
+            const modals = $('#certificateEditorModal, #reviewRtlModal');
+            modals.find('button, input, textarea, select')
+               .prop('disabled', saving)
+               .attr('aria-disabled', saving ? 'true' : 'false');
+            $('#certificateEditorModal [contenteditable]')
+               .attr('contenteditable', saving ? 'false' : 'true');
+            modals.attr('aria-busy', saving ? 'true' : 'false');
          }
 
          function sanitizeRichText(value) {
@@ -1066,7 +1085,51 @@
 
             rtlReviewState.certificateData = copyCertificateData(rtlReviewState.certificateDraft);
             syncCertificateDataInputs();
-            $('#certificateEditorModal').modal('hide');
+            // Serialize the inputs inside the container; serializing the div itself
+            // produces an empty payload because the div is not a form control.
+            const certificatePayload = $('#certificateDataInputs').find(':input').serialize();
+            const saveButton = $('#certificateCommitButton');
+            const originalSaveButtonHtml = saveButton.html();
+            setCertificateSavingState(true);
+            saveButton
+               .prop('disabled', true)
+               .attr('aria-busy', 'true')
+               .html('<i class="fas fa-spinner fa-spin mr-1" aria-hidden="true"></i> Menyimpan...');
+            const csrfToken = $('meta[name="csrf-token"]').attr('content') || '';
+
+            $.ajax({
+               url: `/dashboard/rtl/certificate/${rtlReviewState.activeId}`,
+               type: 'POST',
+               data: `${certificatePayload}&_token=${encodeURIComponent(csrfToken)}`,
+               headers: { Accept: 'application/json' }
+            }).done(function(response) {
+               rtlReviewState.certificateData = copyCertificateData(
+                  response.certificate_data || rtlReviewState.certificateData
+               );
+               syncCertificateDataInputs();
+               setCertificateSavingState(false);
+               $('#certificateEditorModal').modal('hide');
+
+               if (typeof iziToast !== 'undefined') {
+                  iziToast.success({
+                     title: 'Tersimpan',
+                     message: 'Data sertifikat berhasil disimpan ke database.'
+                  });
+               }
+            }).fail(function(xhr) {
+               if (typeof iziToast !== 'undefined') {
+                  iziToast.error({
+                     title: 'Gagal menyimpan',
+                     message: xhr.responseJSON?.message || 'Data sertifikat tidak dapat disimpan.'
+                  });
+               }
+            }).always(function() {
+               setCertificateSavingState(false);
+               saveButton
+                  .prop('disabled', false)
+                  .attr('aria-busy', 'false')
+                  .html(originalSaveButtonHtml);
+            });
          }
 
          function revShowFile(url, fileName) {
@@ -1101,6 +1164,12 @@
                resizeCertificatePreview();
             });
 
+            $('#certificateEditorModal').on('hide.bs.modal', function(event) {
+               if (rtlReviewState.certificateSaving) {
+                  event.preventDefault();
+               }
+            });
+
             $('#certificateEditorModal').on('hidden.bs.modal', function() {
                $('.modal-backdrop.certificate-editor-backdrop').removeClass('certificate-editor-backdrop');
                rtlReviewState.certificateEditorInitialData = {};
@@ -1115,9 +1184,21 @@
                }
             });
 
-            $('#reviewRtlModal').on('hide.bs.modal', function() {
+            $('#reviewRtlModal').on('hide.bs.modal', function(event) {
+               if (rtlReviewState.certificateSaving) {
+                  event.preventDefault();
+                  return;
+               }
+
                if ($('#certificateEditorModal').hasClass('show')) {
                   $('#certificateEditorModal').modal('hide');
+               }
+            });
+
+            $(document).on('keydown.certificateSaving', function(event) {
+               if (rtlReviewState.certificateSaving && event.key === 'Escape') {
+                  event.preventDefault();
+                  event.stopImmediatePropagation();
                }
             });
 

@@ -576,6 +576,7 @@ Route::group(
             Route::prefix('rtl')->middleware('AdminOnly:admin,superadmin,kepala,database,panitia')->group(function () {
                 Route::get('/', [RtlController::class, 'index'])->name('rtl.index');
                 Route::get('/{id}', [RtlController::class, 'show'])->name('rtl.show');
+                Route::post('/certificate/{id}', [RtlController::class, 'saveCertificate'])->name('rtl.certificate.save');
                 Route::post('/update/{id}', [RtlController::class, 'update'])->name('rtl.update');
             });
         });

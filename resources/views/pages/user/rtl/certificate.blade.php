@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        html, body { width: 297mm; height: 210mm; margin: 0; }
+        html, body { width: 297mm; height: 210mm; margin: 0; padding: 0; }
         @include('pages.user.rtl.certificate-styles')
     </style>
 </head>

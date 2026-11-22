@@ -103,9 +103,9 @@
                                        <td>{{ $rtl->admin_notes ?? '-' }}</td>
                                        <td>
                                           @if ($rtl->status == 'approved' && $rtl->certificate_file)
-                                             <a href="{{ $rtl->cert_url }}" class="btn btn-success btn-icon icon-left"
-                                                download>
-                                                <i class="fas fa-certificate"></i> Download Sertifikat
+                                             <a href="{{ $rtl->cert_url }}" target="_blank" rel="noopener"
+                                                class="btn btn-success btn-icon icon-left">
+                                                <i class="fas fa-certificate"></i> Lihat Sertifikat
                                              </a>
                                           @else
                                              <span class="text-muted small">Belum tersedia</span>
