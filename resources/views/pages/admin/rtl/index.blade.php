@@ -1,5 +1,126 @@
 @extends('layouts.app', ['title' => 'Manajemen RTL'])
 
+@push('styles')
+   <style>
+      @include('pages.user.rtl.certificate-styles')
+
+      .cert-editor-dialog {
+         width: calc(100% - 30px);
+         max-width: 1500px;
+      }
+
+      #certificateEditorModal {
+         z-index: 1060;
+      }
+
+      .modal-backdrop.certificate-editor-backdrop {
+         z-index: 1055;
+      }
+
+      #certificateEditorModal .modal-content {
+         max-height: calc(100vh - 30px);
+      }
+
+      #certificateEditorModal .modal-body {
+         overflow-y: auto;
+      }
+
+      .certificate-editor-form {
+         height: 100%;
+         padding: 1.25rem;
+         border: 1px solid #e4e6fc;
+         border-radius: .25rem;
+         background: #fff;
+      }
+
+      .certificate-editor-form .form-group {
+         margin-bottom: .85rem;
+      }
+
+      .certificate-editor-form label {
+         margin-bottom: .35rem;
+         font-size: .78rem;
+         font-weight: 600;
+         color: #34395e;
+      }
+
+      .certificate-preview-shell {
+         display: flex;
+         align-items: flex-start;
+         justify-content: center;
+         padding: 1rem;
+         border-radius: .25rem;
+         background: #f1f3f8;
+      }
+
+      .certificate-preview-viewport {
+         position: relative;
+         width: 100%;
+         overflow: hidden;
+         aspect-ratio: 297 / 210;
+      }
+
+      .certificate-preview-viewport .certificate-page {
+         position: absolute;
+         top: 0;
+         left: 0;
+         transform: scale(var(--certificate-preview-scale, 1));
+         transform-origin: top left;
+         box-shadow: 0 8px 25px rgba(31, 45, 61, .18);
+      }
+
+      .certificate-preview-viewport .certificate-materials-page {
+         position: absolute;
+         top: 0;
+         left: 0;
+         transform: scale(var(--certificate-preview-scale, 1));
+         transform-origin: top left;
+         box-shadow: 0 8px 25px rgba(31, 45, 61, .18);
+      }
+
+      .certificate-materials-editor-form .table {
+         margin-bottom: .75rem;
+         font-size: .72rem;
+      }
+
+      .certificate-materials-editor-form .table th {
+         color: #34395e;
+         font-size: .68rem;
+         text-align: center;
+      }
+
+      .certificate-materials-editor-form .table th:first-child,
+      .certificate-materials-editor-form .table td:first-child {
+         width: 2rem;
+         text-align: center;
+      }
+
+      .certificate-materials-editor-form .table th:last-child,
+      .certificate-materials-editor-form .table td:last-child {
+         width: 2.5rem;
+         text-align: center;
+      }
+
+      .certificate-materials-editor-form .table .form-control {
+         min-width: 0;
+         padding: .2rem .35rem;
+         font-size: .72rem;
+      }
+
+      .certificate-materials-empty-row td {
+         padding: .75rem .35rem;
+         color: #98a0b3;
+         text-align: center;
+      }
+
+      @media (max-width: 991.98px) {
+         .certificate-preview-shell {
+            margin-top: 1rem;
+         }
+      }
+   </style>
+@endpush
+
 @section('content')
    <div class="main-content">
       <section class="section">
@@ -131,6 +252,11 @@
                                  <div id="existingCert" class="mb-2" style="display:none;">
                                     <span class="badge badge-success">Sertifikat akan dibuat ulang saat disimpan</span>
                                  </div>
+                                 <button type="button" class="btn btn-outline-success btn-sm btn-block mb-2"
+                                    id="openCertificateEditorButton" onclick="openCertificateEditor()">
+                                    <i class="fas fa-edit mr-1"></i>
+                                    <span id="certificateEditorButtonText">Buat Sertifikat</span>
+                                 </button>
                                  <small class="text-muted">Sistem menggunakan data peserta dan kegiatan yang telah disetujui.</small>
                               </div>
 
@@ -168,6 +294,7 @@
                      </div>
                   </div>
                </div>
+               <div id="certificateDataInputs"></div>
                <div class="modal-footer bg-whitesmoke br">
                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                   <button type="submit" class="btn btn-primary px-4">Simpan Keputusan Review</button>
@@ -177,66 +304,632 @@
       </div>
    </div>
 
+   <!-- Modal Editor Sertifikat -->
+   <div class="modal fade" id="certificateEditorModal" tabindex="-1" role="dialog"
+      aria-labelledby="certificateEditorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered cert-editor-dialog" role="document">
+         <div class="modal-content">
+            <div class="modal-header">
+               <div>
+                  <h5 class="modal-title" id="certificateEditorModalLabel">Buat/Edit Sertifikat</h5>
+                  <small class="text-muted">Perubahan akan digunakan saat keputusan review disimpan.</small>
+               </div>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+               </button>
+            </div>
+            <div class="modal-body">
+               <div class="row">
+                  <div class="col-lg-4">
+                     <div class="certificate-editor-form" id="certificateStepOneForm">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                           <h6 class="mb-0">Data Sertifikat</h6>
+                           <button type="button" class="btn btn-light btn-sm rounded-sm px-3"
+                              id="resetCertificateEditorButton" onclick="resetCertificateDraft()"
+                              title="Kembalikan data awal">
+                              <i class="fas fa-undo-alt mr-1" aria-hidden="true"></i> Reset
+                           </button>
+                        </div>
+
+                        <div class="form-group">
+                           <label for="certFieldNumber">Nomor Sertifikat</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldNumber"
+                              data-certificate-field="number">
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldParticipantName">Nama Peserta</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldParticipantName"
+                              data-certificate-field="participantName">
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldInstitution">Instansi/Sekolah</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldInstitution"
+                              data-certificate-field="institution">
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldParticipantRole">Peran Peserta</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldParticipantRole"
+                              data-certificate-field="participantRole">
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldActivityName">Nama Kegiatan</label>
+                           <textarea class="form-control form-control-sm" id="certFieldActivityName" rows="2"
+                              data-certificate-field="activityName"></textarea>
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldActivityDate">Tanggal Kegiatan</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldActivityDate"
+                              data-certificate-field="activityDate" placeholder="Contoh: 1 Januari 2026">
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldActivityPlace">Tempat Kegiatan</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldActivityPlace"
+                              data-certificate-field="activityPlace">
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldIssueDate">Tanggal Terbit</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldIssueDate"
+                              data-certificate-field="issueDate" placeholder="Contoh: 1 Januari 2026">
+                        </div>
+                        <div class="form-row">
+                           <div class="form-group col-md-7">
+                              <label for="certFieldSignerName">Nama Penandatangan</label>
+                              <input type="text" class="form-control form-control-sm" id="certFieldSignerName"
+                                 data-certificate-field="signerName">
+                           </div>
+                           <div class="form-group col-md-5">
+                              <label for="certFieldSignerNip">NIP</label>
+                              <input type="text" class="form-control form-control-sm" id="certFieldSignerNip"
+                                 data-certificate-field="signerNip">
+                           </div>
+                        </div>
+                        <div class="form-group">
+                           <label for="certFieldQrLink">Link QR</label>
+                           <input type="url" class="form-control form-control-sm" id="certFieldQrLink"
+                              data-certificate-field="qrLink" placeholder="https://...">
+                           <small class="form-text text-muted">QR akan tampil di bawah tulisan Kepala Balai.</small>
+                        </div>
+                     </div>
+                     <div class="certificate-editor-form certificate-materials-editor-form" id="certificateStepTwoForm"
+                        style="display:none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                           <div>
+                              <h6 class="mb-0">Daftar Materi</h6>
+                              <small class="text-muted">Tambahkan materi dan jumlah JP untuk halaman berikutnya.</small>
+                           </div>
+                           <button type="button" class="btn btn-light btn-sm rounded-sm px-3"
+                              onclick="resetCertificateDraft()" title="Kembalikan data awal">
+                              <i class="fas fa-undo-alt mr-1" aria-hidden="true"></i> Reset
+                           </button>
+                        </div>
+
+                        <div class="form-group">
+                           <label for="certFieldMaterialsTitle">Kegiatan</label>
+                           <input type="text" class="form-control form-control-sm" id="certFieldMaterialsTitle"
+                              data-certificate-field="materialsTitle">
+                        </div>
+
+                        <div class="table-responsive">
+                           <table class="table table-sm table-bordered">
+                              <thead>
+                                 <tr>
+                                    <th>No</th>
+                                    <th>Materi</th>
+                                    <th>JP</th>
+                                    <th aria-label="Aksi"></th>
+                                 </tr>
+                              </thead>
+                              <tbody id="certificateMaterialsRows"></tbody>
+                           </table>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                           <button type="button" class="btn btn-outline-primary btn-sm"
+                              onclick="addCertificateMaterialRow()">
+                              <i class="fas fa-plus mr-1"></i> Tambah Baris
+                           </button>
+                           <span class="text-muted small">Total JP: <strong id="certificateMaterialsTotal">0</strong></span>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="col-lg-8">
+                     <div class="certificate-preview-shell">
+                        <div class="certificate-preview-viewport" aria-label="Preview sertifikat">
+                           @include('pages.user.rtl._certificate-content', [
+                              'backgroundSrc' => asset('img_template/bg-sertifikat.png'),
+                              'logoSrc' => asset('img/logo-tutwuri.png'),
+                              'topLogoLeftSrc' => asset('img/pendidikan-bermutu.png'),
+                              'topLogoRightSrc' => asset('img/kemendikdasmen-ramah.png'),
+                              'qrImageSrc' => '',
+                           ])
+                        </div>
+                        <div class="certificate-preview-viewport" id="certificateMaterialsPreview"
+                           aria-label="Preview daftar materi" style="display:none;">
+                           @include('pages.user.rtl._certificate-materials-content', [
+                              'materialsBackgroundSrc' => asset('img_template/bg-sertifikat-2.png'),
+                              'materialsTitle' => '',
+                              'materials' => [],
+                           ])
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+            <div class="modal-footer bg-whitesmoke br">
+               <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+               <div class="ml-auto">
+                  <button type="button" class="btn btn-outline-primary mr-2" id="certificatePreviousButton"
+                     onclick="goToCertificateStep(1)" style="display:none;">
+                     <i class="fas fa-arrow-left mr-1"></i> Kembali
+                  </button>
+                  <button type="button" class="btn btn-primary" id="certificateNextButton"
+                     onclick="goToCertificateStep(2)">
+                     Selanjutnya <i class="fas fa-arrow-right ml-1"></i>
+                  </button>
+                  <button type="button" class="btn btn-success" id="certificateCommitButton"
+                     onclick="commitCertificateDraft()" style="display:none;">
+                  <i class="fas fa-check mr-1"></i> Simpan Sertifikat
+                  </button>
+               </div>
+            </div>
+         </div>
+      </div>
+   </div>
+
    @push('scripts')
+      <script src="{{ asset('vendor/qrcode.js') }}"></script>
       <script>
+         const certificateQrDebounceMs = 350;
+         const certificateFieldNames = [
+            'number',
+            'participantName',
+            'institution',
+            'participantRole',
+            'activityName',
+            'activityDate',
+            'activityPlace',
+            'issueDate',
+            'signerName',
+            'signerNip',
+            'qrLink',
+            'materialsTitle'
+         ];
+
+         const rtlReviewState = {
+            activeId: null,
+            certificateData: {},
+            certificateEditorInitialData: {},
+            certificateDraft: null,
+            certificateStep: 1,
+            qrGenerationPending: false,
+            qrGenerationTimer: null,
+            qrGenerationToken: 0,
+            hasCertificate: false,
+            requestToken: 0
+         };
+
+         let rtlReviewRequest = null;
+
+         function copyCertificateData(data) {
+            return $.extend(true, {}, data || {});
+         }
+
+         function syncCertificateDataInputs() {
+            const container = $('#certificateDataInputs').empty();
+
+            certificateFieldNames.forEach(function(field) {
+               $('<input>', {
+                  type: 'hidden',
+                  name: `certificate_data[${field}]`
+               }).val(rtlReviewState.certificateData[field] || '').appendTo(container);
+            });
+
+            (rtlReviewState.certificateData.materials || []).forEach(function(material, index) {
+               $('<input>', {
+                  type: 'hidden',
+                  name: `certificate_data[materials][${index}][materi]`
+               }).val(material.materi || '').appendTo(container);
+               $('<input>', {
+                  type: 'hidden',
+                  name: `certificate_data[materials][${index}][jp]`
+               }).val(material.jp || '').appendTo(container);
+            });
+
+            $('<input>', {
+               type: 'hidden',
+               name: 'certificate_data[qrImage]'
+            }).val(rtlReviewState.certificateData.qrImage || '').appendTo(container);
+         }
+
+         function renderCertificateEditor(data) {
+            certificateFieldNames.forEach(function(field) {
+               $(`[data-certificate-field="${field}"]`).val(data[field] || '');
+               $(`[data-certificate-preview="${field}"]`).text(data[field] || '-');
+            });
+
+            $('[data-certificate-materials-title]').text(data.materialsTitle || data.activityName || '-');
+            renderCertificateQr(data);
+            renderMaterialsForm(data);
+            renderMaterialsPreview(data);
+         }
+
+         function renderCertificateQr(data) {
+            const qrImage = data.qrImage || '';
+            const hasQr = /^data:image\//.test(qrImage);
+
+            $('[data-certificate-qr]').attr('src', hasQr ? qrImage : '');
+            $('[data-certificate-qr-wrap]').toggle(hasQr);
+            $('[data-certificate-qr-spacer]').toggle(!hasQr);
+         }
+
+         function clearCertificateQrTimer() {
+            if (rtlReviewState.qrGenerationTimer !== null) {
+               clearTimeout(rtlReviewState.qrGenerationTimer);
+               rtlReviewState.qrGenerationTimer = null;
+            }
+         }
+
+         function scheduleCertificateQr(link, immediate) {
+            if (!rtlReviewState.certificateDraft) {
+               return;
+            }
+
+            clearCertificateQrTimer();
+            const token = ++rtlReviewState.qrGenerationToken;
+            const value = $.trim(link || '');
+
+            rtlReviewState.certificateDraft.qrImage = '';
+            rtlReviewState.qrGenerationPending = Boolean(value);
+            renderCertificateQr(rtlReviewState.certificateDraft);
+
+            if (!value) {
+               rtlReviewState.qrGenerationPending = false;
+               return;
+            }
+
+            if (immediate) {
+               generateCertificateQr(value);
+               return;
+            }
+
+            rtlReviewState.qrGenerationTimer = setTimeout(function() {
+               rtlReviewState.qrGenerationTimer = null;
+               if (token === rtlReviewState.qrGenerationToken && rtlReviewState.certificateDraft) {
+                  generateCertificateQr(value);
+               }
+            }, certificateQrDebounceMs);
+         }
+
+         function generateCertificateQr(link) {
+            if (!rtlReviewState.certificateDraft) {
+               return;
+            }
+
+            const token = ++rtlReviewState.qrGenerationToken;
+            const value = $.trim(link || '');
+            if (!value) {
+               rtlReviewState.qrGenerationPending = false;
+               rtlReviewState.certificateDraft.qrImage = '';
+               renderCertificateQr(rtlReviewState.certificateDraft);
+               return;
+            }
+
+            // Remove the previous QR immediately so the preview never shows a
+            // stale code while the new link is being encoded.
+            rtlReviewState.certificateDraft.qrImage = '';
+            renderCertificateQr(rtlReviewState.certificateDraft);
+
+            if (typeof QRCode === 'undefined' || typeof QRCode.toDataURL !== 'function') {
+               rtlReviewState.qrGenerationPending = false;
+               rtlReviewState.certificateDraft.qrImage = '';
+               renderCertificateQr(rtlReviewState.certificateDraft);
+               return;
+            }
+
+            rtlReviewState.qrGenerationPending = true;
+            QRCode.toDataURL(value, {
+               errorCorrectionLevel: 'M',
+               margin: 1,
+               width: 180
+            }, function(error, dataUrl) {
+               if (token !== rtlReviewState.qrGenerationToken || !rtlReviewState.certificateDraft) {
+                  return;
+               }
+
+               rtlReviewState.qrGenerationPending = false;
+               rtlReviewState.certificateDraft.qrImage = error ? '' : dataUrl;
+               renderCertificateQr(rtlReviewState.certificateDraft);
+            });
+         }
+
+         function renderMaterialsForm(data) {
+            const materials = Array.isArray(data.materials) ? data.materials : [];
+            const rows = $('#certificateMaterialsRows').empty();
+
+            if (materials.length === 0) {
+               rows.append('<tr class="certificate-materials-empty-row"><td colspan="4">Belum ada materi. Klik Tambah Baris.</td></tr>');
+               updateMaterialsTotal();
+               return;
+            }
+
+            materials.forEach(function(material, index) {
+               const row = $('<tr>');
+               $('<td>').text(index + 1).appendTo(row);
+               $('<td>').append($('<input>', {
+                  type: 'text',
+                  class: 'form-control form-control-sm',
+                  'data-material-index': index,
+                  'data-material-field': 'materi',
+                  value: material.materi || '',
+                  placeholder: 'Nama materi'
+               })).appendTo(row);
+               $('<td>').append($('<input>', {
+                  type: 'number',
+                  min: 0,
+                  step: 1,
+                  class: 'form-control form-control-sm',
+                  'data-material-index': index,
+                  'data-material-field': 'jp',
+                  value: material.jp || '',
+                  placeholder: '0'
+               })).appendTo(row);
+               $('<td>').append($('<button>', {
+                  type: 'button',
+                  class: 'btn btn-link text-danger btn-sm p-0',
+                  title: 'Hapus baris',
+                  'aria-label': 'Hapus baris'
+               }).html('<i class="fas fa-trash-alt"></i>').on('click', function() {
+                  removeCertificateMaterialRow(index);
+               })).appendTo(row);
+               rows.append(row);
+            });
+
+            updateMaterialsTotal();
+         }
+
+         function renderMaterialsPreview(data) {
+            const materials = Array.isArray(data.materials) ? data.materials : [];
+            const rows = $('[data-certificate-materials-preview]').empty();
+
+            $('[data-certificate-materials-title]').text(data.materialsTitle || data.activityName || '-');
+            if (materials.length === 0) {
+               rows.append('<tr><td colspan="3" class="certificate-materials-empty">Belum ada materi</td></tr>');
+            } else {
+               materials.forEach(function(material, index) {
+                  const row = $('<tr>');
+                  $('<td>').text(index + 1).appendTo(row);
+                  $('<td>').text(material.materi || '').appendTo(row);
+                  $('<td>').text(material.jp || '').appendTo(row);
+                  rows.append(row);
+               });
+            }
+
+            $('[data-certificate-materials-total]').text(calculateMaterialsTotal(materials));
+         }
+
+         function calculateMaterialsTotal(materials) {
+            const total = (materials || []).reduce(function(sum, material) {
+               const jp = parseFloat(material.jp);
+               return sum + (Number.isFinite(jp) ? jp : 0);
+            }, 0);
+
+            return Number.isInteger(total) ? total : total.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+         }
+
+         function updateMaterialsTotal() {
+            $('#certificateMaterialsTotal').text(calculateMaterialsTotal(
+               rtlReviewState.certificateDraft ? rtlReviewState.certificateDraft.materials : []
+            ));
+         }
+
+         function addCertificateMaterialRow() {
+            if (!rtlReviewState.certificateDraft) {
+               return;
+            }
+
+            if (!Array.isArray(rtlReviewState.certificateDraft.materials)) {
+               rtlReviewState.certificateDraft.materials = [];
+            }
+
+            rtlReviewState.certificateDraft.materials.push({ materi: '', jp: '' });
+            renderMaterialsForm(rtlReviewState.certificateDraft);
+            renderMaterialsPreview(rtlReviewState.certificateDraft);
+            $('#certificateMaterialsRows tr:last [data-material-field="materi"]').trigger('focus');
+         }
+
+         function removeCertificateMaterialRow(index) {
+            if (!rtlReviewState.certificateDraft || !Array.isArray(rtlReviewState.certificateDraft.materials)) {
+               return;
+            }
+
+            rtlReviewState.certificateDraft.materials.splice(index, 1);
+            renderMaterialsForm(rtlReviewState.certificateDraft);
+            renderMaterialsPreview(rtlReviewState.certificateDraft);
+         }
+
+         function goToCertificateStep(step) {
+            if (!rtlReviewState.certificateDraft) {
+               return;
+            }
+
+            rtlReviewState.certificateStep = step === 2 ? 2 : 1;
+            const isFirstStep = rtlReviewState.certificateStep === 1;
+
+            $('#certificateStepOneForm').toggle(isFirstStep);
+            $('#certificateStepTwoForm').toggle(!isFirstStep);
+            $('.certificate-preview-viewport').first().toggle(isFirstStep);
+            $('#certificateMaterialsPreview').toggle(!isFirstStep);
+            $('#certificatePreviousButton').toggle(!isFirstStep);
+            $('#certificateNextButton').toggle(isFirstStep);
+            $('#certificateCommitButton').toggle(!isFirstStep);
+
+            resizeCertificatePreview();
+         }
+
+         function resizeCertificatePreview() {
+            $('.certificate-preview-viewport').each(function() {
+               const viewport = this;
+               const page = viewport.querySelector('.certificate-page, .certificate-materials-page');
+
+               if (!page || !viewport.clientWidth || !page.offsetWidth) {
+                  return;
+               }
+
+               page.style.setProperty('--certificate-preview-scale', viewport.clientWidth / page.offsetWidth);
+            });
+         }
+
          function reviewRtl(id) {
-            $.get(`/dashboard/rtl/${id}`, function(data) {
+            if (rtlReviewRequest) {
+               rtlReviewRequest.abort();
+            }
+
+            const requestToken = ++rtlReviewState.requestToken;
+            rtlReviewRequest = $.get(`/dashboard/rtl/${id}`).done(function(data) {
+               if (requestToken !== rtlReviewState.requestToken) {
+                  return;
+               }
+
+               const documents = data.documents || [];
+               rtlReviewState.activeId = id;
+               rtlReviewState.certificateData = copyCertificateData(data.certificate_data);
+               rtlReviewState.certificateEditorInitialData = {};
+               rtlReviewState.certificateDraft = null;
+               rtlReviewState.qrGenerationPending = false;
+               clearCertificateQrTimer();
+               rtlReviewState.qrGenerationToken++;
+               rtlReviewState.hasCertificate = Boolean(data.certificate_file);
+
                $('#revUser').text(data.user ? data.user.nama_lengkap : data.no_ktp);
-               $('#revKegiatan').text(data.kegiatan.nama_kegiatan);
+               $('#revKegiatan').text(data.kegiatan ? data.kegiatan.nama_kegiatan : '-');
                $('#revKtp').text(data.no_ktp);
                $('#revStatusSelect').val(data.status);
-               $('#revAdminNotes').val(data.admin_notes);
+               $('#revAdminNotes').val(data.admin_notes || '');
                $('#reviewForm').attr('action', `/dashboard/rtl/update/${id}`);
-               $('#revDocsCount').text(`${data.documents.length} File`);
+               $('#revDocsCount').text(`${documents.length} File`);
+               syncCertificateDataInputs();
 
-               if (data.certificate_file) {
+               if (rtlReviewState.hasCertificate) {
                   $('#existingCert').show();
+                  $('#certificateEditorButtonText').text('Edit Sertifikat');
                } else {
                   $('#existingCert').hide();
+                  $('#certificateEditorButtonText').text('Buat Sertifikat');
                }
 
                $('#revDocsList').empty();
-               if (data.documents.length === 0) {
+               if (documents.length === 0) {
                   $('#revDocsList').append(
                      '<div class="p-3 text-center text-muted">Belum ada dokumen yang diunggah.</div>');
                } else {
-                  data.documents.forEach(doc => {
-                     let li = `<a href="javascript:void(0)" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onclick="revShowFile('${doc.url}', '${doc.original_name}')">
-                        <div>
-                            <i class="fas fa-file-pdf text-danger mr-2"></i> 
-                            <span class="font-weight-600">${doc.original_name}</span>
-                        </div>
-                        <span class="btn btn-sm btn-outline-primary">Lihat Preview</span>
-                    </a>`;
-                     $('#revDocsList').append(li);
+                  documents.forEach(function(doc) {
+                     const item = $('<a>', {
+                        href: '#',
+                        class: 'list-group-item list-group-item-action d-flex justify-content-between align-items-center'
+                     });
+                     const fileInfo = $('<div>');
+                     $('<i>', { class: 'fas fa-file-pdf text-danger mr-2' }).appendTo(fileInfo);
+                     $('<span>', { class: 'font-weight-600' }).text(doc.original_name).appendTo(fileInfo);
+                     $('<span>', { class: 'btn btn-sm btn-outline-primary' }).text('Lihat Preview').appendTo(item);
+                     item.prepend(fileInfo).on('click', function(event) {
+                        event.preventDefault();
+                        revShowFile(doc.url, doc.original_name);
+                     });
+                     $('#revDocsList').append(item);
                   });
                }
 
                $('#revFilePreviewFrame').hide();
                toggleCertUpload();
                $('#reviewRtlModal').modal('show');
+            }).fail(function(xhr, status) {
+               if (status !== 'abort' && typeof iziToast !== 'undefined') {
+                  iziToast.error({ title: 'Gagal', message: 'Data review RTL tidak dapat dimuat.' });
+               }
             });
          }
 
          function toggleCertUpload() {
-            if ($('#revStatusSelect').val() == 'approved') {
+            if ($('#revStatusSelect').val() === 'approved') {
                $('#certGenerateGroup').show();
             } else {
                $('#certGenerateGroup').hide();
+               if ($('#certificateEditorModal').hasClass('show')) {
+                  $('#certificateEditorModal').modal('hide');
+               }
             }
+         }
+
+         function openCertificateEditor() {
+            if (!rtlReviewState.activeId || $('#revStatusSelect').val() !== 'approved') {
+               return;
+            }
+
+            rtlReviewState.certificateEditorInitialData = copyCertificateData(rtlReviewState.certificateData);
+            rtlReviewState.certificateDraft = copyCertificateData(rtlReviewState.certificateEditorInitialData);
+            clearCertificateQrTimer();
+            rtlReviewState.qrGenerationPending = false;
+            rtlReviewState.qrGenerationToken++;
+            rtlReviewState.certificateStep = 1;
+            renderCertificateEditor(rtlReviewState.certificateDraft);
+            if (rtlReviewState.certificateDraft.qrLink && !rtlReviewState.certificateDraft.qrImage) {
+               scheduleCertificateQr(rtlReviewState.certificateDraft.qrLink, true);
+            }
+            goToCertificateStep(1);
+            $('#certificateEditorModal').modal('show');
+         }
+
+         function resetCertificateDraft() {
+            if (!rtlReviewState.certificateDraft) {
+               return;
+            }
+
+            clearCertificateQrTimer();
+            rtlReviewState.qrGenerationPending = false;
+            rtlReviewState.qrGenerationToken++;
+            rtlReviewState.certificateDraft = copyCertificateData(rtlReviewState.certificateEditorInitialData);
+            renderCertificateEditor(rtlReviewState.certificateDraft);
+            if (rtlReviewState.certificateDraft.qrLink && !rtlReviewState.certificateDraft.qrImage) {
+               scheduleCertificateQr(rtlReviewState.certificateDraft.qrLink, true);
+            }
+         }
+
+         function commitCertificateDraft() {
+            if (!rtlReviewState.certificateDraft) {
+               return;
+            }
+
+            if (rtlReviewState.qrGenerationPending) {
+               if (typeof iziToast !== 'undefined') {
+                  iziToast.info({ title: 'Tunggu', message: 'QR Code sedang dibuat.' });
+               }
+               return;
+            }
+
+            if ($.trim(rtlReviewState.certificateDraft.qrLink || '') &&
+               !/^data:image\//.test(rtlReviewState.certificateDraft.qrImage || '')) {
+               if (typeof iziToast !== 'undefined') {
+                  iziToast.error({ title: 'QR belum siap', message: 'QR Code belum berhasil dibuat. Periksa link QR lalu coba lagi.' });
+               }
+               return;
+            }
+
+            rtlReviewState.certificateData = copyCertificateData(rtlReviewState.certificateDraft);
+            syncCertificateDataInputs();
+            $('#certificateEditorModal').modal('hide');
          }
 
          function revShowFile(url, fileName) {
             $('#currentFileName').text(fileName);
-            let lowUrl = url.toLowerCase();
+            const lowUrl = url.toLowerCase();
 
             $('#revPreviewIframe').hide();
             $('#revImagePreview').remove();
 
-            if (lowUrl.endsWith('.pdf')) {
+            if (/\.pdf(?:\?|$)/.test(lowUrl)) {
                $('#revPreviewIframe').attr('src', url).show();
                $('#revFilePreviewFrame').show();
-            } else if (lowUrl.match(/\.(jpg|jpeg|png|gif)$/)) {
+            } else if (lowUrl.match(/\.(jpg|jpeg|png|gif)(?:\?|$)/)) {
                $('#revPreviewIframe').after(
                   `<img id="revImagePreview" src="${url}" class="img-fluid border mx-auto d-block" style="max-height: 550px; background: white;">`
                );
@@ -246,11 +939,84 @@
                return;
             }
 
-            // Smooth scroll inside modal if possible, otherwise body
             $('#reviewRtlModal').animate({
-               scrollTop: $('#reviewRtlModal').scrollTop() + $("#revFilePreviewFrame").position().top
+               scrollTop: $('#reviewRtlModal').scrollTop() + $('#revFilePreviewFrame').position().top
             }, 500);
          }
+
+         $(function() {
+            $('#certificateEditorModal').on('shown.bs.modal', function() {
+               $('.modal-backdrop').last().addClass('certificate-editor-backdrop');
+               $('body').addClass('modal-open');
+               resizeCertificatePreview();
+            });
+
+            $('#certificateEditorModal').on('hidden.bs.modal', function() {
+               $('.modal-backdrop.certificate-editor-backdrop').removeClass('certificate-editor-backdrop');
+               rtlReviewState.certificateEditorInitialData = {};
+               rtlReviewState.certificateDraft = null;
+               clearCertificateQrTimer();
+               rtlReviewState.qrGenerationPending = false;
+               rtlReviewState.qrGenerationToken++;
+
+               if ($('#reviewRtlModal').hasClass('show')) {
+                  $('body').addClass('modal-open');
+                  $('#reviewRtlModal').modal('handleUpdate');
+               }
+            });
+
+            $('#reviewRtlModal').on('hide.bs.modal', function() {
+               if ($('#certificateEditorModal').hasClass('show')) {
+                  $('#certificateEditorModal').modal('hide');
+               }
+            });
+
+            $('#reviewRtlModal').on('hidden.bs.modal', function() {
+               rtlReviewState.activeId = null;
+               rtlReviewState.certificateData = {};
+               rtlReviewState.certificateEditorInitialData = {};
+               rtlReviewState.certificateDraft = null;
+               clearCertificateQrTimer();
+               rtlReviewState.qrGenerationPending = false;
+               rtlReviewState.qrGenerationToken++;
+               $('#certificateDataInputs').empty();
+            });
+
+            $('#certificateEditorModal [data-certificate-field]').on('input', function() {
+               if (!rtlReviewState.certificateDraft) {
+                  return;
+               }
+
+               const field = $(this).data('certificate-field');
+               rtlReviewState.certificateDraft[field] = $(this).val();
+               renderCertificateEditor(rtlReviewState.certificateDraft);
+               if (field === 'qrLink') {
+                  scheduleCertificateQr(rtlReviewState.certificateDraft.qrLink, false);
+               }
+            });
+
+            $('#certificateMaterialsRows').on('input', '[data-material-field]', function() {
+               if (!rtlReviewState.certificateDraft) {
+                  return;
+               }
+
+               const index = Number($(this).data('material-index'));
+               const field = $(this).data('material-field');
+               if (!Array.isArray(rtlReviewState.certificateDraft.materials) || !rtlReviewState.certificateDraft.materials[index]) {
+                  return;
+               }
+
+               rtlReviewState.certificateDraft.materials[index][field] = $(this).val();
+               renderMaterialsPreview(rtlReviewState.certificateDraft);
+               updateMaterialsTotal();
+            });
+
+            $('#reviewForm').on('submit', function() {
+               syncCertificateDataInputs();
+            });
+
+            $(window).on('resize', resizeCertificatePreview);
+         });
       </script>
    @endpush
 @endsection

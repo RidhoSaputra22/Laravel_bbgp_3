@@ -15,6 +15,11 @@ class Rtl extends Model
         'status',
         'admin_notes',
         'certificate_file',
+        'certificate_data',
+    ];
+
+    protected $casts = [
+        'certificate_data' => 'array',
     ];
 
     protected $appends = ['cert_url'];

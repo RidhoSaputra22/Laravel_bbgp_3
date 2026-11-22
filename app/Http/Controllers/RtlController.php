@@ -112,13 +112,35 @@ class RtlController extends Controller
             $validated = $request->validate([
                 'status' => 'required|in:pending,approved,rejected',
                 'admin_notes' => 'nullable|string|max:5000',
+                'certificate_data' => 'nullable|array',
+                'certificate_data.number' => 'nullable|string|max:255',
+                'certificate_data.participantName' => 'nullable|string|max:255',
+                'certificate_data.institution' => 'nullable|string|max:255',
+                'certificate_data.participantRole' => 'nullable|string|max:255',
+                'certificate_data.activityName' => 'nullable|string|max:500',
+                'certificate_data.activityDate' => 'nullable|string|max:255',
+                'certificate_data.activityPlace' => 'nullable|string|max:255',
+                'certificate_data.issueDate' => 'nullable|string|max:255',
+                'certificate_data.signerName' => 'nullable|string|max:255',
+                'certificate_data.signerNip' => 'nullable|string|max:255',
+                'certificate_data.qrLink' => 'nullable|string|max:2048',
+                'certificate_data.qrImage' => 'nullable|string|max:300000',
+                'certificate_data.materialsTitle' => 'nullable|string|max:500',
+                'certificate_data.materials' => 'nullable|array|max:50',
+                'certificate_data.materials.*' => 'nullable|array',
+                'certificate_data.materials.*.materi' => 'nullable|string|max:500',
+                'certificate_data.materials.*.jp' => 'nullable|numeric|min:0|max:999',
             ]);
 
             $rtl->status = $validated['status'];
             $rtl->admin_notes = $validated['admin_notes'] ?? null;
+            if (array_key_exists('certificate_data', $validated)) {
+                $rtl->certificate_data = $this->certificateData($rtl, $validated['certificate_data'] ?? []);
+            }
 
             if ($validated['status'] === 'approved') {
-                $rtl->certificate_file = $this->generateCertificate($rtl);
+                $rtl->certificate_data = $this->certificateData($rtl, $rtl->certificate_data ?? []);
+                $rtl->certificate_file = $this->generateCertificate($rtl, $rtl->certificate_data);
             }
 
             $rtl->save();
@@ -128,7 +150,41 @@ class RtlController extends Controller
         return redirect()->back()->with('error', 'Gagal memproses pengajuan.');
     }
 
-    private function generateCertificate(Rtl $rtl): string
+    private function generateCertificate(Rtl $rtl, array $certificateData): string
+    {
+        $rtl->loadMissing(['kegiatan.penomoran', 'user']);
+        $backgroundPath = public_path('img_template/bg-sertifikat.png');
+        $materialsBackgroundPath = public_path('img_template/bg-sertifikat-2.png');
+        $logoPath = public_path('img/logo-tutwuri.png');
+        $qualityLogoPath = public_path('img/pendidikan-bermutu.png');
+        $ramahLogoPath = public_path('img/kemendikdasmen-ramah.png');
+
+        abort_unless(
+            is_file($backgroundPath) && is_file($materialsBackgroundPath) && is_file($logoPath)
+                && is_file($qualityLogoPath) && is_file($ramahLogoPath),
+            500,
+            'Template sertifikat tidak ditemukan.'
+        );
+
+        $pdf = Pdf::loadView('pages.user.rtl.certificate', [
+            'background' => base64_encode(file_get_contents($backgroundPath)),
+            'materialsBackground' => base64_encode(file_get_contents($materialsBackgroundPath)),
+            'logo' => base64_encode(file_get_contents($logoPath)),
+            'topLogoLeft' => base64_encode(file_get_contents($qualityLogoPath)),
+            'topLogoRight' => base64_encode(file_get_contents($ramahLogoPath)),
+            ...$certificateData,
+        ])->setPaper('a4', 'landscape');
+
+        $path = 'sertifikat/rtl-'.$rtl->id.'.pdf';
+        Storage::disk('private_uploads')->put($path, $pdf->output());
+        if ($rtl->certificate_file && $rtl->certificate_file !== $path) {
+            Storage::disk('private_uploads')->delete($rtl->certificate_file);
+        }
+
+        return $path;
+    }
+
+    private function certificateData(Rtl $rtl, array $overrides = []): array
     {
         $rtl->loadMissing(['kegiatan.penomoran', 'user']);
 
@@ -140,18 +196,8 @@ class RtlController extends Controller
         $activity = $rtl->kegiatan;
         $startDate = Carbon::parse($activity?->tgl_kegiatan ?? now());
         $endDate = $activity?->tgl_selesai ? Carbon::parse($activity->tgl_selesai) : null;
-        $year = $startDate->year;
-        $number = $activity?->penomoran?->no_surat ?: sprintf('%04d/BBGTK-SULSEL/RTL/%d', $rtl->id, $year);
-
-        $backgroundPath = public_path('img_template/bg-sertifikat.png');
-        $logoPath = public_path('img_template/iconbbgp.png');
-
-        abort_unless(is_file($backgroundPath) && is_file($logoPath), 500, 'Template sertifikat tidak ditemukan.');
-
-        $pdf = Pdf::loadView('pages.user.rtl.certificate', [
-            'background' => base64_encode(file_get_contents($backgroundPath)),
-            'logo' => base64_encode(file_get_contents($logoPath)),
-            'number' => $number,
+        $defaults = [
+            'number' => $activity?->penomoran?->no_surat ?: sprintf('%04d/BBGTK-SULSEL/RTL/%d', $rtl->id, $startDate->year),
             'participantName' => $participant?->nama ?: ($rtl->user?->nama_lengkap ?: $rtl->no_ktp),
             'institution' => $participant?->instansi ?: ($rtl->user?->satuan_pendidikan ?: '-'),
             'participantRole' => ucfirst($participant?->status_keikutpesertaan ?: 'peserta'),
@@ -159,15 +205,52 @@ class RtlController extends Controller
             'activityDate' => $this->formatCertificateDate($startDate, $endDate),
             'activityPlace' => $activity?->tempat_kegiatan ?: 'Makassar',
             'issueDate' => $this->formatCertificateDate(Carbon::now()),
-        ])->setPaper('a4', 'landscape');
+            'signerName' => 'Dr. Arman Agung, M.Pd.',
+            'signerNip' => '196910112001121002',
+        ];
 
-        $path = 'sertifikat/rtl-'.$rtl->id.'.pdf';
-        Storage::disk('private_uploads')->put($path, $pdf->output());
-        if ($rtl->certificate_file && $rtl->certificate_file !== $path) {
-            Storage::disk('private_uploads')->delete($rtl->certificate_file);
+        foreach ($defaults as $key => $default) {
+            $value = $overrides[$key] ?? null;
+            $defaults[$key] = is_string($value) && trim($value) !== '' ? trim($value) : $default;
         }
 
-        return $path;
+        $defaults['qrLink'] = trim((string) ($overrides['qrLink'] ?? ''));
+        $qrImage = trim((string) ($overrides['qrImage'] ?? ''));
+        $defaults['qrImage'] = $defaults['qrLink'] !== '' && str_starts_with($qrImage, 'data:image/')
+            ? $qrImage
+            : '';
+
+        $defaults['materialsTitle'] = is_string($overrides['materialsTitle'] ?? null)
+            && trim($overrides['materialsTitle']) !== ''
+            ? trim($overrides['materialsTitle'])
+            : $defaults['activityName'];
+        $defaults['materials'] = $this->certificateMaterials($overrides['materials'] ?? []);
+
+        return $defaults;
+    }
+
+    private function certificateMaterials(mixed $materials): array
+    {
+        if (!is_array($materials)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(function ($material) {
+            if (!is_array($material)) {
+                return null;
+            }
+
+            $name = trim((string) ($material['materi'] ?? ''));
+            $jp = trim((string) ($material['jp'] ?? ''));
+            if ($name === '' && $jp === '') {
+                return null;
+            }
+
+            return [
+                'materi' => $name,
+                'jp' => $jp,
+            ];
+        }, $materials)));
     }
 
     private function formatCertificateDate(Carbon $start, ?Carbon $end = null): string
@@ -211,6 +294,8 @@ class RtlController extends Controller
         $rtl = Rtl::with(['kegiatan', 'user', 'documents'])->findOrFail($id);
 
         $this->authorizeRtl($rtl);
+
+        $rtl->certificate_data = $this->certificateData($rtl, $rtl->certificate_data ?? []);
 
         return response()->json($rtl);
     }
