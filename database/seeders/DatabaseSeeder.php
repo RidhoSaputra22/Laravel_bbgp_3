@@ -45,6 +45,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MasterDataSeeder::class,
             DataAkunSeeder::class,
+            PanitiaSeeder::class,
             DataSekolahSeeder::class,
             DataEksternalSeeder::class,
             DataInternalSeeder::class,
