@@ -2,7 +2,94 @@
 
 @push('styles')
    <style>
+      @font-face {
+         font-family: 'Certificate DejaVu Sans';
+         src: url('{{ asset('fonts/certificate/DejaVuSans.ttf') }}') format('truetype');
+         font-weight: 400;
+      }
+
+      @font-face {
+         font-family: 'Certificate DejaVu Sans';
+         src: url('{{ asset('fonts/certificate/DejaVuSans-Bold.ttf') }}') format('truetype');
+         font-weight: 700;
+      }
+
+      @font-face {
+         font-family: 'Certificate DejaVu Sans';
+         src: url('{{ asset('fonts/certificate/DejaVuSans-Oblique.ttf') }}') format('truetype');
+         font-weight: 400;
+         font-style: italic;
+      }
+
+      @font-face {
+         font-family: 'Certificate DejaVu Sans';
+         src: url('{{ asset('fonts/certificate/DejaVuSans-BoldOblique.ttf') }}') format('truetype');
+         font-weight: 700;
+         font-style: italic;
+      }
+
       @include('pages.user.rtl.certificate-styles')
+
+      #certificateEditorModal .certificate-page,
+      #certificateEditorModal .certificate-materials-page {
+         font-family: 'Certificate DejaVu Sans', sans-serif;
+      }
+
+      #certificateEditorModal .certificate-institution {
+         line-height: 1.5;
+      }
+
+      #certificateEditorModal .certificate-title {
+         margin-top: 7mm;
+      }
+
+      #certificateEditorModal .certificate-institution-name {
+         margin-top: 3.5mm;
+      }
+
+      #certificateEditorModal .certificate-description {
+         margin-top: 5.5mm;
+         line-height: 1.7;
+      }
+
+      #certificateEditorModal .certificate-page--description-compact .certificate-description {
+         margin-top: 3.5mm;
+         line-height: 1.55;
+      }
+
+      #certificateEditorModal .certificate-page--description-dense .certificate-description {
+         margin-top: 2.5mm;
+         line-height: 1.4;
+      }
+
+      #certificateEditorModal .certificate-page--description-extreme .certificate-description {
+         margin-top: .5mm;
+         line-height: 1.3;
+      }
+
+      #certificateEditorModal .certificate-page--description-extreme .certificate-title {
+         margin-top: 4mm;
+      }
+
+      #certificateEditorModal .certificate-page--description-extreme .certificate-institution-name {
+         margin-top: 1.5mm;
+      }
+
+      #certificateEditorModal .certificate-signature {
+         line-height: 1.4;
+      }
+
+      #certificateEditorModal .certificate-signature-name {
+         line-height: 1.15;
+      }
+
+      #certificateEditorModal .certificate-qr-wrap.is-visible ~ .certificate-signature-name {
+         margin-top: -1mm;
+      }
+
+      #certificateEditorModal .certificate-signature-space {
+         height: 19mm;
+      }
 
       .cert-editor-dialog {
          width: calc(100% - 30px);
@@ -741,6 +828,16 @@
                   return `${rule.label} maksimal ${rule.max} karakter.`;
                }
 
+               if (name === 'activityName' || name === 'activityPlace') {
+                  const data = rtlReviewState.certificateDraft || {};
+                  const breaks = ['activityName', 'activityPlace'].reduce(function(total, key) {
+                     return total + (String(data[key] || '').match(/<br\s*\/?>/gi) || []).length;
+                  }, 0);
+                  if (breaks > 10) {
+                     return 'Nama dan tempat kegiatan maksimal 10 baris baru agar tidak menabrak tanda tangan.';
+                  }
+               }
+
                return '';
             }
 
@@ -935,6 +1032,7 @@
 
          function renderCertificateFieldPreview(field, value) {
             $(`[data-certificate-preview="${field}"]`).html(sanitizeRichText(value || '-'));
+            updateCertificateDescriptionDensity();
             if (field === 'activityName' || field === 'materialsTitle') {
                const data = rtlReviewState.certificateDraft || {};
                $('[data-certificate-materials-title]').html(
@@ -942,6 +1040,36 @@
                );
                resizeCertificatePreview();
             }
+         }
+
+         function updateCertificateDescriptionDensity() {
+            const data = rtlReviewState.certificateDraft || {};
+            const measure = function(value) {
+               const element = document.createElement('div');
+               element.innerHTML = sanitizeRichText(value || '');
+               return {
+                  length: Array.from(element.textContent.trim()).length,
+                  breaks: element.querySelectorAll('br').length
+               };
+            };
+            const role = measure(data.participantRole);
+            const activity = measure(data.activityName);
+            const date = measure(data.activityDate);
+            const place = measure(data.activityPlace);
+            const institution = measure(data.institution);
+            const name = measure(data.participantName);
+            const number = measure(data.number);
+            const rows = Math.max(1, Math.ceil((47 + role.length) / 90))
+               + Math.max(1, Math.ceil(activity.length / 80)) + activity.breaks
+               + 1
+               + Math.max(1, Math.ceil((18 + date.length + place.length) / 95)) + place.breaks
+               + Math.max(0, Math.ceil((19 + institution.length) / 80) - 1)
+               + Math.max(0, Math.ceil(name.length / 75) - 1)
+               + Math.max(0, Math.ceil((8 + number.length) / 100) - 1);
+            const density = rows > 12 ? 'extreme' : rows > 9 ? 'dense' : rows > 6 ? 'compact' : 'normal';
+            $('.certificate-preview-viewport .certificate-page').first()
+               .removeClass('certificate-page--description-normal certificate-page--description-compact certificate-page--description-dense certificate-page--description-extreme')
+               .addClass(`certificate-page--description-${density}`);
          }
 
          function syncCertificateDataInputs() {
@@ -991,7 +1119,7 @@
             const hasQr = /^data:image\//.test(qrImage);
 
             $('[data-certificate-qr]').attr('src', hasQr ? qrImage : '');
-            $('[data-certificate-qr-wrap]').toggle(hasQr);
+            $('[data-certificate-qr-wrap]').toggle(hasQr).toggleClass('is-visible', hasQr);
             $('[data-certificate-qr-spacer]').toggle(!hasQr);
          }
 

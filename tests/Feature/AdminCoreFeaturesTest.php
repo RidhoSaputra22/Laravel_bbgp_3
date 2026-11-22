@@ -452,4 +452,33 @@ class AdminCoreFeaturesTest extends TestCase
             'admin_notes' => 'Dokumen telah diperiksa.',
         ]);
     }
+
+    public function test_rtl_certificate_rejects_excessive_manual_line_breaks(): void
+    {
+        $activity = Kegiatan::query()->create([
+            'nama_kegiatan' => 'RTL Fit Activity',
+            'tempat_kegiatan' => 'Makassar',
+            'tgl_kegiatan' => '2026-10-01',
+            'tgl_selesai' => '2026-10-01',
+            'jam_mulai' => '08:00',
+            'jam_selesai' => '16:00',
+            'status' => 'true',
+        ]);
+        $rtl = Rtl::query()->create([
+            'no_ktp' => '8877665544332211',
+            'id_kegiatan' => $activity->id,
+            'status' => 'pending',
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->postJson(route('rtl.certificate.save', $rtl->id), [
+                'certificate_data' => [
+                    'activityName' => str_repeat('Baris<br>', 11),
+                ],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('certificate_data');
+
+        $this->assertNull($rtl->fresh()->certificate_data);
+    }
 }

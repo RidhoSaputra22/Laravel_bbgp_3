@@ -1,4 +1,17 @@
-<div class="certificate-page">
+@php
+    $textLength = static fn ($value) => mb_strlen(trim(html_entity_decode(strip_tags((string) $value), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+    $breakCount = static fn ($value) => substr_count(strtolower((string) $value), '<br');
+    $descriptionRows = max(1, (int) ceil((47 + $textLength($participantRole ?? '')) / 90))
+        + max(1, (int) ceil($textLength($activityName ?? '') / 80)) + $breakCount($activityName ?? '')
+        + 1
+        + max(1, (int) ceil((18 + $textLength($activityDate ?? '') + $textLength($activityPlace ?? '')) / 95))
+        + $breakCount($activityPlace ?? '')
+        + max(0, (int) ceil((19 + $textLength($institution ?? '')) / 80) - 1)
+        + max(0, (int) ceil($textLength($participantName ?? '') / 75) - 1)
+        + max(0, (int) ceil((8 + $textLength($number ?? '')) / 100) - 1);
+    $descriptionDensity = $descriptionRows > 12 ? 'extreme' : ($descriptionRows > 9 ? 'dense' : ($descriptionRows > 6 ? 'compact' : 'normal'));
+@endphp
+<div class="certificate-page certificate-page--description-{{ $descriptionDensity }}">
     <img class="certificate-background" src="{{ $backgroundSrc }}" alt="">
     <div class="certificate-top-logos" aria-label="Logo program pendidikan">
         <img class="certificate-top-logo-quality" src="{{ $topLogoLeftSrc }}" alt="Pendidikan Bermutu">

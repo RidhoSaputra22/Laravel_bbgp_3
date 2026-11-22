@@ -157,7 +157,21 @@ class RtlController extends Controller
     private function certificateDataValidationRules(): array
     {
         return [
-            'certificate_data' => 'nullable|array',
+            'certificate_data' => ['nullable', 'array', function ($attribute, $value, $fail) {
+                if (!is_array($value)) {
+                    return;
+                }
+
+                $breaks = 0;
+                foreach (['activityName', 'activityPlace'] as $field) {
+                    if (is_string($value[$field] ?? null)) {
+                        $breaks += preg_match_all('/<br\s*\/?>/i', $value[$field]);
+                    }
+                }
+                if ($breaks > 10) {
+                    $fail('Nama dan tempat kegiatan maksimal 10 baris baru agar tidak menabrak tanda tangan.');
+                }
+            }],
             'certificate_data.number' => 'nullable|string|max:255',
             'certificate_data.participantName' => 'nullable|string|max:255',
             'certificate_data.institution' => 'nullable|string|max:255',

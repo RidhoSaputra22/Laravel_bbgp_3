@@ -108,6 +108,48 @@
     font-weight: 700;
 }
 
+.certificate-page--description-compact .certificate-description {
+    margin-top: 3mm;
+    font-size: 10pt;
+    line-height: 1.25;
+}
+
+.certificate-page--description-compact .certificate-activity {
+    font-size: 11pt;
+}
+
+.certificate-page--description-dense .certificate-description {
+    margin-top: 2mm;
+    font-size: 8.5pt;
+    line-height: 1.15;
+}
+
+.certificate-page--description-dense .certificate-activity {
+    font-size: 9.5pt;
+}
+
+.certificate-page--description-extreme .certificate-description {
+    margin-top: 0;
+    font-size: 6.5pt;
+    line-height: 1.1;
+}
+
+.certificate-page--description-extreme .certificate-activity {
+    font-size: 7.5pt;
+}
+
+.certificate-page--description-extreme .certificate-title {
+    margin-top: 4mm;
+}
+
+.certificate-page--description-extreme .certificate-recipient {
+    margin-top: 3.5mm;
+}
+
+.certificate-page--description-extreme .certificate-institution-name {
+    margin-top: 1.5mm;
+}
+
 .certificate-signature {
     position: absolute;
     right: 0;
