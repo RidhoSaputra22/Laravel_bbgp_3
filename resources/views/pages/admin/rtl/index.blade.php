@@ -93,6 +93,11 @@
          pointer-events: none;
       }
 
+      .certificate-editor-form .certificate-validation-invalid {
+         border-color: #e3342f !important;
+         box-shadow: 0 0 0 .2rem rgba(227, 52, 47, .15);
+      }
+
       .certificate-editor-form label {
          margin-bottom: .35rem;
          font-size: .78rem;
@@ -506,6 +511,7 @@
 
                         <div class="d-flex justify-content-between align-items-center">
                            <button type="button" class="btn btn-outline-primary btn-sm"
+                              id="certificateAddMaterialRowButton"
                               onclick="addCertificateMaterialRow()">
                               <i class="fas fa-plus mr-1"></i> Tambah Baris
                            </button>
@@ -562,6 +568,7 @@
       <script src="{{ asset('vendor/qrcode.js') }}"></script>
       <script>
          const certificateQrDebounceMs = 350;
+         const certificateValidationDebounceMs = 300;
          const certificateFieldNames = [
             'number',
             'participantName',
@@ -576,6 +583,24 @@
             'qrLink',
             'materialsTitle'
          ];
+
+         const certificateValidationRules = {
+            number: { label: 'Nomor Sertifikat', max: 255 },
+            participantName: { label: 'Nama Peserta', max: 255 },
+            institution: { label: 'Instansi/Sekolah', max: 255 },
+            participantRole: { label: 'Peran Peserta', max: 255 },
+            activityName: { label: 'Nama Kegiatan', max: 500 },
+            activityDate: { label: 'Tanggal Kegiatan', max: 255 },
+            activityPlace: { label: 'Tempat Kegiatan', max: 255 },
+            issueDate: { label: 'Tanggal Terbit', max: 255 },
+            signerName: { label: 'Nama Penandatangan', max: 255 },
+            signerNip: { label: 'NIP', max: 255 },
+            qrLink: { label: 'Link QR', max: 2048 },
+            materialsTitle: { label: 'Kegiatan', max: 500 }
+         };
+
+         let certificateValidationTimer = null;
+         let certificateValidationTarget = null;
 
          const rtlReviewState = {
             activeId: null,
@@ -662,6 +687,205 @@
                : field.val();
          }
 
+         function certificateValueLength(value) {
+            return Array.from(String(value == null ? '' : value)).length;
+         }
+
+         function certificateValidationError(element) {
+            const field = $(element);
+
+            if (field.is('[data-certificate-field]')) {
+               const name = field.data('certificate-field');
+               const rule = certificateValidationRules[name];
+               const value = getCertificateFieldValue(element);
+
+               if (rule && certificateValueLength(value) > rule.max) {
+                  return `${rule.label} maksimal ${rule.max} karakter.`;
+               }
+
+               return '';
+            }
+
+            if (field.is('[data-material-field]')) {
+               const name = field.data('material-field');
+               const index = Number(field.data('material-index')) + 1;
+               const value = field.is('[contenteditable]')
+                  ? sanitizeRichText(field.html())
+                  : field.val();
+
+               if (name === 'materi' && certificateValueLength(value) > 500) {
+                  return `Materi baris ${index} maksimal 500 karakter.`;
+               }
+
+               if (name === 'jp') {
+                  const numericValue = String(value == null ? '' : value).trim();
+                  if (!numericValue) {
+                     return '';
+                  }
+
+                  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i.test(numericValue)) {
+                     return `JP baris ${index} harus berupa angka.`;
+                  }
+
+                  const number = Number(numericValue);
+                  if (number < 0) {
+                     return `JP baris ${index} minimal 0.`;
+                  }
+
+                  if (number > 999) {
+                     return `JP baris ${index} maksimal 999.`;
+                  }
+               }
+            }
+
+            return '';
+         }
+
+         function clearCertificateValidationTimer() {
+            if (certificateValidationTimer !== null) {
+               clearTimeout(certificateValidationTimer);
+               certificateValidationTimer = null;
+            }
+
+            certificateValidationTarget = null;
+         }
+
+         function clearCertificateValidation(element) {
+            const field = $(element);
+            if (field.data('bs.tooltip')) {
+               field.tooltip('dispose');
+            }
+
+            field.removeClass('is-invalid certificate-validation-invalid')
+               .removeAttr('aria-invalid title data-original-title');
+         }
+
+         function clearCertificateValidations() {
+            clearCertificateValidationTimer();
+            $('#certificateEditorModal [data-certificate-field], #certificateMaterialsRows [data-material-field], #certificateAddMaterialRowButton')
+               .each(function() {
+                  clearCertificateValidation(this);
+               });
+         }
+
+         function showCertificateValidationError(element, message, focus) {
+            const field = $(element);
+            clearCertificateValidation(field);
+            field.addClass('is-invalid certificate-validation-invalid')
+               .attr('aria-invalid', 'true')
+               .attr('title', message);
+
+            if ($.fn.tooltip) {
+               field.tooltip({
+                  boundary: 'window',
+                  container: '#certificateEditorModal',
+                  placement: 'top',
+                  title: message,
+                  trigger: 'manual'
+               }).tooltip('show');
+            }
+
+            if (focus) {
+               field.trigger('focus');
+            }
+         }
+
+         function validateCertificateElement(element, focus) {
+            const message = certificateValidationError(element);
+            if (!message) {
+               clearCertificateValidation(element);
+               return true;
+            }
+
+            showCertificateValidationError(element, message, focus);
+            return false;
+         }
+
+         function validateCertificateElements(selector, focus) {
+            let firstInvalid = null;
+
+            $(selector).each(function() {
+               if (!validateCertificateElement(this, false) && !firstInvalid) {
+                  firstInvalid = this;
+               }
+            });
+
+            if (firstInvalid && focus) {
+               $(firstInvalid).trigger('focus');
+            }
+
+            return !firstInvalid;
+         }
+
+         function validateCertificateStep(step, focus) {
+            const selector = step === 2
+               ? '#certificateStepTwoForm [data-certificate-field], #certificateMaterialsRows [data-material-field]'
+               : '#certificateStepOneForm [data-certificate-field]';
+            const valid = validateCertificateElements(selector, focus);
+
+            if (step === 2 && Array.isArray(rtlReviewState.certificateDraft?.materials)
+               && rtlReviewState.certificateDraft.materials.length > 50) {
+               showCertificateValidationError(
+                  '#certificateAddMaterialRowButton',
+                  'Maksimal 50 baris materi.',
+                  focus
+               );
+               return false;
+            }
+
+            return valid;
+         }
+
+         function validateCertificateDraft(focus) {
+            const currentStep = rtlReviewState.certificateStep;
+            if (!validateCertificateStep(currentStep, focus)) {
+               return false;
+            }
+
+            if (currentStep === 2 && !validateCertificateStep(1, false)) {
+               goToCertificateStep(1, false);
+               validateCertificateStep(1, focus);
+               return false;
+            }
+
+            const qrImage = rtlReviewState.certificateDraft?.qrImage || '';
+            if (certificateValueLength(qrImage) > 300000) {
+               if (currentStep !== 1) {
+                  goToCertificateStep(1, false);
+               }
+               showCertificateValidationError(
+                  '#certFieldQrLink',
+                  'QR image maksimal 300000 karakter.',
+                  focus
+               );
+               return false;
+            }
+
+            return true;
+         }
+
+         function scheduleCertificateValidation(element) {
+            clearCertificateValidationTimer();
+            certificateValidationTarget = element;
+            certificateValidationTimer = setTimeout(function() {
+               const target = certificateValidationTarget;
+               clearCertificateValidationTimer();
+               if (target && document.body.contains(target)) {
+                  validateCertificateElement(target, true);
+               }
+            }, certificateValidationDebounceMs);
+         }
+
+         function sanitizeCertificateJpInput(element) {
+            const field = $(element);
+            const value = String(field.val() || '');
+            const numericValue = value.replace(/\D/g, '');
+
+            if (value !== numericValue) {
+               field.val(numericValue);
+            }
+         }
+
          function setCertificateFieldValue(field, value) {
             const element = $(`[data-certificate-field="${field}"]`);
             if (element.is('[contenteditable]')) {
@@ -709,6 +933,7 @@
          }
 
          function renderCertificateEditor(data) {
+            clearCertificateValidations();
             certificateFieldNames.forEach(function(field) {
                setCertificateFieldValue(field, data[field] || '');
                renderCertificateFieldPreview(field, data[field]);
@@ -813,6 +1038,7 @@
 
          function renderMaterialsForm(data) {
             const materials = Array.isArray(data.materials) ? data.materials : [];
+            clearCertificateValidations();
             const rows = $('#certificateMaterialsRows').empty();
 
             if (materials.length === 0) {
@@ -836,6 +1062,7 @@
                }).html(sanitizeRichText(material.materi || ''))).appendTo(row);
                $('<td>').append($('<input>', {
                   type: 'number',
+                  inputmode: 'numeric',
                   min: 0,
                   step: 1,
                   class: 'form-control form-control-sm',
@@ -902,6 +1129,17 @@
                rtlReviewState.certificateDraft.materials = [];
             }
 
+            if (rtlReviewState.certificateDraft.materials.length >= 50) {
+               showCertificateValidationError(
+                  '#certificateAddMaterialRowButton',
+                  'Maksimal 50 baris materi.',
+                  true
+               );
+               return;
+            }
+
+            clearCertificateValidation('#certificateAddMaterialRowButton');
+
             rtlReviewState.certificateDraft.materials.push({ materi: '', jp: '' });
             renderMaterialsForm(rtlReviewState.certificateDraft);
             renderMaterialsPreview(rtlReviewState.certificateDraft);
@@ -914,16 +1152,22 @@
             }
 
             rtlReviewState.certificateDraft.materials.splice(index, 1);
+            clearCertificateValidation('#certificateAddMaterialRowButton');
             renderMaterialsForm(rtlReviewState.certificateDraft);
             renderMaterialsPreview(rtlReviewState.certificateDraft);
          }
 
-         function goToCertificateStep(step) {
+         function goToCertificateStep(step, shouldValidate) {
             if (!rtlReviewState.certificateDraft) {
-               return;
+               return false;
             }
 
-            rtlReviewState.certificateStep = step === 2 ? 2 : 1;
+            const nextStep = step === 2 ? 2 : 1;
+            if (shouldValidate !== false && nextStep === 2 && !validateCertificateStep(1, true)) {
+               return false;
+            }
+
+            rtlReviewState.certificateStep = nextStep;
             const isFirstStep = rtlReviewState.certificateStep === 1;
 
             $('#certificateStepOneForm').toggle(isFirstStep);
@@ -935,6 +1179,7 @@
             $('#certificateCommitButton').toggle(!isFirstStep);
 
             resizeCertificatePreview();
+            return true;
          }
 
          function resizeCertificatePreview() {
@@ -1068,6 +1313,10 @@
                return;
             }
 
+            if (!validateCertificateDraft(true)) {
+               return;
+            }
+
             if (rtlReviewState.qrGenerationPending) {
                if (typeof iziToast !== 'undefined') {
                   iziToast.info({ title: 'Tunggu', message: 'QR Code sedang dibuat.' });
@@ -1174,6 +1423,7 @@
                $('.modal-backdrop.certificate-editor-backdrop').removeClass('certificate-editor-backdrop');
                rtlReviewState.certificateEditorInitialData = {};
                rtlReviewState.certificateDraft = null;
+               clearCertificateValidations();
                clearCertificateQrTimer();
                rtlReviewState.qrGenerationPending = false;
                rtlReviewState.qrGenerationToken++;
@@ -1224,6 +1474,7 @@
                if (field === 'qrLink') {
                   scheduleCertificateQr(rtlReviewState.certificateDraft.qrLink, false);
                }
+               scheduleCertificateValidation(this);
             });
 
             $('#certificateStepOneForm').on('keydown', '[contenteditable="true"]', function(event) {
@@ -1258,11 +1509,26 @@
                   return;
                }
 
+               if (field === 'jp') {
+                  sanitizeCertificateJpInput(this);
+               }
+
                rtlReviewState.certificateDraft.materials[index][field] = $(this).is('[contenteditable]')
                   ? sanitizeRichText($(this).html())
                   : $(this).val();
                renderMaterialsPreview(rtlReviewState.certificateDraft);
                updateMaterialsTotal();
+               scheduleCertificateValidation(this);
+            });
+
+            $('#certificateMaterialsRows').on('keydown', '[data-material-field="jp"]', function(event) {
+               if (event.isComposing || event.ctrlKey || event.metaKey || event.key.length > 1) {
+                  return;
+               }
+
+               if (!/^\d$/.test(event.key)) {
+                  event.preventDefault();
+               }
             });
 
             $('#certificateMaterialsRows').on('keydown', '[contenteditable="true"]', function(event) {
