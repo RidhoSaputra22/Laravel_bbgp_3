@@ -460,11 +460,22 @@ class GuruController extends Controller
 
     public function cari(Request $request)
     {
+        $request->validate([
+            'jumlah_kegiatan' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        $schoolNames = Sekolah::query()
+            ->select('npsn_sekolah')
+            ->selectRaw('MAX(nama_sekolah) as nama_sekolah')
+            ->groupBy('npsn_sekolah');
+
         $query = $this->scopedGurus('gurus.kabupaten')
-            ->leftJoin('sekolahs', 'gurus.npsn_sekolah', '=', 'sekolahs.npsn_sekolah')
+            ->leftJoinSub($schoolNames, 'sekolahs', function ($join) {
+                $join->on('gurus.npsn_sekolah', '=', 'sekolahs.npsn_sekolah');
+            })
             ->select('gurus.*', 'sekolahs.nama_sekolah');
 
-        $totalRecords = $this->scopedGurus()->count();
+        $totalRecords = $this->scopedGurus()->count('gurus.id');
 
         if ($request->nama_sekolah) {
             $query->where('sekolahs.nama_sekolah', 'like', '%' . $request->nama_sekolah . '%');
@@ -482,6 +493,21 @@ class GuruController extends Controller
             $query->where('gurus.kabupaten', $request->kabupaten);
         }
 
+        if ($request->filled('jumlah_kegiatan')) {
+            $activityCounts = PesertaKegiatan::query()
+                ->select('no_ktp')
+                ->selectRaw('COUNT(*) as jumlah_kegiatan')
+                ->groupBy('no_ktp');
+
+            $query->leftJoinSub($activityCounts, 'activity_counts', function ($join) {
+                $join->on('gurus.no_ktp', '=', 'activity_counts.no_ktp');
+            });
+            $query->whereRaw(
+                'COALESCE(activity_counts.jumlah_kegiatan, 0) = ?',
+                [(int) $request->input('jumlah_kegiatan')]
+            );
+        }
+
         if ($request->has('search') && !empty($request->search['value'])) {
             $searchValue = $request->search['value'];
             $query->where(function($q) use ($searchValue) {
@@ -490,11 +516,14 @@ class GuruController extends Controller
             });
         }
 
-        $filteredRecords = $query->count();
+        $filteredRecords = $query->count('gurus.id');
+
+        $start = max((int) $request->get('start', 0), 0);
+        $length = min(max((int) $request->get('length', 10), 1), 100);
 
         $result = $query->orderBy('gurus.created_at', 'desc')
-            ->skip($request->get('start', 0))
-            ->take($request->get('length', 10))
+            ->skip($start)
+            ->take($length)
             ->get();
 
         return response()->json([

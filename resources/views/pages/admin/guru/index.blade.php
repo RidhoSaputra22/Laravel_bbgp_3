@@ -55,14 +55,14 @@
                            <div class="row">
 
 
-                              <div class="col-md-4">
+                              <div class="col-md-3">
                                  <div class="form-group">
                                     <label>Nama Sekolah/Instansi</label>
                                     <input name="instansi" id="instansi" type="text" value=""
                                        placeholder="Masukkan sekolah/instansi anda" class="form-control">
                                  </div>
                               </div>
-                              <div class="col-md-4">
+                              <div class="col-md-3">
                                  <div class="form-group">
                                     <label>Status Kepegawaian</label>
                                     <select name="statusKepegawaian" class="form-control select2" id="statusKepegawaian">
@@ -73,7 +73,7 @@
                                     </select>
                                  </div>
                               </div>
-                              <div class="col-md-4">
+                              <div class="col-md-3">
                                  <div class="form-group">
                                     <label>Kota/Kabupaten</label>
                                     <select name="kabupatenFilter" class="form-control select2" id="kabupatenFilter">
@@ -82,6 +82,14 @@
                                           <option value="{{ $v->name }}">{{ $v->name }}</option>
                                        @endforeach
                                     </select>
+                                 </div>
+                              </div>
+
+                              <div class="col-md-3">
+                                 <div class="form-group">
+                                    <label>Jumlah Kegiatan</label>
+                                    <input name="jumlah_kegiatan" id="jumlahKegiatan" type="number" min="0"
+                                       step="1" placeholder="Masukkan jumlah kegiatan" class="form-control">
                                  </div>
                               </div>
 
@@ -230,6 +238,7 @@
                      d.nama_sekolah = $('#instansi').val();
                      d.status_kepegawaian = $('#statusKepegawaian').val();
                      d.kabupaten = $('#kabupatenFilter').val();
+                     d.jumlah_kegiatan = $('#jumlahKegiatan').val();
                   }
                },
                columns: [{
@@ -340,6 +349,7 @@
 
             const namaInput = document.querySelector('#namaFilter');
             const instansi = document.querySelector('#instansi');
+            const jumlahKegiatan = document.querySelector('#jumlahKegiatan');
             const statusKepegawaian = $('#statusKepegawaian');
             const kabupatenFilter = $('#kabupatenFilter');
 
@@ -357,6 +367,7 @@
             }
 
             instansi.addEventListener('input', debouncedApplyFilters);
+            jumlahKegiatan.addEventListener('input', debouncedApplyFilters);
             namaInput.addEventListener('input', debouncedApplyFilters);
             statusKepegawaian.on('change', applyFilters);
             kabupatenFilter.on('change', applyFilters);
@@ -364,6 +375,7 @@
             function clearFilters() {
                namaInput.value = '';
                instansi.value = '';
+               jumlahKegiatan.value = '';
                statusKepegawaian.value = '';
                kabupatenFilter.value = '';
                applyFilters();
