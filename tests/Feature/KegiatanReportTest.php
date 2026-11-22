@@ -75,4 +75,39 @@ class KegiatanReportTest extends TestCase
 
         $response->assertOk()->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_external_guru_activity_report_generates_pdf(): void
+    {
+        $admin = User::query()->create([
+            'name' => 'Guru Report Admin',
+            'username' => 'guru-report-admin-'.uniqid(),
+            'password' => 'password',
+            'role' => 'admin',
+        ]);
+        $guru = Guru::query()->create([
+            'nama_lengkap' => 'Guru Laporan Test',
+            'no_ktp' => 'REPORT-GURU-'.uniqid(),
+        ]);
+        $activity = Kegiatan::query()->create([
+            'nama_kegiatan' => 'Kegiatan Guru Laporan '.uniqid(),
+            'tempat_kegiatan' => 'Makassar',
+            'tgl_kegiatan' => '2026-11-10',
+            'jam_mulai' => '08:00',
+            'status' => 'true',
+        ]);
+        PesertaKegiatan::query()->create([
+            'id_kegiatan' => $activity->id,
+            'nama' => $guru->nama_lengkap,
+            'no_ktp' => $guru->no_ktp,
+            'instansi' => 'Instansi Test',
+            'status_keikutpesertaan' => 'peserta',
+            'jkl' => 'Laki-laki',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->withSession(['cek' => true, 'role' => 'admin', 'user_id' => $admin->id])
+            ->get(route('guru.print-laporan-kegiatan', ['id' => $guru->id]));
+
+        $response->assertOk()->assertHeader('content-type', 'application/pdf');
+    }
 }

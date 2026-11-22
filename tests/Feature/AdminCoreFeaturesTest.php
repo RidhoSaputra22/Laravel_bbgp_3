@@ -9,6 +9,7 @@ use App\Models\Guru;
 use App\Models\Kegiatan;
 use App\Models\Kepegawaian;
 use App\Models\Pegawai;
+use App\Models\PesertaKegiatan;
 use App\Models\PenyewaanRuangan;
 use App\Models\Rtl;
 use App\Models\SatuanPendidikan;
@@ -354,6 +355,40 @@ class AdminCoreFeaturesTest extends TestCase
         $this->withSession($this->adminSession())
             ->post(route('pegawai.hapus', $pegawai->id))
             ->assertOk();
+    }
+
+    public function test_external_detail_returns_registered_activity_count_for_the_guru_nik(): void
+    {
+        $nik = '9312345678901234';
+        $guru = Guru::query()->create([
+            'nama_lengkap' => 'Guru Detail Test',
+            'no_ktp' => $nik,
+        ]);
+
+        foreach (['101', '102'] as $activityId) {
+            PesertaKegiatan::query()->create([
+                'id_kegiatan' => $activityId,
+                'nama' => $guru->nama_lengkap,
+                'no_ktp' => $nik,
+                'status_keikutpesertaan' => 'peserta',
+                'instansi' => 'Sekolah Test',
+                'jkl' => 'Laki-laki',
+            ]);
+        }
+
+        PesertaKegiatan::query()->create([
+            'id_kegiatan' => '103',
+            'nama' => 'Guru Lain',
+            'no_ktp' => '9412345678901234',
+            'status_keikutpesertaan' => 'peserta',
+            'instansi' => 'Sekolah Test',
+            'jkl' => 'Laki-laki',
+        ]);
+
+        $this->withSession($this->adminSession())
+            ->getJson(route('admin.eksternal.detail', ['id' => $guru->id]))
+            ->assertOk()
+            ->assertJsonPath('jumlah_kegiatan', 2);
     }
 
     public function test_report_file_input_requires_link_or_supported_file_and_admin_can_verify(): void

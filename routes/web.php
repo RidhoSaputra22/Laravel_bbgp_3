@@ -160,6 +160,7 @@ Route::group(
 
                 // untuk login ekternal by user
                 Route::get('/detail', 'GuruController@getDetail')->name('admin.eksternal.detail')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten,panitia');
+                Route::get('/print-laporan-kegiatan-guru/{id}', 'GuruController@printLaporanKegiatanGuru')->name('guru.print-laporan-kegiatan')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,kegiatan,keuangan,pegawai-kabupaten,panitia');
                 Route::get('/detailByUser', 'GuruController@getDetailByUser')->name('guru.detail.user');
                 Route::get('/show/{id}', 'GuruController@show')->name('guru.show');
                 Route::get('/editByUser/{id}', 'GuruController@editByUser')->name('guru.edit.user');

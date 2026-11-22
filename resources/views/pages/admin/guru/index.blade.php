@@ -199,6 +199,7 @@
                                         <p><strong>No WA:</strong> ${escapeHtml(response.data?.no_wa)}</p>
                                         <p><strong>Pendidikan Terakhir:</strong> ${escapeHtml(response.data?.pendidikan)}</p>
                                         <p><strong>Status Kepegawaian:</strong> ${escapeHtml(response.data?.status_kepegawaian)}</p>
+                                        <p><strong>Banyak Kegiatan Diikuti:</strong> ${escapeHtml(response.jumlah_kegiatan)}</p>
                                     </div>
                                 </div>
                             `);
@@ -281,6 +282,8 @@
                      data: null,
                      render: function(data, type, row) {
                         let buttons = '';
+                        const printLaporanKegiatanUrl = @json(route('guru.print-laporan-kegiatan', ['id' => '__guru_id__']))
+                           .replace('__guru_id__', row.id);
 
                         // Get role from PHP session and pass it to JS
 
@@ -296,6 +299,12 @@
                     class="btn btn-info mb-1 mx-1">
                     <i class="fas fa-info"></i>
                             </button> `;
+
+                        // Print activity report button
+                        buttons += `<a href="${printLaporanKegiatanUrl}"
+                    class="btn btn-success mb-1 mx-1">
+                    <i class="fas fa-print"></i>
+                            </a> `;
 
                         // Delete button
                         buttons += `<button onclick="deleteData(${row.id}, 'eksternal')" 

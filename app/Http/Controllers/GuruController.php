@@ -11,7 +11,9 @@ use App\Models\JenisJabatan;
 use App\Models\Kabupaten;
 use App\Models\Kecamatan;
 use App\Models\Kepegawaian;
+use App\Models\Kegiatan;
 use App\Models\Pendidikan;
+use App\Models\PesertaKegiatan;
 use App\Models\SatuanPendidikan;
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
@@ -165,6 +167,7 @@ class GuruController extends Controller
         return response()->json([
             'data' => $peserta,
             'sekolah' => $sekolah,
+            'jumlah_kegiatan' => PesertaKegiatan::where('no_ktp', $peserta->no_ktp)->count(),
             // Tetap kirim key lama agar halaman admin lama tidak rusak.
             'nama_sekolah' => $sekolah['nama_sekolah'] ?? '',
             'kecamatan_sekolah' => $sekolah['kecamatan'] ?? '',
@@ -285,6 +288,22 @@ class GuruController extends Controller
 
         // Download PDF dengan nama file 'data_guru.pdf'
         return $pdf->stream('data_eksternal_BBGTK.pdf');
+    }
+
+    public function printLaporanKegiatanGuru(string $id)
+    {
+        $guru = $this->scopedGurus()->findOrFail($id);
+        $kegiatan = Kegiatan::query()
+            ->whereIn('id', PesertaKegiatan::query()
+                ->select('id_kegiatan')
+                ->where('no_ktp', $guru->no_ktp))
+            ->orderBy('tgl_kegiatan')
+            ->orderBy('id')
+            ->get();
+
+        $pdf = PDF::loadView('pages.admin.guru.cetak-laporan-kegiatan', compact('guru', 'kegiatan'));
+
+        return $pdf->stream('laporan-kegiatan-'.$guru->no_ktp.'.pdf');
     }
 
     public function show(string $id)
