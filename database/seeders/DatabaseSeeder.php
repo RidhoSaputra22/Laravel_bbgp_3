@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     {
 
         $this->call(AdminSeeder::class);
+        $this->call(SuperAdminSeeder::class);
         $this->call(LoginRoleSeeder::class);
         $this->call(StatusKepegawaianSeeder::class);
         $this->call(StatusPendidikanSeeder::class);
