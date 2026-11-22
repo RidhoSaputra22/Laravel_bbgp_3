@@ -16,7 +16,7 @@
             @forelse ($materials ?? [] as $index => $material)
                 <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ $material['materi'] ?? '' }}</td>
+                    <td>{!! $material['materi'] ?? '' !!}</td>
                     <td>{{ $material['jp'] ?? '' }}</td>
                 </tr>
             @empty

@@ -211,7 +211,12 @@ class RtlController extends Controller
 
         foreach ($defaults as $key => $default) {
             $value = $overrides[$key] ?? null;
-            $defaults[$key] = is_string($value) && trim($value) !== '' ? trim($value) : $default;
+            if (!is_string($value)) {
+                continue;
+            }
+
+            $value = $this->sanitizeCertificateRichText($value);
+            $defaults[$key] = trim(strip_tags($value)) !== '' ? trim($value) : $default;
         }
 
         $defaults['qrLink'] = trim((string) ($overrides['qrLink'] ?? ''));
@@ -221,8 +226,8 @@ class RtlController extends Controller
             : '';
 
         $defaults['materialsTitle'] = is_string($overrides['materialsTitle'] ?? null)
-            && trim($overrides['materialsTitle']) !== ''
-            ? trim($overrides['materialsTitle'])
+            && trim(strip_tags($overrides['materialsTitle'])) !== ''
+            ? $this->sanitizeCertificateRichText($overrides['materialsTitle'])
             : $defaults['activityName'];
         $defaults['materials'] = $this->certificateMaterials($overrides['materials'] ?? []);
 
@@ -240,9 +245,9 @@ class RtlController extends Controller
                 return null;
             }
 
-            $name = trim((string) ($material['materi'] ?? ''));
+            $name = $this->sanitizeCertificateRichText((string) ($material['materi'] ?? ''));
             $jp = trim((string) ($material['jp'] ?? ''));
-            if ($name === '' && $jp === '') {
+            if (trim(strip_tags($name)) === '' && $jp === '') {
                 return null;
             }
 
@@ -251,6 +256,15 @@ class RtlController extends Controller
                 'jp' => $jp,
             ];
         }, $materials)));
+    }
+
+    private function sanitizeCertificateRichText(string $value): string
+    {
+        $value = preg_replace('/<\s*(strong|em|u)\b[^>]*>/i', '<$1>', $value) ?? '';
+        $value = preg_replace('/<\s*\/\s*(strong|em|u)\s*>/i', '</$1>', $value) ?? '';
+        $value = preg_replace('/<\s*br\s*\/?>/i', '<br>', $value) ?? '';
+
+        return strip_tags($value, '<strong><em><u><br>');
     }
 
     private function formatCertificateDate(Carbon $start, ?Carbon $end = null): string

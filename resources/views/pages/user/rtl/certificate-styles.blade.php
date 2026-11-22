@@ -162,7 +162,8 @@
     z-index: 1;
     width: calc(100% - 52mm);
     margin: 18mm 26mm 0;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     table-layout: fixed;
     font-size: 12pt;
     text-align: left;
@@ -170,9 +171,18 @@
 
 .certificate-materials-table th,
 .certificate-materials-table td {
-    border: .25mm solid #1f2933;
+    border-top: .25mm solid #1f2933;
+    border-left: .25mm solid #1f2933;
     padding: 3.1mm 2.5mm;
     vertical-align: middle;
+}
+
+.certificate-materials-table tr > :last-child {
+    border-right: .25mm solid #1f2933;
+}
+
+.certificate-materials-table tr:last-child > * {
+    border-bottom: .25mm solid #1f2933;
 }
 
 .certificate-materials-table thead th {

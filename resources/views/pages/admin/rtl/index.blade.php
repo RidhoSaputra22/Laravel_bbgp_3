@@ -25,6 +25,37 @@
          overflow-y: auto;
       }
 
+      #reviewRtlModal .modal-content {
+         height: 670px;
+         max-height: calc(100vh - 30px);
+      }
+
+      #reviewRtlModal #reviewForm {
+         display: flex;
+         flex: 1 1 auto;
+         flex-direction: column;
+         min-height: 0;
+      }
+
+      #reviewRtlModal .modal-body {
+         flex: 1 1 auto;
+         min-height: 0;
+         overflow-y: auto;
+      }
+
+      #reviewRtlModal .modal-body > .row,
+      #reviewRtlModal .modal-body > .row > [class*="col-"] {
+         height: 100%;
+      }
+
+      #reviewRtlModal .modal-body > .row > [class*="col-"] {
+         display: flex;
+      }
+
+      #reviewRtlModal .modal-body .card {
+         width: 100%;
+      }
+
       .certificate-editor-form {
          height: 100%;
          padding: 1.25rem;
@@ -35,6 +66,25 @@
 
       .certificate-editor-form .form-group {
          margin-bottom: .85rem;
+      }
+
+      .certificate-rich-field {
+         height: auto;
+         min-height: 31px;
+         line-height: 1.35;
+         white-space: pre-wrap;
+         overflow-wrap: anywhere;
+         word-break: break-all;
+      }
+
+      .certificate-rich-field-multiline {
+         min-height: 58px;
+      }
+
+      .certificate-rich-field:empty::before {
+         color: #98a0b3;
+         content: attr(data-placeholder);
+         pointer-events: none;
       }
 
       .certificate-editor-form label {
@@ -105,6 +155,23 @@
          min-width: 0;
          padding: .2rem .35rem;
          font-size: .72rem;
+      }
+
+      .certificate-materials-editor-form [contenteditable="true"] {
+         height: auto;
+         width: 100%;
+         max-width: 250px;
+         min-height: 30px;
+         line-height: 1.35;
+         white-space: pre-wrap;
+         overflow-wrap: anywhere;
+         word-break: break-all;
+      }
+
+      .certificate-materials-editor-form [contenteditable="true"]:empty::before {
+         color: #98a0b3;
+         content: attr(data-placeholder);
+         pointer-events: none;
       }
 
       .certificate-materials-empty-row td {
@@ -248,10 +315,6 @@
                               </div>
 
                               <div class="form-group mb-3" id="certGenerateGroup" style="display:none;">
-                                 <label class="font-weight-bold text-success">Generate Sertifikat</label>
-                                 <div id="existingCert" class="mb-2" style="display:none;">
-                                    <span class="badge badge-success">Sertifikat akan dibuat ulang saat disimpan</span>
-                                 </div>
                                  <button type="button" class="btn btn-outline-success btn-sm btn-block mb-2"
                                     id="openCertificateEditorButton" onclick="openCertificateEditor()">
                                     <i class="fas fa-edit mr-1"></i>
@@ -333,54 +396,65 @@
 
                         <div class="form-group">
                            <label for="certFieldNumber">Nomor Sertifikat</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldNumber"
-                              data-certificate-field="number">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldNumber"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="number" data-placeholder="Nomor Sertifikat"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldParticipantName">Nama Peserta</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldParticipantName"
-                              data-certificate-field="participantName">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldParticipantName"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="participantName" data-placeholder="Nama Peserta"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldInstitution">Instansi/Sekolah</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldInstitution"
-                              data-certificate-field="institution">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldInstitution"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="institution" data-placeholder="Instansi/Sekolah"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldParticipantRole">Peran Peserta</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldParticipantRole"
-                              data-certificate-field="participantRole">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldParticipantRole"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="participantRole" data-placeholder="Peran Peserta"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldActivityName">Nama Kegiatan</label>
-                           <textarea class="form-control form-control-sm" id="certFieldActivityName" rows="2"
-                              data-certificate-field="activityName"></textarea>
+                           <div class="form-control form-control-sm certificate-rich-field certificate-rich-field-multiline"
+                              id="certFieldActivityName" contenteditable="true" role="textbox" aria-multiline="true"
+                              spellcheck="false" data-certificate-field="activityName"
+                              data-placeholder="Nama Kegiatan"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldActivityDate">Tanggal Kegiatan</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldActivityDate"
-                              data-certificate-field="activityDate" placeholder="Contoh: 1 Januari 2026">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldActivityDate"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="activityDate" data-placeholder="Contoh: 1 Januari 2026"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldActivityPlace">Tempat Kegiatan</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldActivityPlace"
-                              data-certificate-field="activityPlace">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldActivityPlace"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="activityPlace" data-placeholder="Tempat Kegiatan"></div>
                         </div>
                         <div class="form-group">
                            <label for="certFieldIssueDate">Tanggal Terbit</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldIssueDate"
-                              data-certificate-field="issueDate" placeholder="Contoh: 1 Januari 2026">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldIssueDate"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="issueDate" data-placeholder="Contoh: 1 Januari 2026"></div>
                         </div>
                         <div class="form-row">
                            <div class="form-group col-md-7">
                               <label for="certFieldSignerName">Nama Penandatangan</label>
-                              <input type="text" class="form-control form-control-sm" id="certFieldSignerName"
-                                 data-certificate-field="signerName">
+                              <div class="form-control form-control-sm certificate-rich-field" id="certFieldSignerName"
+                                 contenteditable="true" role="textbox" spellcheck="false"
+                                 data-certificate-field="signerName" data-placeholder="Nama Penandatangan"></div>
                            </div>
                            <div class="form-group col-md-5">
                               <label for="certFieldSignerNip">NIP</label>
-                              <input type="text" class="form-control form-control-sm" id="certFieldSignerNip"
-                                 data-certificate-field="signerNip">
+                              <div class="form-control form-control-sm certificate-rich-field" id="certFieldSignerNip"
+                                 contenteditable="true" role="textbox" spellcheck="false"
+                                 data-certificate-field="signerNip" data-placeholder="NIP"></div>
                            </div>
                         </div>
                         <div class="form-group">
@@ -405,8 +479,9 @@
 
                         <div class="form-group">
                            <label for="certFieldMaterialsTitle">Kegiatan</label>
-                           <input type="text" class="form-control form-control-sm" id="certFieldMaterialsTitle"
-                              data-certificate-field="materialsTitle">
+                           <div class="form-control form-control-sm certificate-rich-field" id="certFieldMaterialsTitle"
+                              contenteditable="true" role="textbox" spellcheck="false"
+                              data-certificate-field="materialsTitle" data-placeholder="Kegiatan"></div>
                         </div>
 
                         <div class="table-responsive">
@@ -457,6 +532,7 @@
             </div>
             <div class="modal-footer bg-whitesmoke br">
                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+               <small class="text-muted ml-3">Note: Blok teks dan gunakan Ctrl+B, Ctrl+I, Ctrl+U untuk bold, italic, dan underline.</small>
                <div class="ml-auto">
                   <button type="button" class="btn btn-outline-primary mr-2" id="certificatePreviousButton"
                      onclick="goToCertificateStep(1)" style="display:none;">
@@ -514,6 +590,78 @@
             return $.extend(true, {}, data || {});
          }
 
+         function sanitizeRichText(value) {
+            const source = document.createElement('div');
+            source.innerHTML = value || '';
+
+            function escapeText(text) {
+               const escaped = document.createElement('div');
+               escaped.textContent = text;
+               return escaped.innerHTML;
+            }
+
+            function clean(node) {
+               return Array.from(node.childNodes).map(function(child) {
+                  if (child.nodeType === Node.TEXT_NODE) {
+                     return escapeText(child.nodeValue || '');
+                  }
+
+                  if (child.nodeType !== Node.ELEMENT_NODE) {
+                     return '';
+                  }
+
+                  const content = clean(child);
+                  const tag = child.tagName.toLowerCase();
+                  const allowedTags = {
+                     b: 'strong',
+                     strong: 'strong',
+                     i: 'em',
+                     em: 'em',
+                     u: 'u',
+                     br: 'br'
+                  };
+
+                  if (tag === 'br') {
+                     return '<br>';
+                  }
+
+                  if (allowedTags[tag]) {
+                     return `<${allowedTags[tag]}>${content}</${allowedTags[tag]}>`;
+                  }
+
+                  return content;
+               }).join('');
+            }
+
+            return clean(source);
+         }
+
+         function getCertificateFieldValue(element) {
+            const field = $(element);
+            return field.is('[contenteditable]')
+               ? sanitizeRichText(field.html())
+               : field.val();
+         }
+
+         function setCertificateFieldValue(field, value) {
+            const element = $(`[data-certificate-field="${field}"]`);
+            if (element.is('[contenteditable]')) {
+               element.html(sanitizeRichText(value || ''));
+            } else {
+               element.val(value || '');
+            }
+         }
+
+         function renderCertificateFieldPreview(field, value) {
+            $(`[data-certificate-preview="${field}"]`).html(sanitizeRichText(value || '-'));
+            if (field === 'activityName' || field === 'materialsTitle') {
+               const data = rtlReviewState.certificateDraft || {};
+               $('[data-certificate-materials-title]').html(
+                  sanitizeRichText(data.materialsTitle || data.activityName || '-')
+               );
+            }
+         }
+
          function syncCertificateDataInputs() {
             const container = $('#certificateDataInputs').empty();
 
@@ -543,11 +691,13 @@
 
          function renderCertificateEditor(data) {
             certificateFieldNames.forEach(function(field) {
-               $(`[data-certificate-field="${field}"]`).val(data[field] || '');
-               $(`[data-certificate-preview="${field}"]`).text(data[field] || '-');
+               setCertificateFieldValue(field, data[field] || '');
+               renderCertificateFieldPreview(field, data[field]);
             });
 
-            $('[data-certificate-materials-title]').text(data.materialsTitle || data.activityName || '-');
+            $('[data-certificate-materials-title]').html(
+               sanitizeRichText(data.materialsTitle || data.activityName || '-')
+            );
             renderCertificateQr(data);
             renderMaterialsForm(data);
             renderMaterialsPreview(data);
@@ -655,14 +805,16 @@
             materials.forEach(function(material, index) {
                const row = $('<tr>');
                $('<td>').text(index + 1).appendTo(row);
-               $('<td>').append($('<input>', {
-                  type: 'text',
+               $('<td>').append($('<div>', {
                   class: 'form-control form-control-sm',
+                  contenteditable: 'true',
+                  role: 'textbox',
+                  'aria-label': 'Materi',
                   'data-material-index': index,
                   'data-material-field': 'materi',
-                  value: material.materi || '',
-                  placeholder: 'Nama materi'
-               })).appendTo(row);
+                  'data-placeholder': 'Nama materi',
+                  spellcheck: 'false'
+               }).html(sanitizeRichText(material.materi || ''))).appendTo(row);
                $('<td>').append($('<input>', {
                   type: 'number',
                   min: 0,
@@ -698,7 +850,7 @@
                materials.forEach(function(material, index) {
                   const row = $('<tr>');
                   $('<td>').text(index + 1).appendTo(row);
-                  $('<td>').text(material.materi || '').appendTo(row);
+                  $('<td>').html(sanitizeRichText(material.materi || '')).appendTo(row);
                   $('<td>').text(material.jp || '').appendTo(row);
                   rows.append(row);
                });
@@ -810,10 +962,8 @@
                syncCertificateDataInputs();
 
                if (rtlReviewState.hasCertificate) {
-                  $('#existingCert').show();
                   $('#certificateEditorButtonText').text('Edit Sertifikat');
                } else {
-                  $('#existingCert').hide();
                   $('#certificateEditorButtonText').text('Buat Sertifikat');
                }
 
@@ -988,11 +1138,32 @@
                }
 
                const field = $(this).data('certificate-field');
-               rtlReviewState.certificateDraft[field] = $(this).val();
-               renderCertificateEditor(rtlReviewState.certificateDraft);
+               rtlReviewState.certificateDraft[field] = getCertificateFieldValue(this);
+               renderCertificateFieldPreview(field, rtlReviewState.certificateDraft[field]);
                if (field === 'qrLink') {
                   scheduleCertificateQr(rtlReviewState.certificateDraft.qrLink, false);
                }
+            });
+
+            $('#certificateStepOneForm').on('keydown', '[contenteditable="true"]', function(event) {
+               if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+                  return;
+               }
+
+               const commands = {
+                  b: 'bold',
+                  i: 'italic',
+                  u: 'underline'
+               };
+               const command = commands[event.key.toLowerCase()];
+               if (!command) {
+                  return;
+               }
+
+               event.preventDefault();
+               event.stopPropagation();
+               document.execCommand(command, false);
+               $(this).trigger('input');
             });
 
             $('#certificateMaterialsRows').on('input', '[data-material-field]', function() {
@@ -1006,9 +1177,32 @@
                   return;
                }
 
-               rtlReviewState.certificateDraft.materials[index][field] = $(this).val();
+               rtlReviewState.certificateDraft.materials[index][field] = $(this).is('[contenteditable]')
+                  ? sanitizeRichText($(this).html())
+                  : $(this).val();
                renderMaterialsPreview(rtlReviewState.certificateDraft);
                updateMaterialsTotal();
+            });
+
+            $('#certificateMaterialsRows').on('keydown', '[contenteditable="true"]', function(event) {
+               if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+                  return;
+               }
+
+               const commands = {
+                  b: 'bold',
+                  i: 'italic',
+                  u: 'underline'
+               };
+               const command = commands[event.key.toLowerCase()];
+               if (!command) {
+                  return;
+               }
+
+               event.preventDefault();
+               event.stopPropagation();
+               document.execCommand(command, false);
+               $(this).trigger('input');
             });
 
             $('#reviewForm').on('submit', function() {
