@@ -4,8 +4,8 @@ use App\Http\Controllers\AssessmentPackageController;
 use App\Http\Controllers\EvaluasiPelaksanaanResultController;
 use App\Http\Controllers\GuruDashboardController;
 use App\Http\Controllers\PegawaiController;
-use App\Http\Controllers\PesertaKegiatanController;
 use App\Http\Controllers\PenyewaanRuanganController;
+use App\Http\Controllers\PesertaKegiatanController;
 use App\Http\Controllers\RtlController;
 use App\Http\Controllers\SekolahController as AdminSekolahController;
 use App\Http\Controllers\User\SekolahController as UserSekolahController;
@@ -446,6 +446,7 @@ Route::group(
                 Route::get('/edit/{id}', 'KegiatanController@edit')->name('kegiatan.edit');
                 Route::put('/update', 'KegiatanController@update')->name('kegiatan.update');
                 Route::post('/hapus/{id}', 'KegiatanController@destroy')->name('kegiatan.hapus');
+                Route::get('/print-laporan-kegiatan', 'KegiatanController@printLaporanKegiatan')->name('kegiatan.print-laporan');
             });
 
             // Peserta Kegiatan

@@ -26,6 +26,10 @@
 
                                 <a href="{{ route('kegiatan.create') }}" class="btn btn-primary text-white my-3">+ Tambah
                                     Kegiatan</a>
+                                <button type="button" class="btn btn-info text-white my-3 ml-2" data-toggle="modal"
+                                    data-target="#modalLaporanKegiatan">
+                                    <i class="fas fa-file-pdf mr-1"></i>Print Laporan
+                                </button>
 
                                 <h6>Print Absensi</h6>
                                 <div class="row">
@@ -144,6 +148,49 @@
         </section>
     </div>
 
+    {{-- Modal Filter Laporan Kegiatan --}}
+    <div class="modal fade" tabindex="-1" role="dialog" id="modalLaporanKegiatan">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form action="{{ route('kegiatan.print-laporan') }}" method="GET">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Print Laporan Kegiatan</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="laporanKegiatan">Nama Kegiatan</label>
+                            <select class="form-control" id="laporanKegiatan" name="kegiatan_id">
+                                <option value="">Semua kegiatan</option>
+                                @foreach ($datas as $data)
+                                    <option value="{{ $data->id }}">{{ $data->nama_kegiatan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-row" id="laporanTanggalFilter">
+                            <div class="form-group col-md-6">
+                                <label for="tanggalDari">Tanggal Dari</label>
+                                <input type="date" class="form-control" id="tanggalDari" name="tanggal_dari">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="tanggalSampai">Tanggal Sampai</label>
+                                <input type="date" class="form-control" id="tanggalSampai" name="tanggal_sampai">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-whitesmoke br">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-print mr-1"></i>Print Laporan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Modal Penugasan Pegawai --}}
     <div class="modal fade" tabindex="-1" role="dialog" id="modalPenugasan">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -221,6 +268,19 @@
                     searching: true,
                     language: language,
                 });
+
+                function toggleLaporanTanggal() {
+                    var semuaKegiatan = $('#laporanKegiatan').val() === '';
+                    $('#laporanTanggalFilter').toggle(semuaKegiatan);
+                    $('#laporanTanggalFilter input').prop('disabled', !semuaKegiatan);
+                    if (!semuaKegiatan) {
+                        $('#laporanTanggalFilter input').val('');
+                    }
+                }
+
+                $('#laporanKegiatan').on('change', toggleLaporanTanggal);
+                $('#modalLaporanKegiatan').on('shown.bs.modal', toggleLaporanTanggal);
+                toggleLaporanTanggal();
 
                 // Button click event handlers
                 $('#btnPrintPeserta').on('click', function() {

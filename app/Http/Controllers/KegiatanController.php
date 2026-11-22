@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\GolonganP3k;
+use App\Models\Guru;
 use App\Models\Kegiatan;
+use App\Models\PesertaKegiatan;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class KegiatanController extends Controller
 {
     private $menu;
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->menu = 'kegiatan';
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -105,6 +111,62 @@ class KegiatanController extends Controller
         $data = $this->scopedActivities()->findOrFail($id);
         $data->delete();
         return response()->json($data);
+    }
+
+    public function printLaporanKegiatan(Request $request)
+    {
+        $filters = $request->validate([
+            'kegiatan_id' => ['nullable', 'integer', 'exists:kegiatans,id'],
+            'tanggal_dari' => ['nullable', 'date'],
+            'tanggal_sampai' => ['nullable', 'date', 'after_or_equal:tanggal_dari'],
+        ]);
+
+        $activities = $this->scopedActivities()
+            ->when($filters['kegiatan_id'] ?? null, fn ($query, $id) => $query->whereKey($id))
+            ->when($filters['tanggal_dari'] ?? null, fn ($query, $date) => $query->whereDate('tgl_kegiatan', '>=', $date))
+            ->when($filters['tanggal_sampai'] ?? null, fn ($query, $date) => $query->whereDate('tgl_kegiatan', '<=', $date))
+            ->orderBy('tgl_kegiatan')
+            ->orderBy('id')
+            ->get();
+
+        $reports = $activities->map(function (Kegiatan $activity) {
+            $participants = PesertaKegiatan::query()
+                ->where('id_kegiatan', $activity->id)
+                ->when(
+                    $this->kabupaten(),
+                    fn ($query, $kabupaten) => $query->where('kabupaten', $kabupaten)
+                );
+
+            $countByStatus = fn (string $status) => (clone $participants)
+                ->where('status_keikutpesertaan', $status)
+                ->count();
+
+            $countByExternalRole = function (string $role) use ($participants) {
+                $nips = Guru::query()
+                    ->where('eksternal_jabatan', $role)
+                    ->whereNotNull('no_ktp')
+                    ->pluck('no_ktp');
+
+                return (clone $participants)->whereIn('no_ktp', $nips)->count();
+            };
+
+            return [
+                'kegiatan' => $activity,
+                'peserta' => $countByStatus('peserta'),
+                'panitia' => $countByStatus('panitia'),
+                'tenaga_pendidik' => $countByExternalRole('Tenaga Pendidik'),
+                'tenaga_kependidikan' => $countByExternalRole('Tenaga Kependidikan'),
+                'stakeholder' => $countByExternalRole('Stakeholder'),
+                'narasumber' => $countByStatus('narasumber'),
+            ];
+        });
+
+        $pdf = Pdf::loadView('pages.admin.kegiatan.cetak.laporan-kegiatan', [
+            'reports' => $reports,
+            'filters' => $filters,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('laporan-kegiatan.pdf');
     }
 
     private function kabupaten(): ?string
