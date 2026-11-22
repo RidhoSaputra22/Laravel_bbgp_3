@@ -156,6 +156,21 @@
          width: 100%;
       }
 
+      #reviewRtlModal .review-summary-table {
+         width: 100%;
+         table-layout: fixed;
+      }
+
+      #reviewRtlModal .review-summary-table td:first-child {
+         width: 28%;
+      }
+
+      #reviewRtlModal #revKegiatan {
+         overflow: hidden;
+         text-overflow: ellipsis;
+         white-space: nowrap;
+      }
+
       #reviewRtlModal #revAdminNotes {
          height: 90px;
          min-height: 90px;
@@ -408,7 +423,7 @@
                               <h4>Status Pengajuan</h4>
                            </div>
                            <div class="card-body p-3">
-                              <table class="table table-sm mb-3">
+                              <table class="table table-sm mb-3 review-summary-table">
                                  <tr>
                                     <td>Kegiatan</td>
                                     <td id="revKegiatan" class="font-weight-bold text-primary"></td>
