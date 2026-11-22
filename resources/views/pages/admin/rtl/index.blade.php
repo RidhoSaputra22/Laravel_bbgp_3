@@ -185,7 +185,7 @@
          font-size: .72rem;
       }
 
-      .certificate-materials-editor-form [contenteditable="true"] {
+      .certificate-materials-editor-form [data-material-field="materi"] {
          height: auto;
          width: 100%;
          max-width: 250px;
@@ -196,7 +196,7 @@
          word-break: break-all;
       }
 
-      .certificate-materials-editor-form [contenteditable="true"]:empty::before {
+      .certificate-materials-editor-form [data-material-field="materi"]:empty::before {
          color: #98a0b3;
          content: attr(data-placeholder);
          pointer-events: none;
@@ -940,6 +940,7 @@
                $('[data-certificate-materials-title]').html(
                   sanitizeRichText(data.materialsTitle || data.activityName || '-')
                );
+               resizeCertificatePreview();
             }
          }
 
@@ -961,7 +962,7 @@
                $('<input>', {
                   type: 'hidden',
                   name: `certificate_data[materials][${index}][jp]`
-               }).val(material.jp || '').appendTo(container);
+               }).val(material.jp || 0).appendTo(container);
             });
 
             $('<input>', {
@@ -1106,7 +1107,7 @@
                   class: 'form-control form-control-sm',
                   'data-material-index': index,
                   'data-material-field': 'jp',
-                  value: material.jp || '',
+                  value: material.jp || 0,
                   placeholder: '0'
                })).appendTo(row);
                $('<td>').append($('<button>', {
@@ -1126,6 +1127,25 @@
          function renderMaterialsPreview(data) {
             const materials = Array.isArray(data.materials) ? data.materials : [];
             const rows = $('[data-certificate-materials-preview]').empty();
+            const materialsPage = $('#certificateMaterialsPreview .certificate-materials-page');
+            const densityClasses = [
+               'certificate-materials-page--tight',
+               'certificate-materials-page--compact',
+               'certificate-materials-page--dense',
+               'certificate-materials-page--ultra-dense',
+               'certificate-materials-page--extreme-dense'
+            ];
+            const densityClass = materials.length > 38
+               ? 'certificate-materials-page--ultra-dense'
+               : materials.length > 28
+                  ? 'certificate-materials-page--dense'
+                  : materials.length > 16
+                     ? 'certificate-materials-page--compact'
+                     : materials.length > 12
+                        ? 'certificate-materials-page--tight'
+                        : '';
+
+            materialsPage.removeClass(densityClasses.join(' ')).addClass(densityClass);
 
             $('[data-certificate-materials-title]').text(data.materialsTitle || data.activityName || '-');
             if (materials.length === 0) {
@@ -1135,12 +1155,13 @@
                   const row = $('<tr>');
                   $('<td>').text(index + 1).appendTo(row);
                   $('<td>').html(sanitizeRichText(material.materi || '')).appendTo(row);
-                  $('<td>').text(material.jp || '').appendTo(row);
+                  $('<td>').text(material.jp || 0).appendTo(row);
                   rows.append(row);
                });
             }
 
             $('[data-certificate-materials-total]').text(calculateMaterialsTotal(materials));
+            resizeCertificatePreview();
          }
 
          function calculateMaterialsTotal(materials) {
@@ -1178,7 +1199,7 @@
 
             clearCertificateValidation('#certificateAddMaterialRowButton');
 
-            rtlReviewState.certificateDraft.materials.push({ materi: '', jp: '' });
+            rtlReviewState.certificateDraft.materials.push({ materi: '', jp: 0 });
             renderMaterialsForm(rtlReviewState.certificateDraft);
             renderMaterialsPreview(rtlReviewState.certificateDraft);
             $('#certificateMaterialsRows tr:last [data-material-field="materi"]').trigger('focus');
@@ -1229,8 +1250,40 @@
                   return;
                }
 
+               page.style.setProperty('--certificate-preview-scale', '1');
+               fitMaterialsTable(page);
                page.style.setProperty('--certificate-preview-scale', viewport.clientWidth / page.offsetWidth);
             });
+         }
+
+         function fitMaterialsTable(page) {
+            const table = page.querySelector('.certificate-materials-table');
+            if (!table) {
+               return;
+            }
+
+            page.style.removeProperty('--certificate-materials-font-size');
+            page.style.removeProperty('--certificate-materials-cell-padding-y');
+
+            const baseFontSize = parseFloat(getComputedStyle(table).fontSize);
+            const tableCell = table.querySelector('th, td');
+            const baseCellPadding = tableCell ? parseFloat(getComputedStyle(tableCell).paddingTop) : 0;
+
+            let density = 1;
+            for (let attempt = 0; attempt < 6; attempt++) {
+               const pageRect = page.getBoundingClientRect();
+               const tableRect = table.getBoundingClientRect();
+               const bottomGap = pageRect.width / 297 * 3;
+               const availableHeight = pageRect.bottom - tableRect.top - bottomGap;
+
+               if (tableRect.height <= availableHeight) {
+                  return;
+               }
+
+               density = Math.max(.2, density * Math.min(1, availableHeight / tableRect.height));
+               page.style.setProperty('--certificate-materials-font-size', `${baseFontSize * density}px`);
+               page.style.setProperty('--certificate-materials-cell-padding-y', `${baseCellPadding * density}px`);
+            }
          }
 
          function reviewRtl(id) {

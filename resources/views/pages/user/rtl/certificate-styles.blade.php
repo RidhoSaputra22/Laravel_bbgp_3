@@ -111,10 +111,11 @@
 .certificate-signature {
     position: absolute;
     right: 0;
-    top: 135mm;
+    top: 142mm;
     left: 0;
     font-size: 11pt;
     line-height: 1.15;
+    z-index: 2;
 }
 
 .certificate-qr-wrap {
@@ -127,6 +128,13 @@
     width: 24mm;
     height: 24mm;
     margin: 0 auto;
+}
+
+body.certificate-pdf .certificate-qr-wrap,
+.certificate-preview-viewport .certificate-qr-wrap {
+    height: 24mm;
+    margin: .5mm auto 0;
+    line-height: 0;
 }
 
 .certificate-signature-space {
@@ -174,7 +182,10 @@
     table-layout: auto;
     font-family: "Times New Roman", Times, serif;
     font-size: 12pt;
+    font-size: var(--certificate-materials-font-size, 12pt);
     text-align: left;
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 .certificate-materials-table th,
@@ -182,7 +193,68 @@
     border-top: .25mm solid #1f2933;
     border-left: .25mm solid #1f2933;
     padding: 3.1mm 2.5mm;
+    padding: var(--certificate-materials-cell-padding-y, 3.1mm) 2.5mm;
     vertical-align: middle;
+}
+
+.certificate-materials-page--tight .certificate-materials-table {
+    font-size: 10pt;
+    font-size: var(--certificate-materials-font-size, 10pt);
+}
+
+.certificate-materials-page--tight .certificate-materials-table th,
+.certificate-materials-page--tight .certificate-materials-table td {
+    padding: 2.1mm 2.5mm;
+    padding: var(--certificate-materials-cell-padding-y, 2.1mm) 2.5mm;
+}
+
+.certificate-materials-page--compact .certificate-materials-table {
+    font-size: 8pt;
+    font-size: var(--certificate-materials-font-size, 8pt);
+}
+
+.certificate-materials-page--compact .certificate-materials-table th,
+.certificate-materials-page--compact .certificate-materials-table td {
+    padding: 1.5mm 2.5mm;
+    padding: var(--certificate-materials-cell-padding-y, 1.5mm) 2.5mm;
+}
+
+.certificate-materials-page--dense .certificate-materials-table {
+    font-size: 6pt;
+    font-size: var(--certificate-materials-font-size, 6pt);
+}
+
+.certificate-materials-page--dense .certificate-materials-table th,
+.certificate-materials-page--dense .certificate-materials-table td {
+    padding: .9mm 2.5mm;
+    padding: var(--certificate-materials-cell-padding-y, .9mm) 2.5mm;
+}
+
+.certificate-materials-page--ultra-dense .certificate-materials-table {
+    font-size: 5pt;
+    font-size: var(--certificate-materials-font-size, 5pt);
+}
+
+.certificate-materials-page--ultra-dense .certificate-materials-table th,
+.certificate-materials-page--ultra-dense .certificate-materials-table td {
+    padding: .4mm 2.5mm;
+    padding: var(--certificate-materials-cell-padding-y, .4mm) 2.5mm;
+}
+
+.certificate-materials-page--extreme-dense .certificate-materials-table {
+    font-size: 4pt;
+    font-size: var(--certificate-materials-font-size, 4pt);
+}
+
+.certificate-materials-page--extreme-dense .certificate-materials-table th,
+.certificate-materials-page--extreme-dense .certificate-materials-table td {
+    padding: .2mm 2.5mm;
+    padding: var(--certificate-materials-cell-padding-y, .2mm) 2.5mm;
+}
+
+.certificate-materials-table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
 }
 
 .certificate-materials-table tr > :last-child {

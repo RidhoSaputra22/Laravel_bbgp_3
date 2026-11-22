@@ -7,7 +7,7 @@
         @include('pages.user.rtl.certificate-styles')
     </style>
 </head>
-<body>
+<body class="certificate-pdf">
     @include('pages.user.rtl._certificate-content', [
         'backgroundSrc' => 'data:image/png;base64,'.$background,
         'logoSrc' => 'data:image/png;base64,'.$logo,
@@ -17,6 +17,7 @@
     ])
     @include('pages.user.rtl._certificate-materials-content', [
         'materialsBackgroundSrc' => 'data:image/png;base64,'.$materialsBackground,
+        'isPdf' => true,
     ])
 </body>
 </html>
