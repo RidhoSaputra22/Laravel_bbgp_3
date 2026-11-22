@@ -25,6 +25,19 @@
          overflow-y: auto;
       }
 
+      #certificateEditorModal .certificate-editor-footer {
+         position: relative;
+      }
+
+      #certificateEditorModal .certificate-editor-error {
+         position: absolute;
+         right: 25px;
+         bottom: 80px;
+         z-index: 2;
+         width: min(400px, calc(100% - 1rem));
+         margin: 0;
+      }
+
       #reviewRtlModal .modal-content {
          height: 670px;
          max-height: calc(100vh - 30px);
@@ -60,6 +73,10 @@
          height: 90px;
          min-height: 90px;
          resize: vertical;
+      }
+
+      #reviewRtlModal.is-loading .modal-content {
+         pointer-events: none;
       }
 
       .certificate-editor-form {
@@ -542,22 +559,26 @@
                   </div>
                </div>
             </div>
-            <div class="modal-footer bg-whitesmoke br">
-               <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-               <small class="text-muted ml-3">Note: Blok teks dan gunakan Ctrl+B, Ctrl+I, Ctrl+U untuk bold, italic, dan underline.</small>
-               <div class="ml-auto">
-                  <button type="button" class="btn btn-outline-primary mr-2" id="certificatePreviousButton"
-                     onclick="goToCertificateStep(1)" style="display:none;">
-                     <i class="fas fa-arrow-left mr-1"></i> Kembali
-                  </button>
-                  <button type="button" class="btn btn-primary" id="certificateNextButton"
-                     onclick="goToCertificateStep(2)">
-                     Selanjutnya <i class="fas fa-arrow-right ml-1"></i>
-                  </button>
-                  <button type="button" class="btn btn-success" id="certificateCommitButton"
-                     onclick="commitCertificateDraft()" style="display:none;">
-                  <i class="fas fa-check mr-1"></i> Simpan Sertifikat
-                  </button>
+            <div class="modal-footer bg-whitesmoke br certificate-editor-footer">
+               <div id="certificateEditorError" class="alert alert-danger certificate-editor-error d-none"
+                  role="alert" aria-live="assertive"></div>
+               <div class="d-flex align-items-center w-100">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                  <small class="text-muted ml-3">Note: Blok teks dan gunakan Ctrl+B, Ctrl+I, Ctrl+U untuk bold, italic, dan underline.</small>
+                  <div class="ml-auto">
+                     <button type="button" class="btn btn-outline-primary mr-2" id="certificatePreviousButton"
+                        onclick="goToCertificateStep(1)" style="display:none;">
+                        <i class="fas fa-arrow-left mr-1"></i> Kembali
+                     </button>
+                     <button type="button" class="btn btn-primary" id="certificateNextButton"
+                        onclick="goToCertificateStep(2)">
+                        Selanjutnya <i class="fas fa-arrow-right ml-1"></i>
+                     </button>
+                     <button type="button" class="btn btn-success" id="certificateCommitButton"
+                        onclick="commitCertificateDraft()" style="display:none;">
+                     <i class="fas fa-check mr-1"></i> Simpan Sertifikat
+                     </button>
+                  </div>
                </div>
             </div>
          </div>
@@ -613,6 +634,7 @@
             qrGenerationToken: 0,
             hasCertificate: false,
             certificateSaving: false,
+            reviewSaving: false,
             requestToken: 0
          };
 
@@ -632,6 +654,22 @@
             $('#certificateEditorModal [contenteditable]')
                .attr('contenteditable', saving ? 'false' : 'true');
             modals.attr('aria-busy', saving ? 'true' : 'false');
+         }
+
+         function setReviewSavingState(saving) {
+            rtlReviewState.reviewSaving = saving;
+
+            const modal = $('#reviewRtlModal');
+            modal.toggleClass('is-loading', saving);
+            modal.find('button, input, textarea, select')
+               .attr('aria-disabled', saving ? 'true' : 'false');
+            modal.find('button').prop('disabled', saving);
+            modal.find('input:not([type="hidden"]), textarea').prop('readOnly', saving);
+            modal.find('select').attr('tabindex', saving ? '-1' : null);
+            modal.find('a')
+               .attr('aria-disabled', saving ? 'true' : 'false')
+               .attr('tabindex', saving ? '-1' : null);
+            modal.attr('aria-busy', saving ? 'true' : 'false');
          }
 
          function sanitizeRichText(value) {
@@ -1255,6 +1293,7 @@
 
                $('#revFilePreviewFrame').hide();
                toggleCertUpload();
+               setReviewSavingState(false);
                $('#reviewRtlModal').modal('show');
             }).fail(function(xhr, status) {
                if (status !== 'abort' && typeof iziToast !== 'undefined') {
@@ -1279,6 +1318,7 @@
                return;
             }
 
+            $('#certificateEditorError').addClass('d-none').empty();
             rtlReviewState.certificateEditorInitialData = copyCertificateData(rtlReviewState.certificateData);
             rtlReviewState.certificateDraft = copyCertificateData(rtlReviewState.certificateEditorInitialData);
             clearCertificateQrTimer();
@@ -1339,6 +1379,7 @@
             const certificatePayload = $('#certificateDataInputs').find(':input').serialize();
             const saveButton = $('#certificateCommitButton');
             const originalSaveButtonHtml = saveButton.html();
+            $('#certificateEditorError').addClass('d-none').empty();
             setCertificateSavingState(true);
             saveButton
                .prop('disabled', true)
@@ -1366,12 +1407,16 @@
                   });
                }
             }).fail(function(xhr) {
-               if (typeof iziToast !== 'undefined') {
-                  iziToast.error({
-                     title: 'Gagal menyimpan',
-                     message: xhr.responseJSON?.message || 'Data sertifikat tidak dapat disimpan.'
-                  });
-               }
+               const response = xhr.responseJSON || {};
+               const messages = [response.message];
+               Object.values(response.errors || {}).forEach(function(errors) {
+                  messages.push(...(Array.isArray(errors) ? errors : [errors]));
+               });
+
+               $('#certificateEditorError')
+                  .html($('<div>').text(messages.filter(Boolean).join(' ')).html() ||
+                     'Data sertifikat tidak dapat disimpan.')
+                  .removeClass('d-none');
             }).always(function() {
                setCertificateSavingState(false);
                saveButton
@@ -1382,6 +1427,10 @@
          }
 
          function revShowFile(url, fileName) {
+            if (rtlReviewState.reviewSaving) {
+               return;
+            }
+
             $('#currentFileName').text(fileName);
             const lowUrl = url.toLowerCase();
 
@@ -1435,7 +1484,7 @@
             });
 
             $('#reviewRtlModal').on('hide.bs.modal', function(event) {
-               if (rtlReviewState.certificateSaving) {
+               if (rtlReviewState.reviewSaving || rtlReviewState.certificateSaving) {
                   event.preventDefault();
                   return;
                }
@@ -1446,7 +1495,7 @@
             });
 
             $(document).on('keydown.certificateSaving', function(event) {
-               if (rtlReviewState.certificateSaving && event.key === 'Escape') {
+               if ((rtlReviewState.reviewSaving || rtlReviewState.certificateSaving) && event.key === 'Escape') {
                   event.preventDefault();
                   event.stopImmediatePropagation();
                }
@@ -1553,7 +1602,16 @@
             });
 
             $('#reviewForm').on('submit', function() {
+               if (rtlReviewState.reviewSaving) {
+                  return false;
+               }
+
                syncCertificateDataInputs();
+               const saveButton = $(this).find('button[type="submit"]');
+               setReviewSavingState(true);
+               saveButton
+                  .attr('aria-busy', 'true')
+                  .html('<i class="fas fa-spinner fa-spin mr-1" aria-hidden="true"></i> Menyimpan...');
             });
 
             $(window).on('resize', resizeCertificatePreview);
