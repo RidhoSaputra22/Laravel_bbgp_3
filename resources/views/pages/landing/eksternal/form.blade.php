@@ -66,8 +66,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>NIP</label>
-                                <input required name="nip" type="text" class="form-control"
+                                <label>NIP (Opsional)</label>
+                                <input name="nip" type="text" class="form-control"
                                     value="{{ old('nip') }}" minlength="18" maxlength="18"
                                     inputmode="numeric">
                                 @error('nip')
@@ -80,8 +80,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>NPWP</label>
-                                <input required name="npwp" type="text" class="form-control"
+                                <label>NPWP (Opsional)</label>
+                                <input name="npwp" type="text" class="form-control"
                                     value="{{ old('npwp') }}" minlength="15" maxlength="16"
                                     inputmode="numeric">
                                 @error('npwp')
@@ -91,8 +91,8 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>NUPTK</label>
-                                <input {{ $jenis == 'Stakeholder' ? '' : 'required' }} name="nuptk" type="text"
+                                <label>NUPTK (Opsional)</label>
+                                <input name="nuptk" type="text"
                                     class="form-control" value="{{ old('nuptk') }}" minlength="16" maxlength="16"
                                     inputmode="numeric">
                                 @error('nuptk')

@@ -40,6 +40,80 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.0/css/dataTables.dataTables.css" />
 
     <style>
+        .registration-alert {
+            width: min(92vw, 480px) !important;
+            padding: 2rem 2rem 1.5rem !important;
+
+        }
+
+        .registration-alert__title {
+            margin-top: .75rem !important;
+            color: #374151 !important;
+            font-size: 1.75rem !important;
+        }
+
+        .registration-alert__content {
+            margin: 1rem 0 0 !important;
+            color: #4b5563 !important;
+            font-size: 1rem !important;
+            line-height: 1.5 !important;
+        }
+
+        .registration-alert__message {
+            margin: 0 0 1rem;
+        }
+
+        .registration-alert__credentials {
+            display: grid;
+            gap: .65rem;
+            padding: .9rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #f8fafc;
+            text-align: left;
+        }
+
+        .registration-alert__credential {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .registration-alert__credential-label {
+            color: #6b7280;
+        }
+
+        .registration-alert__credential-value {
+            color: #1f2937;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+            text-align: right;
+        }
+
+        .registration-alert__button {
+            min-width: 88px;
+            margin-top: 1.5rem !important;
+            border-radius: 8px !important;
+            background: #6777ef !important;
+            box-shadow: 0 4px 10px rgba(103, 119, 239, .25) !important;
+        }
+
+        @media (max-width: 480px) {
+            .registration-alert {
+                padding: 1.5rem 1.25rem 1.25rem !important;
+            }
+
+            .registration-alert__credential {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: .15rem;
+            }
+
+            .registration-alert__credential-value {
+                text-align: left;
+            }
+        }
+
         /* Floating WhatsApp Chat */
         #wa-chat-container {
             position: fixed;
@@ -563,7 +637,37 @@
             <script>
                 @if (session('registration_credentials'))
                     const registrationCredentials = @json(session('registration_credentials'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
-                    Swal.fire("Berhasil", `Registrasi berhasil. Username: ${registrationCredentials.username}\nPassword sementara: ${registrationCredentials.password}`, "success");
+                    Swal.fire({
+                        title: "Registrasi berhasil!",
+                        icon: "success",
+                        html: `
+                            <p class="registration-alert__message">
+                                Anda sekarang dapat mendaftar ke kegiatan menggunakan akun berikut:
+                            </p>
+                            <div class="registration-alert__credentials">
+                                <div class="registration-alert__credential">
+                                    <span class="registration-alert__credential-label">No Ktp</span>
+                                    <strong class="registration-alert__credential-value" data-registration-username></strong>
+                                </div>
+                                <div class="registration-alert__credential">
+                                    <span class="registration-alert__credential-label">Password sementara</span>
+                                    <strong class="registration-alert__credential-value" data-registration-password></strong>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: "OK",
+                        customClass: {
+                            popup: "registration-alert",
+                            title: "registration-alert__title",
+                            htmlContainer: "registration-alert__content",
+                            confirmButton: "registration-alert__button"
+                        },
+                        didOpen: () => {
+                            const popup = Swal.getPopup();
+                            popup.querySelector('[data-registration-username]').textContent = registrationCredentials.username;
+                            popup.querySelector('[data-registration-password]').textContent = registrationCredentials.password;
+                        }
+                    });
                 @else
                     Swal.fire("Berhasil", "Berhasil registrasi sebagai eksternal BBGTK SulSel", "success");
                 @endif

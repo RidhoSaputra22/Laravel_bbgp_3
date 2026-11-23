@@ -324,7 +324,7 @@ class UserController extends Controller
             'jabTugas' => 'nullable|string|max:255',
             'jabLatar' => 'nullable|string|max:255',
             'email' => 'required|email|max:255',
-            'nip' => 'required|digits:18',
+            'nip' => 'nullable|digits:18',
             'npsn_sekolah' => 'nullable|digits:8',
             'tempat_lahir' => 'required|string|max:255',
             'tgl_lahir' => 'required|date|before:today',
@@ -351,10 +351,8 @@ class UserController extends Controller
                     'Tidak ada',
                 ]),
             ],
-            'npwp' => 'required|digits_between:15,16',
-            'nuptk' => $request->input('jenisJabatan') === 'Stakeholder'
-                ? 'nullable|digits:16'
-                : 'required|digits:16',
+            'npwp' => 'nullable|digits_between:15,16',
+            'nuptk' => 'nullable|digits:16',
         ]);
 
 

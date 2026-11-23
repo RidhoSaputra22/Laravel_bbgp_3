@@ -116,7 +116,6 @@ class ExternalRegistrationFormTest extends TestCase
             'jabJenis',
             'kabupaten',
             'email',
-            'nip',
             'tempat_lahir',
             'tgl_lahir',
             'gender',
@@ -129,12 +128,7 @@ class ExternalRegistrationFormTest extends TestCase
             'no_wa',
             'no_rek',
             'jenis_bank',
-            'npwp',
         ];
-
-        if ($jenis !== 'Stakeholder') {
-            $expectedErrors[] = 'nuptk';
-        }
 
         $response
             ->assertRedirect(route('user.form_guru', $jenis))
@@ -145,6 +139,28 @@ class ExternalRegistrationFormTest extends TestCase
             ->assertSee('Nama lengkap wajib diisi.')
             ->assertSee('Email wajib diisi.')
             ->assertSee('Nomor KTP wajib diisi.');
+    }
+
+    /**
+     * @dataProvider externalTypes
+     */
+    public function test_each_external_form_accepts_empty_optional_identifiers(string $jenis): void
+    {
+        $data = $this->completeFormData($jenis);
+        $data['no_ktp'] = '3273012609260011';
+        $data['nip'] = '';
+        $data['npwp'] = '';
+        $data['nuptk'] = '';
+
+        $this->post(route('user.daftar_guru'), $data)
+            ->assertRedirect(route('user.guru'));
+
+        $this->assertDatabaseHas('gurus', [
+            'no_ktp' => $data['no_ktp'],
+            'nip' => null,
+            'npwp' => null,
+            'nuptk' => null,
+        ]);
     }
 
     /**
