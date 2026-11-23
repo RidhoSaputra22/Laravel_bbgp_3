@@ -304,7 +304,7 @@
                            const sudahTerdata = data.length > 0;
                            const pesan = sudahTerdata ?
                               `Anda belum terdaftar di kegiatan ini, tetapi terdata sebagai ${tipe}. Lanjut ke registrasi?` :
-                              'Peserta belum mendaftar dalam kegiatan ini. Silakan registrasi.';
+                              'Peserta belum terdata di data eksternal simbbgtksulsel . Silahkan mengisi data di data eskternal terlebih dahulu . Setelah itu anda kembali registrasi di kegiatan';
 
                            Swal.fire({
                               title: 'Warning',
@@ -313,7 +313,7 @@
                               showCancelButton: true,
                               confirmButtonColor: '#4040f5',
                               cancelButtonColor: '#ff3034',
-                              confirmButtonText: sudahTerdata ? 'Registrasi' : 'Daftar',
+                              confirmButtonText: sudahTerdata ? 'Registrasi' : 'Daftar Eksternal',
                               cancelButtonText: 'Tidak, terima kasih',
                            }).then((res) => {
                               if (res.isConfirmed) {
