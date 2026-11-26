@@ -182,7 +182,10 @@ func (d *Database) loadTargets(ctx context.Context, ids []int64) (map[int64]Targ
 			g.kategori_jabatan, g.tugas_jabatan, g.latar_jabatan, g.gender,
 			g.tempat_lahir, g.tgl_lahir, g.agama, g.pendidikan,
 			g.kabupaten, g.satuan_pendidikan, g.npsn_sekolah,
-			(SELECT s.nama_sekolah FROM sekolahs s WHERE s.npsn_sekolah = g.npsn_sekolah LIMIT 1),
+			COALESCE(
+				NULLIF(g.nama_sekolah, ''),
+				(SELECT s.nama_sekolah FROM sekolahs s WHERE s.npsn_sekolah = g.npsn_sekolah LIMIT 1)
+			),
 			g.alamat_satuan,
 			g.alamat_rumah, g.no_hp, g.no_wa, g.npwp, g.no_rek, g.jenis_bank,
 			attempt.structure_snapshot

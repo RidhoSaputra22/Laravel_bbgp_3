@@ -1769,7 +1769,7 @@ class AssessmentMonitoringService
 
     private function assignmentTargetSchoolSql(): string
     {
-        return "coalesce(nullif(trim(guru.satuan_pendidikan), ''), 'Satuan pendidikan belum diisi')";
+        return "coalesce(nullif(trim(guru.nama_sekolah), ''), nullif(trim(guru.satuan_pendidikan), ''), 'Satuan pendidikan belum diisi')";
     }
 
     private function assignmentTargetCompetencyScoreSql(KompetensiGuru $kompetensi): string

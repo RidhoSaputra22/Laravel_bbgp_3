@@ -86,6 +86,7 @@ class AssessmentAssignmentTargetDocumentBuilder
                 'kabupaten',
                 'satuan_pendidikan',
                 'npsn_sekolah',
+                'nama_sekolah',
                 'alamat_satuan',
                 'alamat_rumah',
                 'no_hp',
@@ -506,7 +507,8 @@ class AssessmentAssignmentTargetDocumentBuilder
         $user = $participant['user'];
 
         if (is_array($user)) {
-            $schoolName = trim((string) ($target->guru?->sekolah?->nama_sekolah
+            $schoolName = trim((string) ($target->guru?->nama_sekolah
+                ?: $target->guru?->sekolah?->nama_sekolah
                 ?: $target->guru?->satuan_pendidikan));
 
             $user['nama_sekolah'] = $schoolName !== '' ? $schoolName : null;

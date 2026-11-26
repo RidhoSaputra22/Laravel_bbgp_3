@@ -33,7 +33,7 @@ class SyncAssessmentSchoolMetadataToMongo extends Command
                 fn ($query, $targetId) => $query->whereKey((int) $targetId)
             )
             ->with([
-                'guru' => fn ($query) => $query->select(['id', 'npsn_sekolah', 'satuan_pendidikan']),
+                'guru' => fn ($query) => $query->select(['id', 'npsn_sekolah', 'nama_sekolah', 'satuan_pendidikan']),
                 'guru.sekolah' => fn ($query) => $query->select(['npsn_sekolah', 'nama_sekolah']),
             ]);
 
@@ -151,7 +151,8 @@ class SyncAssessmentSchoolMetadataToMongo extends Command
 
     private function schoolName(AssessmentAssignmentTarget $target): ?string
     {
-        $name = $target->guru?->sekolah?->nama_sekolah
+        $name = $target->guru?->nama_sekolah
+            ?: $target->guru?->sekolah?->nama_sekolah
             ?: $target->guru?->satuan_pendidikan;
         $name = trim((string) $name);
 
