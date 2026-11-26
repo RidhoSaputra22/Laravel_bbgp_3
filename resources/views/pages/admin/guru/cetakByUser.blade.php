@@ -132,7 +132,8 @@
             @if(isset($data))
                 <tr>
                     <td>1</td>
-                    <td>{{ $data->npsn_sekolah }} - {{ $data->sekolah->nama_sekolah ?? '' }}</td>
+                    <td>{{ $data->npsn_sekolah ?: '-' }} -
+                        {{ $data->nama_sekolah ?: ($data->sekolah?->nama_sekolah ?? '') }}</td>
                     <td>{{ $data->nama_lengkap }}</td>
                     <td>{{ $data->npwp }}</td>
                     <td>{{ $data->nuptk }}</td>

@@ -341,11 +341,11 @@ class KegiatanController extends Controller
                 'id', 'nama_lengkap', 'email', 'no_ktp', 'nip', 'tempat_lahir',
                 'tgl_lahir', 'gender', 'jabatan', 'status', 'agama', 'pendidikan',
                 'kabupaten', 'kabupaten_rumah', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
-                'no_hp', 'no_wa', 'npsn_sekolah', 'nuptk', 'eksternal_jabatan',
+                'no_hp', 'no_wa', 'npsn_sekolah', 'nama_sekolah', 'nuptk', 'eksternal_jabatan',
                 'tugas_jabatan', 'jenis_bank', 'no_rek', 'npwp',
             ])->where('no_ktp', $nik)->first();
             if($guru != null){
-                $instansi = $guru->sekolah->nama_sekolah ?? '';
+                $instansi = $guru->nama_sekolah ?: ($guru->sekolah?->nama_sekolah ?? '');
                 $jabatan = $guru->eksternal_jabatan ?? '';
 
                 foreach (['npwp', 'kabupaten_rumah'] as $field) {
@@ -388,10 +388,10 @@ class KegiatanController extends Controller
                     'id', 'nama_lengkap', 'email', 'no_ktp', 'nip', 'tempat_lahir',
                     'tgl_lahir', 'gender', 'jabatan', 'status', 'agama', 'pendidikan',
                     'kabupaten', 'kabupaten_rumah', 'satuan_pendidikan', 'alamat_satuan', 'alamat_rumah',
-                    'no_hp', 'no_wa', 'npsn_sekolah', 'nuptk', 'eksternal_jabatan',
+                    'no_hp', 'no_wa', 'npsn_sekolah', 'nama_sekolah', 'nuptk', 'eksternal_jabatan',
                     'tugas_jabatan', 'status_kepegawaian', 'jenis_bank', 'no_rek', 'npwp',
                 ])->where('no_ktp', $nik)->first();
-                $instansi = $peserta?->sekolah?->nama_sekolah ?? '';
+                $instansi = $peserta?->nama_sekolah ?: ($peserta?->sekolah?->nama_sekolah ?? '');
             }
 
             $status = false;

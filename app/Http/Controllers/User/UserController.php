@@ -84,7 +84,7 @@ class UserController extends Controller
     public function guru(Request $request)
     {
         if ($request->ajax()) {
-            $data = Guru::select('npsn_sekolah', 'nama_lengkap', 'status_kepegawaian', 'eksternal_jabatan', 'kategori_jabatan', 'jenis_jabatan', 'tugas_jabatan', 'latar_jabatan')
+            $data = Guru::with('sekolah')->select('npsn_sekolah', 'nama_sekolah', 'nama_lengkap', 'status_kepegawaian', 'eksternal_jabatan', 'kategori_jabatan', 'jenis_jabatan', 'tugas_jabatan', 'latar_jabatan')
                 ->when($request->kabupaten, function ($query) use ($request) {
                     return $query->where('kabupaten', $request->kabupaten);
                 })
@@ -182,7 +182,7 @@ class UserController extends Controller
             'data' => $data->map(function ($item, $index) use ($request) {
                 return [
                     'DT_RowIndex' => (int)$request->get('start', 0) + $index + 1,
-                    'npsn_sekolah' => $item->npsn_sekolah . '<br>' . ($item->sekolah->nama_sekolah ?? ''),
+                    'npsn_sekolah' => ($item->npsn_sekolah ?: '-') . '<br>' . ($item->nama_sekolah ?: ($item->sekolah?->nama_sekolah ?? '')),
                     'nama_lengkap' => $item->nama_lengkap,
                     'status_kepegawaian' => $item->status_kepegawaian,
                     'eksternal_jabatan' => $item->eksternal_jabatan,
@@ -325,7 +325,10 @@ class UserController extends Controller
             'jabLatar' => 'nullable|string|max:255',
             'email' => 'required|email|max:255',
             'nip' => 'nullable|digits:18',
-            'npsn_sekolah' => 'nullable|digits:8',
+            'npsn_sekolah' => $request->input('npsn_sekolah') === 'lainnya'
+                ? ['nullable', 'in:lainnya']
+                : ['nullable', 'digits:8'],
+            'nama_sekolah' => ['nullable', 'string', 'max:255', Rule::requiredIf($request->input('npsn_sekolah') === 'lainnya')],
             'tempat_lahir' => 'required|string|max:255',
             'tgl_lahir' => 'required|date|before:today',
             'gender' => 'required|string|in:Laki-laki,Perempuan',
@@ -354,6 +357,12 @@ class UserController extends Controller
             'npwp' => 'nullable|digits_between:15,16',
             'nuptk' => 'nullable|digits:16',
         ]);
+
+        $manualSchool = ($r['npsn_sekolah'] ?? null) === 'lainnya';
+        $r['npsn_sekolah'] = $manualSchool ? null : ($r['npsn_sekolah'] ?? null);
+        if (!$manualSchool) {
+            unset($r['nama_sekolah']);
+        }
 
 
 
@@ -492,12 +501,22 @@ class UserController extends Controller
         ])['id'];
         $peserta = Guru::select([
             'id', 'nama_lengkap', 'gender', 'status_kepegawaian', 'kabupaten',
-            'npsn_sekolah', 'eksternal_jabatan', 'jenis_jabatan',
+            'npsn_sekolah', 'nama_sekolah', 'eksternal_jabatan', 'jenis_jabatan',
         ])->findOrFail($pesertaId);
+
+        $sekolah = $peserta->sekolah?->only(['npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten']);
+        if (!$sekolah && $peserta->nama_sekolah) {
+            $sekolah = [
+                'npsn_sekolah' => null,
+                'nama_sekolah' => $peserta->nama_sekolah,
+                'kecamatan' => null,
+                'kabupaten' => null,
+            ];
+        }
 
         return response()->json([
             'data' => $peserta,
-            'sekolah' => $peserta->sekolah?->only(['npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten']),
+            'sekolah' => $sekolah,
         ]);
     }
 

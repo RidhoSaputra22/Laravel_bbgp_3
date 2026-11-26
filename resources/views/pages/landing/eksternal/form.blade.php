@@ -394,6 +394,9 @@
                             <select {{ $jenis == 'Stakeholder' ? '' : '' }} name="npsn_sekolah" class="form-control"
                                 id="data_sekolah" onchange="updateLocation()">
                                 <option value="">-- Pilih Data Sekolah --</option>
+                                <option value="lainnya" {{ old('npsn_sekolah') === 'lainnya' ? 'selected' : '' }}>
+                                    Lainnya (Ketik Nama Sekolah)
+                                </option>
 
                             </select>
                             @error('npsn_sekolah')
@@ -423,6 +426,18 @@
 
                     </div>
 
+                    <div class="row">
+                        <div class="col-md-4 mb-4" id="nama_sekolah_lainnya_field"
+                            style="{{ old('npsn_sekolah') === 'lainnya' ? '' : 'display: none;' }}">
+                            <label for="nama_sekolah">Nama Sekolah</label>
+                            <input id="nama_sekolah" type="text" name="nama_sekolah" class="form-control"
+                                placeholder="Ketik nama sekolah" value="{{ old('nama_sekolah') }}">
+                            @error('nama_sekolah')
+                                <small class="text-danger d-block mt-1">{{ $message }}</small>
+                            @enderror
+                        </div>
+                    </div>
+
 
 
 
@@ -444,14 +459,25 @@
                 const kecamatanInput = document.getElementById('kecamatan_sekolah');
                 const kabupatenInput = document.getElementById('kabupaten_sekolah');
 
-                if (selectedOption) {
+                if (selectedOption && selectedOption.id !== 'lainnya') {
                     var kecamatan = selectedOption.kecamatan;
                     var kabupaten = selectedOption.kabupaten;
 
-                    kecamatanInput.value = kecamatan
-                    kabupatenInput.value = kabupaten
+                    kecamatanInput.value = kecamatan || '';
+                    kabupatenInput.value = kabupaten || '';
+                } else {
+                    kecamatanInput.value = '';
+                    kabupatenInput.value = '';
+                }
+            }
 
-                    // Update the location based on selected kecamatan and kabupaten
+            function toggleManualSchool() {
+                const isManual = $('#data_sekolah').val() === 'lainnya';
+                $('#nama_sekolah_lainnya_field').toggle(isManual);
+                $('#nama_sekolah').prop('required', isManual);
+
+                if (!isManual) {
+                    $('#nama_sekolah').val('');
                 }
             }
         </script>
@@ -501,14 +527,17 @@
                             params.page = params.page || 1;
 
                             return {
-                                results: $.map(data.data, function(item) {
+                                results: [{
+                                    id: 'lainnya',
+                                    text: 'Lainnya (Ketik Nama Sekolah)'
+                                }].concat($.map(data.data, function(item) {
                                     return {
                                         id: item.npsn_sekolah,
                                         text: item.npsn_sekolah + ' - ' + item.nama_sekolah,
                                         kecamatan: item.kecamatan,
                                         kabupaten: item.kabupaten
                                     }
-                                }),
+                                })),
                                 pagination: {
                                     more: (params.page * data.per_page) < data.total
                                 }
@@ -521,6 +550,13 @@
                     templateResult: formatSekolah,
                     templateSelection: formatSekolahSelection
                 });
+
+                $('#data_sekolah').on('change', function() {
+                    toggleManualSchool();
+                    updateLocation();
+                });
+                toggleManualSchool();
+                updateLocation();
 
                 function formatSekolah(sekolah) {
                     if (sekolah.loading) {

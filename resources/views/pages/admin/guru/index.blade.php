@@ -178,11 +178,12 @@
                         '';
                      const namaSekolah = response.sekolah?.nama_sekolah || response.data?.satuan_pendidikan || '';
                      const npsnSekolah = response.sekolah?.npsn_sekolah || response.data?.npsn_sekolah || '';
+                     const npsnLabel = npsnSekolah ? ` (${escapeHtml(npsnSekolah)})` : '';
 
                      $('#pegawaiDetailContent').html(`
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>NPSN Sekolah:</strong> ${escapeHtml(namaSekolah)} (${escapeHtml(npsnSekolah)})</p>
+                                        <p><strong>NPSN Sekolah:</strong> ${escapeHtml(namaSekolah)}${npsnLabel}</p>
                                         <p><strong>Nama Lengkap:</strong> ${escapeHtml(response.data?.nama_lengkap)}</p>
                                         <p><strong>NIK:</strong> ${escapeHtml(response.data?.no_ktp)}</p>
                                         <p><strong>NIP:</strong> ${escapeHtml(response.data?.nip)}</p>

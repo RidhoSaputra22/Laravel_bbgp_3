@@ -163,6 +163,14 @@ class GuruController extends Controller
         $sekolah = $peserta->sekolah?->only([
             'npsn_sekolah', 'nama_sekolah', 'kecamatan', 'kabupaten',
         ]);
+        if (!$sekolah && $peserta->nama_sekolah) {
+            $sekolah = [
+                'npsn_sekolah' => null,
+                'nama_sekolah' => $peserta->nama_sekolah,
+                'kecamatan' => null,
+                'kabupaten' => null,
+            ];
+        }
 
         return response()->json([
             'data' => $peserta,
@@ -473,12 +481,15 @@ class GuruController extends Controller
             ->leftJoinSub($schoolNames, 'sekolahs', function ($join) {
                 $join->on('gurus.npsn_sekolah', '=', 'sekolahs.npsn_sekolah');
             })
-            ->select('gurus.*', 'sekolahs.nama_sekolah');
+            ->select('gurus.*', 'sekolahs.nama_sekolah as master_nama_sekolah');
 
         $totalRecords = $this->scopedGurus()->count('gurus.id');
 
         if ($request->nama_sekolah) {
-            $query->where('sekolahs.nama_sekolah', 'like', '%' . $request->nama_sekolah . '%');
+            $query->where(function ($query) use ($request) {
+                $query->where('gurus.nama_sekolah', 'like', '%' . $request->nama_sekolah . '%')
+                    ->orWhere('sekolahs.nama_sekolah', 'like', '%' . $request->nama_sekolah . '%');
+            });
         }
 
         if ($request->filled('nama_lengkap')) {
@@ -537,7 +548,7 @@ class GuruController extends Controller
                     'nama_lengkap' => $item->nama_lengkap,
                     'no_ktp' => $item->no_ktp,
                     'npsn_sekolah' => $item->npsn_sekolah,
-                    'nama_sekolah' => $item->nama_sekolah,
+                    'nama_sekolah' => $item->nama_sekolah ?: $item->master_nama_sekolah,
                     'kabupaten' => $item->kabupaten,
                     'status_kepegawaian' => $item->status_kepegawaian,
                     'eksternal_jabatan' => $item->eksternal_jabatan,
