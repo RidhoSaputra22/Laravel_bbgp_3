@@ -349,6 +349,33 @@
                            </div>
                         @endif
 
+                        <form method="GET" action="{{ route('rtl.index') }}" class="mb-4">
+                           <label for="kegiatan_id">Filter Kegiatan</label>
+                           <div class="form-row">
+                              <div class="col-md-8">
+                                 <select name="kegiatan_id" id="kegiatan_id" class="form-control">
+                                    <option value="">Semua Kegiatan</option>
+                                    @foreach ($kegiatans as $kegiatan)
+                                       <option value="{{ $kegiatan->id }}"
+                                          {{ (string) $selectedKegiatanId === (string) $kegiatan->id ? 'selected' : '' }}>
+                                          {{ $kegiatan->nama_kegiatan }}
+                                       </option>
+                                    @endforeach
+                                 </select>
+                              </div>
+                              <div class="col-md-2">
+                                 <button type="submit" class="btn btn-primary btn-block">
+                                    <i class="fas fa-filter mr-1"></i> Filter
+                                 </button>
+                              </div>
+                              @if ($selectedKegiatanId)
+                                 <div class="col-md-2">
+                                    <a href="{{ route('rtl.index') }}" class="btn btn-light btn-block">Reset</a>
+                                 </div>
+                              @endif
+                           </div>
+                        </form>
+
                         <div class="table-responsive">
                            <table class="table table-striped" id="table-rtl-admin">
                               <thead>

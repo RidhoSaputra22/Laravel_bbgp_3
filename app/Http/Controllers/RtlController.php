@@ -14,16 +14,27 @@ use Illuminate\Support\Facades\Storage;
 
 class RtlController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $role = session('role');
         $no_ktp = session('no_ktp');
 
         if (in_array($role, ['admin', 'superadmin', 'kepala', 'database', 'panitia'], true)) {
-            $rtls = Rtl::with(['kegiatan', 'user', 'documents'])->orderByDesc('created_at')->get();
+            $filters = $request->validate([
+                'kegiatan_id' => ['nullable', 'integer', 'exists:kegiatans,id'],
+            ]);
+            $kegiatanId = $filters['kegiatan_id'] ?? null;
+
+            $rtlQuery = Rtl::with(['kegiatan', 'user', 'documents'])->orderByDesc('created_at');
+            if ($kegiatanId) {
+                $rtlQuery->where('id_kegiatan', $kegiatanId);
+            }
+
             return view('pages.admin.rtl.index', [
                 'menu' => 'rtl',
-                'datas' => $rtls
+                'datas' => $rtlQuery->get(),
+                'kegiatans' => Kegiatan::query()->orderBy('nama_kegiatan')->get(['id', 'nama_kegiatan']),
+                'selectedKegiatanId' => $kegiatanId,
             ]);
         } else {
             // External roles

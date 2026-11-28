@@ -453,6 +453,35 @@ class AdminCoreFeaturesTest extends TestCase
         ]);
     }
 
+    public function test_rtl_admin_can_filter_submissions_by_activity(): void
+    {
+        $matchingActivity = Kegiatan::query()->create([
+            'nama_kegiatan' => 'RTL Filter Match '.uniqid(),
+            'tempat_kegiatan' => 'Makassar',
+            'tgl_kegiatan' => '2026-10-01',
+            'jam_mulai' => '08:00',
+            'status' => 'true',
+        ]);
+        $otherActivity = Kegiatan::query()->create([
+            'nama_kegiatan' => 'RTL Filter Other '.uniqid(),
+            'tempat_kegiatan' => 'Makassar',
+            'tgl_kegiatan' => '2026-10-02',
+            'jam_mulai' => '08:00',
+            'status' => 'true',
+        ]);
+
+        Rtl::query()->create(['no_ktp' => '8877665544332211', 'id_kegiatan' => $matchingActivity->id]);
+        Rtl::query()->create(['no_ktp' => '9988776655443322', 'id_kegiatan' => $otherActivity->id]);
+
+        $response = $this->withSession($this->adminSession())
+            ->get(route('rtl.index', ['kegiatan_id' => $matchingActivity->id]))
+            ->assertOk();
+
+        $filteredRtLs = $response->viewData('datas');
+        $this->assertCount(1, $filteredRtLs);
+        $this->assertSame($matchingActivity->id, $filteredRtLs->first()->id_kegiatan);
+    }
+
     public function test_rtl_certificate_rejects_excessive_manual_line_breaks(): void
     {
         $activity = Kegiatan::query()->create([
