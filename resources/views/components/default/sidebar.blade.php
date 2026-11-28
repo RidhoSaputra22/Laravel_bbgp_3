@@ -319,10 +319,16 @@
                </a>
             </li>
 
-            <li class="{{ $menu == 'internal' ? 'active' : '' }}">
-               <a class="nav-link" href="{{ route('internal.index') }}">
-                  <i class="fas fa-users"></i> <span>Data Internal</span>
-               </a>
+            <li class="nav-item dropdown {{ $menu == 'pegawai' ? 'active' : '' }}">
+               <a href="#" class="nav-link has-dropdown"><i class="fas fa-sitemap"></i>
+                  <span>Master Data</span></a>
+               <ul class="dropdown-menu">
+                  <li class="{{ $menu == 'pegawai' ? 'active' : '' }}">
+                     <a class="nav-link" href="{{ route('pegawai.index') }}">
+                        Data Pegawai BBPG
+                     </a>
+                  </li>
+               </ul>
             </li>
 
             <li class="nav-item dropdown {{ $menu == 'kegiatan' || $menu == 'peserta' ? 'active' : '' }}">

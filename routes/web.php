@@ -179,14 +179,16 @@ Route::group(
 
             // Pegawai
             Route::prefix('pegawai')->group(function () {
-                Route::get('/', 'PegawaiController@index')->name('pegawai.index')->middleware('AdminOnly');
-                Route::get('/create', 'PegawaiController@create')->name('pegawai.create')->middleware('AdminOnly');
-                Route::post('/store', 'PegawaiController@store')->name('pegawai.store')->middleware('AdminOnly');
-                Route::post('/verifikasi/{id}', 'PegawaiController@verifikasi')->name('pegawai.verifikasi')->middleware('AdminOnly');
-                Route::get('/show', 'PegawaiController@showPegawai')->name('admin.pegawai.detail')->middleware('AdminOnly');
-                Route::get('/edit/{id}', 'PegawaiController@edit')->name('pegawai.edit')->middleware('AdminOnly');
-                Route::put('/update', 'PegawaiController@update')->name('pegawai.update')->middleware('AdminOnly');
-                Route::post('/hapus/{id}', 'PegawaiController@destroy')->name('pegawai.hapus')->middleware('AdminOnly');
+                Route::middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,panitia')->group(function () {
+                    Route::get('/', 'PegawaiController@index')->name('pegawai.index');
+                    Route::get('/create', 'PegawaiController@create')->name('pegawai.create');
+                    Route::post('/store', 'PegawaiController@store')->name('pegawai.store');
+                    Route::post('/verifikasi/{id}', 'PegawaiController@verifikasi')->name('pegawai.verifikasi');
+                    Route::get('/show', 'PegawaiController@showPegawai')->name('admin.pegawai.detail');
+                    Route::get('/edit/{id}', 'PegawaiController@edit')->name('pegawai.edit');
+                    Route::put('/update', 'PegawaiController@update')->name('pegawai.update');
+                    Route::post('/hapus/{id}', 'PegawaiController@destroy')->name('pegawai.hapus');
+                });
 
                 // untuk login pegawai by user
                 Route::get('/{id}', 'PegawaiController@show')->name('pegawai.show');
@@ -197,8 +199,8 @@ Route::group(
                 Route::put('/updateUser', 'PegawaiController@updateUser')->name('pegawai.update.user');
                 Route::get('/detailUser', 'PegawaiController@detailUser')->name('pegawai.detail.user');
 
-                Route::get('/penugasan/{id}', 'PegawaiController@editPenugasan')->name('pegawai.editPenugasan')->middleware('AdminOnly');
-                Route::get('/pendamping/{id}', 'PegawaiController@editPendamping')->name('pegawai.editPendamping')->middleware('AdminOnly');
+                Route::get('/penugasan/{id}', 'PegawaiController@editPenugasan')->name('pegawai.editPenugasan')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,panitia');
+                Route::get('/pendamping/{id}', 'PegawaiController@editPendamping')->name('pegawai.editPendamping')->middleware('AdminOnly:admin,superadmin,kepala,database,kepegawaian,panitia');
             });
 
             // Berkas
